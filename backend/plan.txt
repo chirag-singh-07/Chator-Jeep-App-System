@@ -1,0 +1,1344 @@
+# Backend Models
+
+# 🗄️ Database Modeling Plan – Cloud Kitchen Platform
+
+---
+
+# 🧠 1. Core Design Principles
+
+- Use **MongoDB (document-based)** properly (don’t treat like SQL)
+- Keep **Order as the central entity**
+- Use **references (ObjectId)** for relations
+- Use **GeoJSON for location-based queries**
+- Design for **real-time + high write operations**
+
+---
+
+# 🧩 2. Main Collections Overview
+
+## Core Entities
+
+- Users
+- Kitchens
+- MenuItems
+- Orders
+- Deliveries
+- Payments
+- Reviews
+
+---
+
+# 👤 3. Users Collection
+
+### Roles:
+
+- USER (customer)
+- KITCHEN (owner)
+- DELIVERY (rider)
+- ADMIN
+
+### Contains:
+
+- Basic info (name, email, phone)
+- Role
+- Addresses (with location)
+- Auth data
+
+👉 Used by ALL systems
+
+---
+
+# 🍳 4. Kitchens Collection
+
+### Represents:
+
+Restaurant / cloud kitchen
+
+### Contains:
+
+- Owner reference (User)
+- Location (GeoJSON)
+- Cuisine types
+- Open/Close status
+- Ratings
+
+👉 Queried frequently by users (optimize this)
+
+---
+
+# 🍔 5. MenuItems Collection
+
+### Contains:
+
+- Kitchen reference
+- Name, price
+- Category (veg, fast food, etc.)
+- Availability
+- Image
+
+👉 Keep separate (don’t embed in kitchen → better scalability)
+
+---
+
+# 📦 6. Orders Collection (MOST IMPORTANT)
+
+### Central system entity
+
+### Contains:
+
+- userId
+- kitchenId
+- items (snapshot of menu)
+- totalAmount
+- paymentStatus
+- orderStatus
+- deliveryId
+
+### Status Flow:
+
+- PENDING
+- ACCEPTED
+- PREPARING
+- READY
+- OUT_FOR_DELIVERY
+- DELIVERED
+- CANCELLED
+
+👉 This drives:
+
+- sockets
+- notifications
+- delivery system
+
+---
+
+# 🛵 7. Deliveries Collection
+
+### Contains:
+
+- riderId
+- orderId
+- currentLocation (live updates)
+- status
+- timestamps
+
+👉 Used for:
+
+- tracking
+- assignment logic
+
+---
+
+# 💳 8. Payments Collection
+
+### Contains:
+
+- orderId
+- paymentProvider (Razorpay/Stripe)
+- transactionId
+- status
+- amount
+
+👉 Important for:
+
+- refunds
+- verification
+- audit logs
+
+---
+
+# ⭐ 9. Reviews Collection
+
+### Contains:
+
+- userId
+- kitchenId
+- rating
+- comment
+
+👉 Used to update:
+
+- kitchen.rating
+- recommendation system (future)
+
+---
+
+# 🔄 10. Relationships (Important)
+
+- User → Orders (1:N)
+- Kitchen → MenuItems (1:N)
+- Kitchen → Orders (1:N)
+- Order → Delivery (1:1)
+- Order → Payment (1:1)
+
+---
+
+# 📍 11. Geo & Index Strategy (CRITICAL)
+
+Use GeoJSON in:
+
+- Users (addresses)
+- Kitchens
+- Delivery (live tracking)
+
+Indexes:
+
+- 2dsphere → location
+- orderStatus → fast filtering
+- kitchenId → menu queries
+- rider availability
+
+---
+
+# ⚡ 12. Real-Time Impact on DB
+
+Avoid:
+
+❌ Updating whole documents frequently
+
+Do:
+
+✅ Update only location fields
+
+✅ Keep delivery tracking lightweight
+
+---
+
+# 🧵 13. Scaling Considerations
+
+Future:
+
+- Split Orders into microservice
+- Use Redis for caching menus
+- Use queues for heavy operations
+
+---
+
+# ⚠️ 14. Common Mistakes (Avoid)
+
+❌ Embedding large menu inside kitchen
+
+❌ No indexing → slow queries
+
+❌ Mixing order & payment logic badly
+
+❌ Not storing order snapshot
+
+---
+
+# 🧠 Final Thought
+
+If your **Orders + Delivery + Location** design is correct:
+
+👉 80% of your system is already solid
+
+If it's wrong:
+
+👉 Everything breaks (tracking, payments, UX)
+
+
+
+# Backend Plan
+
+# 🚀 Backend System Plan – Cloud Kitchen Platform
+
+---
+
+# 🧱 1. Folder Structure (Scalable)
+
+```
+src/
+ ├── config/
+ │    ├── db.js
+ │    ├── redis.js
+ │    └── env.js
+ │
+ ├── modules/
+ │    ├── auth/
+ │    ├── user/
+ │    ├── kitchen/
+ │    ├── order/
+ │    ├── delivery/
+ │    ├── payment/
+ │    └── notification/
+ │
+ ├── common/
+ │    ├── middleware/
+ │    ├── utils/
+ │    ├── constants/
+ │    └── errors/
+ │
+ ├── sockets/
+ │    ├── index.js
+ │    ├── order.socket.js
+ │    └── delivery.socket.js
+ │
+ ├── jobs/
+ │    ├── queues/
+ │    └── workers/
+ │
+ ├── routes/
+ │    └── index.js
+ │
+ ├── app.js
+ └── server.js
+```
+
+---
+
+# 🧠 2. Architecture Pattern
+
+Follow **Modular + Layered Architecture**
+
+Each module:
+
+```
+module/
+ ├── controller.js
+ ├── service.js
+ ├── repository.js
+ ├── model.js
+ ├── routes.js
+ └── validation.js
+```
+
+### Responsibilities
+
+- Controller → request/response
+- Service → business logic (IMPORTANT)
+- Repository → DB queries only
+- Model → schema
+- Validation → request validation
+
+---
+
+# 🔐 3. Authentication System (Proper)
+
+## Tokens
+
+- Access Token (15 min)
+- Refresh Token (7–30 days)
+
+## Flow
+
+1. User logs in
+2. Server returns access + refresh
+3. Access expires → use refresh
+4. Store refresh token in DB
+
+## Middleware
+
+- `authMiddleware`
+- `roleMiddleware(['ADMIN', 'KITCHEN'])`
+
+---
+
+# 🗄️ 4. Database Design (Mongoose)
+
+## User
+
+```
+{
+ name,
+ email,
+ password,
+ role,
+ phone,
+ addresses: [],
+ createdAt
+}
+```
+
+## Kitchen
+
+```
+{
+ name,
+ ownerId,
+ location: { type: "Point", coordinates: [lng, lat] },
+ isOpen,
+ rating
+}
+```
+
+## Order
+
+```
+{
+ userId,
+ kitchenId,
+ items: [],
+ totalAmount,
+ status,
+ paymentStatus,
+ deliveryId
+}
+```
+
+## Delivery
+
+```
+{
+ riderId,
+ orderId,
+ status,
+ currentLocation,
+ isAvailable
+}
+```
+
+👉 Add **indexes on location + status** (critical for performance)
+
+---
+
+# 🔄 5. Order Lifecycle Engine (CORE LOGIC)
+
+Statuses:
+
+```
+PENDING
+ACCEPTED
+PREPARING
+READY
+OUT_FOR_DELIVERY
+DELIVERED
+CANCELLED
+```
+
+Rules:
+
+- Only kitchen → ACCEPT / REJECT
+- Only rider → OUT_FOR_DELIVERY → DELIVERED
+- Auto cancel if not accepted in X mins
+
+👉 Keep all logic inside `order.service.js`
+
+---
+
+# ⚡ 6. Real-Time System (Socket.io)
+
+## Rooms Strategy
+
+```
+user_{userId}
+kitchen_{kitchenId}
+rider_{riderId}
+```
+
+## Events
+
+- order:created
+- order:accepted
+- order:status_update
+- delivery:location_update
+
+## Flow Example
+
+User places order → emit to kitchen
+
+Kitchen accepts → emit to user
+
+Rider moves → emit live location
+
+---
+
+# 🧠 7. Delivery Assignment Logic
+
+## MVP (Simple)
+
+- Find nearest rider using Geo query
+- Filter: isAvailable = true
+- Assign first match
+
+## Query Example
+
+```
+$near: {
+  $geometry: { type: "Point", coordinates },
+  $maxDistance: 5000
+}
+```
+
+## Future
+
+- Auto batching
+- Smart routing
+- ETA prediction
+
+---
+
+# 🧵 8. Background Jobs (VERY IMPORTANT)
+
+Use:
+
+- Redis
+- BullMQ
+
+## Jobs
+
+- Auto cancel orders
+- Assign delivery (async)
+- Send notifications
+- Payment verification
+
+---
+
+# 🔔 9. Notification System (FCM)
+
+Trigger from services:
+
+- Order placed → kitchen
+- Accepted → user
+- Assigned → rider
+- Delivered → user
+
+---
+
+# 💳 10. Payment Flow
+
+## Razorpay (Recommended for India)
+
+Flow:
+
+1. Create order (backend)
+2. Send order_id to frontend
+3. Payment success → webhook
+4. Verify signature
+5. Update order
+
+---
+
+# 📦 11. API Design Strategy
+
+Use versioning:
+
+```
+/api/v1/auth
+/api/v1/orders
+```
+
+## Best Practices
+
+- Pagination
+- Filtering
+- Proper status codes
+- Central error handler
+
+---
+
+# 🛡️ 12. Security Layer
+
+- bcrypt (password hashing)
+- helmet
+- rate limiter
+- CORS config
+- sanitize inputs
+
+---
+
+# 🚀 13. Performance Optimization
+
+- Redis caching (menus, kitchens)
+- DB indexing
+- Avoid heavy joins
+- Pagination everywhere
+
+---
+
+# 📊 14. Logging & Monitoring
+
+- Winston (logs)
+- Morgan (HTTP logs)
+- Sentry (errors)
+
+---
+
+# 🚀 15. Deployment Setup
+
+- PM2 → process manager
+- Nginx → reverse proxy
+- MongoDB Atlas
+- Redis (Upstash)
+
+---
+
+# ⚠️ 16. Common Mistakes (Avoid These)
+
+❌ Putting logic in controllers
+
+❌ No indexing → slow queries
+
+❌ No queue system
+
+❌ Blocking operations in API
+
+❌ No role-based checks
+
+---
+
+# 🧠 Final Reality Check
+
+This backend is:
+
+- Real-time
+- Multi-role
+- Location-based
+- Payment-integrated
+
+👉 Build in this order:
+
+1. Auth
+2. Kitchen + Menu
+3. Orders (without delivery)
+4. Delivery system
+5. Realtime
+6. Payments
+
+---
+
+[Working System of Backend ](https://www.notion.so/Working-System-of-Backend-3453b9b58f1280a8a47fecc468dd18b1?pvs=21)
+
+
+
+
+# Working System of Backend
+
+---
+
+## 🧱 1. Final Folder Structure (USE THIS EXACTLY)
+
+```
+src/
+ ├── config/
+ │    ├── db.js
+ │    ├── redis.js
+ │    └── env.js
+ │
+ ├── modules/
+ │    ├── auth/
+ │    │    ├── auth.controller.js
+ │    │    ├── auth.service.js
+ │    │    ├── auth.repository.js
+ │    │    ├── auth.model.js
+ │    │    ├── auth.routes.js
+ │    │    └── auth.validation.js
+ │    │
+ │    ├── user/
+ │    ├── kitchen/
+ │    ├── order/
+ │    ├── delivery/
+ │    ├── payment/
+ │    └── notification/
+ │
+ ├── common/
+ │    ├── middleware/
+ │    │    ├── auth.middleware.js
+ │    │    ├── role.middleware.js
+ │    │    └── error.middleware.js
+ │    │
+ │    ├── utils/
+ │    │    ├── jwt.js
+ │    │    └── hash.js
+ │    │
+ │    ├── constants/
+ │    └── errors/
+ │
+ ├── sockets/
+ │    ├── index.js
+ │    └── events.js
+ │
+ ├── jobs/
+ │    ├── queues/
+ │    └── workers/
+ │
+ ├── routes/
+ │    └── index.js
+ │
+ ├── app.js
+ └── server.js
+```
+
+---
+
+## ⚙️ 2. Core Setup Files
+
+### `server.js`
+
+```jsx
+require('dotenv').config();
+const http = require('http');
+const app = require('./app');
+const connectDB = require('./config/db');
+const { initSocket } = require('./sockets');
+
+const PORT = process.env.PORT || 5000;
+
+(async () => {
+  await connectDB();
+
+  const server = http.createServer(app);
+
+  // Init Socket.io
+  initSocket(server);
+
+  server.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+  });
+})();
+```
+
+---
+
+### `app.js`
+
+```jsx
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
+
+const routes = require('./routes');
+const errorHandler = require('./common/middleware/error.middleware');
+
+const app = express();
+
+app.use(cors());
+app.use(helmet());
+app.use(express.json());
+app.use(morgan('dev'));
+
+app.use('/api/v1', routes);
+
+app.use(errorHandler);
+
+module.exports = app;
+```
+
+---
+
+## 🗄️ 3. Database Config
+
+### `config/db.js`
+
+```jsx
+const mongoose = require('mongoose');
+
+module.exports = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('✅ MongoDB Connected');
+  } catch (err) {
+    console.error(err);
+    process.exit(1);
+  }
+};
+```
+
+---
+
+## 🔐 4. Auth Utilities
+
+### `common/utils/jwt.js`
+
+```jsx
+const jwt = require('jsonwebtoken');
+
+exports.generateToken = (payload) => {
+  return jwt.sign(payload, process.env.JWT_SECRET, {
+    expiresIn: '15m',
+  });
+};
+```
+
+### `common/utils/hash.js`
+
+```jsx
+const bcrypt = require('bcrypt');
+
+exports.hashPassword = (password) => bcrypt.hash(password, 10);
+exports.comparePassword = (password, hash) => bcrypt.compare(password, hash);
+```
+
+---
+
+## 🛡️ 5. Middleware
+
+### `auth.middleware.js`
+
+```jsx
+const jwt = require('jsonwebtoken');
+
+module.exports = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch {
+    res.status(401).json({ message: 'Invalid token' });
+  }
+};
+```
+
+---
+
+### `role.middleware.js`
+
+```jsx
+module.exports = (roles = []) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+    next();
+  };
+};
+```
+
+---
+
+### `error.middleware.js`
+
+```jsx
+module.exports = (err, req, res, next) => {
+  console.error(err);
+
+  res.status(err.status || 500).json({
+    message: err.message || 'Internal Server Error',
+  });
+};
+```
+
+---
+
+## 📦 6. Route Loader
+
+### `routes/index.js`
+
+```jsx
+const router = require('express').Router();
+
+router.use('/auth', require('../modules/auth/auth.routes'));
+
+// future
+// router.use('/orders', require('../modules/order/order.routes'));
+
+module.exports = router;
+```
+
+---
+
+## 🧩 7. AUTH MODULE (Fully Ready)
+
+### `auth.model.js`
+
+```jsx
+const mongoose = require('mongoose');
+
+const schema = new mongoose.Schema(
+  {
+    name: String,
+    email: { type: String, unique: true },
+    password: String,
+    role: {
+      type: String,
+      enum: ['USER', 'KITCHEN', 'DELIVERY', 'ADMIN'],
+      default: 'USER',
+    },
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model('User', schema);
+```
+
+---
+
+### `auth.repository.js`
+
+```jsx
+const User = require('./auth.model');
+
+exports.createUser = (data) => User.create(data);
+exports.findByEmail = (email) => User.findOne({ email });
+```
+
+---
+
+### `auth.service.js`
+
+```jsx
+const repo = require('./auth.repository');
+const { hashPassword, comparePassword } = require('../../common/utils/hash');
+const { generateToken } = require('../../common/utils/jwt');
+
+exports.register = async (data) => {
+  const hashed = await hashPassword(data.password);
+  return repo.createUser({ ...data, password: hashed });
+};
+
+exports.login = async ({ email, password }) => {
+  const user = await repo.findByEmail(email);
+  if (!user) throw new Error('User not found');
+
+  const isMatch = await comparePassword(password, user.password);
+  if (!isMatch) throw new Error('Invalid credentials');
+
+  const token = generateToken({
+    id: user._id,
+    role: user.role,
+  });
+
+  return { user, token };
+};
+```
+
+---
+
+### `auth.controller.js`
+
+```jsx
+const service = require('./auth.service');
+
+exports.register = async (req, res, next) => {
+  try {
+    const user = await service.register(req.body);
+    res.json(user);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.login = async (req, res, next) => {
+  try {
+    const data = await service.login(req.body);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+```
+
+---
+
+### `auth.routes.js`
+
+```jsx
+const router = require('express').Router();
+const ctrl = require('./auth.controller');
+
+router.post('/register', ctrl.register);
+router.post('/login', ctrl.login);
+
+module.exports = router;
+```
+
+---
+
+## ⚡ 8. Socket Setup
+
+### `sockets/index.js`
+
+```jsx
+const { Server } = require('socket.io');
+
+let io;
+
+exports.initSocket = (server) => {
+  io = new Server(server, {
+    cors: { origin: '*' },
+  });
+
+  io.on('connection', (socket) => {
+    console.log('⚡ User connected:', socket.id);
+
+    socket.on('join', (room) => {
+      socket.join(room);
+    });
+  });
+};
+
+exports.getIO = () => {
+  if (!io) throw new Error('Socket not initialized');
+  return io;
+};
+```
+
+---
+
+## 🧵 9. Redis + Queue (Base)
+
+### `config/redis.js`
+
+```jsx
+const Redis = require('ioredis');
+
+const redis = new Redis(process.env.REDIS_URL);
+
+module.exports = redis;
+```
+
+---
+
+## 🚀 What You Should Do Next
+
+Don’t jump randomly. Follow this exact order:
+
+1. ✅ Test Auth APIs (Postman)
+2. 👉 Build Kitchen module
+3. 👉 Build Order module (core logic)
+4. 👉 Add Socket events to orders
+5. 👉 Add Delivery logic
+
+---
+
+## ⚠️ Honest Advice
+
+If you:
+
+- mix logic in controllers → you’ll regret it
+- skip Redis/queues → system will break under load
+- don’t design order flow properly → everything collapses
+
+
+
+
+# 🚀 Cloud Kitchen Platform
+
+# 🚀 Cloud Kitchen Platform (Zomato-like) – Full System Plan
+
+---
+
+# 🧠 1. Product Understanding
+
+This is a **multi-sided marketplace**:
+
+- Customers (User App)
+- Vendors (Kitchen App)
+- Delivery Partners (Delivery App)
+- Platform Owner (Admin)
+
+Core Problem:
+
+> Match food demand (users) with kitchens + optimize delivery logistics in real-time.
+> 
+
+---
+
+# 🏗️ 2. System Architecture
+
+## Architecture Style
+
+- Monolithic (initially) → Microservices (later scaling)
+- REST APIs + WebSockets
+
+## High-Level Flow
+
+1. User places order
+2. Kitchen accepts/rejects
+3. Delivery partner assigned
+4. Real-time tracking starts
+5. Order delivered
+
+---
+
+# ⚙️ 3. Tech Stack (Finalized)
+
+## Backend
+
+- Node.js + Express
+- MongoDB (Mongoose)
+- Socket.io (real-time tracking)
+- JWT (Auth)
+- Redis (IMPORTANT → caching + queues)
+- BullMQ (job queues)
+
+## Services
+
+- Firebase FCM → Push notifications
+- Cloudinary → Image uploads
+- Razorpay / Stripe → Payments
+- Google Maps API → Location & routing
+
+---
+
+# 🧩 4. Core Backend Modules
+
+## 1. Auth Service
+
+- Login / Signup
+- JWT + Refresh tokens
+- Role-based access
+
+## 2. User Service
+
+- Profile
+- Address management
+- Favorites
+
+## 3. Kitchen Service
+
+- Kitchen onboarding
+- Menu management
+- Availability toggle
+
+## 4. Order Service (MOST IMPORTANT)
+
+- Create order
+- Status lifecycle:
+    - PENDING
+    - ACCEPTED
+    - PREPARING
+    - OUT_FOR_DELIVERY
+    - DELIVERED
+    - CANCELLED
+
+## 5. Delivery Service
+
+- Rider assignment logic
+- Distance-based matching
+- Live location tracking
+
+## 6. Payment Service
+
+- Online payment
+- COD
+- Refund handling
+
+## 7. Notification Service
+
+- Push (FCM)
+- Event-based triggers
+
+---
+
+# 📱 5. Applications Breakdown
+
+## 👤 User App
+
+- Auth
+- Browse kitchens
+- Search (name, cuisine, rating)
+- Cart system
+- Place order
+- Live tracking (Socket.io)
+- Reviews & ratings
+
+---
+
+## 🍳 Kitchen App
+
+- Dashboard
+- Menu CRUD
+- Order management
+- Accept/Reject orders
+- Prep time update
+- Earnings dashboard
+
+---
+
+## 🛵 Delivery App
+
+- Online/Offline toggle
+- Accept/reject delivery
+- Navigation (Google Maps)
+- Live location sharing
+- Earnings tracking
+
+---
+
+## 🛠️ Admin Panel
+
+- User management
+- Kitchen approval
+- Delivery partner management
+- Order monitoring
+- Revenue & analytics
+- Commission control
+
+---
+
+# 🗄️ 6. Database Design (Important)
+
+## Collections
+
+### Users
+
+- name, email, password
+- role (USER/KITCHEN/DELIVERY/ADMIN)
+
+### Kitchens
+
+- name, location (GeoJSON)
+- rating, status
+- ownerId
+
+### MenuItems
+
+- kitchenId
+- name, price, image
+
+### Orders
+
+- userId
+- kitchenId
+- items[]
+- totalAmount
+- status
+- deliveryId
+
+### Deliveries
+
+- riderId
+- orderId
+- liveLocation
+
+---
+
+# 🔐 7. Authentication & Security
+
+- JWT (access + refresh)
+- Role-based middleware
+- Rate limiting
+- Input validation (Zod/Joi)
+
+---
+
+# 🔄 8. Real-Time System (CRITICAL)
+
+Use Socket.io for:
+
+- Order status updates
+- Delivery live tracking
+- Kitchen ↔ User updates
+
+Events:
+
+- order_created
+- order_accepted
+- rider_assigned
+- location_update
+- order_delivered
+
+---
+
+# 🔔 9. Notification Flow (FCM)
+
+Trigger notifications on:
+
+- Order placed
+- Kitchen accepted
+- Rider assigned
+- Order delivered
+
+---
+
+# 📦 10. API Design (Sample)
+
+## Auth
+
+POST /auth/register
+
+POST /auth/login
+
+## User
+
+GET /kitchens
+
+GET /kitchens/:id/menu
+
+POST /orders
+
+## Kitchen
+
+GET /kitchen/orders
+
+PATCH /orders/:id/status
+
+## Delivery
+
+GET /delivery/orders
+
+POST /delivery/update-location
+
+---
+
+# 💳 11. Payments
+
+- Razorpay (India best choice)
+- COD support
+- Webhooks for payment verification
+
+---
+
+# ⚡ 12. Development Roadmap
+
+## Phase 1 (2–3 weeks)
+
+- Auth
+- User App (basic)
+- Kitchen order flow
+
+## Phase 2
+
+- Order lifecycle
+- Delivery assignment
+- Socket.io integration
+
+## Phase 3
+
+- Payment integration
+- Notifications
+
+## Phase 4
+
+- Admin panel
+- Optimization
+
+---
+
+# 🚀 13. Deployment
+
+- Backend → AWS EC2 / Render
+- DB → MongoDB Atlas
+- Redis → Upstash / AWS
+- CDN → Cloudinary
+
+---
+
+# 📈 14. Scaling Strategy (VERY IMPORTANT)
+
+- Move to microservices
+- Use message queues (BullMQ)
+- Add caching (Redis)
+- Load balancer
+
+---
+
+# 🧠 15. Future Features
+
+- AI recommendations
+- Smart delivery batching
+- Offers & coupons
+- Multi-city expansion
+
+---
+
+# ⚠️ Final Advice
+
+This is NOT a small project.
+
+Start with:
+
+👉 Single city
+
+👉 No advanced AI
+
+👉 Simple delivery assignment
+
+Then scale.
