@@ -20,7 +20,8 @@ export const register = async (input: {
   password: string;
   phone?: string;
 }): Promise<{ accessToken: string; refreshToken: string }> => {
-  const existing = await findUserByEmail(input.email);
+  const normalizedEmail = input.email.trim().toLowerCase();
+  const existing = await findUserByEmail(normalizedEmail);
   if (existing) {
     throw new AppError("Email already registered", 409);
   }
@@ -28,7 +29,7 @@ export const register = async (input: {
   const password = await hashPassword(input.password);
   const user = await createUser({
     name: input.name,
-    email: input.email,
+    email: normalizedEmail,
     password,
     phone: input.phone
   });
@@ -44,7 +45,8 @@ export const login = async (input: {
   email: string;
   password: string;
 }): Promise<{ accessToken: string; refreshToken: string }> => {
-  const user = await findUserByEmail(input.email);
+  const normalizedEmail = input.email.trim().toLowerCase();
+  const user = await findUserByEmail(normalizedEmail);
   if (!user) {
     throw new AppError("Invalid credentials", 401);
   }
