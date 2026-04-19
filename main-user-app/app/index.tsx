@@ -1,15 +1,17 @@
-import { Text, View } from "react-native";
+import { Redirect } from 'expo-router';
 
 export default function Index() {
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
-    </View>
-  );
+  // Logic to check if user has seen onboarding or is logged in
+  const hasSeenOnboarding = false;
+  const isLoggedIn = false;
+
+  if (isLoggedIn) {
+    return <Redirect href="/(tabs)" />;
+  }
+
+  if (hasSeenOnboarding) {
+    return <Redirect href="/(auth)/login" />;
+  }
+
+  return <Redirect href="/(onboarding)" />;
 }
