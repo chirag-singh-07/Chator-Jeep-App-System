@@ -1,4 +1,4 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model, models, Document } from "mongoose";
 import { Role, ROLES } from "../../common/constants";
 
 // ─── Interface ────────────────────────────────────────────────────────────────
@@ -13,12 +13,15 @@ export interface IAddress {
   };
 }
 
+export type UserStatus = "ACTIVE" | "DISABLED" | "PENDING";
+
 export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
   phone?: string;
   role: Role;
+  status: UserStatus;
   refreshToken?: string | null;
   addresses: IAddress[];
   createdAt: Date;
@@ -82,6 +85,11 @@ const userSchema = new Schema<IUser>(
       enum: Object.values(ROLES),
       default: ROLES.USER,
     },
+    status: {
+      type: String,
+      enum: ["ACTIVE", "DISABLED", "PENDING"],
+      default: "ACTIVE",
+    },
     refreshToken: {
       type: String,
       default: null,
@@ -115,8 +123,10 @@ const userSchema = new Schema<IUser>(
 
 // ─── Indexes ──────────────────────────────────────────────────────────────────
 
+userSchema.index({ role: 1 });
+userSchema.index({ status: 1 });
 userSchema.index({ "addresses.location": "2dsphere" });
 
 // ─── Model ────────────────────────────────────────────────────────────────────
 
-export const User = model<IUser>("User", userSchema);
+export const User = models.User || model<IUser>("User", userSchema);

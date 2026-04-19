@@ -3,7 +3,7 @@ import { ORDER_STATUS } from "../../common/constants";
 
 export const createOrderSchema = z.object({
   body: z.object({
-    kitchenId: z.string().min(12),
+    restaurantId: z.string().min(12),
     items: z.array(z.object({ menuItemId: z.string().min(12), quantity: z.number().int().min(1) })).min(1)
   })
 });

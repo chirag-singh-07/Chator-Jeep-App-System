@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const createKitchenSchema = z.object({
+export const createRestaurantSchema = z.object({
   body: z.object({
     name: z.string().min(2),
     description: z.string().optional(),
@@ -11,7 +11,7 @@ export const createKitchenSchema = z.object({
   })
 });
 
-export const updateKitchenSchema = z.object({
+export const updateRestaurantSchema = z.object({
   body: z.object({
     name: z.string().min(2).optional(),
     description: z.string().optional(),

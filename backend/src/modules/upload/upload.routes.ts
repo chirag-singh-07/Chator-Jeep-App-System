@@ -8,7 +8,7 @@ import {
 import {
   uploadSingleImage,
   uploadMultipleImages,
-  uploadKitchenBrand,
+  uploadRestaurantBrand,
   uploadAvatar,
   getPresignedUploadUrl,
   deleteImages,
@@ -38,19 +38,19 @@ router.post("/single", uploadSingle("file"), uploadSingleImage);
 router.post("/multiple", uploadMultiple("files", 10), uploadMultipleImages);
 
 /**
- * POST /api/v1/uploads/kitchen-brand
- * Upload kitchen logo + banner together during onboarding.
+ * POST /api/v1/uploads/restaurant-brand
+ * Upload restaurant logo + banner together during onboarding.
  * Form fields: "logo" (image), "banner" (image)
  * → Produces placeholder + thumbnail + medium for logo
  * → Produces placeholder + medium + full for banner
  */
 router.post(
-  "/kitchen-brand",
+  "/restaurant-brand",
   uploadFields([
     { name: "logo", maxCount: 1 },
     { name: "banner", maxCount: 1 },
   ]),
-  uploadKitchenBrand
+  uploadRestaurantBrand
 );
 
 /**

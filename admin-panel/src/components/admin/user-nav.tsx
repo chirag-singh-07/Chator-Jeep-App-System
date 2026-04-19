@@ -10,8 +10,13 @@ import { Button } from "@/components/ui/button";
 import { currentAdminProfile } from "@/data/dashboard-data";
 import { LogOut, Settings, User, CreditCard, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 export function UserNav() {
+  const { user } = useAuthStore();
+  const name = user?.name || "Admin";
+  const email = user?.email || "admin@example.com";
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -20,8 +25,8 @@ export function UserNav() {
           className="relative h-10 w-10 rounded-xl p-0 shadow-sm border border-muted/50 overflow-hidden hover:scale-105 transition-transform"
         >
           <img
-            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentAdminProfile.name}`}
-            alt={currentAdminProfile.name}
+            src={`https://api.dicebear.com/7.x/big-smile/svg?seed=${name}&backgroundColor=f1f5f9`}
+            alt={name}
             className="h-full w-full object-cover"
           />
         </Button>
@@ -30,10 +35,10 @@ export function UserNav() {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-bold leading-none">
-              {currentAdminProfile.name}
+              {name}
             </p>
-            <p className="text-xs leading-none text-muted-foreground mt-1">
-              {currentAdminProfile.email}
+            <p className="text-xs leading-none text-muted-foreground mt-1 text-primary/70">
+              {email}
             </p>
           </div>
         </DropdownMenuLabel>

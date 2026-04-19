@@ -25,8 +25,8 @@ export type ImageProfileKey = keyof typeof IMAGE_PROFILES;
 
 // ─── Folder Namespacing ────────────────────────────────────────────────────────
 export type UploadFolder =
-  | "kitchens/logos"
-  | "kitchens/banners"
+  | "restaurants/logos"
+  | "restaurants/banners"
   | "menu-items"
   | "users/avatars"
   | "categories";

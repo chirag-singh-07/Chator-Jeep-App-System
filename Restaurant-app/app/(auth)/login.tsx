@@ -9,27 +9,40 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
+  const { login, isLoading } = useAuthStore();
 
-  const handleLogin = () => {
-    // In production: call POST /api/v1/kitchens/login, read kitchenStatus from response
-    // Change statusMock to test different app states:
-    // 'PENDING_VERIFICATION' | 'UNDER_REVIEW' | 'REJECTED' | 'VERIFIED'
-    const statusMock = 'PENDING_VERIFICATION';
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
 
-    if (statusMock === 'PENDING_VERIFICATION' || statusMock === 'UNDER_REVIEW') {
-      router.replace('/(auth)/pending');
-    } else if (statusMock === 'REJECTED') {
-      router.replace('/(auth)/rejected');
-    } else {
-      router.replace('/(tabs)');
+    try {
+      await login(email, password);
+      
+      // The store update will trigger a re-render in the root layout 
+      // which will handle redirection, but we can also do it here
+      const user = useAuthStore.getState().user;
+      
+      if (user?.status === 'REQUESTED' || user?.status === 'PENDING') {
+        router.replace('/(auth)/pending');
+      } else if (user?.status === 'REJECTED') {
+        router.replace('/(auth)/rejected');
+      } else {
+        router.replace('/(tabs)');
+      }
+    } catch (error: any) {
+      Alert.alert('Login Failed', error);
     }
   };
 
@@ -74,8 +87,16 @@ export default function LoginScreen() {
             </View>
           </View>
 
-          <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}>
-            <Text style={styles.loginBtnText}>LOGIN TO DASHBOARD</Text>
+          <TouchableOpacity 
+            style={styles.loginBtn} 
+            onPress={handleLogin}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={styles.loginBtnText}>LOGIN TO DASHBOARD</Text>
+            )}
           </TouchableOpacity>
 
           <View style={styles.footer}>

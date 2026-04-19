@@ -15,6 +15,9 @@ import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 
+import { Alert, ActivityIndicator } from 'react-native';
+import { useAuthStore } from '@/store/useAuthStore';
+
 const { width } = Dimensions.get('window');
 
 const STEPS = ['Account', 'Kitchen', 'Brand', 'Location'];
@@ -22,6 +25,7 @@ const STEPS = ['Account', 'Kitchen', 'Brand', 'Location'];
 export default function RegisterScreen() {
   const [currentStep, setCurrentStep] = useState(0);
   const router = useRouter();
+  const { register, isLoading } = useAuthStore();
 
   // Step 1: Account
   const [email, setEmail] = useState('');
@@ -40,13 +44,32 @@ export default function RegisterScreen() {
   const [address, setAddress] = useState('');
   const [pinCode, setPinCode] = useState('');
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      router.replace('/(auth)/pending');
+      // Final Step: Submit to Backend
+      try {
+        await register({
+          email,
+          password,
+          name: kitchenName,
+          phone,
+          foodType,
+          address,
+          pinCode,
+          // logo and banner would be handled by a separate upload process or multipart
+          // For now, sending the basic info
+        });
+        Alert.alert(
+          'Registration Success',
+          'Your kitchen is now pending review. We will notify you once approved.',
+          [{ text: 'OK', onPress: () => router.replace('/(auth)/pending') }]
+        );
+      } catch (error: any) {
+        Alert.alert('Registration Failed', error);
+      }
     }
-
   };
 
   const prevStep = () => {
@@ -189,11 +212,18 @@ export default function RegisterScreen() {
           <TouchableOpacity 
             style={styles.mainBtn} 
             onPress={nextStep}
+            disabled={isLoading}
           >
-            <Text style={styles.mainBtnText}>
-              {currentStep === STEPS.length - 1 ? 'FINISH REGISTRATION' : 'CONTINUE'}
-            </Text>
-            <Ionicons name="arrow-forward" size={18} color="white" style={{marginLeft: 8}} />
+            {isLoading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <>
+                <Text style={styles.mainBtnText}>
+                  {currentStep === STEPS.length - 1 ? 'FINISH REGISTRATION' : 'CONTINUE'}
+                </Text>
+                <Ionicons name="arrow-forward" size={18} color="white" style={{marginLeft: 8}} />
+              </>
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

@@ -86,23 +86,40 @@ export function SidebarNav({ collapsed, onNavigate }: SidebarNavProps) {
         return (
           <div key={item.title} className="flex flex-col gap-1">
             {item.children && !collapsed ? (
-              <button
-                type="button"
-                onClick={() =>
-                  setOpenGroups((current) => ({
-                    ...current,
-                    [item.title]: !isOpen
-                  }))
-                }
-                className={cn(
-                  "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition",
-                  active ? "bg-primary text-primary-foreground" : "hover:bg-sidebar-accent"
-                )}
-              >
-                <Icon className="shrink-0" />
-                <span className="flex-1 text-left">{item.title}</span>
-                {isOpen ? <ChevronDown className="size-4 shrink-0" /> : <ChevronRight className="size-4 shrink-0" />}
-              </button>
+              <div className="flex flex-col gap-1">
+                <div
+                  className={cn(
+                    "group flex items-center rounded-2xl transition",
+                    active ? "bg-primary text-primary-foreground" : "hover:bg-sidebar-accent"
+                  )}
+                >
+                  <Link
+                    to={item.href}
+                    onClick={onNavigate}
+                    className="flex flex-1 items-center gap-3 px-3 py-2.5 text-sm font-medium"
+                  >
+                    <Icon className="shrink-0 size-5" />
+                    <span className="flex-1 text-left">{item.title}</span>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setOpenGroups((current) => ({
+                        ...current,
+                        [item.title]: !isOpen
+                      }));
+                    }}
+                    className={cn(
+                      "p-2 mr-1 rounded-xl transition",
+                      active ? "hover:bg-white/10" : "hover:bg-black/5"
+                    )}
+                  >
+                    {isOpen ? <ChevronDown className="size-4 shrink-0 opacity-60" /> : <ChevronRight className="size-4 shrink-0 opacity-60" />}
+                  </button>
+                </div>
+              </div>
             ) : (
               <Link
                 to={item.href}

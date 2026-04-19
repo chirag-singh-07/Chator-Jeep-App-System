@@ -75,12 +75,12 @@ export const uploadMultipleImages = async (
   }
 };
 
-// ─── POST /api/v1/uploads/kitchen-brand  ──────────────────────────────────────
+// ─── POST /api/v1/uploads/restaurant-brand  ───────────────────────────────────
 /**
- * Specialized endpoint for kitchen registration: uploads logo + banner together.
+ * Specialized endpoint for restaurant registration: uploads logo + banner together.
  * Fields: logo (single), banner (single)
  */
-export const uploadKitchenBrand = async (
+export const uploadRestaurantBrand = async (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
@@ -99,14 +99,14 @@ export const uploadKitchenBrand = async (
 
     const [logoUrls, bannerUrls] = await Promise.all([
       logoFile
-        ? processAndUpload(logoFile.buffer, "kitchens/logos", [
+        ? processAndUpload(logoFile.buffer, "restaurants/logos", [
             "placeholder",
             "thumbnail",
             "medium",
           ])
         : null,
       bannerFile
-        ? processAndUpload(bannerFile.buffer, "kitchens/banners", [
+        ? processAndUpload(bannerFile.buffer, "restaurants/banners", [
             "placeholder",
             "medium",
             "full",
@@ -116,7 +116,7 @@ export const uploadKitchenBrand = async (
 
     res.status(201).json({
       success: true,
-      message: "Kitchen branding uploaded",
+      message: "Restaurant branding uploaded",
       data: {
         logo: logoUrls,
         banner: bannerUrls,

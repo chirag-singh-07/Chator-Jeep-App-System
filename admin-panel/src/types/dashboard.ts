@@ -15,7 +15,7 @@ export type OrdersSubView =
   | "preparing"
   | "cancelled";
 
-export type RestaurantsSubView = "all" | "requested" | "active" | "closed" | "flagged";
+export type RestaurantsSubView = "ALL" | "REQUESTED" | "ACTIVE" | "REJECTED" | "CLOSED" | "FLAGGED";
 export type UsersSubView = "all" | "admin" | "delivery" | "kitchen" | "user";
 export type FoodItemsSubView = "all" | "veg" | "non-veg" | "bestsellers";
 
@@ -32,7 +32,7 @@ export type DashboardView =
 
 export type UserRole = "ADMIN" | "USER" | "DELIVERY" | "KITCHEN";
 export type UserStatus = "Active" | "Inactive";
-export type KitchenStatus = "Open" | "Closed";
+export type RestaurantStatus = "REQUESTED" | "ACTIVE" | "REJECTED" | "CLOSED" | "FLAGGED";
 export type PaymentStatus = "Paid" | "Pending" | "Refunded";
 export type FoodType = "Veg" | "Non-Veg";
 export type FoodAddonType = "Drink" | "Side" | "Dip" | "Dessert" | "Extra";
@@ -120,7 +120,7 @@ export type Restaurant = {
   id: string;
   name: string;
   owner: string;
-  status: KitchenStatus;
+  status: RestaurantStatus;
   type: RestaurantsSubView;
   rating: number;
   createdDate: string;

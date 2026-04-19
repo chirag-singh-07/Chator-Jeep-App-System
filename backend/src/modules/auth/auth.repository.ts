@@ -1,7 +1,7 @@
-import { IUser, User } from "./auth.model";
+import { IUser, User } from "../user/user.model";
 
 export const findUserByEmail = (email: string): Promise<IUser | null> =>
-  User.findOne({ email }).exec();
+  User.findOne({ email }).select("+password").exec();
 
 export const createUser = (payload: Partial<IUser>): Promise<IUser> => User.create(payload);
 

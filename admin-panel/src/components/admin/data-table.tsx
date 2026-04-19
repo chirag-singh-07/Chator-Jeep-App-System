@@ -29,7 +29,7 @@ export function DataTable<T extends { id: string }>({
   title,
   description,
   columns,
-  rows,
+  rows = [], // Default to empty array
   page,
   pageSize,
   onPageChange,
@@ -37,8 +37,9 @@ export function DataTable<T extends { id: string }>({
   emptyDescription,
   rowHref
 }: DataTableProps<T>) {
-  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
-  const pageRows = rows.slice((page - 1) * pageSize, page * pageSize);
+  const safeRows = rows || [];
+  const totalPages = Math.max(1, Math.ceil(safeRows.length / pageSize));
+  const pageRows = safeRows.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <Card className="rounded-2xl shadow-sm">
@@ -49,7 +50,7 @@ export function DataTable<T extends { id: string }>({
         </div>
       </CardHeader>
       <CardContent className="overflow-x-auto">
-        {rows.length === 0 ? (
+        {safeRows.length === 0 ? (
           <EmptyState title={emptyTitle} description={emptyDescription} />
         ) : (
           <>
@@ -87,7 +88,7 @@ export function DataTable<T extends { id: string }>({
 
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-muted-foreground">
-                Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, rows.length)} of {rows.length} rows
+                Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, safeRows.length)} of {safeRows.length} rows
               </p>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>

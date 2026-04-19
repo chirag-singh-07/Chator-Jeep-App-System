@@ -1,0 +1,76 @@
+import { Router } from "express";
+import { authMiddleware } from "../../common/middleware/auth.middleware";
+import { roleMiddleware } from "../../common/middleware/role.middleware";
+import * as ctrl from "./restaurant.controller";
+
+const router = Router();
+
+// ─── Public ────────────────────────────────────────────────────────────────────
+/** POST /api/v1/restaurants/register — Restaurant owner signs up */
+router.post("/register", ctrl.registerRestaurant);
+
+/** POST /api/v1/restaurants/login — Restaurant owner logs in */
+router.post("/login", ctrl.loginRestaurant);
+
+/** GET /api/v1/restaurants/:restaurantId/menu — Public menu for a restaurant */
+router.get("/:restaurantId/menu", ctrl.listRestaurantMenu);
+
+// ─── Restaurant User (authenticated) ──────────────────────────────────────────
+/** GET /api/v1/restaurants/me/status — Check verification status */
+router.get(
+  "/me/status",
+  authMiddleware,
+  roleMiddleware(["KITCHEN"]), // Still using KITCHEN role internally
+  ctrl.getMyStatus
+);
+
+/** POST /api/v1/restaurants/me/menu — Add menu item (ACTIVE only) */
+router.post(
+  "/me/menu",
+  authMiddleware,
+  roleMiddleware(["KITCHEN"]),
+  ctrl.addMenuItem
+);
+
+// ─── Admin Routes ─────────────────────────────────────────────────────────────
+/** GET /api/v1/restaurants/admin/all — List all restaurants with filters */
+router.get(
+  "/admin/all",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  ctrl.adminListRestaurants
+);
+
+/** GET /api/v1/restaurants/admin/:id — Full restaurant detail for review */
+router.get(
+  "/admin/:id",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  ctrl.adminGetRestaurant
+);
+
+/** PATCH /api/v1/restaurants/admin/:id/approve — Approve restaurant as ACTIVE */
+router.patch(
+  "/admin/:id/approve",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  ctrl.adminApprove
+);
+
+/** PATCH /api/v1/restaurants/admin/:id/reject — Reject restaurant as REJECTED */
+router.patch(
+  "/admin/:id/reject",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  ctrl.adminReject
+);
+
+/** PATCH /api/v1/restaurants/admin/:id/flag — Flag restaurant as FLAGGED */
+router.patch(
+  "/admin/:id/flag",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  ctrl.adminFlag
+);
+
+export default router;

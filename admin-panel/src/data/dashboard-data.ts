@@ -357,7 +357,7 @@ export const restaurantsSeed: Restaurant[] = [
     id: "kit-flagged-1",
     name: "Metro Meals Kitchen",
     owner: "Sneha Malhotra",
-    status: "Open",
+    status: "FLAGGED",
     type: "flagged",
     rating: 3.8,
     createdDate: "2026-01-21",
@@ -521,17 +521,12 @@ export const sidebarNavigation: NavigationItem[] = [
     href: "/restaurants",
     icon: "restaurants",
     children: [
-      { title: "All Restaurants", href: "/restaurants" },
-      { title: "Requested", href: "/restaurants?type=requested" },
-      { title: "Active", href: "/restaurants?type=active" },
-      { title: "Closed", href: "/restaurants?type=closed" },
-      { title: "Flagged", href: "/restaurants?type=flagged" }
+      { title: "All Partners", href: "/restaurants" },
+      { title: "Requested", href: "/restaurants?status=REQUESTED" },
+      { title: "Active", href: "/restaurants?status=ACTIVE" },
+      { title: "Closed", href: "/restaurants?status=CLOSED" },
+      { title: "Flagged", href: "/restaurants?status=FLAGGED" }
     ]
-  },
-  {
-    title: "Kitchen Requests",
-    href: "/kitchen-requests",
-    icon: "restaurants"
   },
   {
     title: "Food Items",

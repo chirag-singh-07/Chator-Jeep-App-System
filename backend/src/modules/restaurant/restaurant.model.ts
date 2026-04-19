@@ -1,17 +1,18 @@
-import { Schema, model, Document, Types } from "mongoose";
+import { Schema, model, models, Document, Types } from "mongoose";
 
-// ─── Verification Status ───────────────────────────────────────────────────────
-export const KITCHEN_STATUS = {
-  PENDING_VERIFICATION: "PENDING_VERIFICATION",
-  UNDER_REVIEW: "UNDER_REVIEW",
-  VERIFIED: "VERIFIED",
+// ─── Restaurant Status ─────────────────────────────────────────────────────────
+export const RESTAURANT_STATUS = {
+  REQUESTED: "REQUESTED",
+  ACTIVE: "ACTIVE",
   REJECTED: "REJECTED",
+  CLOSED: "CLOSED",
+  FLAGGED: "FLAGGED",
 } as const;
 
-export type KitchenStatus = (typeof KITCHEN_STATUS)[keyof typeof KITCHEN_STATUS];
+export type RestaurantStatus = (typeof RESTAURANT_STATUS)[keyof typeof RESTAURANT_STATUS];
 
 // ─── Interfaces ────────────────────────────────────────────────────────────────
-export interface IKitchenDocument {
+export interface IRestaurantDocument {
   label: string;         // e.g. "FSSAI License", "ID Proof"
   key: string;          // S3 object key
   url: string;          // Public or presigned URL
@@ -27,12 +28,12 @@ export interface IBankDetails {
 
 export interface IAdminAction {
   adminId: Types.ObjectId;
-  action: "APPROVED" | "REJECTED" | "MARKED_FOR_REVIEW";
+  action: "APPROVED" | "REJECTED" | "MARKED_FOR_REVIEW" | "FLAGGED";
   reason?: string;
   timestamp: Date;
 }
 
-export interface IKitchen extends Document {
+export interface IRestaurant extends Document {
   ownerId: Types.ObjectId;
   ownerName: string;
   name: string;
@@ -42,12 +43,12 @@ export interface IKitchen extends Document {
   cuisines: string[];
   isOpen: boolean;
   rating: number;
-  status: KitchenStatus;
+  status: RestaurantStatus;
   rejectionReason?: string;
   fssaiLicense?: string;
   logoUrls?: Record<string, string>;
   bannerUrls?: Record<string, string>;
-  documents: IKitchenDocument[];
+  documents: IRestaurantDocument[];
   bankDetails?: IBankDetails;
   adminActions: IAdminAction[];
   location: {
@@ -63,7 +64,7 @@ export interface IKitchen extends Document {
 }
 
 // ─── Schema ────────────────────────────────────────────────────────────────────
-const kitchenSchema = new Schema<IKitchen>(
+const restaurantSchema = new Schema<IRestaurant>(
   {
     ownerId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     ownerName: { type: String, required: true, trim: true },
@@ -75,11 +76,11 @@ const kitchenSchema = new Schema<IKitchen>(
     isOpen: { type: Boolean, default: false },
     rating: { type: Number, default: 0 },
 
-    // ── Verification ──────────────────────────────────────────────────────────
+    // ── Status & Verification ──────────────────────────────────────────────────
     status: {
       type: String,
-      enum: Object.values(KITCHEN_STATUS),
-      default: KITCHEN_STATUS.PENDING_VERIFICATION,
+      enum: Object.values(RESTAURANT_STATUS),
+      default: RESTAURANT_STATUS.REQUESTED,
       index: true,
     },
     rejectionReason: { type: String },
@@ -111,7 +112,7 @@ const kitchenSchema = new Schema<IKitchen>(
     adminActions: [
       {
         adminId: { type: Schema.Types.ObjectId, ref: "User" },
-        action: { type: String, enum: ["APPROVED", "REJECTED", "MARKED_FOR_REVIEW"] },
+        action: { type: String, enum: ["APPROVED", "REJECTED", "MARKED_FOR_REVIEW", "FLAGGED"] },
         reason: { type: String },
         timestamp: { type: Date, default: Date.now },
       },
@@ -132,14 +133,14 @@ const kitchenSchema = new Schema<IKitchen>(
   { timestamps: true }
 );
 
-kitchenSchema.index({ location: "2dsphere" });
-kitchenSchema.index({ status: 1, createdAt: -1 });
+restaurantSchema.index({ location: "2dsphere" });
+restaurantSchema.index({ status: 1, createdAt: -1 });
 
-export const Kitchen = model<IKitchen>("Kitchen", kitchenSchema);
+export const Restaurant = models.Restaurant || model<IRestaurant>("Restaurant", restaurantSchema);
 
-// ─── MenuItem (unchanged, kept here for co-location) ─────────────────────────
+// ─── MenuItem ─────────────────────────────────────────────────────────────────
 export interface IMenuItem extends Document {
-  kitchenId: Types.ObjectId;
+  restaurantId: Types.ObjectId;
   name: string;
   description?: string;
   price: number;
@@ -152,7 +153,7 @@ export interface IMenuItem extends Document {
 
 const menuItemSchema = new Schema<IMenuItem>(
   {
-    kitchenId: { type: Schema.Types.ObjectId, ref: "Kitchen", required: true, index: true },
+    restaurantId: { type: Schema.Types.ObjectId, ref: "Restaurant", required: true, index: true },
     name: { type: String, required: true, trim: true },
     description: { type: String },
     price: { type: Number, required: true, min: 0 },
@@ -165,5 +166,5 @@ const menuItemSchema = new Schema<IMenuItem>(
   { timestamps: true }
 );
 
-menuItemSchema.index({ kitchenId: 1, isAvailable: 1 });
-export const MenuItem = model<IMenuItem>("MenuItem", menuItemSchema);
+menuItemSchema.index({ restaurantId: 1, isAvailable: 1 });
+export const MenuItem = models.MenuItem || model<IMenuItem>("MenuItem", menuItemSchema);

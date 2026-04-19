@@ -1,7 +1,7 @@
 import { AppError } from "../../common/errors/app-error";
 import { ORDER_STATUS } from "../../common/constants";
 import { deliveryEvent, orderEvent } from "../../sockets/events";
-import { findKitchenById } from "../kitchen/kitchen.repository";
+import { findRestaurantById } from "../restaurant/restaurant.repository";
 import { getOrderById, updateOrder } from "../order/order.repository";
 import * as repo from "./delivery.repository";
 
@@ -9,10 +9,10 @@ export const assignNearestRiderToOrder = async (orderId: string) => {
   const order = await getOrderById(orderId);
   if (!order) throw new AppError("Order not found", 404);
 
-  const kitchen = await findKitchenById(order.kitchenId.toString());
-  if (!kitchen) throw new AppError("Kitchen not found", 404);
+  const restaurant = await findRestaurantById(order.restaurantId.toString());
+  if (!restaurant) throw new AppError("Restaurant not found", 404);
 
-  const rider = await repo.findNearestAvailableRider(kitchen.location.coordinates);
+  const rider = await repo.findNearestAvailableRider(restaurant.location.coordinates);
   if (!rider || !rider.riderId) throw new AppError("No available rider found", 404);
 
   const delivery = await repo.updateRiderAvailability(rider.riderId.toString(), {

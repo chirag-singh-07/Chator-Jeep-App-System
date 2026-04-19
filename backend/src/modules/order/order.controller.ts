@@ -13,8 +13,8 @@ export const listMyOrders = asyncHandler(async (req: AuthenticatedRequest, res: 
   res.status(200).json(orders);
 });
 
-export const listKitchenOrders = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const orders = await service.listKitchenOrders(req.user!.userId);
+export const listRestaurantOrders = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const orders = await service.listRestaurantOrders(req.user!.userId);
   res.status(200).json(orders);
 });
 

@@ -23,13 +23,17 @@ apiClient.interceptors.request.use(
   }
 );
 
+import { useAuthStore } from "@/stores/useAuthStore";
+
 // Add a response interceptor to handle errors
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized (e.g., clear token and redirect to login)
+      // Handle unauthorized
       localStorage.removeItem("token");
+      useAuthStore.getState().clearAuth();
+      
       if (window.location.pathname !== "/login") {
         window.location.href = "/login";
       }

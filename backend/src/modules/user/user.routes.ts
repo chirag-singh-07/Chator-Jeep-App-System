@@ -17,6 +17,22 @@ router.get(
   controller.adminListUsers
 );
 
+/** POST /api/v1/users/admin/create — Create new Admin user */
+router.post(
+  "/admin/create",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  controller.adminCreateAdmin
+);
+
+/** POST /api/v1/users/admin/delivery — Create new Delivery user */
+router.post(
+  "/admin/delivery",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  controller.adminCreateDelivery
+);
+
 /** GET /api/v1/users/admin/:id — Get user details */
 router.get(
   "/admin/:id",

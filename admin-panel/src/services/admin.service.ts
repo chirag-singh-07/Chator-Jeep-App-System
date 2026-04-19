@@ -3,7 +3,14 @@ import { apiClient } from "@/lib/api-client";
 export const adminService = {
   // Users
   getUsers: async (params: { role?: string; page?: number; search?: string }) => {
-    const response = await apiClient.get("/users/admin/all", { params });
+    // If role is undefined or "all", we pass empty or "ALL" depending on backend expectation
+    // Our updated backend handles role: undefined or role !== "ALL"
+    const response = await apiClient.get("/users/admin/all", { 
+      params: {
+        ...params,
+        role: params.role === "all" ? "ALL" : params.role
+      } 
+    });
     return response.data;
   },
   
@@ -12,29 +19,39 @@ export const adminService = {
     return response.data;
   },
 
-  // Kitchens / Restaurants
-  getKitchens: async (params: { status?: string; page?: number; search?: string }) => {
-    const response = await apiClient.get("/kitchens/admin/all", { params });
+  createAdmin: async (data: any) => {
+    const response = await apiClient.post("/users/admin/create", data);
+    return response.data;
+  },
+
+  createDelivery: async (data: any) => {
+    const response = await apiClient.post("/users/admin/delivery", data);
+    return response.data;
+  },
+
+  // Restaurants (Unified)
+  getRestaurants: async (params: { status?: string; page?: number; search?: string }) => {
+    const response = await apiClient.get("/restaurants/admin/all", { params });
     return response.data;
   },
   
-  getKitchenById: async (id: string) => {
-    const response = await apiClient.get(`/kitchens/admin/${id}`);
+  getRestaurantById: async (id: string) => {
+    const response = await apiClient.get(`/restaurants/admin/${id}`);
     return response.data;
   },
   
-  approveKitchen: async (id: string) => {
-    const response = await apiClient.patch(`/kitchens/admin/${id}/approve`);
+  approveRestaurant: async (id: string) => {
+    const response = await apiClient.patch(`/restaurants/admin/${id}/approve`);
     return response.data;
   },
   
-  rejectKitchen: async (id: string, reason: string) => {
-    const response = await apiClient.patch(`/kitchens/admin/${id}/reject`, { reason });
+  rejectRestaurant: async (id: string, reason: string) => {
+    const response = await apiClient.patch(`/restaurants/admin/${id}/reject`, { reason });
     return response.data;
   },
   
-  markKitchenUnderReview: async (id: string, reason: string) => {
-    const response = await apiClient.patch(`/kitchens/admin/${id}/review`, { reason });
+  flagRestaurant: async (id: string, reason: string) => {
+    const response = await apiClient.patch(`/restaurants/admin/${id}/flag`, { reason });
     return response.data;
   },
 };

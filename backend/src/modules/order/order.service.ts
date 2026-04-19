@@ -1,9 +1,9 @@
 import { Types } from "mongoose";
 import { ORDER_STATUS, Role, ROLES, OrderStatus } from "../../common/constants";
-import { IMenuItem } from "../kitchen/kitchen.model";
+import { IMenuItem } from "../restaurant/restaurant.model";
 import { AppError } from "../../common/errors/app-error";
 import { orderEvent } from "../../sockets/events";
-import { listMenuByKitchen, findKitchenByOwner } from "../kitchen/kitchen.repository";
+import { listMenuByRestaurant, findRestaurantByOwner } from "../restaurant/restaurant.repository";
 import { orderQueue } from "../../jobs/queues";
 import * as repo from "./order.repository";
 
@@ -38,9 +38,9 @@ const canTransition = (current: OrderStatus, next: OrderStatus, actorRole: Role)
 
 export const createOrder = async (
   userId: string,
-  input: { kitchenId: string; items: Array<{ menuItemId: string; quantity: number }> }
+  input: { restaurantId: string; items: Array<{ menuItemId: string; quantity: number }> }
 ) => {
-  const menuItems = await listMenuByKitchen(input.kitchenId) as IMenuItem[];
+  const menuItems = await listMenuByRestaurant(input.restaurantId) as IMenuItem[];
   const menuMap = new Map<string, IMenuItem>(menuItems.map((item) => [item._id.toString(), item]));
 
   const snapshotItems = input.items.map(({ menuItemId, quantity }) => {
@@ -61,7 +61,7 @@ export const createOrder = async (
 
   const order = await repo.createOrder({
     userId: new Types.ObjectId(userId),
-    kitchenId: new Types.ObjectId(input.kitchenId),
+    restaurantId: new Types.ObjectId(input.restaurantId),
     items: snapshotItems,
     totalAmount,
     status: ORDER_STATUS.PENDING
@@ -81,19 +81,19 @@ export const createOrder = async (
   }
 
   orderEvent(`user_${userId}`, "order:created", order);
-  orderEvent(`kitchen_${input.kitchenId}`, "order:created", order);
+  orderEvent(`restaurant_${input.restaurantId}`, "order:created", order);
 
   return order;
 };
 
 export const listMyOrders = (userId: string) => repo.listOrdersByUser(userId);
 
-export const listKitchenOrders = async (ownerId: string) => {
-  const kitchen = await findKitchenByOwner(ownerId);
-  if (!kitchen) {
-    throw new AppError("Kitchen profile not found", 404);
+export const listRestaurantOrders = async (ownerId: string) => {
+  const restaurant = await findRestaurantByOwner(ownerId);
+  if (!restaurant) {
+    throw new AppError("Restaurant profile not found", 404);
   }
-  return repo.listOrdersByKitchen(kitchen._id.toString());
+  return repo.listOrdersByRestaurant(restaurant._id.toString());
 };
 
 export const updateOrderStatus = async (
@@ -112,7 +112,7 @@ export const updateOrderStatus = async (
 
   const updated = await repo.updateOrder(orderId, { status: nextStatus });
   orderEvent(`user_${order.userId.toString()}`, "order:status_update", updated);
-  orderEvent(`kitchen_${order.kitchenId.toString()}`, "order:status_update", updated);
+  orderEvent(`restaurant_${order.restaurantId.toString()}`, "order:status_update", updated);
 
   return updated;
 };

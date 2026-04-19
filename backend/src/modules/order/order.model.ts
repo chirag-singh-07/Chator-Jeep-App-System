@@ -1,4 +1,4 @@
-import { Schema, model, Document, Types } from "mongoose";
+import { Schema, model, models, Document, Types } from "mongoose";
 import { ORDER_STATUS, PAYMENT_STATUS, OrderStatus, PaymentStatus } from "../../common/constants";
 
 export interface IOrderItemSnapshot {
@@ -10,7 +10,7 @@ export interface IOrderItemSnapshot {
 
 export interface IOrder extends Document {
   userId: Types.ObjectId;
-  kitchenId: Types.ObjectId;
+  restaurantId: Types.ObjectId;
   deliveryId?: Types.ObjectId;
   items: IOrderItemSnapshot[];
   totalAmount: number;
@@ -21,7 +21,7 @@ export interface IOrder extends Document {
 const orderSchema = new Schema<IOrder>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
-    kitchenId: { type: Schema.Types.ObjectId, ref: "Kitchen", required: true, index: true },
+    restaurantId: { type: Schema.Types.ObjectId, ref: "Restaurant", required: true, index: true },
     deliveryId: { type: Schema.Types.ObjectId, ref: "Delivery", default: null, index: true },
     items: [
       {
@@ -48,6 +48,6 @@ const orderSchema = new Schema<IOrder>(
 );
 
 orderSchema.index({ userId: 1, createdAt: -1 });
-orderSchema.index({ kitchenId: 1, status: 1, createdAt: -1 });
+orderSchema.index({ restaurantId: 1, status: 1, createdAt: -1 });
 
-export const Order = model<IOrder>("Order", orderSchema);
+export const Order = models.Order || model<IOrder>("Order", orderSchema);

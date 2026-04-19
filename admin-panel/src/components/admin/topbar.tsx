@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import {
   Bell,
@@ -7,9 +5,6 @@ import {
   Menu,
   Search,
   Plus,
-  Calendar as CalendarIcon,
-  Circle,
-  HelpCircle,
   MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";

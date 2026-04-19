@@ -10,7 +10,7 @@ const router = Router();
 
 router.post("/", authMiddleware, roleMiddleware([ROLES.USER]), validate(createOrderSchema), controller.createOrder);
 router.get("/me", authMiddleware, roleMiddleware([ROLES.USER]), controller.listMyOrders);
-router.get("/kitchen", authMiddleware, roleMiddleware([ROLES.KITCHEN, ROLES.ADMIN]), controller.listKitchenOrders);
+router.get("/restaurant", authMiddleware, roleMiddleware([ROLES.KITCHEN, ROLES.ADMIN]), controller.listRestaurantOrders);
 router.patch("/:orderId/status", authMiddleware, roleMiddleware([ROLES.KITCHEN, ROLES.DELIVERY, ROLES.ADMIN]), validate(updateOrderStatusSchema), controller.updateStatus);
 
 export default router;

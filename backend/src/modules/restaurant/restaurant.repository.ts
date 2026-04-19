@@ -1,24 +1,24 @@
-import { Kitchen, IKitchen, KitchenStatus } from "./kitchen.model";
+import { Restaurant, IRestaurant, RestaurantStatus } from "./restaurant.model";
 import { Types } from "mongoose";
 
 // ─── Creation ──────────────────────────────────────────────────────────────────
-export const createKitchen = (payload: Partial<IKitchen>): Promise<IKitchen> =>
-  Kitchen.create(payload);
+export const createRestaurant = (payload: Partial<IRestaurant>): Promise<IRestaurant> =>
+  Restaurant.create(payload);
 
 // ─── Lookups ───────────────────────────────────────────────────────────────────
-export const findKitchenByOwner = (ownerId: string): Promise<IKitchen | null> =>
-  Kitchen.findOne({ ownerId: new Types.ObjectId(ownerId) }).exec();
+export const findRestaurantByOwner = (ownerId: string): Promise<IRestaurant | null> =>
+  Restaurant.findOne({ ownerId: new Types.ObjectId(ownerId) }).exec();
 
-export const findKitchenById = (id: string): Promise<IKitchen | null> =>
-  Kitchen.findById(id).exec();
+export const findRestaurantById = (id: string): Promise<IRestaurant | null> =>
+  Restaurant.findById(id).exec();
 
 // ─── Admin Listing (paginated + filtered) ─────────────────────────────────────
-export const listKitchensByStatus = async (
-  status?: KitchenStatus,
+export const listRestaurantsByStatus = async (
+  status?: RestaurantStatus,
   page = 1,
   limit = 20,
   search?: string
-): Promise<{ kitchens: IKitchen[]; total: number }> => {
+): Promise<{ restaurants: IRestaurant[]; total: number }> => {
   const filter: Record<string, unknown> = {};
   if (status) filter["status"] = status;
   if (search) {
@@ -29,48 +29,53 @@ export const listKitchensByStatus = async (
     ];
   }
 
-  const [kitchens, total] = await Promise.all([
-    Kitchen.find(filter)
+  const [restaurants, total] = await Promise.all([
+    Restaurant.find(filter)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .exec(),
-    Kitchen.countDocuments(filter).exec(),
+    Restaurant.countDocuments(filter).exec(),
   ]);
 
-  return { kitchens, total };
+  return { restaurants, total };
 };
 
 // ─── Status Counts (for admin dashboard stat cards) ───────────────────────────
-export const getKitchenStatusCounts = async (): Promise<Record<string, number>> => {
-  const counts = await Kitchen.aggregate([
+export const getRestaurantStatusCounts = async (): Promise<Record<string, number>> => {
+  const counts = await Restaurant.aggregate([
     { $group: { _id: "$status", count: { $sum: 1 } } },
   ]);
   const result: Record<string, number> = {
-    PENDING_VERIFICATION: 0,
-    UNDER_REVIEW: 0,
-    VERIFIED: 0,
+    ALL: 0,
+    REQUESTED: 0,
+    ACTIVE: 0,
     REJECTED: 0,
+    CLOSED: 0,
+    FLAGGED: 0,
   };
+  let total = 0;
   counts.forEach((c) => {
     result[c._id] = c.count;
+    total += c.count;
   });
+  result.ALL = total;
   return result;
 };
 
 // ─── Profile Updates ──────────────────────────────────────────────────────────
-export const updateKitchenById = (
+export const updateRestaurantById = (
   id: string,
-  update: Partial<IKitchen>
-): Promise<IKitchen | null> =>
-  Kitchen.findByIdAndUpdate(id, { $set: update }, { new: true }).exec();
+  update: Partial<IRestaurant>
+): Promise<IRestaurant | null> =>
+  Restaurant.findByIdAndUpdate(id, { $set: update }, { new: true }).exec();
 
 // ─── Admin Actions ────────────────────────────────────────────────────────────
-export const approveKitchen = (id: string, adminId: string): Promise<IKitchen | null> =>
-  Kitchen.findByIdAndUpdate(
+export const approveRestaurant = (id: string, adminId: string): Promise<IRestaurant | null> =>
+  Restaurant.findByIdAndUpdate(
     id,
     {
-      $set: { status: "VERIFIED", rejectionReason: null, isOpen: false },
+      $set: { status: "ACTIVE", rejectionReason: null, isOpen: false },
       $push: {
         adminActions: {
           adminId: new Types.ObjectId(adminId),
@@ -82,12 +87,12 @@ export const approveKitchen = (id: string, adminId: string): Promise<IKitchen | 
     { new: true }
   ).exec();
 
-export const rejectKitchen = (
+export const rejectRestaurant = (
   id: string,
   adminId: string,
   reason: string
-): Promise<IKitchen | null> =>
-  Kitchen.findByIdAndUpdate(
+): Promise<IRestaurant | null> =>
+  Restaurant.findByIdAndUpdate(
     id,
     {
       $set: { status: "REJECTED", rejectionReason: reason },
@@ -103,19 +108,19 @@ export const rejectKitchen = (
     { new: true }
   ).exec();
 
-export const markKitchenForReview = (
+export const flagRestaurant = (
   id: string,
   adminId: string,
   reason: string
-): Promise<IKitchen | null> =>
-  Kitchen.findByIdAndUpdate(
+): Promise<IRestaurant | null> =>
+  Restaurant.findByIdAndUpdate(
     id,
     {
-      $set: { status: "UNDER_REVIEW" },
+      $set: { status: "FLAGGED" },
       $push: {
         adminActions: {
           adminId: new Types.ObjectId(adminId),
-          action: "MARKED_FOR_REVIEW",
+          action: "FLAGGED",
           reason,
           timestamp: new Date(),
         },
@@ -125,8 +130,7 @@ export const markKitchenForReview = (
   ).exec();
 
 // ─── Menu Management ─────────────────────────────────────────────────────────
-export const listMenuByKitchen = async (kitchenId: string) => {
-  const { MenuItem } = await import("./kitchen.model");
-  return MenuItem.find({ kitchenId: new Types.ObjectId(kitchenId) }).exec();
+export const listMenuByRestaurant = async (restaurantId: string) => {
+  const { MenuItem } = await import("./restaurant.model");
+  return MenuItem.find({ restaurantId: new Types.ObjectId(restaurantId) }).exec();
 };
-

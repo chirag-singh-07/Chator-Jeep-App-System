@@ -10,13 +10,18 @@ export const findUserByEmail = (email: string): Promise<IUser | null> =>
 
 // ─── Admin Listing (paginated + filtered) ───────────────────────────────────
 export const listUsers = async (
-  role?: Role,
+  role?: string,
   page = 1,
   limit = 20,
   search?: string
 ): Promise<{ users: IUser[]; total: number }> => {
   const filter: Record<string, unknown> = {};
-  if (role) filter["role"] = role;
+  
+  // Handle role "ALL" or undefined
+  if (role && role !== "ALL") {
+    filter["role"] = role;
+  }
+  
   if (search) {
     filter["$or"] = [
       { name: { $regex: search, $options: "i" } },
@@ -40,11 +45,10 @@ export const listUsers = async (
 // ─── Admin Actions ──────────────────────────────────────────────────────────
 export const updateUserStatus = (
   userId: string,
-  role: Role,
-  status: string // We don't have a status field yet, but we might want one (e.g., Active/Suspended)
+  status: string
 ): Promise<IUser | null> =>
-  User.findByIdAndUpdate(userId, { role }, { new: true }).exec();
+  User.findByIdAndUpdate(userId, { status }, { new: true }).exec();
 
-// ─── Creation (for auth) ────────────────────────────────────────────────────
+// ─── Creation (for auth and admin) ──────────────────────────────────────────
 export const createUser = (payload: Partial<IUser>): Promise<IUser> =>
   User.create(payload);

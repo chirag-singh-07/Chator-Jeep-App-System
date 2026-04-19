@@ -19,7 +19,7 @@ export const register = async (input: {
   email: string;
   password: string;
   phone?: string;
-}): Promise<{ accessToken: string; refreshToken: string }> => {
+}) => {
   const normalizedEmail = input.email.trim().toLowerCase();
   const existing = await findUserByEmail(normalizedEmail);
   if (existing) {
@@ -38,13 +38,21 @@ export const register = async (input: {
   const tokens = buildTokenResponse(payload);
   await updateRefreshToken(user._id.toString(), tokens.refreshToken);
 
-  return tokens;
+  return { 
+    ...tokens, 
+    user: { 
+      id: user._id.toString(), 
+      name: user.name, 
+      email: user.email, 
+      role: user.role 
+    } 
+  };
 };
 
 export const login = async (input: {
   email: string;
   password: string;
-}): Promise<{ accessToken: string; refreshToken: string }> => {
+}) => {
   const normalizedEmail = input.email.trim().toLowerCase();
   const user = await findUserByEmail(normalizedEmail);
   if (!user) {
@@ -60,7 +68,15 @@ export const login = async (input: {
   const tokens = buildTokenResponse(payload);
   await updateRefreshToken(user._id.toString(), tokens.refreshToken);
 
-  return tokens;
+  return { 
+    ...tokens, 
+    user: { 
+      id: user._id.toString(), 
+      name: user.name, 
+      email: user.email, 
+      role: user.role 
+    } 
+  };
 };
 
 export const refresh = async (refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> => {
