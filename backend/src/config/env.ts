@@ -15,7 +15,13 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(16),
   JWT_ACCESS_EXPIRES_IN: z.string().default("15m"),
   JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
-  CORS_ORIGIN: z.string().default("*")
+  CORS_ORIGIN: z.string().default("*"),
+  // AWS / S3-compatible storage
+  AWS_ACCESS_KEY_ID: z.string().min(1),
+  AWS_SECRET_ACCESS_KEY: z.string().min(1),
+  AWS_REGION: z.string().default("auto"),
+  AWS_ENDPOINT_URL_S3: z.string().url(),
+  AWS_BUCKET_NAME: z.string().default("chatori-jeep-media"),
 });
 
 const parsed = envSchema.safeParse(process.env);

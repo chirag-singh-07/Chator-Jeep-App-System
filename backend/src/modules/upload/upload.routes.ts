@@ -1,0 +1,78 @@
+import { Router } from "express";
+import { authMiddleware } from "../../common/middleware/auth.middleware";
+import {
+  uploadSingle,
+  uploadMultiple,
+  uploadFields,
+} from "../../common/middleware/upload.middleware";
+import {
+  uploadSingleImage,
+  uploadMultipleImages,
+  uploadKitchenBrand,
+  uploadAvatar,
+  getPresignedUploadUrl,
+  deleteImages,
+} from "./upload.controller";
+
+const router = Router();
+
+// All upload routes require a valid JWT
+router.use(authMiddleware);
+
+// ─── Routes ────────────────────────────────────────────────────────────────────
+
+/**
+ * POST /api/v1/uploads/single
+ * Upload one image via server-side processing.
+ * Form field: "file"
+ * Body fields: folder, profiles (optional comma-separated, default "thumbnail,medium")
+ */
+router.post("/single", uploadSingle("file"), uploadSingleImage);
+
+/**
+ * POST /api/v1/uploads/multiple
+ * Upload up to 10 images via server-side processing.
+ * Form field: "files"
+ * Body fields: folder, profiles
+ */
+router.post("/multiple", uploadMultiple("files", 10), uploadMultipleImages);
+
+/**
+ * POST /api/v1/uploads/kitchen-brand
+ * Upload kitchen logo + banner together during onboarding.
+ * Form fields: "logo" (image), "banner" (image)
+ * → Produces placeholder + thumbnail + medium for logo
+ * → Produces placeholder + medium + full for banner
+ */
+router.post(
+  "/kitchen-brand",
+  uploadFields([
+    { name: "logo", maxCount: 1 },
+    { name: "banner", maxCount: 1 },
+  ]),
+  uploadKitchenBrand
+);
+
+/**
+ * POST /api/v1/uploads/avatar
+ * Upload a user or delivery agent avatar.
+ * Form field: "avatar"
+ * → Produces placeholder + thumbnail (square crop)
+ */
+router.post("/avatar", uploadSingle("avatar"), uploadAvatar);
+
+/**
+ * POST /api/v1/uploads/presign
+ * Get a pre-signed S3 URL for direct client-side upload (no server bandwidth used).
+ * Body (JSON): { folder: string, extension?: string }
+ */
+router.post("/presign", getPresignedUploadUrl);
+
+/**
+ * DELETE /api/v1/uploads
+ * Delete S3 files by their keys.
+ * Body (JSON): { keys: string[] }
+ */
+router.delete("/", deleteImages);
+
+export default router;
