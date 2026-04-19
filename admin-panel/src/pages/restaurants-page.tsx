@@ -11,8 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { restaurantsSeed } from "@/data/dashboard-data";
-import type { Restaurant, RestaurantsSubView } from "@/types/dashboard";
+import { adminService } from "@/services/admin.service";
+import type { KitchenStatus } from "@/types/dashboard";
 
 const pageSize = 6;
 
@@ -21,50 +21,48 @@ export function RestaurantsPage() {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [kitchens, setKitchens] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const activeTab = (searchParams.get("type") as RestaurantsSubView | null) ?? "all";
+  const activeTab = (searchParams.get("status") as string | null) ?? "all";
+
+  const fetchKitchens = async () => {
+    setLoading(true);
+    try {
+      const response = await adminService.getKitchens({
+        status: activeTab !== "all" ? activeTab : undefined,
+        page,
+        search: query || undefined
+      });
+      
+      if (response.success) {
+        setKitchens(response.kitchens);
+        setTotalPages(response.pagination.pages);
+      }
+    } catch (error) {
+      console.error("Failed to fetch kitchens:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const timeout = setTimeout(() => setLoading(false), 420);
-    return () => clearTimeout(timeout);
-  }, [activeTab, statusFilter]);
+    fetchKitchens();
+  }, [activeTab, page, query]);
 
-  const rows = useMemo(() => {
-    let result = [...restaurantsSeed];
-
-    if (activeTab !== "all") {
-      result = result.filter((restaurant) => restaurant.type === activeTab);
-    }
-    if (statusFilter !== "all") {
-      result = result.filter((restaurant) => restaurant.status === statusFilter);
-    }
-    if (query.trim()) {
-      const value = query.toLowerCase();
-      result = result.filter(
-        (restaurant) =>
-          restaurant.name.toLowerCase().includes(value) ||
-          restaurant.owner.toLowerCase().includes(value) ||
-          restaurant.location.toLowerCase().includes(value)
-      );
-    }
-
-    return result;
-  }, [activeTab, query, statusFilter]);
-
-  const columns: DataColumn<Restaurant>[] = [
+  const columns: DataColumn<any>[] = [
     { key: "name", label: "Name", render: (row) => row.name },
-    { key: "owner", label: "Owner", render: (row) => row.owner },
-    { key: "type", label: "Type", render: (row) => <StatusBadge value={row.type === "active" ? "Open" : row.type === "closed" ? "Closed" : row.type === "requested" ? "Pending" : "Inactive"} /> },
+    { key: "owner", label: "Owner", render: (row) => row.ownerName },
     { key: "status", label: "Status", render: (row) => <StatusBadge value={row.status} /> },
-    { key: "rating", label: "Rating", render: (row) => (row.rating ? `${row.rating.toFixed(1)} / 5` : "--") },
-    { key: "created", label: "Created", render: (row) => row.createdDate },
+    { key: "phone", label: "Phone", render: (row) => row.phone },
+    { key: "created", label: "Created", render: (row) => new Date(row.createdAt).toLocaleDateString() },
     {
       key: "action",
       label: "Details",
       render: (row) => (
         <Button variant="outline" size="sm" asChild>
-          <Link to={`/restaurants/${row.id}`}>View Details</Link>
+          <Link to={`/kitchen-requests/${row._id}`}>Review</Link>
         </Button>
       )
     }
@@ -80,15 +78,15 @@ export function RestaurantsPage() {
         value={activeTab}
         onValueChange={(value) => {
           setPage(1);
-          setSearchParams(value === "all" ? {} : { type: value });
+          setSearchParams(value === "all" ? {} : { status: value });
         }}
       >
         <TabsList className="h-auto flex-wrap">
-          <TabsTrigger value="all">All Restaurants</TabsTrigger>
-          <TabsTrigger value="requested">Requested</TabsTrigger>
-          <TabsTrigger value="active">Active</TabsTrigger>
-          <TabsTrigger value="closed">Closed</TabsTrigger>
-          <TabsTrigger value="flagged">Flagged</TabsTrigger>
+          <TabsTrigger value="all">All Kitchens</TabsTrigger>
+          <TabsTrigger value="PENDING_VERIFICATION">Pending</TabsTrigger>
+          <TabsTrigger value="VERIFIED">Verified</TabsTrigger>
+          <TabsTrigger value="REJECTED">Rejected</TabsTrigger>
+          <TabsTrigger value="UNDER_REVIEW">Review</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -118,15 +116,15 @@ export function RestaurantsPage() {
 
       <DataTable
         title="Restaurants / Kitchens"
-        description="Kitchen onboarding and performance management with subtype navigation like the Orders section."
+        description="Kitchen onboarding and performance management with status-based filtering."
         columns={columns}
-        rows={rows}
+        rows={kitchens}
         page={page}
         pageSize={pageSize}
         onPageChange={setPage}
         emptyTitle="No restaurants found"
         emptyDescription="Try switching tabs or widening the search and status filters."
-        rowHref={(row) => `/restaurants/${row.id}`}
+        rowHref={(row) => `/kitchen-requests/${row._id}`}
       />
     </div>
   );

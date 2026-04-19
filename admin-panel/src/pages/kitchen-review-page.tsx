@@ -92,17 +92,85 @@ function RejectionModal({ onConfirm, onClose }: { onConfirm: (r: string) => void
   );
 }
 
+import { adminService } from "@/services/admin.service";
+import { useParams, useNavigate } from "react-router-dom";
+
+type KitchenStatus = "PENDING_VERIFICATION" | "UNDER_REVIEW" | "VERIFIED" | "REJECTED";
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export function KitchenReviewPage() {
-  const kitchen = MOCK_KITCHEN;
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [kitchen, setKitchen] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [showRejectModal, setShowRejectModal] = useState(false);
-  const [actionTaken, setActionTaken] = useState<"approved" | "rejected" | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionResult, setActionResult] = useState<"approved" | "rejected" | null>(null);
 
-  const handleApprove = () => setActionTaken("approved");
-  const handleReject = (reason: string) => {
-    setShowRejectModal(false);
-    setActionTaken("rejected");
+  const fetchKitchen = async () => {
+    if (!id) return;
+    setLoading(true);
+    try {
+      const response = await adminService.getKitchenById(id);
+      if (response.success || response) {
+        setKitchen(response.data || response);
+      }
+    } catch (error) {
+      console.error("Failed to fetch kitchen:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    fetchKitchen();
+  }, [id]);
+
+  const handleApprove = async () => {
+    if (!id) return;
+    setActionLoading(true);
+    try {
+      await adminService.approveKitchen(id);
+      setActionResult("approved");
+      fetchKitchen();
+    } catch (error) {
+      console.error("Approval failed:", error);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReject = async (reason: string) => {
+    if (!id) return;
+    setActionLoading(true);
+    try {
+      await adminService.rejectKitchen(id, reason);
+      setActionResult("rejected");
+      setShowRejectModal(false);
+      fetchKitchen();
+    } catch (error) {
+      console.error("Rejection failed:", error);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleMarkReview = async () => {
+     if (!id) return;
+     setActionLoading(true);
+     try {
+       await adminService.markKitchenUnderReview(id, "Admin manually marked for review");
+       fetchKitchen();
+     } catch (error) {
+       console.error("Review marker failed:", error);
+     } finally {
+       setActionLoading(false);
+     }
+  };
+
+  if (loading || !kitchen) {
+    return <Skeleton className="h-[600px] rounded-3xl" />;
+  }
 
   const StatusBadge = () => {
     const cfg = {
@@ -110,7 +178,7 @@ export function KitchenReviewPage() {
       VERIFIED: { label: "Verified", icon: <CheckCircle className="h-4 w-4" />, color: "text-emerald-600 bg-emerald-50 border-emerald-200" },
       REJECTED: { label: "Rejected", icon: <XCircle className="h-4 w-4" />, color: "text-red-600 bg-red-50 border-red-200" },
       UNDER_REVIEW: { label: "Under Review", icon: <Clock className="h-4 w-4" />, color: "text-blue-600 bg-blue-50 border-blue-200" },
-    }[kitchen.status];
+    }[kitchen.status as KitchenStatus] || { label: "Unknown", icon: <Clock className="h-4 w-4" />, color: "text-gray-600 bg-gray-50 border-gray-200" };
     return (
       <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${cfg.color}`}>
         {cfg.icon} {cfg.label}
@@ -123,7 +191,7 @@ export function KitchenReviewPage() {
       {/* Back + Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" className="rounded-xl h-9 w-9" onClick={() => window.history.back()}>
+          <Button variant="outline" size="icon" className="rounded-xl h-9 w-9" onClick={() => navigate(-1)}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <div>
@@ -135,11 +203,11 @@ export function KitchenReviewPage() {
       </div>
 
       {/* Success Banner */}
-      {actionTaken && (
-        <div className={`rounded-2xl p-4 border flex items-center gap-3 ${actionTaken === "approved" ? "bg-emerald-50 border-emerald-200" : "bg-red-50 border-red-200"}`}>
-          {actionTaken === "approved" ? <CheckCircle className="h-5 w-5 text-emerald-600" /> : <XCircle className="h-5 w-5 text-red-600" />}
+      {actionResult && (
+        <div className={`rounded-2xl p-4 border flex items-center gap-3 ${actionResult === "approved" ? "bg-emerald-50 border-emerald-200" : "bg-red-50 border-red-200"}`}>
+          {actionResult === "approved" ? <CheckCircle className="h-5 w-5 text-emerald-600" /> : <XCircle className="h-5 w-5 text-red-600" />}
           <p className="font-semibold text-sm">
-            {actionTaken === "approved" ? "Kitchen approved! The owner will be notified via notification." : "Kitchen rejected. The owner has been notified with the reason."}
+            {actionResult === "approved" ? "Kitchen approved! The owner will be notified." : "Kitchen rejected. The owner has been notified with the reason."}
           </p>
         </div>
       )}
@@ -176,7 +244,7 @@ export function KitchenReviewPage() {
                 { icon: User, label: "Owner Name", value: kitchen.ownerName },
                 { icon: Mail, label: "Email", value: kitchen.email },
                 { icon: Phone, label: "Phone", value: kitchen.phone },
-                { icon: MapPin, label: "Address", value: `${kitchen.address.line1}, ${kitchen.address.city} - ${kitchen.address.pinCode}` },
+                { icon: MapPin, label: "Address", value: kitchen.address ? `${kitchen.address.line1}, ${kitchen.address.city} - ${kitchen.address.pinCode}` : "Not provided" },
                 { icon: ShieldCheck, label: "FSSAI License", value: kitchen.fssaiLicense ?? "Not provided" },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="flex items-start gap-3">
@@ -199,10 +267,10 @@ export function KitchenReviewPage() {
             </h2>
             <div className="grid grid-cols-2 gap-4">
               {[
-                { label: "Account Holder", value: kitchen.bankDetails.accountHolderName },
-                { label: "Bank Name", value: kitchen.bankDetails.bankName },
-                { label: "IFSC Code", value: kitchen.bankDetails.ifscCode },
-                { label: "Account Number", value: kitchen.bankDetails.accountNumber },
+                { label: "Account Holder", value: kitchen.bankDetails?.accountHolderName || "N/A" },
+                { label: "Bank Name", value: kitchen.bankDetails?.bankName || "N/A" },
+                { label: "IFSC Code", value: kitchen.bankDetails?.ifscCode || "N/A" },
+                { label: "Account Number", value: kitchen.bankDetails?.accountNumber || "N/A" },
               ].map(({ label, value }) => (
                 <div key={label}>
                   <p className="text-xs text-muted-foreground font-semibold uppercase">{label}</p>
@@ -268,11 +336,12 @@ export function KitchenReviewPage() {
             <h2 className="font-bold text-base mb-1">Admin Actions</h2>
             <p className="text-xs text-muted-foreground mb-5">Your decision will notify the kitchen owner instantly.</p>
 
-            {!actionTaken ? (
+            {!actionResult ? (
               <div className="space-y-3">
                 <button
+                  disabled={actionLoading}
                   onClick={handleApprove}
-                  className="w-full flex items-center gap-3 p-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 transition-colors text-left"
+                  className="w-full flex items-center gap-3 p-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 transition-colors text-left disabled:opacity-50"
                 >
                   <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0" />
                   <div>
@@ -282,8 +351,9 @@ export function KitchenReviewPage() {
                 </button>
 
                 <button
+                  disabled={actionLoading}
                   onClick={() => setShowRejectModal(true)}
-                  className="w-full flex items-center gap-3 p-4 rounded-2xl border-2 border-red-200 bg-red-50 hover:bg-red-100 transition-colors text-left"
+                  className="w-full flex items-center gap-3 p-4 rounded-2xl border-2 border-red-200 bg-red-50 hover:bg-red-100 transition-colors text-left disabled:opacity-50"
                 >
                   <XCircle className="h-5 w-5 text-red-600 shrink-0" />
                   <div>
@@ -292,7 +362,11 @@ export function KitchenReviewPage() {
                   </div>
                 </button>
 
-                <button className="w-full flex items-center gap-3 p-4 rounded-2xl border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors text-left">
+                <button 
+                  disabled={actionLoading}
+                  onClick={handleMarkReview}
+                  className="w-full flex items-center gap-3 p-4 rounded-2xl border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors text-left disabled:opacity-50"
+                >
                   <AlertTriangle className="h-5 w-5 text-blue-600 shrink-0" />
                   <div>
                     <p className="font-bold text-sm text-blue-700">Request More Info</p>
@@ -301,8 +375,8 @@ export function KitchenReviewPage() {
                 </button>
               </div>
             ) : (
-              <div className={`p-4 rounded-2xl text-center ${actionTaken === "approved" ? "bg-emerald-50" : "bg-red-50"}`}>
-                {actionTaken === "approved" ? (
+              <div className={`p-4 rounded-2xl text-center ${actionResult === "approved" ? "bg-emerald-50" : "bg-red-50"}`}>
+                {actionResult === "approved" ? (
                   <CheckCircle className="h-8 w-8 text-emerald-600 mx-auto mb-2" />
                 ) : (
                   <XCircle className="h-8 w-8 text-red-600 mx-auto mb-2" />

@@ -12,79 +12,71 @@ import { Select, SelectItem } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { usersSeed } from "@/data/dashboard-data";
-import type { User, UserStatus, UsersSubView } from "@/types/dashboard";
+import { adminService } from "@/services/admin.service";
+import type { User, UsersSubView } from "@/types/dashboard";
 
 export function UsersPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
-  const [users, setUsers] = useState(usersSeed);
+  const [totalPages, setTotalPages] = useState(1);
+  const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const activeTab = (searchParams.get("role") as UsersSubView | null) ?? "all";
 
-  useEffect(() => {
-    const timeout = setTimeout(() => setLoading(false), 420);
-    return () => clearTimeout(timeout);
-  }, [activeTab, statusFilter]);
-
-  const filteredUsers = useMemo(() => {
-    let rows = [...users];
-    if (activeTab !== "all") {
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
       const roleMap = {
         admin: "ADMIN",
         delivery: "DELIVERY",
         kitchen: "KITCHEN",
         user: "USER"
       } as const;
-      rows = rows.filter((user) => user.role === roleMap[activeTab as Exclude<UsersSubView, "all">]);
+      
+      const role = activeTab !== "all" ? roleMap[activeTab as Exclude<UsersSubView, "all">] : undefined;
+      
+      const response = await adminService.getUsers({
+        role,
+        page,
+        search: query || undefined
+      });
+      
+      if (response.success) {
+        setUsers(response.users);
+        setTotalPages(response.pagination.pages);
+      }
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+    } finally {
+      setLoading(false);
     }
-    if (statusFilter !== "all") {
-      rows = rows.filter((user) => user.status === statusFilter);
-    }
-    if (query.trim()) {
-      const value = query.toLowerCase();
-      rows = rows.filter(
-        (user) =>
-          user.name.toLowerCase().includes(value) ||
-          user.email.toLowerCase().includes(value) ||
-          user.phone.toLowerCase().includes(value)
-      );
-    }
-    return rows;
-  }, [query, statusFilter, users, activeTab]);
+  };
 
-  const columns: DataColumn<User>[] = [
+  useEffect(() => {
+    fetchUsers();
+  }, [activeTab, page, query]);
+
+
+  const columns: DataColumn<any>[] = [
     { key: "name", label: "Name", render: (row) => row.name },
     { key: "email", label: "Email", render: (row) => row.email },
-    { key: "phone", label: "Phone", render: (row) => row.phone },
+    { key: "phone", label: "Phone", render: (row) => row.phone || "N/A" },
     { key: "role", label: "Role", render: (row) => <StatusBadge value={row.role} /> },
-    { key: "status", label: "Status", render: (row) => <StatusBadge value={row.status} /> },
-    { key: "created", label: "Created", render: (row) => row.createdDate },
+    { key: "created", label: "Created", render: (row) => new Date(row.createdAt).toLocaleDateString() },
     {
-      key: "toggle",
-      label: "Active",
-      render: (row) => (
-        <Switch
-          checked={row.status === "Active"}
-          onCheckedChange={(checked) =>
-            setUsers((current) =>
-              current.map((user) =>
-                user.id === row.id ? { ...user, status: (checked ? "Active" : "Inactive") as UserStatus } : user
-              )
-            )
-          }
-        />
-      )
+      key: "status",
+      label: "Status",
+      render: (row) => <StatusBadge value="Active" /> // Defaulting to Active for now as backend doesn't have status yet
     },
     {
       key: "action",
       label: "Details",
       render: (row) => (
         <Button variant="outline" size="sm" asChild>
-          <Link to={`/users/${row.id}`}>View Details</Link>
+          <Link to={`/users/${row._id}`}>View Details</Link>
         </Button>
       )
     }
@@ -146,13 +138,13 @@ export function UsersPage() {
         title="Users List"
         description="All customer and operations-facing accounts with admin-only creation flows for admins and delivery users."
         columns={columns}
-        rows={filteredUsers}
+        rows={users}
         page={page}
         pageSize={6}
         onPageChange={setPage}
         emptyTitle="No users match these filters"
         emptyDescription="Adjust the role tab, status filter, or search query and try again."
-        rowHref={(row) => `/users/${row.id}`}
+        rowHref={(row) => `/users/${row._id}`}
       />
     </div>
   );

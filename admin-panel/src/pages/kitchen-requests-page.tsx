@@ -53,28 +53,40 @@ const STATUS_CONFIG: Record<KitchenStatus, { label: string; color: string; bg: s
   REJECTED: { label: "Rejected", color: "text-red-600", bg: "bg-red-50 border-red-200", icon: <XCircle className="h-3.5 w-3.5" /> },
 };
 
+import { adminService } from "@/services/admin.service";
+
 export function KitchenRequestsPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<KitchenStatus | "ALL">("ALL");
   const [search, setSearch] = useState("");
+  const [kitchens, setKitchens] = useState<any[]>([]);
+  const [counts, setCounts] = useState<any>({ ALL: 0, PENDING_VERIFICATION: 0, UNDER_REVIEW: 0, VERIFIED: 0, REJECTED: 0 });
+  const [loading, setLoading] = useState(true);
 
-  const counts = {
-    ALL: MOCK_KITCHENS.length,
-    PENDING_VERIFICATION: MOCK_KITCHENS.filter((k) => k.status === "PENDING_VERIFICATION").length,
-    UNDER_REVIEW: MOCK_KITCHENS.filter((k) => k.status === "UNDER_REVIEW").length,
-    VERIFIED: MOCK_KITCHENS.filter((k) => k.status === "VERIFIED").length,
-    REJECTED: MOCK_KITCHENS.filter((k) => k.status === "REJECTED").length,
+  const fetchKitchens = async () => {
+    setLoading(true);
+    try {
+      const response = await adminService.getKitchens({
+        status: activeTab !== "ALL" ? activeTab : undefined,
+        search: search || undefined
+      });
+      
+      if (response.success) {
+        setKitchens(response.kitchens);
+        setCounts(response.counts);
+      }
+    } catch (error) {
+      console.error("Failed to fetch kitchen requests:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const filtered = MOCK_KITCHENS.filter((k) => {
-    const matchTab = activeTab === "ALL" || k.status === activeTab;
-    const matchSearch =
-      !search ||
-      k.name.toLowerCase().includes(search.toLowerCase()) ||
-      k.ownerName.toLowerCase().includes(search.toLowerCase()) ||
-      k.email.toLowerCase().includes(search.toLowerCase());
-    return matchTab && matchSearch;
-  });
+  useEffect(() => {
+    fetchKitchens();
+  }, [activeTab, search]);
+
+  const filtered = kitchens; // Filtering now happens on backend
 
   return (
     <div className="space-y-6">
@@ -158,9 +170,9 @@ export function KitchenRequestsPage() {
               </tr>
             )}
             {filtered.map((k, i) => {
-              const cfg = STATUS_CONFIG[k.status];
+              const cfg = STATUS_CONFIG[k.status as KitchenStatus] || STATUS_CONFIG.PENDING_VERIFICATION;
               return (
-                <tr key={k.id} className={`border-b last:border-0 hover:bg-muted/10 transition-colors ${i % 2 === 0 ? "" : "bg-muted/5"}`}>
+                <tr key={k._id} className={`border-b last:border-0 hover:bg-muted/10 transition-colors ${i % 2 === 0 ? "" : "bg-muted/5"}`}>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -185,7 +197,7 @@ export function KitchenRequestsPage() {
                       <span className="text-red-400">✗ Missing</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{k.createdAt}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{new Date(k.createdAt).toLocaleDateString()}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${cfg.color} ${cfg.bg}`}>
                       {cfg.icon}
@@ -197,7 +209,7 @@ export function KitchenRequestsPage() {
                       size="sm"
                       variant="outline"
                       className="rounded-xl h-8 gap-1.5 text-xs"
-                      onClick={() => navigate(`/kitchen-requests/${k.id}`)}
+                      onClick={() => navigate(`/kitchen-requests/${k._id}`)}
                     >
                       <Eye className="h-3.5 w-3.5" />
                       Review
