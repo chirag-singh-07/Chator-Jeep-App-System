@@ -19,6 +19,7 @@ export const listKitchenOrders = asyncHandler(async (req: AuthenticatedRequest, 
 });
 
 export const updateStatus = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const order = await service.updateOrderStatus(req.user!, req.params.orderId, req.body.status);
+  const order = await service.updateOrderStatus(req.user!, req.params.orderId as string, req.body.status);
+
   res.status(200).json(order);
 });

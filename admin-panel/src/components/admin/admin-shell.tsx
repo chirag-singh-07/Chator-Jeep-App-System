@@ -126,8 +126,13 @@ const routeMeta: Record<string, { title: string; subtitle: string }> = {
   "/maintenance": {
     title: "Maintenance Mode",
     subtitle: "Control platform accessibility during scheduled system updates."
+  },
+  "/kitchen-requests": {
+    title: "Kitchen Applications",
+    subtitle: "Review and manage onboarding requests from potential kitchen partners."
   }
 };
+
 
 export function AdminShell({ children }: { children?: React.ReactNode }) {
   const location = useLocation();

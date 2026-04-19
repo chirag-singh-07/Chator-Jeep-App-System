@@ -44,8 +44,9 @@ export default function RegisterScreen() {
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      router.replace('/(tabs)');
+      router.replace('/(auth)/pending');
     }
+
   };
 
   const prevStep = () => {

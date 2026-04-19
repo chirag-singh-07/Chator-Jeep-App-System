@@ -529,7 +529,13 @@ export const sidebarNavigation: NavigationItem[] = [
     ]
   },
   {
+    title: "Kitchen Requests",
+    href: "/kitchen-requests",
+    icon: "restaurants"
+  },
+  {
     title: "Food Items",
+
     href: "/food-items",
     icon: "food-items",
     children: [

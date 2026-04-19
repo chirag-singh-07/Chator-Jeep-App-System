@@ -4,7 +4,7 @@ import { AuthenticatedRequest } from "../../common/middleware/auth.middleware";
 import * as service from "./delivery.service";
 
 export const assignOrder = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const delivery = await service.assignNearestRiderToOrder(req.params.orderId);
+  const delivery = await service.assignNearestRiderToOrder(req.params.orderId as string);
   res.status(200).json(delivery);
 });
 
@@ -14,7 +14,7 @@ export const myAssignedOrders = asyncHandler(async (req: AuthenticatedRequest, r
 });
 
 export const updateStatus = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const delivery = await service.updateDeliveryStatus(req.user!.userId, req.params.orderId, req.body.status);
+  const delivery = await service.updateDeliveryStatus(req.user!.userId, req.params.orderId as string, req.body.status);
   res.status(200).json(delivery);
 });
 

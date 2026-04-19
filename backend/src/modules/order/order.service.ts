@@ -1,17 +1,18 @@
 import { Types } from "mongoose";
-import { ORDER_STATUS, Role, ROLES } from "../../common/constants";
+import { ORDER_STATUS, Role, ROLES, OrderStatus } from "../../common/constants";
+import { IMenuItem } from "../kitchen/kitchen.model";
 import { AppError } from "../../common/errors/app-error";
 import { orderEvent } from "../../sockets/events";
 import { listMenuByKitchen, findKitchenByOwner } from "../kitchen/kitchen.repository";
 import { orderQueue } from "../../jobs/queues";
 import * as repo from "./order.repository";
 
-const canTransition = (current: string, next: string, actorRole: Role): boolean => {
-  if (next === ORDER_STATUS.CANCELLED) {
-    return current !== ORDER_STATUS.DELIVERED;
+const canTransition = (current: OrderStatus, next: OrderStatus, actorRole: Role): boolean => {
+  if (next === ORDER_STATUS.CANCELLED as any) {
+    return current !== ORDER_STATUS.DELIVERED as any;
   }
 
-  const transitions: Record<string, string[]> = {
+  const transitions: Partial<Record<OrderStatus, OrderStatus[]>> = {
     [ORDER_STATUS.PENDING]: [ORDER_STATUS.ACCEPTED],
     [ORDER_STATUS.ACCEPTED]: [ORDER_STATUS.PREPARING],
     [ORDER_STATUS.PREPARING]: [ORDER_STATUS.READY],
@@ -24,11 +25,11 @@ const canTransition = (current: string, next: string, actorRole: Role): boolean 
     return false;
   }
 
-  if ([ORDER_STATUS.ACCEPTED, ORDER_STATUS.PREPARING, ORDER_STATUS.READY].includes(next)) {
+  if (([ORDER_STATUS.ACCEPTED, ORDER_STATUS.PREPARING, ORDER_STATUS.READY] as OrderStatus[]).includes(next)) {
     return actorRole === ROLES.KITCHEN || actorRole === ROLES.ADMIN;
   }
 
-  if ([ORDER_STATUS.OUT_FOR_DELIVERY, ORDER_STATUS.DELIVERED].includes(next)) {
+  if (([ORDER_STATUS.OUT_FOR_DELIVERY, ORDER_STATUS.DELIVERED] as OrderStatus[]).includes(next)) {
     return actorRole === ROLES.DELIVERY || actorRole === ROLES.ADMIN;
   }
 
@@ -39,8 +40,8 @@ export const createOrder = async (
   userId: string,
   input: { kitchenId: string; items: Array<{ menuItemId: string; quantity: number }> }
 ) => {
-  const menuItems = await listMenuByKitchen(input.kitchenId);
-  const menuMap = new Map(menuItems.map((item) => [item._id.toString(), item]));
+  const menuItems = await listMenuByKitchen(input.kitchenId) as IMenuItem[];
+  const menuMap = new Map<string, IMenuItem>(menuItems.map((item) => [item._id.toString(), item]));
 
   const snapshotItems = input.items.map(({ menuItemId, quantity }) => {
     const item = menuMap.get(menuItemId);
@@ -98,7 +99,7 @@ export const listKitchenOrders = async (ownerId: string) => {
 export const updateOrderStatus = async (
   actor: { userId: string; role: Role },
   orderId: string,
-  nextStatus: string
+  nextStatus: OrderStatus
 ) => {
   const order = await repo.getOrderById(orderId);
   if (!order) {

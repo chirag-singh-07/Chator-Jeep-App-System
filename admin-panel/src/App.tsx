@@ -38,6 +38,8 @@ import { PayoutRequestsPage } from "@/pages/payout-requests-page";
 import { StaffManagementPage } from "@/pages/staff-management-page";
 import { TaxSettingsPage } from "@/pages/tax-settings-page";
 import { MaintenanceModePage } from "@/pages/maintenance-mode-page";
+import { KitchenRequestsPage } from "@/pages/kitchen-requests-page";
+import { KitchenReviewPage } from "@/pages/kitchen-review-page";
 
 function App() {
   return (
@@ -98,6 +100,10 @@ function App() {
         <Route path="/payments" element={<PaymentsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        
+        <Route path="/kitchen-requests" element={<KitchenRequestsPage />} />
+        <Route path="/kitchen-requests/:requestId" element={<KitchenReviewPage />} />
+
         <Route path="*" element={<Navigate to="/overview" replace />} />
       </Route>
     </Routes>

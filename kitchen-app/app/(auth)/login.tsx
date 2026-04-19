@@ -19,8 +19,20 @@ export default function LoginScreen() {
   const router = useRouter();
 
   const handleLogin = () => {
-    router.replace('/(tabs)');
+    // In production: call POST /api/v1/kitchens/login, read kitchenStatus from response
+    // Change statusMock to test different app states:
+    // 'PENDING_VERIFICATION' | 'UNDER_REVIEW' | 'REJECTED' | 'VERIFIED'
+    const statusMock = 'PENDING_VERIFICATION';
+
+    if (statusMock === 'PENDING_VERIFICATION' || statusMock === 'UNDER_REVIEW') {
+      router.replace('/(auth)/pending');
+    } else if (statusMock === 'REJECTED') {
+      router.replace('/(auth)/rejected');
+    } else {
+      router.replace('/(tabs)');
+    }
   };
+
 
   return (
     <SafeAreaView style={styles.container}>
