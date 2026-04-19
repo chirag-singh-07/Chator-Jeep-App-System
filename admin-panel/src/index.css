@@ -121,6 +121,9 @@
 
   body {
     @apply min-h-screen bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(circle at top left, color-mix(in srgb, var(--color-primary) 12%, transparent) 0, transparent 36%),
+      linear-gradient(180deg, rgba(255, 247, 236, 0.68), rgba(255, 255, 255, 0.9));
   }
 
   html {

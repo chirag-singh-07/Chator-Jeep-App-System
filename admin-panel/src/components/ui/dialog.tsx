@@ -34,7 +34,7 @@ function DialogTrigger({
   children
 }: {
   asChild?: boolean;
-  children: React.ReactElement;
+  children: React.ReactElement<{ onClick?: () => void }>;
 }) {
   const { setOpen } = useDialogContext();
   if (!asChild) {
@@ -44,7 +44,7 @@ function DialogTrigger({
       </button>
     );
   }
-  return React.cloneElement(children, {
+  return React.cloneElement(children as React.ReactElement<{ onClick?: () => void }>, {
     onClick: () => setOpen(true)
   });
 }
