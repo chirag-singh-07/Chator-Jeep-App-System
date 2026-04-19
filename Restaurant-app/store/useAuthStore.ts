@@ -1,9 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
-
-const API_URL = 'http://localhost:5000/api/v1'; // Use your machine's IP for real device
+import { apiClient } from '../lib/api';
 
 interface User {
   id: string;
@@ -37,7 +35,7 @@ export const useAuthStore = create<AuthState>()(
       login: async (email, password) => {
         set({ isLoading: true });
         try {
-          const response = await axios.post(`${API_URL}/restaurants/login`, { email, password });
+          const response = await apiClient.post(`/restaurants/login`, { email, password });
           const { accessToken, restaurantStatus, restaurantId } = response.data.data;
           
           set({ 
@@ -59,14 +57,14 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      register: async (data) => {
+      register: async (data: any) => {
         set({ isLoading: true });
         try {
-          await axios.post(`${API_URL}/restaurants/register`, data);
+          await apiClient.post(`/restaurants/register`, data);
           set({ isLoading: false });
         } catch (error: any) {
           set({ isLoading: false });
-          throw error.response?.data?.message || 'Registration failed';
+          throw error.response?.data?.message || error.message || 'Registration failed due to network settings.';
         }
       },
 

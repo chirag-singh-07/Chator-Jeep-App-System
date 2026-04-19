@@ -36,6 +36,7 @@ import { cn } from "@/lib/utils";
 export function ProfilePage() {
   const { user } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
   const [formData, setFormData] = useState({
     name: user?.name || "Admin User",
     email: user?.email || "admin@chatorijeep.com",
@@ -188,7 +189,7 @@ export function ProfilePage() {
 
         {/* Right Content Workspace */}
         <div className="lg:col-span-8 space-y-8">
-          <Tabs defaultValue="overview" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="bg-secondary/20 p-1.5 rounded-[24px] h-auto gap-1 border border-border/50">
               {["overview", "activity", "security"].map((tab) => (
                 <TabsTrigger 

@@ -3,7 +3,15 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { EmptyState } from "@/components/admin/empty-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 export type DataColumn<T> = {
   key: string;
@@ -23,6 +31,7 @@ type DataTableProps<T extends { id: string }> = {
   emptyTitle: string;
   emptyDescription: string;
   rowHref?: (row: T) => string | undefined;
+  className?: string;
 };
 
 export function DataTable<T extends { id: string }>({
@@ -35,18 +44,21 @@ export function DataTable<T extends { id: string }>({
   onPageChange,
   emptyTitle,
   emptyDescription,
-  rowHref
+  rowHref,
+  className,
 }: DataTableProps<T>) {
   const safeRows = rows || [];
   const totalPages = Math.max(1, Math.ceil(safeRows.length / pageSize));
   const pageRows = safeRows.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <Card className="rounded-2xl shadow-sm">
+    <Card className={cn("rounded-2xl shadow-sm", className)}>
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
           <CardTitle className="text-base">{title}</CardTitle>
-          {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
+          {description ? (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          ) : null}
         </div>
       </CardHeader>
       <CardContent className="overflow-x-auto">
@@ -68,7 +80,11 @@ export function DataTable<T extends { id: string }>({
                 {pageRows.map((row) => (
                   <TableRow key={row.id}>
                     {columns.map((column, columnIndex) => {
-                      const cell = <TableCell key={column.key}>{column.render(row)}</TableCell>;
+                      const cell = (
+                        <TableCell key={column.key}>
+                          {column.render(row)}
+                        </TableCell>
+                      );
                       const href = rowHref?.(row);
                       if (columnIndex === 0 && href) {
                         return (
@@ -88,17 +104,29 @@ export function DataTable<T extends { id: string }>({
 
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-muted-foreground">
-                Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, safeRows.length)} of {safeRows.length} rows
+                Showing {(page - 1) * pageSize + 1}-
+                {Math.min(page * pageSize, safeRows.length)} of{" "}
+                {safeRows.length} rows
               </p>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page <= 1}
+                  onClick={() => onPageChange(page - 1)}
+                >
                   <ChevronLeft data-icon="inline-start" />
                   Previous
                 </Button>
                 <span className="text-sm text-muted-foreground">
                   Page {page} / {totalPages}
                 </span>
-                <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => onPageChange(page + 1)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page >= totalPages}
+                  onClick={() => onPageChange(page + 1)}
+                >
                   Next
                   <ChevronRight data-icon="inline-end" />
                 </Button>

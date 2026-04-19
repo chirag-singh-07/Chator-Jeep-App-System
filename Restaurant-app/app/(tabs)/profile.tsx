@@ -32,13 +32,41 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Preferences</Text>
+          <Text style={styles.sectionTitle}>Business Identity</Text>
+          
+          <TouchableOpacity style={styles.menuItem}>
+            <View style={[styles.iconBox, { backgroundColor: '#FFF3E0' }]}>
+              <Ionicons name="images-outline" size={20} color="#FF9800" />
+            </View>
+            <Text style={styles.menuText}>Brand Assets & Images</Text>
+            <Ionicons name="chevron-forward" size={20} color="#CCC" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem}>
+            <View style={[styles.iconBox, { backgroundColor: '#E8F5E9' }]}>
+              <Ionicons name="time-outline" size={20} color="#4CAF50" />
+            </View>
+            <Text style={styles.menuText}>Business Hours</Text>
+            <Ionicons name="chevron-forward" size={20} color="#CCC" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>App Preferences</Text>
           
           <TouchableOpacity style={styles.menuItem}>
             <View style={[styles.iconBox, { backgroundColor: '#E3F2FD' }]}>
               <Ionicons name="notifications-outline" size={20} color="#2196F3" />
             </View>
-            <Text style={styles.menuText}>Notifications</Text>
+            <Text style={styles.menuText}>Order Notifications</Text>
+            <Ionicons name="chevron-forward" size={20} color="#CCC" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem}>
+            <View style={[styles.iconBox, { backgroundColor: '#FCE4EC' }]}>
+              <Ionicons name="volume-high-outline" size={20} color="#E91E63" />
+            </View>
+            <Text style={styles.menuText}>Sound & Alarms</Text>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
 
@@ -46,10 +74,29 @@ export default function ProfileScreen() {
             <View style={[styles.iconBox, { backgroundColor: '#F3E5F5' }]}>
               <Ionicons name="shield-checkmark-outline" size={20} color="#9C27B0" />
             </View>
-            <Text style={styles.menuText}>Security</Text>
+            <Text style={styles.menuText}>Security & Account</Text>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
         </View>
+
+        <TouchableOpacity 
+          style={[styles.logoutBtn, { backgroundColor: '#E3F2FD', borderColor: '#BBDEFB', marginBottom: 10 }]} 
+          onPress={() => {
+            const { setIncomingOrder } = useOrderStore.getState();
+            setIncomingOrder({
+              _id: 'mock_123',
+              orderNumber: 'TEST-999',
+              customerData: { name: 'Test User', phone: '9999999999' },
+              items: [{ name: 'Test Burger', quantity: 2, price: 150 }],
+              totalAmount: 300,
+              status: 'pending',
+              createdAt: new Date().toISOString()
+            });
+          }}
+        >
+          <Ionicons name="notifications-circle-outline" size={22} color="#1976D2" />
+          <Text style={[styles.logoutText, { color: '#1976D2' }]}>Test Incoming Order Alarm</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={22} color={Colors.light.error} />
@@ -61,6 +108,8 @@ export default function ProfileScreen() {
     </SafeAreaView>
   );
 }
+
+import { useOrderStore } from '@/store/useOrderStore';
 
 const styles = StyleSheet.create({
   container: {

@@ -6,8 +6,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { currentAdminProfile } from "@/data/dashboard-data";
+import { Button } from "@/components/ui/button"
+
 import { LogOut, Settings, User, CreditCard, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "@/stores/useAuthStore";

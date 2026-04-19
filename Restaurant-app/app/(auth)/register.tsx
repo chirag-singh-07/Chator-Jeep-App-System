@@ -53,13 +53,17 @@ export default function RegisterScreen() {
         await register({
           email,
           password,
-          name: kitchenName,
+          ownerName: kitchenName, // Passing kitchen name as owner for now since there's no separate field
+          restaurantName: kitchenName,
           phone,
-          foodType,
-          address,
-          pinCode,
-          // logo and banner would be handled by a separate upload process or multipart
-          // For now, sending the basic info
+          cuisines: [foodType],
+          address: {
+            line1: address,
+            city: "Mumbai", // Hardcoded default, can be added to UI later
+            state: "MH",
+            pinCode: pinCode
+          }
+          // logo and banner would be handled by a separate upload process
         });
         Alert.alert(
           'Registration Success',
