@@ -32,6 +32,46 @@ router.post(
   ctrl.addMenuItem
 );
 
+/** PATCH /api/v1/restaurants/me/menu/:id — Update menu item */
+router.patch(
+  "/me/menu/:id",
+  authMiddleware,
+  roleMiddleware(["KITCHEN"]),
+  ctrl.updateMenuItem
+);
+
+/** DELETE /api/v1/restaurants/me/menu/:id — Delete menu item */
+router.delete(
+  "/me/menu/:id",
+  authMiddleware,
+  roleMiddleware(["KITCHEN"]),
+  ctrl.deleteMenuItem
+);
+
+/** PATCH /api/v1/restaurants/me/menu/:id/stock — Toggle stock */
+router.patch(
+  "/me/menu/:id/stock",
+  authMiddleware,
+  roleMiddleware(["KITCHEN"]),
+  ctrl.updateMenuItemStock
+);
+
+/** PATCH /api/v1/restaurants/me/branding — Update logo and banner */
+router.patch(
+  "/me/branding",
+  authMiddleware,
+  roleMiddleware(["KITCHEN"]),
+  ctrl.updateMyBranding
+);
+
+/** PATCH /api/v1/restaurants/me/status — Toggle restaurant open/closed */
+router.patch(
+  "/me/status",
+  authMiddleware,
+  roleMiddleware(["KITCHEN"]),
+  ctrl.updateMyOpenStatus
+);
+
 // ─── Admin Routes ─────────────────────────────────────────────────────────────
 /** GET /api/v1/restaurants/admin/all — List all restaurants with filters */
 router.get(

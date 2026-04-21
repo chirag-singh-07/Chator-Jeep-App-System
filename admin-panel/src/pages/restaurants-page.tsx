@@ -14,14 +14,13 @@ import { useRestaurantStore } from "@/stores/useRestaurantStore";
 
 export function RestaurantsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [counts, setCounts] = useState<any>({});
-  
   const { 
     restaurants, 
     loading, 
     filters, 
     setFilters, 
-    fetchRestaurants 
+    fetchRestaurants,
+    counts 
   } = useRestaurantStore();
 
   const activeTab = searchParams.get("status") || "ALL";
@@ -97,7 +96,7 @@ export function RestaurantsPage() {
           <div key={s.label} className={`rounded-3xl border-0 p-5 shadow-sm backdrop-blur-md ${s.bg}`}>
             <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em]">{s.label}</p>
             <p className={`text-3xl font-black mt-2 tabular-nums ${s.color}`}>
-               {loading && restaurants.length === 0 ? "—" : "0" /* Counts would come from a summary API */}
+               {loading && restaurants.length === 0 ? "—" : (counts[s.value] || 0)}
             </p>
           </div>
         ))}

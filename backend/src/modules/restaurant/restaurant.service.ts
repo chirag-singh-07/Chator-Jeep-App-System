@@ -103,7 +103,7 @@ export const loginRestaurant = async (email: string, password: string) => {
   return {
     accessToken,
     refreshToken,
-    restaurantStatus: restaurant?.status ?? RESTAURANT_STATUS.REQUESTED,
+    status: restaurant?.status ?? RESTAURANT_STATUS.REQUESTED,
     restaurantId: restaurant?._id?.toString() ?? null,
   };
 };
@@ -178,7 +178,78 @@ export const addMenuItem = async (userId: string, body: any) => {
   return MenuItem.create({ restaurantId: restaurant._id, ...body });
 };
 
+export const updateMenuItem = async (userId: string, itemId: string, body: any) => {
+  const restaurant = await findRestaurantByOwner(userId);
+  if (!restaurant) throw new AppError("Restaurant not found", 404);
+  
+  const { MenuItem } = await import("./restaurant.model");
+  const item = await MenuItem.findOneAndUpdate(
+    { _id: itemId, restaurantId: restaurant._id },
+    { $set: body },
+    { new: true }
+  );
+  
+  if (!item) throw new AppError("Menu item not found", 404);
+  return item;
+};
+
+export const deleteMenuItem = async (userId: string, itemId: string) => {
+  const restaurant = await findRestaurantByOwner(userId);
+  if (!restaurant) throw new AppError("Restaurant not found", 404);
+  
+  const { MenuItem } = await import("./restaurant.model");
+  const item = await MenuItem.findOneAndDelete({ _id: itemId, restaurantId: restaurant._id });
+  
+  if (!item) throw new AppError("Menu item not found", 404);
+  return true;
+};
+
+export const updateMenuItemStock = async (userId: string, itemId: string, isAvailable: boolean) => {
+  const restaurant = await findRestaurantByOwner(userId);
+  if (!restaurant) throw new AppError("Restaurant not found", 404);
+  
+  const { MenuItem } = await import("./restaurant.model");
+  const item = await MenuItem.findOneAndUpdate(
+    { _id: itemId, restaurantId: restaurant._id },
+    { $set: { isAvailable } },
+    { new: true }
+  );
+  
+  if (!item) throw new AppError("Menu item not found", 404);
+  return item;
+};
+
+export const addEarningsToRestaurant = async (restaurantId: string, amount: number) => {
+  const { Restaurant } = await import("./restaurant.model");
+  return Restaurant.findByIdAndUpdate(
+    restaurantId,
+    { $inc: { walletBalance: amount, totalEarnings: amount } },
+    { new: true }
+  );
+};
+
 export const listRestaurantMenu = async (restaurantId: string) => {
   const { MenuItem } = await import("./restaurant.model");
   return MenuItem.find({ restaurantId, isAvailable: true }).exec();
+};
+
+export const updateRestaurantBranding = async (
+  userId: string,
+  updates: { logoUrls?: Record<string, string>; bannerUrls?: Record<string, string> }
+) => {
+  const restaurant = await findRestaurantByOwner(userId);
+  if (!restaurant) throw new AppError("Restaurant not found", 404);
+
+  return updateRestaurantById(restaurant._id.toString(), updates);
+};
+
+export const updateRestaurantOpenStatus = async (userId: string, isOpen: boolean) => {
+  const restaurant = await findRestaurantByOwner(userId);
+  if (!restaurant) throw new AppError("Restaurant not found", 404);
+
+  if (restaurant.status !== RESTAURANT_STATUS.ACTIVE) {
+    throw new AppError("Only ACTIVE restaurants can toggle open status", 403);
+  }
+
+  return updateRestaurantById(restaurant._id.toString(), { isOpen });
 };

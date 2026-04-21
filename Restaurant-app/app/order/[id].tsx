@@ -1,48 +1,38 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { apiClient } from '@/lib/api';
+import { useOrderStore } from '@/store/useOrderStore';
 
 export default function OrderDetailsScreen() {
   const { id } = useLocalSearchParams();
-  const router = useRouter();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const { orders } = useOrderStore();
+
   useEffect(() => {
-    fetchOrderDetails();
-  }, [id]);
+    const foundOrder = orders.find(o => o._id === id);
+    if (foundOrder) {
+      setOrder(foundOrder);
+      setLoading(false);
+    } else {
+      fetchOrderDetails();
+    }
+  }, [id, orders]);
 
   const fetchOrderDetails = async () => {
     try {
-      // const res = await apiClient.get(`/restaurants/orders/${id}`);
-      // setOrder(res.data.data);
-      
-      // Mock data for UI 
-      setTimeout(() => {
-        setOrder({
-          _id: id,
-          orderNumber: id?.toString().slice(-6).toUpperCase(),
-          status: 'preparing',
-          totalAmount: 1150,
-          paymentMethod: 'UPI',
-          paymentStatus: 'Paid',
-          customerData: {
-            name: 'Riya Mehta',
-            phone: '+91 9811022334',
-            address: 'Sector 21, Noida, UP'
-          },
-          items: [
-            { name: 'Family Burger Box', quantity: 1, price: 999 },
-            { name: 'Cold Coffee', quantity: 2, price: 151 }
-          ],
-          createdAt: new Date().toISOString()
-        });
-        setLoading(false);
-      }, 500);
+      setLoading(true);
+      const res = await apiClient.get(`/orders/restaurant`);
+      const matchedOrder = res.data.data.find((o: any) => o._id === id);
+      if (matchedOrder) {
+        setOrder(matchedOrder);
+      }
+      setLoading(false);
     } catch (e) {
       console.warn("Error fetching order details", e);
       setLoading(false);

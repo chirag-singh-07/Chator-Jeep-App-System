@@ -111,6 +111,17 @@ export const updateOrderStatus = async (
   }
 
   const updated = await repo.updateOrder(orderId, { status: nextStatus });
+
+  // Handle wallet credit if delivered
+  if (nextStatus === "DELIVERED" && order.status !== "DELIVERED") {
+    try {
+      const { addEarningsToRestaurant } = await import("../restaurant/restaurant.service");
+      await addEarningsToRestaurant(order.restaurantId.toString(), order.totalAmount);
+    } catch (e) {
+      console.error("Failed to credit restaurant wallet:", e);
+    }
+  }
+
   orderEvent(`user_${order.userId.toString()}`, "order:status_update", updated);
   orderEvent(`restaurant_${order.restaurantId.toString()}`, "order:status_update", updated);
 

@@ -109,7 +109,60 @@ export const addMenuItem = asyncHandler(
 
 export const listRestaurantMenu = asyncHandler(
   async (req: Request, res: Response) => {
-    const items = await service.listRestaurantMenu(req.params.restaurantId as string);
+    const items = await service.listRestaurantMenu(
+      req.params.restaurantId as string,
+    );
     res.status(200).json({ success: true, data: items });
+  },
+);
+
+export const updateMyBranding = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const result = await service.updateRestaurantBranding(
+      req.user!.userId,
+      req.body,
+    );
+    res.status(200).json({ success: true, data: result });
+  },
+);
+
+export const updateMyOpenStatus = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { isOpen } = req.body;
+    const result = await service.updateRestaurantOpenStatus(
+      req.user!.userId,
+      !!isOpen,
+    );
+    res.status(200).json({ success: true, data: { isOpen: result?.isOpen } });
+  },
+);
+
+export const updateMenuItem = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const item = await service.updateMenuItem(
+      req.user!.userId,
+      req.params.id as string,
+      req.body,
+    );
+    res.status(200).json({ success: true, data: item });
+  },
+);
+
+export const deleteMenuItem = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    await service.deleteMenuItem(req.user!.userId, req.params.id as string);
+    res.status(200).json({ success: true, message: "Menu item deleted." });
+  },
+);
+
+export const updateMenuItemStock = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { isAvailable } = req.body;
+    const item = await service.updateMenuItemStock(
+      req.user!.userId,
+      req.params.id as string,
+      !!isAvailable,
+    );
+    res.status(200).json({ success: true, data: item });
   },
 );

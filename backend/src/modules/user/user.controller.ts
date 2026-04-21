@@ -17,7 +17,7 @@ export const adminListUsers = asyncHandler(async (req: AuthenticatedRequest, res
 });
 
 export const adminGetUser = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const user = await service.adminGetUser(req.params.id);
+  const user = await service.adminGetUser(String(req.params.id));
   res.status(200).json({ success: true, data: user });
 });
 

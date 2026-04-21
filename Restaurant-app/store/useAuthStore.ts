@@ -22,11 +22,12 @@ interface AuthState {
   register: (data: any) => Promise<void>;
   logout: () => Promise<void>;
   updateUserStatus: (status: string) => void;
+  uploadBranding: (logoJson: any, bannerJson: any) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       token: null,
       isAuthenticated: false,
@@ -36,15 +37,16 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           const response = await apiClient.post(`/restaurants/login`, { email, password });
-          const { accessToken, restaurantStatus, restaurantId } = response.data.data;
+          const { accessToken, status, restaurantId } = response.data.data;
           
+          await AsyncStorage.setItem("token", accessToken);
           set({ 
             token: accessToken, 
             user: { 
               email, 
-              status: restaurantStatus, 
+              status: status, 
               restaurantId,
-              id: '', // filled by actual user data if needed
+              id: '', 
               name: '',
               role: 'KITCHEN'
             }, 
@@ -60,15 +62,72 @@ export const useAuthStore = create<AuthState>()(
       register: async (data: any) => {
         set({ isLoading: true });
         try {
-          await apiClient.post(`/restaurants/register`, data);
-          set({ isLoading: false });
+          const response = await apiClient.post(`/restaurants/register`, data);
+          const { accessToken, status, restaurantId } = response.data.data;
+          
+          await AsyncStorage.setItem("token", accessToken);
+          set({ 
+            token: accessToken,
+            user: {
+              email: data.email,
+              status: status,
+              restaurantId,
+              id: '',
+              name: data.ownerName,
+              role: 'KITCHEN'
+            },
+            isAuthenticated: true,
+            isLoading: false 
+          });
         } catch (error: any) {
           set({ isLoading: false });
           throw error.response?.data?.message || error.message || 'Registration failed due to network settings.';
         }
       },
 
+      uploadBranding: async (logo, banner) => {
+        set({ isLoading: true });
+        try {
+          const formData = new FormData();
+          if (logo) {
+            // @ts-ignore
+            formData.append('logo', {
+              uri: logo.uri,
+              name: 'logo.jpg',
+              type: 'image/jpeg',
+            });
+          }
+          if (banner) {
+            // @ts-ignore
+            formData.append('banner', {
+              uri: banner.uri,
+              name: 'banner.jpg',
+              type: 'image/jpeg',
+            });
+          }
+
+          // 1. Upload images
+          const uploadRes = await apiClient.post('/uploads/restaurant-brand', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+
+          const { logo: logoUrls, banner: bannerUrls } = uploadRes.data.data;
+
+          // 2. Update restaurant branding in database
+          await apiClient.patch('/restaurants/me/branding', {
+            logoUrls,
+            bannerUrls,
+          });
+
+          set({ isLoading: false });
+        } catch (error: any) {
+          set({ isLoading: false });
+          throw error.response?.data?.message || error.message || 'Image upload failed';
+        }
+      },
+
       logout: async () => {
+        await AsyncStorage.removeItem("token");
         set({ user: null, token: null, isAuthenticated: false });
       },
 

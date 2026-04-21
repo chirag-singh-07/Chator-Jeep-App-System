@@ -6,6 +6,7 @@ interface RestaurantState {
   total: number;
   loading: boolean;
   error: string | null;
+  counts: Record<string, number>;
   selectedRestaurant: any | null;
   filters: {
     status: string;
@@ -26,6 +27,14 @@ export const useRestaurantStore = create<RestaurantState>((set, get) => ({
   total: 0,
   loading: false,
   error: null,
+  counts: {
+    ALL: 0,
+    REQUESTED: 0,
+    ACTIVE: 0,
+    REJECTED: 0,
+    CLOSED: 0,
+    FLAGGED: 0,
+  },
   selectedRestaurant: null,
   filters: {
     status: "ALL",
@@ -49,7 +58,12 @@ export const useRestaurantStore = create<RestaurantState>((set, get) => ({
         page 
       });
       if (response.success) {
-        set({ restaurants: response.data, total: response.pagination.total, loading: false });
+        set({ 
+          restaurants: response.restaurants, 
+          total: response.pagination.total, 
+          counts: response.counts || get().counts,
+          loading: false 
+        });
       } else {
         set({ error: response.message || "Failed to fetch restaurants", loading: false });
       }

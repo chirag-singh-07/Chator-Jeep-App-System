@@ -54,4 +54,17 @@ export const adminService = {
     const response = await apiClient.patch(`/restaurants/admin/${id}/flag`, { reason });
     return response.data;
   },
+
+  getDeliveryPayouts: async (params?: { status?: string }) => {
+    const response = await apiClient.get("/wallet/admin/delivery-payouts", { params });
+    return response.data;
+  },
+
+  processDeliveryPayout: async (
+    id: string,
+    payload: { status: "APPROVED" | "REJECTED"; note?: string }
+  ) => {
+    const response = await apiClient.patch(`/wallet/admin/delivery-payouts/${id}`, payload);
+    return response.data;
+  },
 };

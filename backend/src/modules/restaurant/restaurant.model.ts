@@ -61,6 +61,8 @@ export interface IRestaurant extends Document {
     state: string;
     pinCode: string;
   };
+  walletBalance: number;
+  totalEarnings: number;
 }
 
 // ─── Schema ────────────────────────────────────────────────────────────────────
@@ -129,6 +131,8 @@ const restaurantSchema = new Schema<IRestaurant>(
       state: { type: String },
       pinCode: { type: String },
     },
+    walletBalance: { type: Number, default: 0 },
+    totalEarnings: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
@@ -138,17 +142,22 @@ restaurantSchema.index({ status: 1, createdAt: -1 });
 
 export const Restaurant = models.Restaurant || model<IRestaurant>("Restaurant", restaurantSchema);
 
-// ─── MenuItem ─────────────────────────────────────────────────────────────────
+export interface IAddOn {
+  name: string;
+  price: number;
+}
+
 export interface IMenuItem extends Document {
   restaurantId: Types.ObjectId;
   name: string;
   description?: string;
   price: number;
-  category?: string;
+  category?: string; // category id or name
   isVeg: boolean;
   isAvailable: boolean;
   imageUrl?: string;
   images?: Record<string, string>;
+  addOns: IAddOn[];
 }
 
 const menuItemSchema = new Schema<IMenuItem>(
@@ -162,6 +171,12 @@ const menuItemSchema = new Schema<IMenuItem>(
     isAvailable: { type: Boolean, default: true, index: true },
     imageUrl: { type: String },
     images: { type: Schema.Types.Mixed },
+    addOns: [
+      {
+        name: { type: String, required: true },
+        price: { type: Number, required: true, min: 0 },
+      },
+    ],
   },
   { timestamps: true }
 );

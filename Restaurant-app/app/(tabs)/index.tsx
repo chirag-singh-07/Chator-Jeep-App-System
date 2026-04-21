@@ -1,104 +1,253 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, Switch, TouchableOpacity, FlatList } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from '@/constants/Colors';
-import { Ionicons } from '@expo/vector-icons';
-
-const RECENT_ORDERS = [
-  { id: '101', customer: 'John Doe', items: '2x Burger, 1x Coke', total: '₹450', status: 'In Prep' },
-  { id: '102', customer: 'Jane Smith', items: '1x Veg Pizza Large', total: '₹599', status: 'Ready' },
-  { id: '103', customer: 'Rahul K.', items: '3x Paneer Tikka', total: '₹840', status: 'Pending' },
-];
+import React, { useEffect, useState } from "react";
+import {
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  Switch,
+  TouchableOpacity,
+  RefreshControl,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Colors } from "@/constants/Colors";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useOrderStore, Order } from "@/store/useOrderStore";
+import { router } from "expo-router";
+import { apiClient } from "@/lib/api";
 
 export default function KitchenDashboard() {
+  const { user } = useAuthStore();
+  const { orders, fetchOrders, isLoading } = useOrderStore();
   const [isOpen, setIsOpen] = useState(true);
+  const [togglingOpen, setTogglingOpen] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
+
+  const refreshDashboard = async () => {
+    fetchOrders();
+    try {
+      const res = await apiClient.get("/wallet/stats");
+      setWalletBalance(res.data.data.balance);
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    refreshDashboard();
+  }, []);
+
+  const handleToggleOpen = async (value: boolean) => {
+    setIsOpen(value);
+    setTogglingOpen(true);
+    try {
+      if (user?.restaurantId) {
+        await apiClient.patch(`/restaurants/me/status`, { isOpen: value });
+      }
+    } catch (e) {
+      // Revert on error
+      setIsOpen(!value);
+    } finally {
+      setTogglingOpen(false);
+    }
+  };
+
+  const pendingOrders = orders.filter((o) => o.status === "PENDING");
+  const activeOrders = orders.filter((o) =>
+    ["ACCEPTED", "PREPARING", "READY"].includes(o.status),
+  );
+
+  const getStatusColor = (status: Order["status"]) => {
+    switch (status) {
+      case "PENDING":
+        return { bg: "#FFF3E0", text: "#E65100" };
+      case "ACCEPTED":
+        return { bg: "#E3F2FD", text: "#1565C0" };
+      case "PREPARING":
+        return { bg: "#F3E5F5", text: "#6A1B9A" };
+      case "READY":
+        return { bg: "#E8F5E9", text: "#2E7D32" };
+      default:
+        return { bg: "#F5F5F5", text: "#757575" };
+    }
+  };
+
+  const recentOrders = [...orders]
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    )
+    .slice(0, 5);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Top Operational Bar */}
-        <View style={styles.topBar}>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={refreshDashboard}
+            tintColor={Colors.light.primary}
+          />
+        }
+      >
+        {/* Top Header Section */}
+        <View style={styles.headerContainer}>
           <View>
-            <Text style={styles.kitchenName}>Royal Spice Kitchen</Text>
-            <Text style={[styles.statusText, { color: isOpen ? Colors.light.success : Colors.light.error }]}>
-              {isOpen ? '● OPEN FOR ORDERS' : '● CLOSED'}
+            <Text style={styles.welcomeText}>Kitchen Desk</Text>
+            <Text style={styles.kitchenName}>
+              {user?.name || "Partner Console"}
             </Text>
           </View>
-          <View style={styles.switchContainer}>
+          <View style={styles.switchBox}>
+            <Text
+              style={[
+                styles.statusIndicator,
+                { color: isOpen ? Colors.light.success : Colors.light.error },
+              ]}
+            >
+              {isOpen ? "ACTIVE" : "OFFLINE"}
+            </Text>
             <Switch
-              trackColor={{ false: '#767577', true: Colors.light.success + '50' }}
-              thumbColor={isOpen ? Colors.light.success : '#f4f3f4'}
-              onValueChange={setIsOpen}
+              trackColor={{ false: "#333", true: Colors.light.primary + "50" }}
+              thumbColor={isOpen ? Colors.light.primary : "#666"}
+              onValueChange={handleToggleOpen}
               value={isOpen}
+              disabled={togglingOpen}
             />
           </View>
         </View>
 
-        {/* Stats Grid */}
-        <View style={styles.statsGrid}>
-          <View style={styles.statCard}>
-             <Ionicons name="cart" size={24} color={Colors.light.primary} />
-             <Text style={styles.statValue}>12</Text>
-             <Text style={styles.statLabel}>Active Orders</Text>
-          </View>
-          <View style={styles.statCard}>
-             <Ionicons name="cash" size={24} color="#4CAF50" />
-             <Text style={styles.statValue}>₹4.2k</Text>
-             <Text style={styles.statLabel}>Today's Revenue</Text>
-          </View>
-          <View style={styles.statCard}>
-             <Ionicons name="star" size={24} color="#FFD700" />
-             <Text style={styles.statValue}>4.8</Text>
-             <Text style={styles.statLabel}>Avg Rating</Text>
+        {/* Premium Stats Row */}
+        <View style={styles.statsRow}>
+          <TouchableOpacity
+            style={styles.mainStatCard}
+            onPress={() => router.push("/(tabs)/earnings")}
+          >
+            <View style={styles.statIconCircle}>
+              <Ionicons
+                name="wallet-outline"
+                size={22}
+                color={Colors.light.primary}
+              />
+            </View>
+            <Text style={styles.statLabelText}>Wallet Balance</Text>
+            <Text style={styles.statValueText}>
+              ₹{walletBalance.toLocaleString("en-IN")}
+            </Text>
+          </TouchableOpacity>
+
+          <View style={styles.statsSecondaryColumn}>
+            <View style={styles.smallStatCard}>
+              <Text style={[styles.smallStatValue, { color: "#FFB300" }]}>
+                {pendingOrders.length}
+              </Text>
+              <Text style={styles.smallStatLabel}>Pending</Text>
+            </View>
+            <View style={styles.smallStatCard}>
+              <Text
+                style={[styles.smallStatValue, { color: Colors.light.success }]}
+              >
+                {activeOrders.length}
+              </Text>
+              <Text style={styles.smallStatLabel}>In Kitchen</Text>
+            </View>
           </View>
         </View>
 
-        {/* Quick Actions */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Quick Management</Text>
-        </View>
-        <View style={styles.actionsRow}>
-           <TouchableOpacity style={styles.actionBtn}>
-              <Ionicons name="fast-food" size={20} color="white" />
-              <Text style={styles.actionBtnText}>Update Menu</Text>
-           </TouchableOpacity>
-           <TouchableOpacity style={[styles.actionBtn, { backgroundColor: '#2196F3' }]}>
-              <Ionicons name="megaphone" size={20} color="white" />
-              <Text style={styles.actionBtnText}>Broadcast Offer</Text>
-           </TouchableOpacity>
+        {/* Action Quick Access */}
+        <View style={styles.actionGrid}>
+          <TouchableOpacity
+            style={styles.actionGridItem}
+            onPress={() => router.push("/(tabs)/menu")}
+          >
+            <View style={styles.actionIconPill}>
+              <Ionicons name="restaurant" size={20} color="black" />
+            </View>
+            <Text style={styles.actionText}>Menu Editor</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionGridItem, { backgroundColor: "#1A1A1A" }]}
+            onPress={() => router.push("/(tabs)/orders")}
+          >
+            <View style={[styles.actionIconPill, { backgroundColor: "#333" }]}>
+              <Ionicons name="receipt" size={20} color={Colors.light.primary} />
+            </View>
+            <Text style={[styles.actionText, { color: "white" }]}>
+              Order View
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Live Orders Section */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Live Incoming Orders</Text>
-          <TouchableOpacity><Text style={styles.viewAll}>View All</Text></TouchableOpacity>
-        </View>
-        
-        <View style={styles.ordersList}>
-           {RECENT_ORDERS.map((order) => (
-             <View key={order.id} style={styles.orderCard}>
-                <View style={styles.orderLeft}>
-                   <Text style={styles.orderId}>#{order.id}</Text>
-                   <Text style={styles.customerName}>{order.customer}</Text>
-                   <Text style={styles.orderItems} numberOfLines={1}>{order.items}</Text>
-                </View>
-                <View style={styles.orderRight}>
-                   <Text style={styles.orderTotal}>{order.total}</Text>
-                   <View style={[
-                     styles.statusBadge, 
-                     { backgroundColor: order.status === 'Ready' ? Colors.light.success + '20' : '#FFF5F5' }
-                   ]}>
-                      <Text style={[
-                        styles.statusBadgeText,
-                        { color: order.status === 'Ready' ? Colors.light.success : Colors.light.primary }
-                      ]}>{order.status}</Text>
-                   </View>
-                </View>
-             </View>
-           ))}
+        {/* Critical Alerts */}
+        {pendingOrders.length > 0 && (
+          <TouchableOpacity
+            style={styles.alertBanner}
+            onPress={() => router.push("/(tabs)/orders")}
+          >
+            <View style={styles.pulseContainer}>
+              <View style={styles.pulseDot} />
+            </View>
+            <Text style={styles.alertBannerText}>
+              {pendingOrders.length} New Order
+              {pendingOrders.length > 1 ? "s" : ""} waiting for approval!
+            </Text>
+            <Ionicons name="chevron-forward" size={18} color="black" />
+          </TouchableOpacity>
+        )}
+
+        {/* Recent Feed */}
+        <View style={styles.feedHeader}>
+          <Text style={styles.feedTitle}>Live Feed</Text>
+          <TouchableOpacity onPress={() => router.push("/(tabs)/orders")}>
+            <Text style={styles.feedLink}>View All Activity</Text>
+          </TouchableOpacity>
         </View>
 
-        <View style={{ height: 100 }} />
+        <View style={styles.feedList}>
+          {recentOrders.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="cloud-offline-outline" size={40} color="#333" />
+              <Text style={styles.emptyStateText}>
+                No active orders at the moment
+              </Text>
+            </View>
+          ) : (
+            recentOrders.map((order) => {
+              const { bg, text } = getStatusColor(order.status);
+              return (
+                <TouchableOpacity
+                  key={order._id}
+                  style={styles.orderTile}
+                  onPress={() => router.push(`/order/${order._id}`)}
+                >
+                  <View style={styles.tileLeft}>
+                    <Text style={styles.tileId}>
+                      ID: #
+                      {order.orderNumber || order._id.slice(-4).toUpperCase()}
+                    </Text>
+                    <Text style={styles.tileName}>
+                      {order.customerData?.name || "Standard Customer"}
+                    </Text>
+                    <Text style={styles.tileItems} numberOfLines={1}>
+                      {order.items
+                        .map((i) => `${i.quantity}x ${i.name}`)
+                        .join(", ")}
+                    </Text>
+                  </View>
+                  <View style={styles.tileRight}>
+                    <Text style={styles.tileTotal}>₹{order.totalAmount}</Text>
+                    <View style={[styles.tileBadge, { backgroundColor: bg }]}>
+                      <Text style={[styles.tileBadgeText, { color: text }]}>
+                        {order.status}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })
+          )}
+        </View>
+        <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -107,153 +256,247 @@ export default function KitchenDashboard() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FBFBFB',
+    backgroundColor: "#000", // Sleek black background
   },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 25,
-    backgroundColor: 'white',
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
+  headerContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 25,
+    paddingTop: 20,
+    paddingBottom: 25,
+  },
+  welcomeText: {
+    color: Colors.light.primary,
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 2,
+    textTransform: "uppercase",
   },
   kitchenName: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: Colors.light.text,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: 'bold',
+    fontSize: 26,
+    fontWeight: "bold",
+    color: "#FFF",
     marginTop: 4,
+  },
+  switchBox: {
+    backgroundColor: "#1A1A1A",
+    padding: 10,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+    alignItems: "center",
+    gap: 4,
+    borderWidth: 1,
+    borderColor: "#333",
+  },
+  statusIndicator: {
+    fontSize: 9,
+    fontWeight: "bold",
     letterSpacing: 1,
   },
-  switchContainer: {
-    backgroundColor: '#F8F8F8',
-    padding: 10,
-    borderRadius: 20,
-  },
-  statsGrid: {
-    flexDirection: 'row',
+  statsRow: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
     gap: 15,
-    padding: 20,
-    marginTop: 10,
+    marginBottom: 20,
   },
-  statCard: {
-    flex: 1,
-    backgroundColor: 'white',
+  mainStatCard: {
+    flex: 1.5,
+    backgroundColor: "#111",
     borderRadius: 25,
-    padding: 15,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "#222",
   },
-  statValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 8,
-    color: Colors.light.text,
-  },
-  statLabel: {
-    fontSize: 10,
-    color: Colors.light.textMuted,
-    textTransform: 'uppercase',
-    marginTop: 2,
-    fontWeight: 'bold',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 25,
-    marginTop: 15,
+  statIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: "#222",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 15,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.light.text,
+  statLabelText: {
+    fontSize: 12,
+    color: "#888",
+    fontWeight: "600",
   },
-  viewAll: {
-    fontSize: 13,
-    color: Colors.light.primary,
-    fontWeight: 'bold',
+  statValueText: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#FFF",
+    marginTop: 5,
   },
-  actionsRow: {
-    flexDirection: 'row',
+  statsSecondaryColumn: {
+    flex: 1,
     gap: 15,
-    paddingHorizontal: 20,
   },
-  actionBtn: {
+  smallStatCard: {
+    flex: 1,
+    backgroundColor: "#111",
+    borderRadius: 20,
+    padding: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#222",
+  },
+  smallStatValue: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  smallStatLabel: {
+    fontSize: 10,
+    color: "#555",
+    fontWeight: "bold",
+    marginTop: 2,
+  },
+  actionGrid: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    gap: 15,
+    marginBottom: 10,
+  },
+  actionGridItem: {
     flex: 1,
     backgroundColor: Colors.light.primary,
-    height: 50,
-    borderRadius: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  actionBtnText: {
-    color: 'white',
-    fontSize: 13,
-    fontWeight: 'bold',
-  },
-  ordersList: {
-    paddingHorizontal: 20,
-    gap: 15,
-  },
-  orderCard: {
-    backgroundColor: 'white',
+    height: 60,
     borderRadius: 20,
-    padding: 18,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 15,
+    gap: 10,
   },
-  orderLeft: {
+  actionIconPill: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: "rgba(0,0,0,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  actionText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "black",
+  },
+  alertBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.light.primary,
+    marginHorizontal: 20,
+    marginTop: 20,
+    padding: 18,
+    borderRadius: 25,
+    gap: 12,
+    shadowColor: Colors.light.primary,
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  pulseContainer: {
+    width: 20,
+    height: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pulseDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "black",
+  },
+  alertBannerText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "black",
+  },
+  feedHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 25,
+    marginTop: 35,
+    marginBottom: 15,
+  },
+  feedTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#FFF",
+  },
+  feedLink: {
+    fontSize: 13,
+    color: Colors.light.primary,
+    fontWeight: "bold",
+  },
+  feedList: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  emptyState: {
+    alignItems: "center",
+    padding: 60,
+    backgroundColor: "#0A0A0A",
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: "#111",
+  },
+  emptyStateText: {
+    marginTop: 15,
+    color: "#333",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  orderTile: {
+    backgroundColor: "#0A0A0A",
+    borderRadius: 25,
+    padding: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#1A1A1A",
+  },
+  tileLeft: {
     flex: 1,
   },
-  orderId: {
-    fontSize: 11,
-    fontWeight: 'bold',
+  tileId: {
+    fontSize: 10,
+    fontWeight: "700",
     color: Colors.light.primary,
-    marginBottom: 4,
+    letterSpacing: 1,
+    marginBottom: 6,
   },
-  customerName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: Colors.light.text,
+  tileName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#FFF",
   },
-  orderItems: {
+  tileItems: {
     fontSize: 13,
-    color: Colors.light.textMuted,
-    marginTop: 4,
+    color: "#666",
+    marginTop: 6,
   },
-  orderRight: {
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
+  tileRight: {
+    alignItems: "flex-end",
+    justifyContent: "space-between",
   },
-  orderTotal: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: Colors.light.text,
+  tileTotal: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#FFF",
   },
-  statusBadge: {
+  tileBadge: {
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 8,
+    marginTop: 8,
   },
-  statusBadgeText: {
-    fontSize: 10,
-    fontWeight: 'bold',
+  tileBadgeText: {
+    fontSize: 9,
+    fontWeight: "900",
+    textTransform: "uppercase",
   },
 });

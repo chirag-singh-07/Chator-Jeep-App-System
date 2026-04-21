@@ -16,6 +16,8 @@ export interface IOrder extends Document {
   totalAmount: number;
   status: OrderStatus;
   paymentStatus: PaymentStatus;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const orderSchema = new Schema<IOrder>(

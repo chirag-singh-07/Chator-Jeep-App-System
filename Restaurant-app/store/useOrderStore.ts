@@ -7,7 +7,7 @@ export interface Order {
   customerData: { name: string; phone: string; address?: string };
   items: { name: string; quantity: number; price: number; addOns?: string[] }[];
   totalAmount: number;
-  status: 'pending' | 'preparing' | 'ready' | 'out_for_delivery' | 'delivered' | 'cancelled';
+  status: 'PENDING' | 'ACCEPTED' | 'PREPARING' | 'READY' | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED';
   createdAt: string;
 }
 
@@ -15,7 +15,7 @@ interface OrderState {
   orders: Order[];
   incomingOrder: Order | null;
   isLoading: boolean;
-  
+
   fetchOrders: () => Promise<void>;
   setIncomingOrder: (order: Order | null) => void;
   acceptOrder: (orderId: string, timeToPrep?: number) => Promise<void>;
@@ -31,10 +31,11 @@ export const useOrderStore = create<OrderState>((set, get) => ({
   fetchOrders: async () => {
     set({ isLoading: true });
     try {
-      const response = await apiClient.get('/restaurants/orders/active');
-      set({ orders: response.data.data, isLoading: false });
+      // GET /orders/restaurant — lists orders for the authenticated restaurant owner
+      const response = await apiClient.get('/orders/restaurant');
+      set({ orders: response.data.data || [], isLoading: false });
     } catch (e) {
-      console.error(e);
+      console.error('fetchOrders failed:', e);
       set({ isLoading: false });
     }
   },
@@ -43,32 +44,38 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     set({ incomingOrder: order });
   },
 
-  acceptOrder: async (orderId, timeToPrep = 15) => {
+  acceptOrder: async (orderId, _timeToPrep = 15) => {
     try {
-      await apiClient.post(`/restaurants/orders/${orderId}/accept`, { timeToPrep });
+      // Backend uses PATCH /orders/:orderId/status with UPPERCASE status
+      await apiClient.patch(`/orders/${orderId}/status`, { status: 'ACCEPTED' });
       set({ incomingOrder: null });
       await get().fetchOrders();
     } catch (e) {
-      console.error(e);
+      console.error('acceptOrder failed:', e);
+      // Always dismiss the alert even on failure so UI doesn't freeze
+      set({ incomingOrder: null });
     }
   },
 
-  rejectOrder: async (orderId, reason = "Kitchen full") => {
+  rejectOrder: async (orderId, _reason = 'Kitchen full') => {
     try {
-      await apiClient.post(`/restaurants/orders/${orderId}/reject`, { reason });
+      // Backend uses CANCELLED for rejection
+      await apiClient.patch(`/orders/${orderId}/status`, { status: 'CANCELLED' });
       set({ incomingOrder: null });
       await get().fetchOrders();
     } catch (e) {
-      console.error(e);
+      console.error('rejectOrder failed:', e);
+      // Always dismiss the alert even on failure so UI doesn't freeze
+      set({ incomingOrder: null });
     }
   },
 
   updateOrderStatus: async (orderId, status) => {
     try {
-      await apiClient.put(`/restaurants/orders/${orderId}/status`, { status });
+      await apiClient.patch(`/orders/${orderId}/status`, { status });
       await get().fetchOrders();
     } catch (e) {
-      console.error(e);
+      console.error('updateOrderStatus failed:', e);
     }
-  }
+  },
 }));

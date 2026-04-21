@@ -9,6 +9,7 @@ import notificationRoutes from "../modules/notification/notification.routes";
 import uploadRoutes from "../modules/upload/upload.routes";
 import categoryRoutes from "../modules/category/category.routes";
 import addonRoutes from "../modules/addon/addon.routes";
+import walletRoutes from "../modules/wallet/wallet.routes";
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.use("/notifications", notificationRoutes);
 router.use("/uploads", uploadRoutes);
 router.use("/categories", categoryRoutes);
 router.use("/addons", addonRoutes);
+router.use("/wallet", walletRoutes);
 
 export default router;

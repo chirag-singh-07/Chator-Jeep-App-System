@@ -12,98 +12,123 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Kitchen Profile</Text>
+        <View>
+          <Text style={styles.headerTitle}>Account Node</Text>
+          <Text style={styles.headerSub}>Fleet Administration Console</Text>
+        </View>
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.userCard}>
-          <View style={styles.avatarPlaceholder}>
-            <Ionicons name="restaurant" size={40} color={Colors.light.primary} />
+          <View style={styles.avatarContainer}>
+             <View style={styles.avatarGlow} />
+             <View style={styles.avatarPlaceholder}>
+               <Ionicons name="shield-checkmark" size={35} color={Colors.light.primary} />
+             </View>
           </View>
           <View style={styles.userInfo}>
-            <Text style={styles.userName}>{user?.name || 'Kitchen Partner'}</Text>
-            <Text style={styles.userEmail}>{user?.email}</Text>
-          </View>
-          <View style={styles.statusChip}>
-            <Text style={styles.statusText}>{user?.status || 'ACTIVE'}</Text>
+            <Text style={styles.userName}>{user?.name?.toUpperCase() || 'KITCHEN PARTNER'}</Text>
+            <Text style={styles.userEmail}>{user?.email?.toLowerCase()}</Text>
+            <View style={styles.statusRow}>
+               <View style={styles.statusDot} />
+               <Text style={styles.statusText}>STATUS: {user?.status || 'ACTIVE'}</Text>
+            </View>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Business Identity</Text>
+          <Text style={styles.sectionTitle}>ASSET PROTOCOLS</Text>
           
           <TouchableOpacity style={styles.menuItem}>
-            <View style={[styles.iconBox, { backgroundColor: '#FFF3E0' }]}>
-              <Ionicons name="images-outline" size={20} color="#FF9800" />
+            <View style={styles.iconBox}>
+              <Ionicons name="images" size={18} color={Colors.light.primary} />
             </View>
-            <Text style={styles.menuText}>Brand Assets & Images</Text>
-            <Ionicons name="chevron-forward" size={20} color="#CCC" />
+            <View style={styles.menuInfo}>
+               <Text style={styles.menuText}>Brand Assets & Identity</Text>
+               <Text style={styles.menuSub}>Logo, banner and visuals</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#222" />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem}>
-            <View style={[styles.iconBox, { backgroundColor: '#E8F5E9' }]}>
-              <Ionicons name="time-outline" size={20} color="#4CAF50" />
+            <View style={styles.iconBox}>
+              <Ionicons name="time" size={18} color={Colors.light.primary} />
             </View>
-            <Text style={styles.menuText}>Business Hours</Text>
-            <Ionicons name="chevron-forward" size={20} color="#CCC" />
+            <View style={styles.menuInfo}>
+               <Text style={styles.menuText}>Operational Clock</Text>
+               <Text style={styles.menuSub}>Business hours and schedule</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#222" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>App Preferences</Text>
+          <Text style={styles.sectionTitle}>SYSTEM CONFIGURATION</Text>
           
           <TouchableOpacity style={styles.menuItem}>
-            <View style={[styles.iconBox, { backgroundColor: '#E3F2FD' }]}>
-              <Ionicons name="notifications-outline" size={20} color="#2196F3" />
+            <View style={styles.iconBox}>
+              <Ionicons name="notifications" size={18} color={Colors.light.primary} />
             </View>
-            <Text style={styles.menuText}>Order Notifications</Text>
-            <Ionicons name="chevron-forward" size={20} color="#CCC" />
+            <View style={styles.menuInfo}>
+               <Text style={styles.menuText}>Alert Matrix</Text>
+               <Text style={styles.menuSub}>Notification priority and rules</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#222" />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem}>
-            <View style={[styles.iconBox, { backgroundColor: '#FCE4EC' }]}>
-              <Ionicons name="volume-high-outline" size={20} color="#E91E63" />
+            <View style={styles.iconBox}>
+              <Ionicons name="volume-high" size={18} color={Colors.light.primary} />
             </View>
-            <Text style={styles.menuText}>Sound & Alarms</Text>
-            <Ionicons name="chevron-forward" size={20} color="#CCC" />
+            <View style={styles.menuInfo}>
+               <Text style={styles.menuText}>Audio Synapse</Text>
+               <Text style={styles.menuSub}>Order alerts and alarm sounds</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#222" />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem}>
-            <View style={[styles.iconBox, { backgroundColor: '#F3E5F5' }]}>
-              <Ionicons name="shield-checkmark-outline" size={20} color="#9C27B0" />
+            <View style={styles.iconBox}>
+              <Ionicons name="lock-closed" size={18} color={Colors.light.primary} />
             </View>
-            <Text style={styles.menuText}>Security & Account</Text>
-            <Ionicons name="chevron-forward" size={20} color="#CCC" />
+            <View style={styles.menuInfo}>
+               <Text style={styles.menuText}>Security Clearance</Text>
+               <Text style={styles.menuSub}>Account credentials and keys</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#222" />
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity 
-          style={[styles.logoutBtn, { backgroundColor: '#E3F2FD', borderColor: '#BBDEFB', marginBottom: 10 }]} 
-          onPress={() => {
-            const { setIncomingOrder } = useOrderStore.getState();
-            setIncomingOrder({
-              _id: 'mock_123',
-              orderNumber: 'TEST-999',
-              customerData: { name: 'Test User', phone: '9999999999' },
-              items: [{ name: 'Test Burger', quantity: 2, price: 150 }],
-              totalAmount: 300,
-              status: 'pending',
-              createdAt: new Date().toISOString()
-            });
-          }}
-        >
-          <Ionicons name="notifications-circle-outline" size={22} color="#1976D2" />
-          <Text style={[styles.logoutText, { color: '#1976D2' }]}>Test Incoming Order Alarm</Text>
-        </TouchableOpacity>
+        <View style={styles.actionSection}>
+           <TouchableOpacity 
+             style={styles.testBtn} 
+             onPress={() => {
+               const { setIncomingOrder } = useOrderStore.getState();
+               setIncomingOrder({
+                 _id: 'mock_123',
+                 orderNumber: 'TEST-999',
+                 customerData: { name: 'Field Agent', phone: '9999999999' },
+                 items: [{ name: 'Protocol Burger', quantity: 1, price: 150 }],
+                 totalAmount: 150,
+                 status: 'PENDING',
+                 createdAt: new Date().toISOString()
+               });
+             }}
+           >
+             <Ionicons name="pulse" size={20} color={Colors.light.primary} />
+             <Text style={styles.testBtnText}>TEST INCOMING PROTOCOL</Text>
+           </TouchableOpacity>
 
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={22} color={Colors.light.error} />
-          <Text style={styles.logoutText}>Logout from Console</Text>
-        </TouchableOpacity>
+           <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+             <Ionicons name="log-out" size={20} color="#FF4B3A" />
+             <Text style={styles.logoutText}>TERMINATE SESSION</Text>
+           </TouchableOpacity>
+        </View>
 
-        <Text style={styles.versionText}>v1.0.0 (Stable)</Text>
+        <Text style={styles.versionText}>FLEET OS v1.0.5 r10 - STABLE</Text>
+        <View style={{ height: 100 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -114,126 +139,187 @@ import { useOrderStore } from '@/store/useOrderStore';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F8F8',
+    backgroundColor: '#000',
   },
   header: {
-    padding: 20,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    padding: 25,
+    paddingBottom: 20,
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: Colors.light.text,
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#FFF',
+    letterSpacing: 1,
+  },
+  headerSub: {
+     fontSize: 10,
+     color: Colors.light.primary,
+     fontWeight: "800",
+     letterSpacing: 2,
+     textTransform: "uppercase",
+     marginTop: 2,
   },
   content: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 25,
   },
   userCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 25,
-    marginBottom: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    backgroundColor: '#0A0A0A',
+    padding: 25,
+    borderRadius: 30,
+    marginBottom: 35,
+    borderWidth: 1,
+    borderColor: '#111',
+  },
+  avatarContainer: {
+     position: 'relative',
+  },
+  avatarGlow: {
+     position: 'absolute',
+     width: 70,
+     height: 70,
+     borderRadius: 35,
+     backgroundColor: Colors.light.primary,
+     opacity: 0.1,
+     transform: [{ scale: 1.2 }],
   },
   avatarPlaceholder: {
     width: 70,
     height: 70,
-    borderRadius: 35,
-    backgroundColor: '#FFF5F5',
+    borderRadius: 25,
+    backgroundColor: '#111',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#222',
   },
   userInfo: {
     flex: 1,
-    marginLeft: 15,
+    marginLeft: 20,
   },
   userName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.light.text,
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#FFF',
+    letterSpacing: 1,
   },
   userEmail: {
-    fontSize: 14,
-    color: Colors.light.textMuted,
-    marginTop: 2,
+    fontSize: 12,
+    color: '#555',
+    fontWeight: '600',
+    marginTop: 4,
   },
-  statusChip: {
-    backgroundColor: '#E8F5E9',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 10,
+  statusRow: {
+     flexDirection: 'row',
+     alignItems: 'center',
+     gap: 6,
+     marginTop: 10,
+  },
+  statusDot: {
+     width: 6,
+     height: 6,
+     borderRadius: 3,
+     backgroundColor: Colors.light.primary,
   },
   statusText: {
-    fontSize: 10,
-    fontWeight: 'black',
-    color: '#2E7D32',
-    textTransform: 'uppercase',
+    fontSize: 9,
+    fontWeight: '900',
+    color: Colors.light.primary,
+    letterSpacing: 1,
   },
   section: {
-    marginBottom: 30,
+    marginBottom: 35,
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: Colors.light.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 15,
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#333',
+    letterSpacing: 2,
+    marginBottom: 20,
     marginLeft: 5,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 20,
-    marginBottom: 10,
+    backgroundColor: '#0A0A0A',
+    padding: 18,
+    borderRadius: 25,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#111',
   },
   iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 45,
+    height: 45,
+    borderRadius: 15,
+    backgroundColor: '#111',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#222',
+  },
+  menuInfo: {
+     flex: 1,
+     marginLeft: 15,
   },
   menuText: {
-    flex: 1,
-    marginLeft: 15,
-    fontSize: 16,
-    fontWeight: 'medium',
-    color: Colors.light.text,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#EEE',
+    letterSpacing: 0.5,
+  },
+  menuSub: {
+     fontSize: 10,
+     color: '#444',
+     fontWeight: '600',
+     marginTop: 4,
+  },
+  actionSection: {
+     gap: 15,
+     marginBottom: 30,
+  },
+  testBtn: {
+     flexDirection: 'row',
+     alignItems: 'center',
+     justifyContent: 'center',
+     backgroundColor: '#0A0A0A',
+     height: 65,
+     borderRadius: 25,
+     borderWidth: 1,
+     borderColor: '#111',
+     gap: 12,
+  },
+  testBtnText: {
+     fontSize: 12,
+     fontWeight: '900',
+     color: '#CCC',
+     letterSpacing: 1,
   },
   logoutBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFF0F0',
-    padding: 18,
-    borderRadius: 20,
-    marginTop: 10,
+    backgroundColor: '#0A0A0A',
+    height: 65,
+    borderRadius: 25,
     borderWidth: 1,
-    borderColor: '#FFE0E0',
+    borderColor: '#300',
+    gap: 12,
   },
   logoutText: {
-    marginLeft: 10,
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: Colors.light.error,
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#FF4B3A',
+    letterSpacing: 1,
   },
   versionText: {
     textAlign: 'center',
-    fontSize: 12,
-    color: Colors.light.textMuted,
-    marginTop: 30,
-    marginBottom: 50,
+    fontSize: 9,
+    color: '#222',
+    fontWeight: '900',
+    letterSpacing: 1,
+    marginTop: 10,
   },
 });

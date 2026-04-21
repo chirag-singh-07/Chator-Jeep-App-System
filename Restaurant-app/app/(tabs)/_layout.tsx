@@ -8,60 +8,67 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors.light.primary,
-        tabBarInactiveTintColor: Colors.light.textMuted,
+        tabBarInactiveTintColor: '#444',
         headerShown: false,
+        tabBarShowLabel: true,
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: '900',
+          letterSpacing: 0.5,
+          marginTop: -4,
+        },
         tabBarStyle: {
-          height: 70,
-          paddingBottom: 12,
-          paddingTop: 10,
-          backgroundColor: 'white',
+          height: 85,
+          backgroundColor: '#000',
           borderTopWidth: 1,
-          borderTopColor: '#F0F0F0',
+          borderTopColor: '#111',
+          paddingBottom: 25,
+          paddingTop: 10,
         },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Dashboard',
+          title: 'TERMINAL',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'grid' : 'grid-outline'} size={24} color={color} />
+            <Ionicons name={focused ? 'stats-chart' : 'stats-chart-outline'} size={22} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="menu"
         options={{
-          title: 'Menu',
+          title: 'ASSETS',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'fast-food' : 'fast-food-outline'} size={24} color={color} />
+            <Ionicons name={focused ? 'grid' : 'grid-outline'} size={22} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="orders"
         options={{
-          title: 'Orders',
+          title: 'OPERATIONS',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'list' : 'list-outline'} size={24} color={color} />
+            <Ionicons name={focused ? 'flash' : 'flash-outline'} size={22} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="earnings"
         options={{
-          title: 'Wallet',
+          title: 'CREDITS',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'wallet' : 'wallet-outline'} size={24} color={color} />
+            <Ionicons name={focused ? 'wallet' : 'wallet-outline'} size={22} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Settings',
+          title: 'NODES',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'settings' : 'settings-outline'} size={24} color={color} />
+            <Ionicons name={focused ? 'settings' : 'settings-outline'} size={22} color={color} />
           ),
         }}
       />

@@ -11,12 +11,15 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Alert, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '@/store/useAuthStore';
+
+import * as ImagePicker from 'expo-image-picker';
+import { Image } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -24,8 +27,7 @@ const STEPS = ['Account', 'Kitchen', 'Brand', 'Location'];
 
 export default function RegisterScreen() {
   const [currentStep, setCurrentStep] = useState(0);
-  const router = useRouter();
-  const { register, isLoading } = useAuthStore();
+  const { register, uploadBranding, isLoading } = useAuthStore();
 
   // Step 1: Account
   const [email, setEmail] = useState('');
@@ -37,41 +39,58 @@ export default function RegisterScreen() {
   const [foodType, setFoodType] = useState('both'); // veg, non-veg, both
 
   // Step 3: Brand
-  const [logo, setLogo] = useState(null);
-  const [banner, setBanner] = useState(null);
+  const [logo, setLogo] = useState<any>(null);
+  const [banner, setBanner] = useState<any>(null);
 
   // Step 4: Location
   const [address, setAddress] = useState('');
   const [pinCode, setPinCode] = useState('');
 
+  const pickImage = async (type: 'logo' | 'banner') => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: type === 'logo' ? [1, 1] : [16, 9],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      if (type === 'logo') setLogo(result.assets[0]);
+      else setBanner(result.assets[0]);
+    }
+  };
+
   const nextStep = async () => {
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Final Step: Submit to Backend
       try {
         await register({
           email,
           password,
-          ownerName: kitchenName, // Passing kitchen name as owner for now since there's no separate field
+          ownerName: kitchenName,
           restaurantName: kitchenName,
           phone,
           cuisines: [foodType],
           address: {
             line1: address,
-            city: "Mumbai", // Hardcoded default, can be added to UI later
+            city: "Mumbai",
             state: "MH",
             pinCode: pinCode
           }
-          // logo and banner would be handled by a separate upload process
         });
+
+        if (logo || banner) {
+          await uploadBranding(logo, banner);
+        }
+
         Alert.alert(
-          'Registration Success',
-          'Your kitchen is now pending review. We will notify you once approved.',
-          [{ text: 'OK', onPress: () => router.replace('/(auth)/pending') }]
+          'REGISTRATION SUCCESS',
+          'Your kitchen credentials have been queued for protocol verification.',
+          [{ text: 'ACCESS PORTAL', onPress: () => router.replace('/(auth)/pending') }]
         );
       } catch (error: any) {
-        Alert.alert('Registration Failed', error);
+        Alert.alert('PROTOCOL ERROR', typeof error === 'string' ? error : 'Authorization sequences failed.');
       }
     }
   };
@@ -94,9 +113,9 @@ export default function RegisterScreen() {
             index < currentStep && styles.completedDot
           ]}>
             {index < currentStep ? (
-              <Ionicons name="checkmark" size={12} color="white" />
+              <Ionicons name="checkmark" size={12} color="black" />
             ) : (
-              <Text style={[styles.dotText, index === currentStep && {color: 'white'}]}>{index + 1}</Text>
+              <Text style={[styles.dotText, index === currentStep && {color: 'black'}]}>{index + 1}</Text>
             )}
           </View>
           <Text style={[styles.stepLabel, index === currentStep && styles.activeLabel]}>{step}</Text>
@@ -111,35 +130,63 @@ export default function RegisterScreen() {
       case 0:
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Account Security</Text>
-            <Text style={styles.stepSub}>Start your partnership by setting up your credentials.</Text>
+            <Text style={styles.stepTitle}>SECURE ACCOUNT</Text>
+            <Text style={styles.stepSub}>Initialize your kitchen node on the Chator Jeep network.</Text>
             
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Official Email</Text>
-              <TextInput style={styles.input} placeholder="kitchen@example.com" value={email} onChangeText={setEmail} keyboardType="email-address" />
+              <Text style={styles.label}>OFFICIAL EMAIL</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="ops@chatorjeep.com" 
+                placeholderTextColor="#333"
+                value={email} 
+                onChangeText={setEmail} 
+                keyboardType="email-address" 
+                autoCapitalize="none"
+              />
             </View>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Secure Password</Text>
-              <TextInput style={styles.input} placeholder="••••••••" value={password} onChangeText={setPassword} secureTextEntry />
+              <Text style={styles.label}>ACCESS KEY</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="••••••••" 
+                placeholderTextColor="#333"
+                value={password} 
+                onChangeText={setPassword} 
+                secureTextEntry 
+              />
             </View>
           </View>
         );
       case 1:
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Kitchen Identity</Text>
-            <Text style={styles.stepSub}>Tell us how customers will recognize your kitchen.</Text>
+            <Text style={styles.stepTitle}>KITCHEN IDENTITY</Text>
+            <Text style={styles.stepSub}>How should our fleet identify your culinary station?</Text>
             
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Kitchen / Restaurant Name</Text>
-              <TextInput style={styles.input} placeholder="E.g. Royal Spice Kitchen" value={kitchenName} onChangeText={setKitchenName} />
+              <Text style={styles.label}>RESTAURANT NAME</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="E.g. GOLDEN GRILL" 
+                placeholderTextColor="#333"
+                value={kitchenName} 
+                onChangeText={setKitchenName} 
+              />
             </View>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Contact Phone Number</Text>
-              <TextInput style={styles.input} placeholder="+91 00000 00000" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+              <Text style={styles.label}>SECONDARY CONTACT</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="+91 00000 00000" 
+                placeholderTextColor="#333"
+                value={phone} 
+                onChangeText={setPhone} 
+                keyboardType="phone-pad" 
+              />
             </View>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Speciality Type</Text>
+              <Text style={styles.label}>SPECIALITY CORE</Text>
               <View style={styles.chipRow}>
                 {['veg', 'non-veg', 'both'].map((type) => (
                   <TouchableOpacity 
@@ -159,35 +206,61 @@ export default function RegisterScreen() {
       case 2:
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Brand Visuals</Text>
-            <Text style={styles.stepSub}>Upload your logo and banner to stand out from the crowd.</Text>
+            <Text style={styles.stepTitle}>BRAND ASSETS</Text>
+            <Text style={styles.stepSub}>Visualize your brand within the fleet interface.</Text>
             
             <View style={styles.uploadRow}>
-              <TouchableOpacity style={styles.logoUpload}>
-                <Ionicons name="camera" size={32} color={Colors.light.primary} />
-                <Text style={styles.uploadLabel}>Logo</Text>
+              <TouchableOpacity style={styles.logoUpload} onPress={() => pickImage('logo')}>
+                {logo ? (
+                  <Image source={{ uri: logo.uri }} style={styles.previewImage} />
+                ) : (
+                  <>
+                    <Ionicons name="finger-print" size={32} color={Colors.light.primary} />
+                    <Text style={styles.uploadLabel}>LOGO</Text>
+                  </>
+                )}
               </TouchableOpacity>
-              <TouchableOpacity style={styles.bannerUpload}>
-                <Ionicons name="image" size={32} color={Colors.light.primary} />
-                <Text style={styles.uploadLabel}>Store Banner</Text>
+              <TouchableOpacity style={styles.bannerUpload} onPress={() => pickImage('banner')}>
+                {banner ? (
+                  <Image source={{ uri: banner.uri }} style={styles.previewImage} />
+                ) : (
+                  <>
+                    <Ionicons name="images" size={32} color={Colors.light.primary} />
+                    <Text style={styles.uploadLabel}>FLEET BANNER</Text>
+                  </>
+                )}
               </TouchableOpacity>
             </View>
-            <Text style={styles.uploadHint}>JPG or PNG. Max size 2MB.</Text>
+            <Text style={styles.uploadHint}>OPTIMIZED FOR DARK INTERFACE. MAX 2MB.</Text>
           </View>
         );
       case 3:
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Store Location</Text>
-            <Text style={styles.stepSub}>Where should customers come to pick up their delicious food?</Text>
+            <Text style={styles.stepTitle}>LOGISTICS NODE</Text>
+            <Text style={styles.stepSub}>GPS coordinates and physical address for payload collection.</Text>
             
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Full Address</Text>
-              <TextInput style={[styles.input, {height: 100, textAlignVertical: 'top'}]} placeholder="House/Shop No, Street, Landmark..." value={address} onChangeText={setAddress} multiline />
+              <Text style={styles.label}>PHYSICAL ADDRESS</Text>
+              <TextInput 
+                style={[styles.input, {height: 120, paddingTop: 15, textAlignVertical: 'top'}]} 
+                placeholder="STREET, BLOCK, LANDMARK..." 
+                placeholderTextColor="#333"
+                value={address} 
+                onChangeText={setAddress} 
+                multiline 
+              />
             </View>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Pin Code</Text>
-              <TextInput style={styles.input} placeholder="400001" value={pinCode} onChangeText={setPinCode} keyboardType="numeric" />
+              <Text style={styles.label}>SECTOR CODE (PIN)</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="400001" 
+                placeholderTextColor="#333"
+                value={pinCode} 
+                onChangeText={setPinCode} 
+                keyboardType="numeric" 
+              />
             </View>
           </View>
         );
@@ -197,13 +270,13 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <View style={styles.header}>
           <TouchableOpacity onPress={prevStep} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={24} color={Colors.light.text} />
+            <Ionicons name="chevron-back" size={24} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Kitchen Registration</Text>
+          <Text style={styles.headerTitle}>SECURE ONBOARDING</Text>
         </View>
 
         {renderStepIndicator()}
@@ -214,18 +287,18 @@ export default function RegisterScreen() {
 
         <View style={styles.footer}>
           <TouchableOpacity 
-            style={styles.mainBtn} 
+            style={[styles.mainBtn, isLoading && {opacity: 0.6}]} 
             onPress={nextStep}
             disabled={isLoading}
           >
             {isLoading ? (
-              <ActivityIndicator color="white" />
+              <ActivityIndicator color="black" />
             ) : (
               <>
                 <Text style={styles.mainBtnText}>
-                  {currentStep === STEPS.length - 1 ? 'FINISH REGISTRATION' : 'CONTINUE'}
+                  {currentStep === STEPS.length - 1 ? 'FINALIZE PROTOCOL' : 'NEXT SEQUENCE'}
                 </Text>
-                <Ionicons name="arrow-forward" size={18} color="white" style={{marginLeft: 8}} />
+                <Ionicons name="chevron-forward" size={18} color="black" style={{marginLeft: 8}} />
               </>
             )}
           </TouchableOpacity>
@@ -238,53 +311,57 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#000',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    padding: 25,
   },
   backBtn: {
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: '#F8F8F8',
+    width: 45,
+    height: 45,
+    borderRadius: 15,
+    backgroundColor: '#111',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#222',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 14,
+    fontWeight: '900',
     marginLeft: 15,
-    color: Colors.light.text,
+    color: '#FFF',
+    letterSpacing: 2,
   },
   indicatorWrapper: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 30,
+    paddingHorizontal: 30,
+    paddingVertical: 20,
     position: 'relative',
   },
   line: {
     position: 'absolute',
-    top: 45,
-    left: 40,
-    right: 40,
-    height: 2,
-    backgroundColor: '#F0F0F0',
+    top: 35,
+    left: 45,
+    right: 45,
+    height: 1,
+    backgroundColor: '#111',
     zIndex: -1,
   },
   stepItem: {
     alignItems: 'center',
-    width: width / 4.5,
+    width: width / 5,
   },
   dot: {
     width: 30,
     height: 30,
-    borderRadius: 15,
-    backgroundColor: 'white',
-    borderWidth: 2,
-    borderColor: '#F0F0F0',
+    borderRadius: 10,
+    backgroundColor: '#000',
+    borderWidth: 1.5,
+    borderColor: '#222',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
@@ -298,140 +375,151 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.primary,
   },
   dotText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#CCC',
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#333',
   },
   stepLabel: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#CCC',
+    fontSize: 8,
+    fontWeight: '900',
+    color: '#333',
     textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   activeLabel: {
     color: Colors.light.primary,
   },
   stepContent: {
-    padding: 25,
+    padding: 30,
   },
   stepTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.light.text,
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#FFF',
     marginBottom: 10,
+    letterSpacing: 1,
   },
   stepSub: {
-    fontSize: 14,
-    color: Colors.light.textMuted,
-    lineHeight: 22,
-    marginBottom: 30,
+    fontSize: 12,
+    color: '#666',
+    lineHeight: 20,
+    marginBottom: 35,
+    fontWeight: '600',
   },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: 25,
   },
   label: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    color: Colors.light.text,
-    marginBottom: 10,
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#444',
+    marginBottom: 12,
+    letterSpacing: 1.5,
     marginLeft: 5,
   },
   input: {
-    backgroundColor: '#F8F8F8',
-    height: 55,
-    borderRadius: 16,
+    backgroundColor: '#0A0A0A',
+    height: 60,
+    borderRadius: 18,
     paddingHorizontal: 20,
     fontSize: 16,
+    color: '#FFF',
+    fontWeight: '600',
     borderWidth: 1,
-    borderColor: '#EEEEEE',
+    borderColor: '#1A1A1A',
   },
   chipRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
   },
   chip: {
     flex: 1,
-    height: 45,
-    borderRadius: 12,
+    height: 50,
+    borderRadius: 15,
     borderWidth: 1,
-    borderColor: '#EEEEEE',
+    borderColor: '#1A1A1A',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FAFADA',
+    backgroundColor: '#0A0A0A',
   },
   activeChip: {
     backgroundColor: Colors.light.primary,
     borderColor: Colors.light.primary,
   },
   chipText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: Colors.light.textMuted,
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#444',
+    letterSpacing: 1,
   },
   activeChipText: {
-    color: 'white',
+    color: 'black',
   },
   uploadRow: {
     flexDirection: 'row',
-    gap: 15,
+    gap: 18,
   },
   logoUpload: {
     flex: 1,
     aspectRatio: 1,
-    borderRadius: 20,
-    backgroundColor: '#FFF5F5',
-    borderWidth: 2,
-    borderColor: Colors.light.primary,
+    borderRadius: 22,
+    backgroundColor: '#0A0A0A',
+    borderWidth: 1.5,
+    borderColor: '#222',
     borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
   },
   bannerUpload: {
-    flex: 2,
-    aspectRatio: 1.8,
-    borderRadius: 20,
-    backgroundColor: '#FFF5F5',
-    borderWidth: 2,
-    borderColor: Colors.light.primary,
+    flex: 1.8,
+    aspectRatio: 1,
+    borderRadius: 22,
+    backgroundColor: '#0A0A0A',
+    borderWidth: 1.5,
+    borderColor: '#222',
     borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'end',
   },
   uploadLabel: {
-    marginTop: 8,
-    fontSize: 12,
-    fontWeight: 'bold',
+    marginTop: 10,
+    fontSize: 9,
+    fontWeight: '900',
     color: Colors.light.primary,
+    letterSpacing: 1,
   },
   uploadHint: {
-    fontSize: 12,
-    color: Colors.light.textMuted,
-    marginTop: 15,
+    fontSize: 9,
+    color: '#333',
+    marginTop: 20,
     textAlign: 'center',
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
   },
   footer: {
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
+    padding: 25,
+    paddingBottom: 35,
   },
   mainBtn: {
     backgroundColor: Colors.light.primary,
-    height: 60,
-    borderRadius: 20,
+    height: 65,
+    borderRadius: 22,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.light.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 8,
   },
   mainBtnText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
+    color: 'black',
+    fontSize: 15,
+    fontWeight: '900',
+    letterSpacing: 1.5,
+  },
+});
+: 0.5,
   },
 });

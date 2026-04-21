@@ -11,19 +11,18 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
 import { useOrderStore, Order } from "@/store/useOrderStore";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { router } from "expo-router";
 
-// Tab filters
+// Tab filters — must match backend UPPERCASE ORDER_STATUS constants
 const STATUS_TABS = [
-  { id: "pending", label: "New" },
-  { id: "preparing", label: "Preparing" },
-  { id: "ready", label: "Ready" },
-  { id: "out_for_delivery", label: "Out" },
-  { id: "completed", label: "Done" },
+  { id: 'PENDING', label: 'New' },
+  { id: 'PREPARING', label: 'Preparing' },
+  { id: 'READY', label: 'Ready' },
+  { id: 'OUT_FOR_DELIVERY', label: 'Out' },
+  { id: 'completed', label: 'Done' },
 ];
 
 export default function OrdersScreen() {
-  const router = useRouter();
   const {
     orders,
     fetchOrders,
@@ -32,15 +31,15 @@ export default function OrdersScreen() {
     rejectOrder,
     updateOrderStatus,
   } = useOrderStore();
-  const [activeTab, setActiveTab] = useState("pending");
+  const [activeTab, setActiveTab] = useState('PENDING');
 
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
 
   const filteredOrders = orders.filter((o) => {
-    if (activeTab === "completed") {
-      return o.status === "delivered" || o.status === "cancelled";
+    if (activeTab === 'completed') {
+      return o.status === 'DELIVERED' || o.status === 'CANCELLED';
     }
     return o.status === activeTab;
   });
@@ -48,11 +47,11 @@ export default function OrdersScreen() {
   const renderOrderCard = ({ item }: { item: Order }) => (
     <TouchableOpacity
       style={styles.orderCard}
-      activeOpacity={0.8}
+      activeOpacity={0.9}
       onPress={() => router.push(`/order/${item._id}`)}
     >
       <View style={styles.cardHeader}>
-        <View style={styles.headerLeft}>
+        <View>
           <Text style={styles.orderId}>
             #{item.orderNumber || item._id.slice(-6).toUpperCase()}
           </Text>
@@ -63,59 +62,85 @@ export default function OrdersScreen() {
             })}
           </Text>
         </View>
-        <Text style={styles.priceText}>₹{item.totalAmount}</Text>
+        <Text style={styles.priceText}>₹{item.totalAmount.toLocaleString('en-IN')}</Text>
       </View>
 
-      <Text style={styles.customerName}>{item.customerData.name}</Text>
-      <Text style={styles.itemSummary} numberOfLines={2}>
-        {item.items.map((i) => `${i.quantity}x ${i.name}`).join(", ")}
-      </Text>
+      <View style={styles.customerRow}>
+        <Ionicons name="person-circle" size={16} color="#666" />
+        <Text style={styles.customerName}>{item.customerData.name}</Text>
+      </View>
 
-      {item.status === "pending" && (
-        <View style={styles.actionRow}>
+      <View style={styles.itemsBox}>
+        <Text style={styles.itemSummary} numberOfLines={2}>
+          {item.items.map((i) => `${i.quantity}x ${i.name}`).join(" • ")}
+        </Text>
+      </View>
+
+      <View style={styles.statusIndicator}>
+        <View style={[styles.statusDot, { backgroundColor: getStatusColor(item.status) }]} />
+        <Text style={[styles.statusLabel, { color: getStatusColor(item.status) }]}>{item.status}</Text>
+      </View>
+
+      <View style={styles.footerActions}>
+        {item.status === 'PENDING' && (
+          <View style={styles.actionRow}>
+            <TouchableOpacity
+              style={[styles.btn, styles.rejectBtn]}
+              onPress={() => rejectOrder(item._id)}
+            >
+              <Text style={styles.rejectText}>DECLINE</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.btn, styles.acceptBtn]}
+              onPress={() => acceptOrder(item._id, 15)}
+            >
+              <Text style={styles.acceptText}>ACCEPT & PREP</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {item.status === 'ACCEPTED' && (
           <TouchableOpacity
-            style={[styles.btn, styles.rejectBtn]}
-            onPress={() => rejectOrder(item._id)}
+            style={styles.fullWidthBtn}
+            onPress={() => updateOrderStatus(item._id, 'PREPARING')}
           >
-            <Text style={styles.rejectText}>Reject</Text>
+            <Ionicons name="flame" size={18} color="black" />
+            <Text style={styles.fullWidthBtnText}>START PREPARING</Text>
           </TouchableOpacity>
+        )}
+
+        {item.status === 'PREPARING' && (
           <TouchableOpacity
-            style={[styles.btn, styles.acceptBtn]}
-            onPress={() => acceptOrder(item._id, 15)} // 15 mins default
+            style={styles.fullWidthBtn}
+            onPress={() => updateOrderStatus(item._id, 'READY')}
           >
-            <Text style={styles.acceptText}>Accept & Prep</Text>
+            <Ionicons name="checkmark-circle" size={18} color="black" />
+            <Text style={styles.fullWidthBtnText}>READY FOR DISPATCH</Text>
           </TouchableOpacity>
-        </View>
-      )}
+        )}
 
-      {item.status === "preparing" && (
-        <TouchableOpacity
-          style={styles.fullWidthBtn}
-          onPress={() => updateOrderStatus(item._id, "ready")}
-        >
-          <Ionicons name="checkmark-done" size={18} color="white" />
-          <Text style={styles.fullWidthBtnText}>Mark as Ready</Text>
-        </TouchableOpacity>
-      )}
-
-      {item.status === "ready" && (
-        <TouchableOpacity
-          style={[styles.fullWidthBtn, { backgroundColor: "#FF9800" }]}
-          onPress={() => updateOrderStatus(item._id, "out_for_delivery")}
-        >
-          <Ionicons name="bicycle" size={18} color="white" />
-          <Text style={styles.fullWidthBtnText}>Dispatch to Rider</Text>
-        </TouchableOpacity>
-      )}
+        {item.status === 'READY' && (
+          <TouchableOpacity
+            style={[styles.fullWidthBtn, { backgroundColor: '#FF8C00' }]}
+            onPress={() => updateOrderStatus(item._id, 'OUT_FOR_DELIVERY')}
+          >
+            <Ionicons name="bicycle" size={18} color="black" />
+            <Text style={styles.fullWidthBtnText}>HANDOVER TO RIDER</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </TouchableOpacity>
   );
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Orders Console</Text>
+        <View>
+          <Text style={styles.title}>Live Orders</Text>
+          <Text style={styles.subtitle}>Fleet Logistics Terminal</Text>
+        </View>
         <TouchableOpacity onPress={fetchOrders} style={styles.refreshBtn}>
-          <Ionicons name="refresh" size={20} color={Colors.light.primary} />
+          <Ionicons name="sync" size={20} color={Colors.light.primary} />
         </TouchableOpacity>
       </View>
 
@@ -126,7 +151,7 @@ export default function OrdersScreen() {
           showsHorizontalScrollIndicator={false}
           data={STATUS_TABS}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingHorizontal: 15 }}
+          contentContainerStyle={{ paddingHorizontal: 20 }}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={[
@@ -141,8 +166,9 @@ export default function OrdersScreen() {
                   activeTab === item.id && styles.activeTabText,
                 ]}
               >
-                {item.label}
+                {item.label.toUpperCase()}
               </Text>
+              {activeTab === item.id && <View style={styles.activeLine} />}
             </TouchableOpacity>
           )}
         />
@@ -162,12 +188,15 @@ export default function OrdersScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyBox}>
-            <Ionicons
-              name="receipt-outline"
-              size={48}
-              color={Colors.light.textMuted}
-            />
-            <Text style={styles.emptyText}>No orders in this phase</Text>
+            <View style={styles.emptyIconCircle}>
+              <Ionicons
+                name="receipt"
+                size={40}
+                color="#222"
+              />
+            </View>
+            <Text style={styles.emptyText}>Terminal Idle</Text>
+            <Text style={styles.emptySub}>Waiting for incoming protocol...</Text>
           </View>
         }
       />
@@ -175,152 +204,233 @@ export default function OrdersScreen() {
   );
 }
 
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'PENDING': return '#FFC107';
+    case 'PREPARING': return '#00E676';
+    case 'READY': return '#D4AF37';
+    case 'OUT_FOR_DELIVERY': return '#FF8C00';
+    case 'DELIVERED': return '#4CAF50';
+    default: return '#666';
+  }
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F7F8FA",
+    backgroundColor: "#000",
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    padding: 20,
+    padding: 25,
     alignItems: "center",
-    backgroundColor: "white",
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "900",
-    color: Colors.light.text,
+    color: "#FFF",
+    letterSpacing: 1,
+  },
+  subtitle: {
+    fontSize: 10,
+    color: Colors.light.primary,
+    fontWeight: "800",
+    letterSpacing: 2,
+    textTransform: "uppercase",
+    marginTop: 2,
   },
   refreshBtn: {
-    padding: 8,
-    backgroundColor: Colors.light.primary + "15",
-    borderRadius: 12,
+    width: 45,
+    height: 45,
+    borderRadius: 15,
+    backgroundColor: "#111",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#222",
   },
   tabsContainer: {
-    backgroundColor: "white",
-    paddingBottom: 10,
+    paddingBottom: 15,
     borderBottomWidth: 1,
-    borderColor: "#EFEFEF",
+    borderColor: "#111",
   },
   tabItem: {
     paddingHorizontal: 20,
-    paddingVertical: 8,
+    paddingVertical: 10,
     marginRight: 10,
-    borderRadius: 20,
-    backgroundColor: "#F0F0F0",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   activeTabItem: {
-    backgroundColor: Colors.light.primary,
   },
   tabText: {
-    fontWeight: "bold",
-    color: "#666",
+    fontSize: 11,
+    fontWeight: "900",
+    color: "#444",
+    letterSpacing: 1.5,
   },
   activeTabText: {
-    color: "white",
+    color: Colors.light.primary,
+  },
+  activeLine: {
+    width: 20,
+    height: 2,
+    backgroundColor: Colors.light.primary,
+    marginTop: 6,
+    borderRadius: 1,
   },
   listContent: {
     padding: 20,
-    gap: 15,
+    paddingTop: 10,
+    gap: 20,
   },
   orderCard: {
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    backgroundColor: "#0A0A0A",
+    borderRadius: 25,
+    padding: 25,
     borderWidth: 1,
-    borderColor: "#F0F0F0",
+    borderColor: "#1A1A1A",
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 10,
-  },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
+    marginBottom: 20,
   },
   orderId: {
-    fontSize: 16,
-    fontWeight: "900",
-    color: Colors.light.primary,
-  },
-  timeText: {
-    fontSize: 12,
-    color: Colors.light.textMuted,
-    fontWeight: "bold",
-  },
-  priceText: {
     fontSize: 18,
     fontWeight: "900",
+    color: Colors.light.primary,
+    letterSpacing: 1,
+  },
+  timeText: {
+    fontSize: 11,
+    color: "#444",
+    fontWeight: "800",
+    marginTop: 4,
+  },
+  priceText: {
+    fontSize: 20,
+    fontWeight: "900",
+    color: "#FFF",
+  },
+  customerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 10,
   },
   customerName: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 5,
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#EEE",
+  },
+  itemsBox: {
+    backgroundColor: "#111",
+    borderRadius: 15,
+    padding: 15,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#1A1A1A",
   },
   itemSummary: {
-    color: Colors.light.textMuted,
-    fontSize: 14,
-    marginBottom: 15,
+    color: "#888",
+    fontSize: 13,
+    fontWeight: "600",
+    lineHeight: 20,
+  },
+  statusIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 20,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  statusLabel: {
+    fontSize: 10,
+    fontWeight: "900",
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  footerActions: {
   },
   actionRow: {
     flexDirection: "row",
-    gap: 10,
-    marginTop: 10,
+    gap: 12,
   },
   btn: {
     flex: 1,
-    height: 45,
-    borderRadius: 12,
+    height: 55,
+    borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
   },
   rejectBtn: {
     borderColor: "#FF4B4B",
-    backgroundColor: "#FFF0F0",
+    backgroundColor: "transparent",
   },
   rejectText: {
     color: "#FF4B4B",
-    fontWeight: "bold",
+    fontWeight: "900",
+    fontSize: 12,
+    letterSpacing: 1,
   },
   acceptBtn: {
-    borderColor: Colors.light.success,
-    backgroundColor: Colors.light.success,
+    borderColor: Colors.light.primary,
+    backgroundColor: Colors.light.primary,
   },
   acceptText: {
-    color: "white",
-    fontWeight: "bold",
+    color: "black",
+    fontWeight: "900",
+    fontSize: 12,
+    letterSpacing: 1,
   },
   fullWidthBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: 12,
     backgroundColor: Colors.light.primary,
-    height: 45,
-    borderRadius: 12,
-    marginTop: 10,
+    height: 60,
+    borderRadius: 20,
   },
   fullWidthBtnText: {
-    color: "white",
-    fontWeight: "bold",
+    color: "black",
+    fontWeight: "900",
+    fontSize: 14,
+    letterSpacing: 1,
   },
   emptyBox: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 100,
+    marginTop: 80,
+  },
+  emptyIconCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 35,
+    backgroundColor: '#0A0A0A',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#111',
+    marginBottom: 20,
   },
   emptyText: {
-    marginTop: 10,
-    color: Colors.light.textMuted,
-    fontWeight: "bold",
-    fontSize: 16,
+    fontSize: 20,
+    fontWeight: "900",
+    color: "#FFF",
+    letterSpacing: 1,
+  },
+  emptySub: {
+    fontSize: 12,
+    color: "#444",
+    fontWeight: "700",
+    marginTop: 8,
   },
 });

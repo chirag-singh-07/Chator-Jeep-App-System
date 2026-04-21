@@ -15,6 +15,9 @@ export const findAssignedByRider = (riderId: string): Promise<IDelivery[]> =>
 export const findDeliveryByOrderId = (orderId: string): Promise<IDelivery | null> =>
   Delivery.findOne({ orderId: new Types.ObjectId(orderId) }).exec();
 
+export const findDeliveryByRiderId = (riderId: string): Promise<IDelivery | null> =>
+  Delivery.findOne({ riderId: new Types.ObjectId(riderId) }).exec();
+
 export const updateDeliveryByOrder = (orderId: string, payload: Partial<IDelivery>): Promise<IDelivery | null> =>
   Delivery.findOneAndUpdate({ orderId: new Types.ObjectId(orderId) }, payload, { new: true }).exec();
 
@@ -24,6 +27,7 @@ export const findNearestAvailableRider = (
 ): Promise<IDelivery | null> =>
   Delivery.findOne({
     isAvailable: true,
+    isOnline: true,
     orderId: null,
     currentLocation: {
       $near: {
@@ -38,7 +42,17 @@ export const updateRiderAvailability = (
   payload: Partial<IDelivery>
 ): Promise<IDelivery | null> =>
   Delivery.findOneAndUpdate(
-    { riderId: new Types.ObjectId(riderId), orderId: null },
+    { riderId: new Types.ObjectId(riderId) },
     payload,
     { new: true, upsert: true }
+  ).exec();
+
+export const resetRiderAfterDelivery = (
+  riderId: string,
+  payload: Partial<IDelivery>
+): Promise<IDelivery | null> =>
+  Delivery.findOneAndUpdate(
+    { riderId: new Types.ObjectId(riderId) },
+    payload,
+    { new: true }
   ).exec();
