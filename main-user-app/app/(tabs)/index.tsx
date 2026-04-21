@@ -7,22 +7,35 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
-  FlatList,
   Dimensions,
+  FlatList,
+  StatusBar
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import Animated, { 
+  FadeInRight, 
+  FadeInDown, 
+  FadeIn,
+  SlideInRight
+} from "react-native-reanimated";
 
 const { width } = Dimensions.get("window");
 
 const CATEGORIES = [
-  { id: "1", name: "Pizza", icon: "pizza-outline" },
-  { id: "2", name: "Burger", icon: "fast-food-outline" },
-  { id: "3", name: "Sushi", icon: "fish-outline" },
-  { id: "4", name: "Pasta", icon: "restaurant-outline" },
-  { id: "5", name: "Desserts", icon: "ice-cream-outline" },
-  { id: "6", name: "Drinks", icon: "beer-outline" },
+  { id: "1", name: "Pizza", icon: "pizza" },
+  { id: "2", name: "Burgers", icon: "fast-food" },
+  { id: "3", name: "Biryani", icon: "restaurant" },
+  { id: "4", name: "Chicken", icon: "egg" },
+  { id: "5", name: "Chinese", icon: "flame" },
+  { id: "6", name: "Desserts", icon: "ice-cream" },
+];
+
+const BANNERS = [
+  { id: "1", title: "Flat 50% OFF", sub: "On your first order", color: "#FF4D4D", icon: "gift" },
+  { id: "2", title: "Free Delivery", sub: "For orders above ₹199", color: "#2D75F0", icon: "bicycle" },
 ];
 
 const RESTAURANTS = [
@@ -45,160 +58,159 @@ const RESTAURANTS = [
     tags: ["Burger", "American"],
   },
   {
-    id: "3",
-    name: "Sushi ZenMaster",
-    rating: 4.9,
-    time: "30-45 min",
-    offers: "Buy 1 Get 1",
-    image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400",
-    tags: ["Sushi", "Japanese"],
-  },
+      id: "3",
+      name: "Biryani Blues",
+      rating: 4.6,
+      time: "35-40 min",
+      offers: "BOGO",
+      image: "https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=400",
+      tags: ["Biryani", "North Indian"],
+    },
 ];
 
 export default function HomeScreen() {
+  const router = useRouter();
+
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
+      <StatusBar barStyle="dark-content" />
+      
+      {/* Header with Location */}
+      <View style={styles.header}>
+        <View style={styles.locationContainer}>
+          <View style={styles.locIndicator}>
+             <Ionicons name="location" size={18} color={Colors.light.primary} />
+          </View>
+          <View style={{marginLeft: 12}}>
+            <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+              <Text style={styles.locationLabel}>Home</Text>
+              <Ionicons name="chevron-down" size={14} color={Colors.light.text} />
+            </View>
+            <Text style={styles.addressText} numberOfLines={1}>Sector 62, Noida, Uttar Pradesh...</Text>
+          </View>
+        </View>
+        <TouchableOpacity style={styles.profileCircle} onPress={() => router.push('/(tabs)/profile')}>
+           <Image source={{ uri: 'https://i.pravatar.cc/100?u=me' }} style={styles.profileImg} />
+        </TouchableOpacity>
+      </View>
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.locationLabel}>Delivering to</Text>
-            <TouchableOpacity style={styles.locationContainer}>
-              <Ionicons
-                name="location"
-                size={18}
-                color={Colors.light.primary}
-              />
-              <Text style={styles.locationText}>Home • Noida Sector 62</Text>
-              <Ionicons
-                name="chevron-down"
-                size={16}
-                color={Colors.light.text}
-              />
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity style={styles.notificationBtn}>
-            <Ionicons
-              name="notifications-outline"
-              size={24}
-              color={Colors.light.text}
-            />
-            <View style={styles.notificationDot} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Search Bar */}
-        <View style={styles.searchSection}>
+        {/* Search Bar Landing */}
+        <TouchableOpacity 
+          activeOpacity={0.9} 
+          style={styles.searchSection}
+          onPress={() => router.push('/(tabs)/search')}
+        >
           <View style={styles.searchContainer}>
-            <Ionicons name="search" size={20} color={Colors.light.textMuted} />
-            <TextInput
-              placeholder="Search for food, restaurants..."
-              style={styles.searchInput}
-            />
-            <TouchableOpacity>
-              <Ionicons
-                name="options-outline"
-                size={20}
-                color={Colors.light.primary}
-              />
-            </TouchableOpacity>
+            <Ionicons name="search" size={20} color={Colors.light.primary} />
+            <Text style={styles.searchPlaceholder}>Search "Biryani" or "Pizza"...</Text>
+            <View style={styles.divider} />
+            <Ionicons name="mic-outline" size={20} color={Colors.light.textMuted} />
           </View>
-        </View>
+        </TouchableOpacity>
 
-        {/* Banner */}
-        <View style={styles.bannerContainer}>
-          <View style={styles.banner}>
-            <View style={styles.bannerTextContainer}>
-              <Text style={styles.bannerTitle}>Get 50% Cashback</Text>
-              <Text style={styles.bannerSub}>On your first 3 orders</Text>
-              <TouchableOpacity style={styles.bannerBtn}>
-                <Text style={styles.bannerBtnText}>Order Now</Text>
-              </TouchableOpacity>
-            </View>
-            <Ionicons
-              name="fast-food-outline"
-              size={80}
-              color="rgba(255,255,255,0.3)"
-              style={styles.bannerIcon}
-            />
-          </View>
-        </View>
+        {/* Feature Banners */}
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          snapToInterval={width - 40}
+          decelerationRate="fast"
+          contentContainerStyle={styles.bannerList}
+        >
+          {BANNERS.map((banner, index) => (
+            <Animated.View 
+              key={banner.id} 
+              entering={FadeInRight.delay(index * 200)}
+              style={[styles.bannerCard, { backgroundColor: banner.color }]}
+            >
+               <View style={styles.bannerText}>
+                  <Text style={styles.bannerTitle}>{banner.title}</Text>
+                  <Text style={styles.bannerSub}>{banner.sub}</Text>
+                  <TouchableOpacity style={styles.bannerBtn}>
+                     <Text style={[styles.bannerBtnText, { color: banner.color }]}>GRAB NOW</Text>
+                  </TouchableOpacity>
+               </View>
+               <Ionicons name={banner.icon as any} size={80} color="rgba(255,255,255,0.2)" style={styles.bannerIcon} />
+            </Animated.View>
+          ))}
+        </ScrollView>
 
-        {/* Categories */}
+        {/* Categories Grid */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Categories</Text>
-          <TouchableOpacity>
-            <Text style={styles.viewAllText}>View All</Text>
-          </TouchableOpacity>
+           <Text style={styles.sectionTitle}>What's on your mind?</Text>
         </View>
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
           data={CATEGORIES}
-          contentContainerStyle={{ paddingLeft: 20, marginBottom: 25 }}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.categoryItem}>
-              <View style={styles.categoryIconCircle}>
-                <Ionicons
-                  name={item.icon as any}
-                  size={24}
-                  color={Colors.light.primary}
-                />
+          contentContainerStyle={{ paddingLeft: 20, marginBottom: 30 }}
+          renderItem={({ item, index }) => (
+            <Animated.TouchableOpacity 
+              entering={FadeInDown.delay(index * 100)}
+              style={styles.categoryItem}
+            >
+              <View style={styles.catImageCircle}>
+                 <Ionicons name={item.icon as any} size={30} color={Colors.light.primary} />
               </View>
               <Text style={styles.categoryName}>{item.name}</Text>
-            </TouchableOpacity>
+            </Animated.TouchableOpacity>
           )}
         />
 
-        {/* Popular Restaurants */}
+        {/* Popular Section */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Popular Restaurants</Text>
-          <TouchableOpacity>
+          <Text style={styles.sectionTitle}>Popular Near You</Text>
+          <TouchableOpacity onPress={() => router.push('/listing')}>
             <Text style={styles.viewAllText}>View All</Text>
           </TouchableOpacity>
         </View>
+
         <View style={{ paddingHorizontal: 20 }}>
-          {RESTAURANTS.map((res) => (
-            <TouchableOpacity key={res.id} style={styles.restaurantCard}>
-              <Image
-                source={{ uri: res.image }}
-                style={styles.restaurantImage}
-              />
-              <View style={styles.offerBadge}>
-                <Text style={styles.offerText}>{res.offers}</Text>
-              </View>
-              <View style={styles.restaurantInfo}>
-                <View style={styles.resRow}>
-                  <Text style={styles.resName}>{res.name}</Text>
-                  <View style={styles.ratingBadge}>
-                    <Ionicons name="star" size={12} color="#FFD700" />
-                    <Text style={styles.ratingText}>{res.rating}</Text>
-                  </View>
+          {RESTAURANTS.map((res, index) => (
+            <Animated.View 
+              key={res.id} 
+              entering={FadeInDown.delay(index * 150)}
+            >
+              <TouchableOpacity 
+                activeOpacity={0.95} 
+                style={styles.restaurantCard}
+                onPress={() => router.push(`/restaurant/${res.id}`)}
+              >
+                <Image
+                  source={{ uri: res.image }}
+                  style={styles.restaurantImage}
+                />
+                <View style={styles.offerBadge}>
+                  <Text style={styles.offerText}>{res.offers}</Text>
                 </View>
-                <Text style={styles.resTags}>{res.tags.join(" • ")}</Text>
-                <View style={styles.resRow}>
+                <TouchableOpacity style={styles.heartBtn}>
+                   <Ionicons name="heart-outline" size={18} color="#FFF" />
+                </TouchableOpacity>
+
+                <View style={styles.restaurantInfo}>
+                  <View style={styles.resRow}>
+                    <Text style={styles.resName}>{res.name}</Text>
+                    <View style={styles.ratingBadge}>
+                      <Text style={styles.ratingText}>{res.rating}</Text>
+                      <Ionicons name="star" size={10} color="#FFF" />
+                    </View>
+                  </View>
+                  <Text style={styles.resTags}>{res.tags.join(" • ")}</Text>
+                  
                   <View style={styles.resMeta}>
-                    <Ionicons
-                      name="time-outline"
-                      size={14}
-                      color={Colors.light.textMuted}
-                    />
-                    <Text style={styles.resMetaText}>{res.time}</Text>
-                  </View>
-                  <View style={[styles.resMeta, { marginLeft: 15 }]}>
-                    <Ionicons
-                      name="bicycle-outline"
-                      size={16}
-                      color={Colors.light.textMuted}
-                    />
-                    <Text style={styles.resMetaText}>Free</Text>
+                     <View style={styles.metaItem}>
+                        <Ionicons name="bicycle" size={14} color="#48bb78" />
+                        <Text style={styles.metaText}>{res.time}</Text>
+                     </View>
+                     <View style={styles.metaDot} />
+                     <Text style={styles.metaText}>₹200 for two</Text>
                   </View>
                 </View>
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </Animated.View>
           ))}
         </View>
       </ScrollView>
@@ -209,7 +221,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: "row",
@@ -218,104 +230,118 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
   },
-  locationLabel: {
-    fontSize: 12,
-    color: Colors.light.textMuted,
-    fontWeight: "500",
-  },
   locationContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
-  locationText: {
-    fontSize: 14,
-    fontWeight: "700",
-    marginHorizontal: 4,
+  locIndicator: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    backgroundColor: '#FFF5F5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  locationLabel: {
+    fontSize: 16,
+    fontWeight: '900',
     color: Colors.light.text,
   },
-  notificationBtn: {
-    height: 45,
-    width: 45,
-    borderRadius: 15,
-    backgroundColor: "#F8F8F8",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#EEEEEE",
+  addressText: {
+    fontSize: 12,
+    color: Colors.light.textMuted,
+    fontWeight: '500',
+    width: width * 0.5,
   },
-  notificationDot: {
-    position: "absolute",
-    top: 12,
-    right: 14,
-    height: 8,
-    width: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.light.primary,
+  profileCircle: {
+    width: 45,
+    height: 45,
+    borderRadius: 16,
     borderWidth: 2,
-    borderColor: "#F8F8F8",
+    borderColor: '#F3F4F6',
+    overflow: 'hidden',
+  },
+  profileImg: {
+    width: '100%',
+    height: '100%',
   },
   searchSection: {
     paddingHorizontal: 20,
     marginTop: 10,
+    marginBottom: 20,
   },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F8F8F8",
-    borderRadius: 18,
-    paddingHorizontal: 15,
-    height: 55,
-    borderWidth: 1,
-    borderColor: "#EEEEEE",
+    backgroundColor: "#F8F9FA",
+    borderRadius: 20,
+    paddingHorizontal: 18,
+    height: 60,
+    borderWidth: 1.5,
+    borderColor: "#F3F4F6",
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    elevation: 2,
   },
-  searchInput: {
+  searchPlaceholder: {
     flex: 1,
-    marginLeft: 10,
-    fontSize: 15,
-    color: Colors.light.text,
+    marginLeft: 12,
+    fontSize: 14,
+    color: Colors.light.textMuted,
+    fontWeight: '600',
   },
-  bannerContainer: {
-    padding: 20,
+  divider: {
+    width: 1,
+    height: 20,
+    backgroundColor: '#E5E7EB',
+    marginHorizontal: 12,
   },
-  banner: {
-    backgroundColor: Colors.light.primary,
+  bannerList: {
+    paddingLeft: 20,
+    paddingRight: 10,
+    marginBottom: 30,
+  },
+  bannerCard: {
+    width: width - 80,
+    height: 160,
     borderRadius: 25,
+    marginRight: 15,
     padding: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    overflow: "hidden",
+    flexDirection: 'row',
+    alignItems: 'center',
+    overflow: 'hidden',
   },
-  bannerTextContainer: {
+  bannerText: {
     flex: 1,
     zIndex: 2,
   },
   bannerTitle: {
-    color: Colors.light.white,
-    fontSize: 22,
-    fontWeight: "bold",
+    color: '#FFF',
+    fontSize: 24,
+    fontWeight: '900',
   },
   bannerSub: {
-    color: "rgba(255,255,255,0.8)",
+    color: 'rgba(255,255,255,0.8)',
     fontSize: 14,
+    fontWeight: '600',
     marginTop: 4,
   },
   bannerBtn: {
-    backgroundColor: Colors.light.white,
+    backgroundColor: '#FFF',
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 12,
     marginTop: 15,
-    alignSelf: "start",
+    alignSelf: 'flex-start',
   },
   bannerBtnText: {
-    color: Colors.light.primary,
-    fontSize: 12,
-    fontWeight: "bold",
+    fontSize: 11,
+    fontWeight: '900',
   },
   bannerIcon: {
-    position: "absolute",
+    position: 'absolute',
     right: -10,
     bottom: -10,
   },
@@ -323,107 +349,137 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
+    paddingHorizontal: 25,
     marginBottom: 15,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 20,
+    fontWeight: "900",
     color: Colors.light.text,
+    letterSpacing: -0.5,
   },
   viewAllText: {
     fontSize: 13,
     color: Colors.light.primary,
-    fontWeight: "bold",
+    fontWeight: "800",
   },
   categoryItem: {
     alignItems: "center",
-    marginRight: 20,
+    marginRight: 25,
   },
-  categoryIconCircle: {
-    height: 60,
-    width: 60,
-    borderRadius: 20,
-    backgroundColor: "#FFF5F5",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 8,
+  catImageCircle: {
+      width: 75,
+      height: 75,
+      borderRadius: 25,
+      backgroundColor: '#F9FAFB',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1.5,
+      borderColor: '#F3F4F6',
   },
   categoryName: {
     fontSize: 13,
-    fontWeight: "600",
+    fontWeight: "700",
     color: Colors.light.text,
+    marginTop: 8,
   },
   restaurantCard: {
-    backgroundColor: Colors.light.white,
+    backgroundColor: '#FFF',
     borderRadius: 25,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
+    marginBottom: 25,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+    shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 15,
-    elevation: 5,
-    overflow: "hidden",
+    elevation: 3,
   },
   restaurantImage: {
-    width: "100%",
-    height: 180,
+    width: '100%',
+    height: 200,
   },
   offerBadge: {
-    position: "absolute",
+    position: 'absolute',
     top: 15,
     left: 15,
     backgroundColor: Colors.light.primary,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 12,
+    borderRadius: 10,
   },
   offerText: {
-    color: Colors.light.white,
-    fontSize: 11,
-    fontWeight: "bold",
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  heartBtn: {
+     position: 'absolute',
+     top: 15,
+     right: 15,
+     width: 36,
+     height: 36,
+     borderRadius: 12,
+     backgroundColor: 'rgba(0,0,0,0.3)',
+     alignItems: 'center',
+     justifyContent: 'center',
   },
   restaurantInfo: {
     padding: 15,
   },
   resRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 5,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   resName: {
-    fontSize: 17,
-    fontWeight: "bold",
+    fontSize: 18,
+    fontWeight: '900',
     color: Colors.light.text,
   },
   ratingBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFFBEB",
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#48bb78',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
+    gap: 4,
   },
   ratingText: {
+    color: '#FFF',
     fontSize: 12,
-    fontWeight: "bold",
-    marginLeft: 4,
-    color: "#B45309",
+    fontWeight: 'bold',
   },
   resTags: {
     fontSize: 13,
     color: Colors.light.textMuted,
-    marginBottom: 10,
+    marginTop: 4,
+    fontWeight: '500',
   },
   resMeta: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F9FAFB',
   },
-  resMetaText: {
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  metaText: {
     fontSize: 12,
-    color: Colors.light.textMuted,
-    marginLeft: 4,
-    fontWeight: "500",
+    fontWeight: '700',
+    color: '#666',
+  },
+  metaDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: '#CCC',
+    marginHorizontal: 10,
   },
 });

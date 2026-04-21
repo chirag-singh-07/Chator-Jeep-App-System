@@ -9,208 +9,347 @@ import {
   KeyboardAvoidingView,
   Platform,
   Dimensions,
+  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import Animated, { 
+  FadeInDown, 
+  FadeInUp, 
+  Layout,
+  FadeIn
+} from 'react-native-reanimated';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = () => {
-    // Navigate to home for now
-    router.replace('/(tabs)');
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      return;
+    }
+    
+    setLoading(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setLoading(false);
+      router.replace('/(tabs)');
+    }, 1500);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
-        <View style={styles.header}>
-           <View style={styles.logoCircle}>
-              <Ionicons name="fast-food" size={40} color={Colors.light.white} />
-           </View>
-           <Text style={styles.welcomeText}>Welcome Back!</Text>
-           <Text style={styles.subText}>Sign in to continue ordering delicious food</Text>
-        </View>
-
-        <View style={styles.formSection}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email Address</Text>
-            <View style={styles.inputWrapper}>
-               <Ionicons name="mail-outline" size={20} color={Colors.light.textMuted} style={styles.inputIcon} />
-               <TextInput
-                 style={styles.input}
-                 placeholder="Enter your email"
-                 value={email}
-                 onChangeText={setEmail}
-                 keyboardType="email-address"
-                 autoCapitalize="none"
-               />
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      
+      {/* Dynamic Background Element */}
+      <View style={styles.bgCircle} />
+      
+      <SafeAreaView style={{ flex: 1 }}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+        >
+          <ScrollView 
+            contentContainerStyle={{ flexGrow: 1 }} 
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.header}>
+              <Animated.View 
+                entering={FadeInUp.delay(200).duration(1000)}
+                style={styles.logoContainer}
+              >
+                <View style={styles.logoCircle}>
+                  <Ionicons name="restaurant" size={45} color={Colors.light.primary} />
+                </View>
+              </Animated.View>
+              
+              <Animated.Text 
+                entering={FadeInUp.delay(400)} 
+                style={styles.welcomeText}
+              >
+                Welcome Back
+              </Animated.Text>
+              <Animated.Text 
+                entering={FadeInUp.delay(500)} 
+                style={styles.subText}
+              >
+                The flavors you love are waiting for you.
+              </Animated.Text>
             </View>
-          </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password</Text>
-            <View style={styles.inputWrapper}>
-               <Ionicons name="lock-closed-outline" size={20} color={Colors.light.textMuted} style={styles.inputIcon} />
-               <TextInput
-                 style={[styles.input, { flex: 1 }]}
-                 placeholder="Enter your password"
-                 value={password}
-                 onChangeText={setPassword}
-                 secureTextEntry={!showPassword}
-               />
-               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                 <Ionicons 
-                   name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                   size={20} 
-                   color={Colors.light.textMuted} 
-                 />
-               </TouchableOpacity>
-            </View>
-          </View>
+            <Animated.View 
+              entering={FadeInDown.delay(600).duration(800)}
+              style={styles.formSection}
+            >
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Email Address</Text>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="mail-outline" size={20} color={Colors.light.textMuted} style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="name@example.com"
+                    placeholderTextColor="#A0A0A0"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
+              </View>
 
-          <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-          </TouchableOpacity>
+              <View style={styles.inputGroup}>
+                <View style={styles.labelRow}>
+                  <Text style={styles.label}>Password</Text>
+                  <TouchableOpacity>
+                    <Text style={styles.forgotText}>Forgot?</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="lock-closed-outline" size={20} color={Colors.light.textMuted} style={styles.inputIcon} />
+                  <TextInput
+                    style={[styles.input, { flex: 1 }]}
+                    placeholder="Your secure password"
+                    placeholderTextColor="#A0A0A0"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                  />
+                  <TouchableOpacity 
+                    onPress={() => {
+                        setShowPassword(!showPassword);
+                        Haptics.selectionAsync();
+                    }}
+                    style={styles.eyeBtn}
+                  >
+                    <Ionicons 
+                      name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                      size={20} 
+                      color={Colors.light.textMuted} 
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
 
-          <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}>
-            <Text style={styles.loginBtnText}>LOGIN</Text>
-          </TouchableOpacity>
+              <TouchableOpacity 
+                activeOpacity={0.8}
+                style={[styles.loginBtn, loading && { opacity: 0.7 }]} 
+                onPress={handleLogin}
+                disabled={loading}
+              >
+                <Text style={styles.loginBtnText}>{loading ? "SIGNING IN..." : "LOGIN"}</Text>
+              </TouchableOpacity>
 
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-              <Text style={styles.registerText}>Sign Up</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+              <View style={styles.divider}>
+                <View style={styles.line} />
+                <Text style={styles.dividerText}>OR CONTINUE WITH</Text>
+                <View style={styles.line} />
+              </View>
+
+              <View style={styles.socialRow}>
+                <TouchableOpacity style={styles.socialBtn}>
+                  <Ionicons name="logo-google" size={24} color="#DB4437" />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.socialBtn}>
+                  <Ionicons name="logo-apple" size={24} color="#000000" />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.socialBtn}>
+                  <Ionicons name="logo-facebook" size={24} color="#4267B2" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.footer}>
+                <Text style={styles.footerText}>New to our kitchen? </Text>
+                <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
+                  <Text style={styles.registerText}>Get Started</Text>
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.primary, // Red Background for the top part
+    backgroundColor: '#FFFFFF',
+  },
+  bgCircle: {
+    position: 'absolute',
+    top: -height * 0.1,
+    right: -width * 0.2,
+    width: width * 1.2,
+    height: width * 1.2,
+    borderRadius: width * 0.6,
+    backgroundColor: Colors.light.primary,
+    opacity: 0.05,
   },
   header: {
-    height: '35%',
+    paddingTop: height * 0.08,
+    paddingBottom: 40,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 30,
+  },
+  logoContainer: {
+    marginBottom: 24,
   },
   logoCircle: {
-    height: 80,
-    width: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    height: 90,
+    width: 90,
+    borderRadius: 30,
+    backgroundColor: '#FFF5F5',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    shadowColor: Colors.light.primary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+    transform: [{ rotate: '-10deg' }],
   },
   welcomeText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: Colors.light.white,
-    marginBottom: 10,
+    fontSize: 34,
+    fontWeight: '900',
+    color: Colors.light.text,
+    letterSpacing: -1,
   },
   subText: {
     fontSize: 16,
-    color: 'rgba(255,255,255,0.8)',
+    color: Colors.light.textMuted,
     textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 22,
   },
   formSection: {
-    flex: 1,
-    backgroundColor: Colors.light.white,
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
     paddingHorizontal: 30,
-    paddingTop: 40,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
+    paddingTop: 10,
   },
-  inputContainer: {
-    marginBottom: 20,
+  inputGroup: {
+    marginBottom: 24,
+  },
+  labelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+    paddingHorizontal: 4,
   },
   label: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: 'bold',
     color: Colors.light.text,
-    marginBottom: 8,
-    marginLeft: 4,
   },
-  inputWrapper: {
+  forgotText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: Colors.light.primary,
+  },
+  inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8F8F8',
-    borderRadius: 16,
-    paddingHorizontal: 15,
-    height: 55,
-    borderWidth: 1,
-    borderColor: '#EEEEEE',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    height: 60,
+    borderWidth: 1.5,
+    borderColor: '#F3F4F6',
   },
   inputIcon: {
-    marginRight: 10,
+    marginRight: 12,
   },
   input: {
     flex: 1,
     fontSize: 16,
     color: Colors.light.text,
+    fontWeight: '500',
   },
-  forgotPassword: {
-    alignSelf: 'end',
-    marginBottom: 30,
-  },
-  forgotPasswordText: {
-    color: Colors.light.primary,
-    fontWeight: 'bold',
-    fontSize: 14,
+  eyeBtn: {
+    padding: 4,
   },
   loginBtn: {
     backgroundColor: Colors.light.primary,
-    height: 55,
-    borderRadius: 16,
+    height: 62,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 10,
     shadowColor: Colors.light.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 15,
+    elevation: 8,
   },
   loginBtnText: {
     color: Colors.light.white,
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: '900',
+    letterSpacing: 2,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 40,
+    marginBottom: 30,
+  },
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#F0F0F0',
+  },
+  dividerText: {
+    marginHorizontal: 15,
+    fontSize: 12,
     fontWeight: 'bold',
+    color: '#BDBDBD',
     letterSpacing: 1,
+  },
+  socialRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 20,
+    marginBottom: 40,
+  },
+  socialBtn: {
+    width: 65,
+    height: 65,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 30,
+    paddingBottom: 40,
   },
   footerText: {
     color: Colors.light.textMuted,
-    fontSize: 14,
+    fontSize: 15,
+    fontWeight: '500',
   },
   registerText: {
     color: Colors.light.primary,
-    fontWeight: 'bold',
-    fontSize: 14,
+    fontWeight: '900',
+    fontSize: 15,
   },
 });
+import { StatusBar } from 'react-native';
