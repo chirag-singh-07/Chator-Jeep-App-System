@@ -67,4 +67,47 @@ export const adminService = {
     const response = await apiClient.patch(`/wallet/admin/delivery-payouts/${id}`, payload);
     return response.data;
   },
+
+  // Coupons
+  getCoupons: async () => {
+    const response = await apiClient.get("/coupons");
+    return response.data;
+  },
+
+  createCoupon: async (data: any) => {
+    const response = await apiClient.post("/coupons", data);
+    return response.data;
+  },
+
+  updateCoupon: async (id: string, data: any) => {
+    const response = await apiClient.patch(`/coupons/${id}`, data);
+    return response.data;
+  },
+
+  deleteCoupon: async (id: string) => {
+    const response = await apiClient.delete(`/coupons/${id}`);
+    return response.data;
+  },
+
+  // Notifications
+  sendBroadcast: async (data: { title: string; body: string; targetUserType: string }) => {
+    const response = await apiClient.post("/notifications/broadcast", data);
+    return response.data;
+  },
+
+  getBroadcastHistory: async () => {
+    const response = await apiClient.get("/notifications/broadcast/history");
+    return response.data;
+  },
+
+  // Media
+  getMedia: async () => {
+    const response = await apiClient.get("/uploads/admin/all");
+    return response.data;
+  },
+
+  deleteMedia: async (keys: string[]) => {
+    const response = await apiClient.delete("/uploads", { data: { keys } });
+    return response.data;
+  },
 };

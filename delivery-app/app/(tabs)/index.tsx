@@ -24,6 +24,7 @@ export default function DashboardScreen() {
     fetchDashboard,
     toggleAvailability,
   } = useDeliveryStore();
+  const activeOrder = dashboard?.activeOrder ?? null;
 
   useEffect(() => {
     void fetchDashboard();
@@ -98,14 +99,14 @@ export default function DashboardScreen() {
 
           <SectionHeader
             title="Active delivery"
-            actionLabel={dashboard?.activeOrder ? "Open details" : undefined}
-            onPress={dashboard?.activeOrder ? () => router.push(`/order/${dashboard.activeOrder.orderId}`) : undefined}
+            actionLabel={activeOrder ? "Open details" : undefined}
+            onPress={activeOrder ? () => router.push(`/order/${activeOrder.orderId}`) : undefined}
           />
 
-          {dashboard?.activeOrder ? (
+          {activeOrder ? (
             <>
-              <OrderCard order={dashboard.activeOrder} compact={false} />
-              <DeliveryMapCard order={dashboard.activeOrder} />
+              <OrderCard order={activeOrder} compact={false} />
+              <DeliveryMapCard order={activeOrder} />
             </>
           ) : (
             <InfoCard accent="slate">

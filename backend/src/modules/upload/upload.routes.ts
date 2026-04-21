@@ -12,7 +12,11 @@ import {
   uploadAvatar,
   getPresignedUploadUrl,
   deleteImages,
+  getAllMedia,
+  deleteSingleMedia,
 } from "./upload.controller";
+import { roleMiddleware } from "../../common/middleware/role.middleware";
+import { ROLES } from "../../common/constants/roles";
 
 const router = Router();
 
@@ -68,11 +72,10 @@ router.post("/avatar", uploadSingle("avatar"), uploadAvatar);
  */
 router.post("/presign", getPresignedUploadUrl);
 
-/**
- * DELETE /api/v1/uploads
- * Delete S3 files by their keys.
- * Body (JSON): { keys: string[] }
- */
 router.delete("/", deleteImages);
+
+// Admin dedicated media management routes
+router.get("/admin/all", roleMiddleware([ROLES.ADMIN]), getAllMedia);
+router.delete("/admin/:key", roleMiddleware([ROLES.ADMIN]), deleteSingleMedia);
 
 export default router;

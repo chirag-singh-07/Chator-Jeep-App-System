@@ -16,7 +16,8 @@ import Animated, {
   FadeIn, 
   FadeInDown, 
   FadeInUp,
-  SlideInRight
+  useAnimatedStyle,
+  withSpring
 } from 'react-native-reanimated';
 
 const { width, height } = Dimensions.get('window');
@@ -24,38 +25,38 @@ const { width, height } = Dimensions.get('window');
 const SLIDES = [
   {
     id: '1',
-    title: 'Discover Flavor',
-    description: 'Explore curated menus from the finest local kitchens and gourmet restaurants.',
-    icon: 'restaurant-outline',
-    color: '#FFF5F5'
+    title: 'Welcome to Fleet',
+    description: 'Join thousands of partners delivering joy across the city every day.',
+    icon: 'bicycle-outline',
+    color: '#E6F0FF'
   },
   {
     id: '2',
-    title: 'Lightning speed',
-    description: 'Craving satisfied in record time. Our fleet is ready to zip to your door.',
-    icon: 'flash-outline',
-    color: '#FFF0F0'
+    title: 'Earn on Your Terms',
+    description: 'Work whenever you want. Set your own schedule and track daily earnings.',
+    icon: 'wallet-outline',
+    color: '#F0F7FF'
   },
   {
     id: '3',
-    title: 'Live Logistics',
-    description: 'Watch your meal travel across the map with hyper-accurate real-time tracking.',
-    icon: 'map-outline',
-    color: '#FFF5F5'
+    title: 'Smart Navigation',
+    description: 'AI-powered routing that finds the fastest path to avoid city traffic.',
+    icon: 'navigate-outline',
+    color: '#E6F0FF'
   },
   {
     id: '4',
-    title: 'Gourmet Rewards',
-    description: 'Earn points on every bite. Unlock exclusive member-only deals and surprises.',
-    icon: 'gift-outline',
-    color: '#FFF0F0'
+    title: 'Instant Settlements',
+    description: 'No waiting periods. Get your incentives and tips settled directly to your wallet.',
+    icon: 'cash-outline',
+    color: '#F0F7FF'
   },
   {
     id: '5',
-    title: 'Pure Satisfaction',
-    description: 'Quality ingredients, expertly prepared, delivered with a smile every time.',
-    icon: 'heart-outline',
-    color: '#FFF5F5'
+    title: 'Ready to Roll?',
+    description: 'A few more steps to verify your documents and you are good to go!',
+    icon: 'checkmark-circle-outline',
+    color: '#E6F0FF'
   },
 ];
 
@@ -110,7 +111,7 @@ export default function OnboardingScreen() {
               style={styles.btn}
               onPress={() => router.replace('/(auth)/login')}
             >
-              <Text style={styles.btnText}>START FEASTING</Text>
+              <Text style={styles.btnText}>START EARNING</Text>
             </TouchableOpacity>
           ) : (
             <View style={{ flexDirection: 'row' }}>

@@ -1,9 +1,10 @@
-import { NextFunction, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { AuthenticatedRequest } from "../../common/middleware/auth.middleware";
 import {
   processAndUpload,
   generatePresignedUploadUrl,
   deleteUploadedFiles,
+  listAllFiles,
   ImageProfileKey,
   UploadFolder,
 } from "../../common/services/upload.service";
@@ -17,7 +18,7 @@ import { AppError } from "../../common/errors/app-error";
 export const uploadSingleImage = async (
   req: AuthenticatedRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const file = req.file;
@@ -25,7 +26,9 @@ export const uploadSingleImage = async (
 
     const folder = (req.body.folder as UploadFolder) ?? "menu-items";
     const profilesParam = (req.body.profiles as string) ?? "thumbnail,medium";
-    const profiles = profilesParam.split(",").map((p) => p.trim()) as ImageProfileKey[];
+    const profiles = profilesParam
+      .split(",")
+      .map((p) => p.trim()) as ImageProfileKey[];
 
     const urls = await processAndUpload(file.buffer, folder, profiles);
 
@@ -47,22 +50,25 @@ export const uploadSingleImage = async (
 export const uploadMultipleImages = async (
   req: AuthenticatedRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const files = req.files as Express.Multer.File[] | undefined;
-    if (!files || files.length === 0) throw new AppError("No files received", 400);
+    if (!files || files.length === 0)
+      throw new AppError("No files received", 400);
 
     const folder = (req.body.folder as UploadFolder) ?? "menu-items";
     const profilesParam = (req.body.profiles as string) ?? "thumbnail,medium";
-    const profiles = profilesParam.split(",").map((p) => p.trim()) as ImageProfileKey[];
+    const profiles = profilesParam
+      .split(",")
+      .map((p) => p.trim()) as ImageProfileKey[];
 
     // Process all images in parallel
     const results = await Promise.all(
       files.map(async (file) => {
         const urls = await processAndUpload(file.buffer, folder, profiles);
         return { originalName: file.originalname, size: file.size, urls };
-      })
+      }),
     );
 
     res.status(201).json({
@@ -83,10 +89,12 @@ export const uploadMultipleImages = async (
 export const uploadRestaurantBrand = async (
   req: AuthenticatedRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
-    const filesMap = req.files as Record<string, Express.Multer.File[]> | undefined;
+    const filesMap = req.files as
+      | Record<string, Express.Multer.File[]>
+      | undefined;
 
     if (!filesMap) throw new AppError("No files received", 400);
 
@@ -135,7 +143,7 @@ export const uploadRestaurantBrand = async (
 export const uploadAvatar = async (
   req: AuthenticatedRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const file = req.file;
@@ -165,7 +173,7 @@ export const uploadAvatar = async (
 export const getPresignedUploadUrl = async (
   req: AuthenticatedRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const { folder, extension = "jpg" } = req.body as {
@@ -175,7 +183,10 @@ export const getPresignedUploadUrl = async (
 
     if (!folder) throw new AppError("folder is required", 400);
 
-    const { uploadUrl, key } = await generatePresignedUploadUrl(folder, extension);
+    const { uploadUrl, key } = await generatePresignedUploadUrl(
+      folder,
+      extension,
+    );
 
     res.status(200).json({
       success: true,
@@ -199,7 +210,7 @@ export const getPresignedUploadUrl = async (
 export const deleteImages = async (
   req: AuthenticatedRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const { keys } = req.body as { keys: string[] };
@@ -212,6 +223,53 @@ export const deleteImages = async (
     res.status(200).json({
       success: true,
       message: `${keys.length} file(s) deleted`,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ─── GET /api/v1/uploads/admin/all  ───────────────────────────────────────────
+/**
+ * Admin view: List all files in S3.
+ */
+export const getAllMedia = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const files = await listAllFiles();
+    res.status(200).json({
+      success: true,
+      data: files,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ─── DELETE /api/v1/uploads/admin/:key  ───────────────────────────────────────
+/**
+ * Admin view: Delete a single file from S3 by its key.
+ */
+export const deleteSingleMedia = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { key } = req.params;
+    if (!key) throw new AppError("key parameter is required", 400);
+
+    // Some keys might come encoded or with multiple segments.
+    // Usually standard params cover this, but S3 keys with slashes need care.
+    // However for now we'll assume standard param.
+    await deleteUploadedFiles([key as string]);
+
+    res.status(200).json({
+      success: true,
+      message: "Asset deleted from bucket",
     });
   } catch (err) {
     next(err);

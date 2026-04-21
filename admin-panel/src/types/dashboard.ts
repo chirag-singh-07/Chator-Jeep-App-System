@@ -181,3 +181,17 @@ export type NavigationItem = {
     href: string;
   }>;
 };
+
+export type Coupon = {
+  _id: string;
+  code: string;
+  discountType: "FIXED" | "PERCENTAGE";
+  discountValue: number;
+  minOrderAmount: number;
+  maxDiscountAmount?: number;
+  expiryDate: string;
+  usageLimit?: number;
+  usedCount: number;
+  isActive: boolean;
+  createdAt: string;
+};

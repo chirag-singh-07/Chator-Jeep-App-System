@@ -18,8 +18,15 @@ export const authMiddleware = (req: AuthenticatedRequest, _res: Response, next: 
   }
 
   const token = authHeader.split(" ")[1];
-  const payload = verifyAccessToken(token);
-  req.user = payload;
-
-  next();
+  
+  try {
+    const payload = verifyAccessToken(token);
+    req.user = payload;
+    next();
+  } catch (error: any) {
+    if (error.name === "TokenExpiredError") {
+      throw new AppError("Token expired", 401);
+    }
+    throw new AppError("Invalid token", 401);
+  }
 };

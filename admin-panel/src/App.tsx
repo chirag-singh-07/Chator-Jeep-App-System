@@ -36,6 +36,7 @@ import { ZonesManagementPage } from "@/pages/zones-management-page";
 import { AppConfigPage } from "@/pages/app-config-page";
 import { PayoutRequestsPage } from "@/pages/payout-requests-page";
 import { StaffManagementPage } from "@/pages/staff-management-page";
+import { MediaPage } from "@/pages/media-page";
 import { TaxSettingsPage } from "@/pages/tax-settings-page";
 import { MaintenanceModePage } from "@/pages/maintenance-mode-page";
 import { RestaurantReviewPage } from "@/pages/restaurant-review-page";
@@ -91,6 +92,7 @@ function App() {
         <Route path="/system" element={<Navigate to="/system/config" replace />} />
         <Route path="/system/logs" element={<SystemLogsPage />} />
         <Route path="/system/notifications" element={<NotificationsPage />} />
+        <Route path="/system/media" element={<MediaPage />} />
         <Route path="/system/zones" element={<ZonesManagementPage />} />
         <Route path="/system/config" element={<AppConfigPage />} />
         

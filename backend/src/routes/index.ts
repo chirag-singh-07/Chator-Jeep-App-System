@@ -10,6 +10,7 @@ import uploadRoutes from "../modules/upload/upload.routes";
 import categoryRoutes from "../modules/category/category.routes";
 import addonRoutes from "../modules/addon/addon.routes";
 import walletRoutes from "../modules/wallet/wallet.routes";
+import couponRoutes from "../modules/coupon/coupon.routes";
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use("/uploads", uploadRoutes);
 router.use("/categories", categoryRoutes);
 router.use("/addons", addonRoutes);
 router.use("/wallet", walletRoutes);
+router.use("/coupons", couponRoutes);
 
 export default router;

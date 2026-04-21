@@ -2,6 +2,7 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
+  ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import sharp from "sharp";
@@ -127,6 +128,26 @@ export async function deleteUploadedFiles(keys: string[]): Promise<void> {
       s3Client.send(new DeleteObjectCommand({ Bucket: S3_BUCKET_NAME, Key: key }))
     )
   );
+}
+
+/**
+ * Lists all objects in the bucket, returning keys and public URLs.
+ */
+export async function listAllFiles(): Promise<Array<{ key: string; url: string; size?: number; lastModified?: Date }>> {
+  const command = new ListObjectsV2Command({
+    Bucket: S3_BUCKET_NAME,
+  });
+
+  const response = await s3Client.send(command);
+  
+  if (!response.Contents) return [];
+
+  return response.Contents.map((obj) => ({
+    key: obj.Key!,
+    url: buildPublicUrl(obj.Key!),
+    size: obj.Size,
+    lastModified: obj.LastModified,
+  }));
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

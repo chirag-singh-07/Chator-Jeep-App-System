@@ -590,6 +590,7 @@ export const sidebarNavigation: NavigationItem[] = [
     children: [
       { title: "Audit Logs", href: "/system/logs" },
       { title: "Notifications", href: "/system/notifications" },
+      { title: "Cloud Media", href: "/system/media" },
       { title: "Service Zones", href: "/system/zones" },
       { title: "App Config", href: "/system/config" }
     ]
