@@ -6,6 +6,9 @@ export const findCategoryById = (id: string) => Category.findById(id).exec();
 
 export const findCategoryBySlug = (slug: string) => Category.findOne({ slug }).exec();
 
+export const findCategoryBySlugExcludingId = (slug: string, id: string) =>
+  Category.findOne({ slug, _id: { $ne: id } }).exec();
+
 export const listCategories = (query: any = {}) => Category.find(query).sort({ order: 1, name: 1 }).exec();
 
 export const updateCategory = (id: string, payload: Partial<ICategory>) =>

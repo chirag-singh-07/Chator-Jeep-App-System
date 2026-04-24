@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Search, MoreVertical, Edit2, Trash2, Eye } from "lucide-react";
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import { DataTable, type DataColumn } from "@/components/admin/data-table";
 import { FilterBar } from "@/components/admin/filter-bar";
 import { StatusBadge } from "@/components/admin/status-badge";
@@ -14,21 +16,38 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { useCategoryStore } from "@/stores/useCategoryStore";
+import { useCategoryStore, type CategoryRecord } from "@/stores/useCategoryStore";
 
 export function CategoriesPage() {
-  const { categories, loading, fetchCategories } = useCategoryStore();
+  const { categories, loading, fetchCategories, deleteCategory } = useCategoryStore();
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
 
   useEffect(() => {
-    fetchCategories();
+    void fetchCategories();
   }, []);
 
   const filteredCategories = categories.filter(c => 
-    c.name.toLowerCase().includes(query.toLowerCase())
+    c.name.toLowerCase().includes(query.toLowerCase()) ||
+    c.slug.toLowerCase().includes(query.toLowerCase()) ||
+    c.subcategories.some((subcategory) => subcategory.toLowerCase().includes(query.toLowerCase()))
   );
 
-  const columns: DataColumn<any>[] = [
+  useEffect(() => {
+    setPage(1);
+  }, [query, categories.length]);
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteCategory(id);
+      toast.success("Category deleted.");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Unable to delete category.");
+    }
+  };
+
+  const columns: DataColumn<CategoryRecord>[] = [
     { 
       key: "image", 
       label: "Visual", 
@@ -56,6 +75,18 @@ export function CategoriesPage() {
         </div>
       ) 
     },
+    {
+      key: "subcategories",
+      label: "Subcategories",
+      render: (row) => (
+        <div className="flex flex-col gap-1">
+          <span className="text-sm font-semibold">{row.subcategories.length} items</span>
+          <span className="text-xs text-muted-foreground">
+            {row.subcategories.slice(0, 3).join(", ") || "No subcategories yet"}
+          </span>
+        </div>
+      )
+    },
     { 
       key: "order", 
       label: "Sort Order", 
@@ -81,11 +112,16 @@ export function CategoriesPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="rounded-2xl p-1.5 border-secondary/20 shadow-xl min-w-[160px]">
-            <DropdownMenuItem className="rounded-xl flex gap-2 cursor-pointer py-2.5">
-              <Edit2 className="size-3.5" />
-              <span className="font-bold text-[13px]">Edit Details</span>
+            <DropdownMenuItem asChild className="rounded-xl flex gap-2 cursor-pointer py-2.5">
+              <Link to={`/categories/${row._id}/edit`}>
+                <Edit2 className="size-3.5" />
+                <span className="font-bold text-[13px]">Edit Details</span>
+              </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className="rounded-xl flex gap-2 cursor-pointer py-2.5 text-red-600 focus:text-red-600 focus:bg-red-50">
+            <DropdownMenuItem
+              className="rounded-xl flex gap-2 cursor-pointer py-2.5 text-red-600 focus:text-red-600 focus:bg-red-50"
+              onClick={() => void handleDelete(row._id)}
+            >
               <Trash2 className="size-3.5" />
               <span className="font-bold text-[13px]">Delete Permanent</span>
             </DropdownMenuItem>
@@ -102,9 +138,11 @@ export function CategoriesPage() {
           <h1 className="text-3xl font-black tracking-tight text-foreground">Menu Taxonomy</h1>
           <p className="text-muted-foreground text-sm font-medium">Define and organize global categories used by all restaurants.</p>
         </div>
-        <Button className="rounded-2xl h-11 px-6 shadow-lg shadow-primary/20 hover:scale-105 transition-transform">
-          <Plus className="size-4 mr-2" />
-          Add Category
+        <Button asChild className="rounded-2xl h-11 px-6 shadow-lg shadow-primary/20 hover:scale-105 transition-transform">
+          <Link to="/categories/new">
+            <Plus className="size-4 mr-2" />
+            Add Category
+          </Link>
         </Button>
       </div>
 
@@ -131,6 +169,9 @@ export function CategoriesPage() {
           description="Control platform visibility and sorting priority for food categories."
           columns={columns}
           rows={filteredCategories}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
           emptyTitle="Taxonomy is Empty"
           emptyDescription="Start by defining your first food category to organize the global menu."
           className="border-0 shadow-none bg-transparent"

@@ -178,6 +178,14 @@ export const addMenuItem = async (userId: string, body: any) => {
   return MenuItem.create({ restaurantId: restaurant._id, ...body });
 };
 
+export const listMyMenu = async (userId: string) => {
+  const restaurant = await findRestaurantByOwner(userId);
+  if (!restaurant) throw new AppError("Restaurant not found", 404);
+
+  const { MenuItem } = await import("./restaurant.model.js");
+  return MenuItem.find({ restaurantId: restaurant._id }).sort({ createdAt: -1 }).exec();
+};
+
 export const updateMenuItem = async (userId: string, itemId: string, body: any) => {
   const restaurant = await findRestaurantByOwner(userId);
   if (!restaurant) throw new AppError("Restaurant not found", 404);
@@ -230,7 +238,7 @@ export const addEarningsToRestaurant = async (restaurantId: string, amount: numb
 
 export const listRestaurantMenu = async (restaurantId: string) => {
   const { MenuItem } = await import("./restaurant.model.js");
-  return MenuItem.find({ restaurantId, isAvailable: true }).exec();
+  return MenuItem.find({ restaurantId, isAvailable: true, showInMenu: true }).exec();
 };
 
 export const updateRestaurantBranding = async (

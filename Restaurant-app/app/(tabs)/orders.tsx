@@ -137,7 +137,7 @@ export default function OrdersScreen() {
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>Live Orders</Text>
-          <Text style={styles.subtitle}>Fleet Logistics Terminal</Text>
+          <Text style={styles.subtitle}>Order Management</Text>
         </View>
         <TouchableOpacity onPress={fetchOrders} style={styles.refreshBtn}>
           <Ionicons name="sync" size={20} color={Colors.light.primary} />
@@ -195,8 +195,8 @@ export default function OrdersScreen() {
                 color="#222"
               />
             </View>
-            <Text style={styles.emptyText}>Terminal Idle</Text>
-            <Text style={styles.emptySub}>Waiting for incoming protocol...</Text>
+            <Text style={styles.emptyText}>No orders right now</Text>
+            <Text style={styles.emptySub}>New customer orders will appear here.</Text>
           </View>
         }
       />

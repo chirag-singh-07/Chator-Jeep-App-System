@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import {
+  Alert,
   StyleSheet,
   View,
   Text,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,7 +17,8 @@ export default function RejectedScreen() {
   const { user, logout } = useAuthStore();
 
   const rejectionReason =
-    user?.rejectionReason || "Identity verification failed. Please verify your credentials and retry.";
+    (user as { rejectionReason?: string } | null)?.rejectionReason ||
+    "Verification failed. Please review your restaurant details and try again.";
 
   const RESUBMIT_CHECKLIST = [
     "GOVERNMENT ISSUED ID",
@@ -36,9 +38,9 @@ export default function RejectedScreen() {
               color="#FF4B3A"
             />
           </View>
-          <Text style={styles.title}>PROTOCOL DENIED</Text>
+          <Text style={styles.title}>APPLICATION REJECTED</Text>
           <Text style={styles.subtitle}>
-            Your kitchen application has been flagged and rejected by the fleet administration.
+            Your restaurant application was rejected. Update the missing details and submit again.
           </Text>
         </View>
 
@@ -46,7 +48,7 @@ export default function RejectedScreen() {
         <View style={styles.reasonCard}>
           <View style={styles.reasonHeader}>
             <Ionicons name="alert-circle" size={18} color="#FF4B3A" />
-            <Text style={styles.reasonTitle}>REJECTION DOSSIER</Text>
+            <Text style={styles.reasonTitle}>REJECTION REASON</Text>
           </View>
           <Text style={styles.reasonText}>{rejectionReason}</Text>
         </View>
@@ -55,7 +57,7 @@ export default function RejectedScreen() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>REQUIRED ADJUSTMENTS</Text>
           <Text style={styles.cardSub}>
-            Verify and update the following protocols before re-authentication:
+            Please fix the following before submitting your restaurant again:
           </Text>
           <View style={styles.checklist}>
             {RESUBMIT_CHECKLIST.map((item) => (
@@ -74,26 +76,26 @@ export default function RejectedScreen() {
             onPress={() => router.replace("/(auth)/register")}
           >
             <Ionicons name="refresh" size={20} color="black" />
-            <Text style={styles.primaryBtnText}>RESUBMIT DOSSIER</Text>
+            <Text style={styles.primaryBtnText}>UPDATE & RESUBMIT</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.secondaryBtn}
-            onPress={() => Alert.alert("Support Protocol", "Secure channel connection error. Try again later.")}
+            onPress={() => Alert.alert("Support", "Support chat is not available right now. Please try again later.")}
           >
             <Ionicons
               name="chatbubbles"
               size={20}
               color={Colors.light.primary}
             />
-            <Text style={styles.secondaryBtnText}>SECURE SUPPORT</Text>
+            <Text style={styles.secondaryBtnText}>CONTACT SUPPORT</Text>
           </TouchableOpacity>
         </View>
 
         {/* Sign Out */}
         <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
           <Ionicons name="log-out-outline" size={18} color="#444" />
-          <Text style={styles.logoutText}>DISCONNECT SESSION</Text>
+          <Text style={styles.logoutText}>SIGN OUT</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

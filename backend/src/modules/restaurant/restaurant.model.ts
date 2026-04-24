@@ -147,16 +147,40 @@ export interface IAddOn {
   price: number;
 }
 
+export interface IMenuVariant {
+  name: string;
+  price: number;
+}
+
+export interface IMenuTags {
+  isJain: boolean;
+  isSpicy: boolean;
+  isBestseller: boolean;
+  isRecommended: boolean;
+}
+
 export interface IMenuItem extends Document {
   restaurantId: Types.ObjectId;
   name: string;
+  shortDescription?: string;
   description?: string;
   price: number;
+  discountPrice?: number;
   category?: string; // category id or name
+  subcategory?: string;
   isVeg: boolean;
   isAvailable: boolean;
+  showInMenu: boolean;
   imageUrl?: string;
   images?: Record<string, string>;
+  portionSize?: string;
+  preparationTimeMins?: number;
+  calories?: number;
+  ingredients: string[];
+  allergens: string[];
+  availabilitySlots: string[];
+  tags: IMenuTags;
+  variants: IMenuVariant[];
   addOns: IAddOn[];
 }
 
@@ -164,13 +188,44 @@ const menuItemSchema = new Schema<IMenuItem>(
   {
     restaurantId: { type: Schema.Types.ObjectId, ref: "Restaurant", required: true, index: true },
     name: { type: String, required: true, trim: true },
+    shortDescription: { type: String },
     description: { type: String },
     price: { type: Number, required: true, min: 0 },
+    discountPrice: { type: Number, min: 0 },
     category: { type: String },
+    subcategory: { type: String },
     isVeg: { type: Boolean, default: false },
     isAvailable: { type: Boolean, default: true, index: true },
+    showInMenu: { type: Boolean, default: true, index: true },
     imageUrl: { type: String },
     images: { type: Schema.Types.Mixed },
+    portionSize: { type: String },
+    preparationTimeMins: { type: Number, min: 0 },
+    calories: { type: Number, min: 0 },
+    ingredients: {
+      type: [String],
+      default: [],
+    },
+    allergens: {
+      type: [String],
+      default: [],
+    },
+    availabilitySlots: {
+      type: [String],
+      default: [],
+    },
+    tags: {
+      isJain: { type: Boolean, default: false },
+      isSpicy: { type: Boolean, default: false },
+      isBestseller: { type: Boolean, default: false },
+      isRecommended: { type: Boolean, default: false },
+    },
+    variants: [
+      {
+        name: { type: String, required: true },
+        price: { type: Number, required: true, min: 0 },
+      },
+    ],
     addOns: [
       {
         name: { type: String, required: true },

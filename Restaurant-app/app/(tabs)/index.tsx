@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from "react-native";
+import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,18 +17,53 @@ import { useOrderStore, Order } from "@/store/useOrderStore";
 import { router } from "expo-router";
 import { apiClient } from "@/lib/api";
 
+type DashboardCategory = {
+  _id: string;
+  name: string;
+  image?: string;
+};
+
+type DashboardMenuItem = {
+  _id: string;
+  name: string;
+  price: number;
+  discountPrice?: number;
+  category?: string;
+  imageUrl?: string;
+};
+
+const CATEGORY_EMOJI: Record<string, string> = {
+  burgers: "🍔",
+  pizza: "🍕",
+  wraps: "🌯",
+  beverages: "🥤",
+  desserts: "🍰",
+  snacks: "🍟",
+  biryani: "🍚",
+  salads: "🥗",
+  pasta: "🍝",
+};
+
 export default function KitchenDashboard() {
   const { user } = useAuthStore();
   const { orders, fetchOrders, isLoading } = useOrderStore();
   const [isOpen, setIsOpen] = useState(true);
   const [togglingOpen, setTogglingOpen] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
+  const [categories, setCategories] = useState<DashboardCategory[]>([]);
+  const [menuItems, setMenuItems] = useState<DashboardMenuItem[]>([]);
 
   const refreshDashboard = async () => {
     fetchOrders();
     try {
-      const res = await apiClient.get("/wallet/stats");
-      setWalletBalance(res.data.data.balance);
+      const [walletRes, categoriesRes, menuRes] = await Promise.all([
+        apiClient.get("/wallet/stats"),
+        apiClient.get("/categories"),
+        apiClient.get("/restaurants/me/menu"),
+      ]);
+      setWalletBalance(walletRes.data.data.balance);
+      setCategories(categoriesRes.data.data || []);
+      setMenuItems(menuRes.data.data || []);
     } catch (e) {}
   };
 
@@ -77,6 +113,27 @@ export default function KitchenDashboard() {
     )
     .slice(0, 5);
 
+  const categoryHighlights = useMemo(() => {
+    return categories.map((category) => {
+      const linkedItems = menuItems.filter(
+        (item) => item.category === category._id || item.category === category.name
+      );
+
+      return {
+        ...category,
+        count: linkedItems.length,
+        startingPrice: linkedItems.length
+          ? Math.min(...linkedItems.map((item) => item.discountPrice || item.price))
+          : 0,
+        previewImage:
+          linkedItems.find((item) => item.imageUrl)?.imageUrl ||
+          category.image ||
+          "https://images.unsplash.com/photo-1544025162-d76694265947?w=900&auto=format&fit=crop",
+        emoji: CATEGORY_EMOJI[category.name.toLowerCase()] || "🍽️",
+      };
+    });
+  }, [categories, menuItems]);
+
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <ScrollView
@@ -92,9 +149,9 @@ export default function KitchenDashboard() {
         {/* Top Header Section */}
         <View style={styles.headerContainer}>
           <View>
-            <Text style={styles.welcomeText}>Kitchen Desk</Text>
+            <Text style={styles.welcomeText}>Restaurant Home</Text>
             <Text style={styles.kitchenName}>
-              {user?.name || "Partner Console"}
+              {user?.name || "Your Kitchen"}
             </Text>
           </View>
           <View style={styles.switchBox}>
@@ -162,7 +219,7 @@ export default function KitchenDashboard() {
             <View style={styles.actionIconPill}>
               <Ionicons name="restaurant" size={20} color="black" />
             </View>
-            <Text style={styles.actionText}>Menu Editor</Text>
+            <Text style={styles.actionText}>Manage Menu</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -173,7 +230,7 @@ export default function KitchenDashboard() {
               <Ionicons name="receipt" size={20} color={Colors.light.primary} />
             </View>
             <Text style={[styles.actionText, { color: "white" }]}>
-              Order View
+              Manage Orders
             </Text>
           </TouchableOpacity>
         </View>
@@ -195,11 +252,47 @@ export default function KitchenDashboard() {
           </TouchableOpacity>
         )}
 
+        <View style={styles.feedHeader}>
+          <Text style={styles.feedTitle}>Popular Categories</Text>
+          <TouchableOpacity onPress={() => router.push("/(tabs)/menu")}>
+            <Text style={styles.feedLink}>Open Menu</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryStrip}
+        >
+          {categoryHighlights.map((category) => (
+            <TouchableOpacity
+              key={category._id}
+              style={styles.categoryCard}
+              onPress={() => router.push("/(tabs)/menu")}
+            >
+              <Image
+                source={{ uri: category.previewImage }}
+                style={styles.categoryImage}
+                contentFit="cover"
+              />
+              <View style={styles.categoryOverlay} />
+              <View style={styles.categoryContent}>
+                <Text style={styles.categoryEmoji}>{category.emoji}</Text>
+                <Text style={styles.categoryName}>{category.name}</Text>
+                <Text style={styles.categoryMeta}>
+                  {category.count}+ items • Starting ₹
+                  {Math.round(category.startingPrice || 0)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
         {/* Recent Feed */}
         <View style={styles.feedHeader}>
-          <Text style={styles.feedTitle}>Live Feed</Text>
+          <Text style={styles.feedTitle}>Recent Orders</Text>
           <TouchableOpacity onPress={() => router.push("/(tabs)/orders")}>
-            <Text style={styles.feedLink}>View All Activity</Text>
+            <Text style={styles.feedLink}>View All Orders</Text>
           </TouchableOpacity>
         </View>
 
@@ -412,6 +505,47 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
     color: "black",
+  },
+  categoryStrip: {
+    paddingHorizontal: 20,
+    paddingBottom: 6,
+    gap: 14,
+  },
+  categoryCard: {
+    width: 210,
+    height: 138,
+    borderRadius: 24,
+    overflow: "hidden",
+    backgroundColor: "#111",
+    borderWidth: 1,
+    borderColor: "#1F1F1F",
+  },
+  categoryImage: {
+    width: "100%",
+    height: "100%",
+  },
+  categoryOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.35)",
+  },
+  categoryContent: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "flex-end",
+    padding: 16,
+    gap: 4,
+  },
+  categoryEmoji: {
+    fontSize: 20,
+  },
+  categoryName: {
+    fontSize: 19,
+    fontWeight: "900",
+    color: "#FFF",
+  },
+  categoryMeta: {
+    fontSize: 12,
+    color: "#F5E3A1",
+    fontWeight: "700",
   },
   feedHeader: {
     flexDirection: "row",

@@ -5,18 +5,15 @@ import * as ctrl from "./restaurant.controller";
 
 const router = Router();
 
-// ─── Public ────────────────────────────────────────────────────────────────────
-/** POST /api/v1/restaurants/register — Restaurant owner signs up */
+// Public
+/** POST /api/v1/restaurants/register - Restaurant owner signs up */
 router.post("/register", ctrl.registerRestaurant);
 
-/** POST /api/v1/restaurants/login — Restaurant owner logs in */
+/** POST /api/v1/restaurants/login - Restaurant owner logs in */
 router.post("/login", ctrl.loginRestaurant);
 
-/** GET /api/v1/restaurants/:restaurantId/menu — Public menu for a restaurant */
-router.get("/:restaurantId/menu", ctrl.listRestaurantMenu);
-
-// ─── Restaurant User (authenticated) ──────────────────────────────────────────
-/** GET /api/v1/restaurants/me/status — Check verification status */
+// Restaurant User (authenticated)
+/** GET /api/v1/restaurants/me/status - Check verification status */
 router.get(
   "/me/status",
   authMiddleware,
@@ -24,7 +21,15 @@ router.get(
   ctrl.getMyStatus
 );
 
-/** POST /api/v1/restaurants/me/menu — Add menu item (ACTIVE only) */
+/** GET /api/v1/restaurants/me/menu - List this restaurant's menu items */
+router.get(
+  "/me/menu",
+  authMiddleware,
+  roleMiddleware(["KITCHEN"]),
+  ctrl.listMyMenu
+);
+
+/** POST /api/v1/restaurants/me/menu - Add menu item (ACTIVE only) */
 router.post(
   "/me/menu",
   authMiddleware,
@@ -32,7 +37,7 @@ router.post(
   ctrl.addMenuItem
 );
 
-/** PATCH /api/v1/restaurants/me/menu/:id — Update menu item */
+/** PATCH /api/v1/restaurants/me/menu/:id - Update menu item */
 router.patch(
   "/me/menu/:id",
   authMiddleware,
@@ -40,7 +45,7 @@ router.patch(
   ctrl.updateMenuItem
 );
 
-/** DELETE /api/v1/restaurants/me/menu/:id — Delete menu item */
+/** DELETE /api/v1/restaurants/me/menu/:id - Delete menu item */
 router.delete(
   "/me/menu/:id",
   authMiddleware,
@@ -48,7 +53,7 @@ router.delete(
   ctrl.deleteMenuItem
 );
 
-/** PATCH /api/v1/restaurants/me/menu/:id/stock — Toggle stock */
+/** PATCH /api/v1/restaurants/me/menu/:id/stock - Toggle stock */
 router.patch(
   "/me/menu/:id/stock",
   authMiddleware,
@@ -56,7 +61,7 @@ router.patch(
   ctrl.updateMenuItemStock
 );
 
-/** PATCH /api/v1/restaurants/me/branding — Update logo and banner */
+/** PATCH /api/v1/restaurants/me/branding - Update logo and banner */
 router.patch(
   "/me/branding",
   authMiddleware,
@@ -64,7 +69,7 @@ router.patch(
   ctrl.updateMyBranding
 );
 
-/** PATCH /api/v1/restaurants/me/status — Toggle restaurant open/closed */
+/** PATCH /api/v1/restaurants/me/status - Toggle restaurant open/closed */
 router.patch(
   "/me/status",
   authMiddleware,
@@ -72,8 +77,11 @@ router.patch(
   ctrl.updateMyOpenStatus
 );
 
-// ─── Admin Routes ─────────────────────────────────────────────────────────────
-/** GET /api/v1/restaurants/admin/all — List all restaurants with filters */
+/** GET /api/v1/restaurants/:restaurantId/menu - Public menu for a restaurant */
+router.get("/:restaurantId/menu", ctrl.listRestaurantMenu);
+
+// Admin Routes
+/** GET /api/v1/restaurants/admin/all - List all restaurants with filters */
 router.get(
   "/admin/all",
   authMiddleware,
@@ -81,7 +89,7 @@ router.get(
   ctrl.adminListRestaurants
 );
 
-/** GET /api/v1/restaurants/admin/:id — Full restaurant detail for review */
+/** GET /api/v1/restaurants/admin/:id - Full restaurant detail for review */
 router.get(
   "/admin/:id",
   authMiddleware,
@@ -89,7 +97,7 @@ router.get(
   ctrl.adminGetRestaurant
 );
 
-/** PATCH /api/v1/restaurants/admin/:id/approve — Approve restaurant as ACTIVE */
+/** PATCH /api/v1/restaurants/admin/:id/approve - Approve restaurant as ACTIVE */
 router.patch(
   "/admin/:id/approve",
   authMiddleware,
@@ -97,7 +105,7 @@ router.patch(
   ctrl.adminApprove
 );
 
-/** PATCH /api/v1/restaurants/admin/:id/reject — Reject restaurant as REJECTED */
+/** PATCH /api/v1/restaurants/admin/:id/reject - Reject restaurant as REJECTED */
 router.patch(
   "/admin/:id/reject",
   authMiddleware,
@@ -105,7 +113,7 @@ router.patch(
   ctrl.adminReject
 );
 
-/** PATCH /api/v1/restaurants/admin/:id/flag — Flag restaurant as FLAGGED */
+/** PATCH /api/v1/restaurants/admin/:id/flag - Flag restaurant as FLAGGED */
 router.patch(
   "/admin/:id/flag",
   authMiddleware,

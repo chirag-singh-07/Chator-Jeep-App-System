@@ -5,6 +5,7 @@ export interface ICategory extends Document {
   slug: string;
   description?: string;
   image?: string;
+  subcategories: string[];
   isActive: boolean;
   order: number;
 }
@@ -15,6 +16,10 @@ const categorySchema = new Schema<ICategory>(
     slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
     description: { type: String },
     image: { type: String },
+    subcategories: {
+      type: [String],
+      default: [],
+    },
     isActive: { type: Boolean, default: true },
     order: { type: Number, default: 0 }
   },

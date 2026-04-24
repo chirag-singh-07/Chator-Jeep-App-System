@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -10,35 +10,105 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { categoriesSeed } from "@/data/dashboard-data";
+import { useCategoryStore } from "@/stores/useCategoryStore";
 
 export function CategoryFormPage({ mode }: { mode: "create" | "edit" }) {
   const navigate = useNavigate();
   const { categoryId } = useParams();
-  const existing = useMemo(() => categoriesSeed.find((category) => category.id === categoryId), [categoryId]);
+  const { getCategoryById, createCategory, updateCategory, loading } = useCategoryStore();
 
-  const [name, setName] = useState(existing?.name ?? "");
-  const [image, setImage] = useState(existing?.image ?? "");
-  const [description, setDescription] = useState(existing?.description ?? "");
+  const [name, setName] = useState("");
+  const [image, setImage] = useState("");
+  const [description, setDescription] = useState("");
   const [subcategoryInput, setSubcategoryInput] = useState("");
-  const [subcategories, setSubcategories] = useState(existing?.subcategories ?? []);
+  const [subcategories, setSubcategories] = useState<string[]>([]);
+  const [isActive, setIsActive] = useState(true);
+  const [order, setOrder] = useState("0");
   const [submitted, setSubmitted] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(mode === "edit");
 
   const nameError = submitted && !name.trim() ? "Category name is required." : "";
-  const imageError = submitted && !image.trim() ? "An image or preview is required." : "";
+
+  useEffect(() => {
+    const loadCategory = async () => {
+      if (mode !== "edit" || !categoryId) {
+        setIsInitializing(false);
+        return;
+      }
+
+      try {
+        const category = await getCategoryById(categoryId);
+        setName(category.name ?? "");
+        setImage(category.image ?? "");
+        setDescription(category.description ?? "");
+        setSubcategories(category.subcategories ?? []);
+        setIsActive(category.isActive ?? true);
+        setOrder(String(category.order ?? 0));
+      } catch (error: any) {
+        toast.error(error?.response?.data?.message || "Unable to load category.");
+        navigate("/categories");
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    void loadCategory();
+  }, [categoryId, getCategoryById, mode, navigate]);
 
   const addSubcategory = () => {
-    if (!subcategoryInput.trim()) return;
-    setSubcategories((current) => [...current, subcategoryInput.trim()]);
+    const normalized = subcategoryInput.trim();
+    if (!normalized) return;
+
+    setSubcategories((current) => {
+      if (current.some((item) => item.toLowerCase() === normalized.toLowerCase())) {
+        return current;
+      }
+
+      return [...current, normalized];
+    });
     setSubcategoryInput("");
   };
 
-  const saveCategory = () => {
+  const saveCategory = async () => {
     setSubmitted(true);
-    if (!name.trim() || !image.trim()) return;
-    toast.success(mode === "create" ? "Category created." : "Category updated.");
-    navigate("/categories");
+    if (!name.trim()) return;
+
+    const payload = {
+      name: name.trim(),
+      image: image.trim() || undefined,
+      description: description.trim() || undefined,
+      subcategories,
+      isActive,
+      order: Number(order) || 0,
+    };
+
+    try {
+      if (mode === "create") {
+        await createCategory(payload);
+        toast.success("Category created.");
+      } else if (categoryId) {
+        await updateCategory(categoryId, payload);
+        toast.success("Category updated.");
+      }
+
+      navigate("/categories");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Unable to save category.");
+    }
   };
+
+  if (isInitializing) {
+    return (
+      <Card className="rounded-2xl shadow-sm">
+        <CardHeader>
+          <CardTitle>Loading Category</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm text-muted-foreground">
+          Fetching category details for editing.
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
@@ -51,10 +121,10 @@ export function CategoryFormPage({ mode }: { mode: "create" | "edit" }) {
             <Input value={name} onChange={(event) => setName(event.target.value)} aria-invalid={Boolean(nameError)} />
           </FormField>
 
-          <FormField label="Image Upload" description="Drag and drop for preview or paste a hosted image URL below." error={imageError}>
+          <FormField label="Image Upload" description="Drag and drop for preview or paste a hosted image URL below.">
             <div className="flex flex-col gap-3">
               <UploadDropzone preview={image} onChange={setImage} />
-              <Input value={image} onChange={(event) => setImage(event.target.value)} placeholder="Paste image URL" aria-invalid={Boolean(imageError)} />
+              <Input value={image} onChange={(event) => setImage(event.target.value)} placeholder="Paste image URL" />
             </div>
           </FormField>
 
@@ -86,8 +156,22 @@ export function CategoryFormPage({ mode }: { mode: "create" | "edit" }) {
             </div>
           </FormField>
 
+          <div className="grid gap-5 md:grid-cols-2">
+            <FormField label="Sort Order" description="Lower numbers appear earlier in category lists.">
+              <Input value={order} onChange={(event) => setOrder(event.target.value)} placeholder="0" inputMode="numeric" />
+            </FormField>
+
+            <FormField label="Visibility" description="Inactive categories stay hidden from active listings.">
+              <Button type="button" variant={isActive ? "default" : "outline"} onClick={() => setIsActive((current) => !current)}>
+                {isActive ? "Active" : "Inactive"}
+              </Button>
+            </FormField>
+          </div>
+
           <div className="flex flex-wrap gap-2">
-            <Button onClick={saveCategory}>{mode === "create" ? "Create Category" : "Save Changes"}</Button>
+            <Button onClick={saveCategory} disabled={loading}>
+              {mode === "create" ? "Create Category" : "Save Changes"}
+            </Button>
             <Button variant="outline" asChild>
               <Link to="/categories">Cancel</Link>
             </Button>
@@ -104,6 +188,9 @@ export function CategoryFormPage({ mode }: { mode: "create" | "edit" }) {
           <div>
             <p className="text-xl font-semibold">{name || "Category name"}</p>
             <p className="mt-2 text-sm text-muted-foreground">{description || "Description preview appears here."}</p>
+          </div>
+          <div className="text-xs font-medium text-muted-foreground">
+            Status: {isActive ? "Active" : "Inactive"} | Sort order: {Number(order) || 0}
           </div>
           <div className="flex flex-wrap gap-2">
             {subcategories.map((subcategory) => (

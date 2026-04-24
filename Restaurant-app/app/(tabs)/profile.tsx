@@ -1,8 +1,10 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useOrderStore } from '@/store/useOrderStore';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuthStore();
@@ -15,8 +17,8 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Account Node</Text>
-          <Text style={styles.headerSub}>Fleet Administration Console</Text>
+          <Text style={styles.headerTitle}>Restaurant Profile</Text>
+          <Text style={styles.headerSub}>Business settings and preferences</Text>
         </View>
       </View>
 
@@ -39,7 +41,7 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>ASSET PROTOCOLS</Text>
+          <Text style={styles.sectionTitle}>BRAND & OPERATIONS</Text>
           
           <TouchableOpacity style={styles.menuItem}>
             <View style={styles.iconBox}>
@@ -65,15 +67,15 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>SYSTEM CONFIGURATION</Text>
+          <Text style={styles.sectionTitle}>APP SETTINGS</Text>
           
           <TouchableOpacity style={styles.menuItem}>
             <View style={styles.iconBox}>
               <Ionicons name="notifications" size={18} color={Colors.light.primary} />
             </View>
             <View style={styles.menuInfo}>
-               <Text style={styles.menuText}>Alert Matrix</Text>
-               <Text style={styles.menuSub}>Notification priority and rules</Text>
+               <Text style={styles.menuText}>Order Notifications</Text>
+               <Text style={styles.menuSub}>Alerts for new orders and updates</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="#222" />
           </TouchableOpacity>
@@ -83,8 +85,8 @@ export default function ProfileScreen() {
               <Ionicons name="volume-high" size={18} color={Colors.light.primary} />
             </View>
             <View style={styles.menuInfo}>
-               <Text style={styles.menuText}>Audio Synapse</Text>
-               <Text style={styles.menuSub}>Order alerts and alarm sounds</Text>
+               <Text style={styles.menuText}>Alert Sounds</Text>
+               <Text style={styles.menuSub}>Manage order sounds and audio cues</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="#222" />
           </TouchableOpacity>
@@ -94,8 +96,8 @@ export default function ProfileScreen() {
               <Ionicons name="lock-closed" size={18} color={Colors.light.primary} />
             </View>
             <View style={styles.menuInfo}>
-               <Text style={styles.menuText}>Security Clearance</Text>
-               <Text style={styles.menuSub}>Account credentials and keys</Text>
+               <Text style={styles.menuText}>Account Security</Text>
+               <Text style={styles.menuSub}>Password, access, and account safety</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="#222" />
           </TouchableOpacity>
@@ -105,36 +107,34 @@ export default function ProfileScreen() {
            <TouchableOpacity 
              style={styles.testBtn} 
              onPress={() => {
-               const { setIncomingOrder } = useOrderStore.getState();
-               setIncomingOrder({
-                 _id: 'mock_123',
-                 orderNumber: 'TEST-999',
-                 customerData: { name: 'Field Agent', phone: '9999999999' },
-                 items: [{ name: 'Protocol Burger', quantity: 1, price: 150 }],
-                 totalAmount: 150,
-                 status: 'PENDING',
-                 createdAt: new Date().toISOString()
-               });
-             }}
-           >
-             <Ionicons name="pulse" size={20} color={Colors.light.primary} />
-             <Text style={styles.testBtnText}>TEST INCOMING PROTOCOL</Text>
-           </TouchableOpacity>
+                const { setIncomingOrder } = useOrderStore.getState();
+                setIncomingOrder({
+                  _id: 'mock_123',
+                  orderNumber: 'TEST-999',
+                  customerData: { name: 'Demo Customer', phone: '9999999999' },
+                  items: [{ name: 'Smoky Paneer Burger', quantity: 1, price: 150 }],
+                  totalAmount: 150,
+                  status: 'PENDING',
+                  createdAt: new Date().toISOString()
+                });
+              }}
+            >
+              <Ionicons name="pulse" size={20} color={Colors.light.primary} />
+              <Text style={styles.testBtnText}>SEND TEST ORDER</Text>
+            </TouchableOpacity>
 
            <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
              <Ionicons name="log-out" size={20} color="#FF4B3A" />
-             <Text style={styles.logoutText}>TERMINATE SESSION</Text>
+             <Text style={styles.logoutText}>SIGN OUT</Text>
            </TouchableOpacity>
         </View>
 
-        <Text style={styles.versionText}>FLEET OS v1.0.5 r10 - STABLE</Text>
+        <Text style={styles.versionText}>Restaurant Console v1.0.5</Text>
         <View style={{ height: 100 }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-import { useOrderStore } from '@/store/useOrderStore';
 
 const styles = StyleSheet.create({
   container: {

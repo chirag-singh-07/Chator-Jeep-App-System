@@ -5,12 +5,12 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
@@ -86,11 +86,11 @@ export default function RegisterScreen() {
 
         Alert.alert(
           'REGISTRATION SUCCESS',
-          'Your kitchen credentials have been queued for protocol verification.',
-          [{ text: 'ACCESS PORTAL', onPress: () => router.replace('/(auth)/pending') }]
+          'Your restaurant details were submitted successfully and are now under review.',
+          [{ text: 'OPEN STATUS', onPress: () => router.replace('/(auth)/pending') }]
         );
       } catch (error: any) {
-        Alert.alert('PROTOCOL ERROR', typeof error === 'string' ? error : 'Authorization sequences failed.');
+        Alert.alert('REGISTRATION ERROR', typeof error === 'string' ? error : 'We could not submit your restaurant details right now.');
       }
     }
   };
@@ -130,11 +130,11 @@ export default function RegisterScreen() {
       case 0:
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>SECURE ACCOUNT</Text>
-            <Text style={styles.stepSub}>Initialize your kitchen node on the Chator Jeep network.</Text>
+            <Text style={styles.stepTitle}>CREATE ACCOUNT</Text>
+            <Text style={styles.stepSub}>Set up your restaurant login to start managing orders and menu items.</Text>
             
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>OFFICIAL EMAIL</Text>
+              <Text style={styles.label}>BUSINESS EMAIL</Text>
               <TextInput 
                 style={styles.input} 
                 placeholder="ops@chatorjeep.com" 
@@ -146,7 +146,7 @@ export default function RegisterScreen() {
               />
             </View>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>ACCESS KEY</Text>
+              <Text style={styles.label}>PASSWORD</Text>
               <TextInput 
                 style={styles.input} 
                 placeholder="••••••••" 
@@ -162,7 +162,7 @@ export default function RegisterScreen() {
         return (
           <View style={styles.stepContent}>
             <Text style={styles.stepTitle}>KITCHEN IDENTITY</Text>
-            <Text style={styles.stepSub}>How should our fleet identify your culinary station?</Text>
+            <Text style={styles.stepSub}>Tell us how your restaurant should appear to customers.</Text>
             
             <View style={styles.inputGroup}>
               <Text style={styles.label}>RESTAURANT NAME</Text>
@@ -175,7 +175,7 @@ export default function RegisterScreen() {
               />
             </View>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>SECONDARY CONTACT</Text>
+              <Text style={styles.label}>PHONE NUMBER</Text>
               <TextInput 
                 style={styles.input} 
                 placeholder="+91 00000 00000" 
@@ -186,7 +186,7 @@ export default function RegisterScreen() {
               />
             </View>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>SPECIALITY CORE</Text>
+              <Text style={styles.label}>FOOD TYPE</Text>
               <View style={styles.chipRow}>
                 {['veg', 'non-veg', 'both'].map((type) => (
                   <TouchableOpacity 
@@ -206,8 +206,8 @@ export default function RegisterScreen() {
       case 2:
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>BRAND ASSETS</Text>
-            <Text style={styles.stepSub}>Visualize your brand within the fleet interface.</Text>
+            <Text style={styles.stepTitle}>BRAND IMAGES</Text>
+            <Text style={styles.stepSub}>Upload your logo and banner so your restaurant looks great in the app.</Text>
             
             <View style={styles.uploadRow}>
               <TouchableOpacity style={styles.logoUpload} onPress={() => pickImage('logo')}>
@@ -518,8 +518,5 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '900',
     letterSpacing: 1.5,
-  },
-});
-: 0.5,
   },
 });

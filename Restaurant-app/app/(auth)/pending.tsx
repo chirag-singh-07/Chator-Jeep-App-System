@@ -4,10 +4,10 @@ import {
   View,
   Text,
   TouchableOpacity,
-  SafeAreaView,
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
@@ -40,10 +40,10 @@ export default function PendingVerificationScreen() {
   };
 
   const STEPS = [
-    { label: 'Cloud Submission', done: true },
-    { label: 'Protocol Review', done: false, active: true },
-    { label: 'Final Verification', done: false },
-    { label: 'Node Activation', done: false },
+    { label: 'Application Submitted', done: true },
+    { label: 'Restaurant Review', done: false, active: true },
+    { label: 'Final Approval', done: false },
+    { label: 'Go Live', done: false },
   ];
 
   return (
@@ -57,13 +57,13 @@ export default function PendingVerificationScreen() {
         </View>
         <Text style={styles.title}>IN REVIEW</Text>
         <Text style={styles.subtitle}>
-          The system is currently verifying your kitchen credentials. This protocol is usually completed in 24-48 solar hours.
+          We are reviewing your restaurant details. Approval usually takes 24-48 hours.
         </Text>
       </View>
 
       {/* Progress Tracker */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Dossier Progress</Text>
+        <Text style={styles.cardTitle}>Approval Progress</Text>
         {STEPS.map((step, index) => (
           <View key={step.label} style={styles.stepRow}>
             {index > 0 && (
@@ -125,7 +125,7 @@ export default function PendingVerificationScreen() {
 
       <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
         <Ionicons name="log-out-outline" size={18} color="#444" />
-        <Text style={styles.logoutText}>DISCONNECT SESSION</Text>
+        <Text style={styles.logoutText}>SIGN OUT</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
