@@ -89,6 +89,14 @@ router.get(
   ctrl.adminListRestaurants
 );
 
+/** GET /api/v1/restaurants/admin/menu - List all menu items across restaurants */
+router.get(
+  "/admin/menu",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  ctrl.adminListMenuItems
+);
+
 /** GET /api/v1/restaurants/admin/:id - Full restaurant detail for review */
 router.get(
   "/admin/:id",

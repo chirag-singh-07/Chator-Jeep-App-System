@@ -14,7 +14,7 @@ import {
   flagRestaurant,
   updateRestaurantById,
 } from "./restaurant.repository";
-import { RESTAURANT_STATUS, RestaurantStatus } from "./restaurant.model.js";
+import { RESTAURANT_STATUS, RestaurantStatus, MenuItem, Restaurant } from "./restaurant.model";
 
 // ─── Register Restaurant ─────────────────────────────────────────────────────
 export const registerRestaurant = async (input: {
@@ -140,6 +140,40 @@ export const adminListRestaurants = async (query: {
   };
 };
 
+export const adminListMenuItems = async (query: {
+  page?: string;
+  limit?: string;
+  search?: string;
+  category?: string;
+}) => {
+  const page = parseInt(query.page ?? "1");
+  const limit = parseInt(query.limit ?? "20");
+  const skip = (page - 1) * limit;
+
+  const filter: any = {};
+  if (query.search) {
+    filter.name = { $regex: query.search, $options: "i" };
+  }
+  if (query.category && query.category !== "all") {
+    filter.category = query.category;
+  }
+
+  const [items, total] = await Promise.all([
+    MenuItem.find(filter)
+      .populate("restaurantId", "name")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .exec(),
+    MenuItem.countDocuments(filter),
+  ]);
+
+  return {
+    items,
+    pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+  };
+};
+
 export const adminGetRestaurant = async (id: string) => {
   const restaurant = await findRestaurantById(id);
   if (!restaurant) throw new AppError("Restaurant not found", 404);
@@ -174,7 +208,6 @@ export const addMenuItem = async (userId: string, body: any) => {
     throw new AppError(`Restaurant must be ACTIVE to manage menu. Current status: ${restaurant.status}`, 403);
   }
   
-  const { MenuItem } = await import("./restaurant.model.js");
   return MenuItem.create({ restaurantId: restaurant._id, ...body });
 };
 
@@ -182,7 +215,6 @@ export const listMyMenu = async (userId: string) => {
   const restaurant = await findRestaurantByOwner(userId);
   if (!restaurant) throw new AppError("Restaurant not found", 404);
 
-  const { MenuItem } = await import("./restaurant.model.js");
   return MenuItem.find({ restaurantId: restaurant._id }).sort({ createdAt: -1 }).exec();
 };
 
@@ -190,7 +222,6 @@ export const updateMenuItem = async (userId: string, itemId: string, body: any) 
   const restaurant = await findRestaurantByOwner(userId);
   if (!restaurant) throw new AppError("Restaurant not found", 404);
   
-  const { MenuItem } = await import("./restaurant.model.js");
   const item = await MenuItem.findOneAndUpdate(
     { _id: itemId, restaurantId: restaurant._id },
     { $set: body },
@@ -205,7 +236,6 @@ export const deleteMenuItem = async (userId: string, itemId: string) => {
   const restaurant = await findRestaurantByOwner(userId);
   if (!restaurant) throw new AppError("Restaurant not found", 404);
   
-  const { MenuItem } = await import("./restaurant.model.js");
   const item = await MenuItem.findOneAndDelete({ _id: itemId, restaurantId: restaurant._id });
   
   if (!item) throw new AppError("Menu item not found", 404);
@@ -216,7 +246,6 @@ export const updateMenuItemStock = async (userId: string, itemId: string, isAvai
   const restaurant = await findRestaurantByOwner(userId);
   if (!restaurant) throw new AppError("Restaurant not found", 404);
   
-  const { MenuItem } = await import("./restaurant.model.js");
   const item = await MenuItem.findOneAndUpdate(
     { _id: itemId, restaurantId: restaurant._id },
     { $set: { isAvailable } },
@@ -228,7 +257,6 @@ export const updateMenuItemStock = async (userId: string, itemId: string, isAvai
 };
 
 export const addEarningsToRestaurant = async (restaurantId: string, amount: number) => {
-  const { Restaurant } = await import("./restaurant.model.js");
   return Restaurant.findByIdAndUpdate(
     restaurantId,
     { $inc: { walletBalance: amount, totalEarnings: amount } },
@@ -237,7 +265,6 @@ export const addEarningsToRestaurant = async (restaurantId: string, amount: numb
 };
 
 export const listRestaurantMenu = async (restaurantId: string) => {
-  const { MenuItem } = await import("./restaurant.model.js");
   return MenuItem.find({ restaurantId, isAvailable: true, showInMenu: true }).exec();
 };
 

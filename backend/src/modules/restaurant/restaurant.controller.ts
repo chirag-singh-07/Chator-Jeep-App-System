@@ -41,6 +41,15 @@ export const adminListRestaurants = asyncHandler(
   },
 );
 
+export const adminListMenuItems = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const result = await service.adminListMenuItems(
+      req.query as Record<string, string>,
+    );
+    res.status(200).json({ success: true, ...result });
+  },
+);
+
 export const adminGetRestaurant = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const restaurant = await service.adminGetRestaurant(

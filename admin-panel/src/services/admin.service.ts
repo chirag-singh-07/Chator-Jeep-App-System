@@ -39,6 +39,11 @@ export const adminService = {
     const response = await apiClient.get(`/restaurants/admin/${id}`);
     return response.data;
   },
+
+  getMenuItems: async (params?: { page?: number; search?: string; category?: string }) => {
+    const response = await apiClient.get("/restaurants/admin/menu", { params });
+    return response.data;
+  },
   
   approveRestaurant: async (id: string) => {
     const response = await apiClient.patch(`/restaurants/admin/${id}/approve`);
@@ -108,6 +113,12 @@ export const adminService = {
 
   deleteMedia: async (keys: string[]) => {
     const response = await apiClient.delete("/uploads", { data: { keys } });
+    return response.data;
+  },
+
+  // System Logs
+  getLogs: async (params: { type: "system" | "cron"; lines?: number }) => {
+    const response = await apiClient.get("/system/logs", { params });
     return response.data;
   },
 };
