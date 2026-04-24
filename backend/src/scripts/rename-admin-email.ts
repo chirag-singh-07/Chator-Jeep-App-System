@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { ROLES } from "../common/constants";
 import { connectDB } from "../config/db";
-import { User } from "../modules/auth/auth.model";
+import { User } from "../modules/user/user.model";
 
 const run = async (): Promise<void> => {
   const oldEmail = (process.env.OLD_ADMIN_EMAIL ?? "admin@gamil.com").trim().toLowerCase();

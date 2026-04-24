@@ -25,7 +25,7 @@ export const getCouponsHandler = asyncHandler(async (req: Request, res: Response
 });
 
 export const getCouponByIdHandler = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const coupon = await getCouponById(req.params.id);
+  const coupon = await getCouponById(req.params.id as string);
   res.status(200).json({
     success: true,
     data: coupon,
@@ -33,7 +33,7 @@ export const getCouponByIdHandler = asyncHandler(async (req: Request, res: Respo
 });
 
 export const updateCouponHandler = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const coupon = await updateCoupon(req.params.id, req.body);
+  const coupon = await updateCoupon(req.params.id as string, req.body);
   res.status(200).json({
     success: true,
     data: coupon,
@@ -41,7 +41,7 @@ export const updateCouponHandler = asyncHandler(async (req: Request, res: Respon
 });
 
 export const deleteCouponHandler = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  await deleteCoupon(req.params.id);
+  await deleteCoupon(req.params.id as string);
   res.status(200).json({
     success: true,
     message: "Coupon deleted successfully",

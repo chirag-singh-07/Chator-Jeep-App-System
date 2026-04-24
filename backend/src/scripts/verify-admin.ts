@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { comparePassword } from "../common/utils/hash";
 import { connectDB } from "../config/db";
-import { User } from "../modules/auth/auth.model";
+import { User } from "../modules/user/user.model";
 
 const run = async (): Promise<void> => {
   const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();

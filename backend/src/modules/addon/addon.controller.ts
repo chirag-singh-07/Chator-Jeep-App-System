@@ -14,12 +14,12 @@ export const getMyAddons = asyncHandler(async (req: AuthenticatedRequest, res: R
 });
 
 export const updateAddon = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const data = await service.updateAddonGroup(req.user!.userId, req.params.id, req.body);
+  const data = await service.updateAddonGroup(req.user!.userId, req.params.id as string, req.body);
   res.status(200).json({ success: true, data });
 });
 
 export const deleteAddon = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  await service.removeAddonGroup(req.user!.userId, req.params.id);
+  await service.removeAddonGroup(req.user!.userId, req.params.id as string);
   res.status(200).json({ success: true, message: "Addon group removed" });
 });
 

@@ -13,16 +13,16 @@ export const getCategories = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const getCategory = asyncHandler(async (req: Request, res: Response) => {
-  const category = await service.getCategory(req.params.id);
+  const category = await service.getCategory(req.params.id as string);
   res.status(200).json({ success: true, data: category });
 });
 
 export const updateCategory = asyncHandler(async (req: Request, res: Response) => {
-  const category = await service.updateCategory(req.params.id, req.body);
+  const category = await service.updateCategory(req.params.id as string, req.body);
   res.status(200).json({ success: true, data: category });
 });
 
 export const deleteCategory = asyncHandler(async (req: Request, res: Response) => {
-  await service.removeCategory(req.params.id);
+  await service.removeCategory(req.params.id as string);
   res.status(200).json({ success: true, message: "Category deleted successfully" });
 });

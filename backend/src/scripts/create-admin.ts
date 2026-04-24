@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { ROLES } from "../common/constants";
 import { hashPassword } from "../common/utils/hash";
 import { connectDB } from "../config/db";
-import { User } from "../modules/auth/auth.model";
+import { User } from "../modules/user/user.model";
 
 const readConfig = () => {
   const name = process.env.ADMIN_NAME?.trim() || "Chatori Jeep Admin";
