@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 import { ORDER_STATUS, Role, ROLES, OrderStatus } from "../../common/constants";
-import { IMenuItem } from "../restaurant/restaurant.model";
+import { IMenuItem } from "../restaurant/restaurant.model.js";
 import { AppError } from "../../common/errors/app-error";
 import { orderEvent } from "../../sockets/events";
 import { listMenuByRestaurant, findRestaurantByOwner } from "../restaurant/restaurant.repository";
@@ -115,7 +115,7 @@ export const updateOrderStatus = async (
   // Handle wallet credit if delivered
   if (nextStatus === "DELIVERED" && order.status !== "DELIVERED") {
     try {
-      const { addEarningsToRestaurant } = await import("../restaurant/restaurant.service");
+      const { addEarningsToRestaurant } = await import("../restaurant/restaurant.service.js");
       await addEarningsToRestaurant(order.restaurantId.toString(), order.totalAmount);
     } catch (e) {
       console.error("Failed to credit restaurant wallet:", e);

@@ -60,7 +60,7 @@ export const requestWithdrawal = async (userId: string, amount: number) => {
   });
 
   // Deduct from wallet balance immediately (hold)
-  const { Restaurant } = await import("../restaurant/restaurant.model");
+  const { Restaurant } = await import("../restaurant/restaurant.model.js");
   await Restaurant.findByIdAndUpdate(restaurant._id, {
     $inc: { walletBalance: -amount },
   });
@@ -117,7 +117,7 @@ export const adminProcessWithdrawal = async (
 
   // If rejected, refund the money to restaurant balance
   if (status === "REJECTED") {
-    const { Restaurant } = await import("../restaurant/restaurant.model");
+    const { Restaurant } = await import("../restaurant/restaurant.model.js");
     await Restaurant.findByIdAndUpdate(request.restaurantId, {
       $inc: { walletBalance: request.amount },
     });

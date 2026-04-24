@@ -1,4 +1,4 @@
-import { Restaurant, IRestaurant, RestaurantStatus } from "./restaurant.model";
+import { Restaurant, IRestaurant, RestaurantStatus } from "./restaurant.model.js";
 import { Types } from "mongoose";
 
 // ─── Creation ──────────────────────────────────────────────────────────────────
@@ -131,6 +131,6 @@ export const flagRestaurant = (
 
 // ─── Menu Management ─────────────────────────────────────────────────────────
 export const listMenuByRestaurant = async (restaurantId: string) => {
-  const { MenuItem } = await import("./restaurant.model");
+  const { MenuItem } = await import("./restaurant.model.js");
   return MenuItem.find({ restaurantId: new Types.ObjectId(restaurantId) }).exec();
 };

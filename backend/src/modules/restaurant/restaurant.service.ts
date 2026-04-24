@@ -14,7 +14,7 @@ import {
   flagRestaurant,
   updateRestaurantById,
 } from "./restaurant.repository";
-import { RESTAURANT_STATUS, RestaurantStatus } from "./restaurant.model";
+import { RESTAURANT_STATUS, RestaurantStatus } from "./restaurant.model.js";
 
 // ─── Register Restaurant ─────────────────────────────────────────────────────
 export const registerRestaurant = async (input: {
@@ -174,7 +174,7 @@ export const addMenuItem = async (userId: string, body: any) => {
     throw new AppError(`Restaurant must be ACTIVE to manage menu. Current status: ${restaurant.status}`, 403);
   }
   
-  const { MenuItem } = await import("./restaurant.model");
+  const { MenuItem } = await import("./restaurant.model.js");
   return MenuItem.create({ restaurantId: restaurant._id, ...body });
 };
 
@@ -182,7 +182,7 @@ export const updateMenuItem = async (userId: string, itemId: string, body: any) 
   const restaurant = await findRestaurantByOwner(userId);
   if (!restaurant) throw new AppError("Restaurant not found", 404);
   
-  const { MenuItem } = await import("./restaurant.model");
+  const { MenuItem } = await import("./restaurant.model.js");
   const item = await MenuItem.findOneAndUpdate(
     { _id: itemId, restaurantId: restaurant._id },
     { $set: body },
@@ -197,7 +197,7 @@ export const deleteMenuItem = async (userId: string, itemId: string) => {
   const restaurant = await findRestaurantByOwner(userId);
   if (!restaurant) throw new AppError("Restaurant not found", 404);
   
-  const { MenuItem } = await import("./restaurant.model");
+  const { MenuItem } = await import("./restaurant.model.js");
   const item = await MenuItem.findOneAndDelete({ _id: itemId, restaurantId: restaurant._id });
   
   if (!item) throw new AppError("Menu item not found", 404);
@@ -208,7 +208,7 @@ export const updateMenuItemStock = async (userId: string, itemId: string, isAvai
   const restaurant = await findRestaurantByOwner(userId);
   if (!restaurant) throw new AppError("Restaurant not found", 404);
   
-  const { MenuItem } = await import("./restaurant.model");
+  const { MenuItem } = await import("./restaurant.model.js");
   const item = await MenuItem.findOneAndUpdate(
     { _id: itemId, restaurantId: restaurant._id },
     { $set: { isAvailable } },
@@ -220,7 +220,7 @@ export const updateMenuItemStock = async (userId: string, itemId: string, isAvai
 };
 
 export const addEarningsToRestaurant = async (restaurantId: string, amount: number) => {
-  const { Restaurant } = await import("./restaurant.model");
+  const { Restaurant } = await import("./restaurant.model.js");
   return Restaurant.findByIdAndUpdate(
     restaurantId,
     { $inc: { walletBalance: amount, totalEarnings: amount } },
@@ -229,7 +229,7 @@ export const addEarningsToRestaurant = async (restaurantId: string, amount: numb
 };
 
 export const listRestaurantMenu = async (restaurantId: string) => {
-  const { MenuItem } = await import("./restaurant.model");
+  const { MenuItem } = await import("./restaurant.model.js");
   return MenuItem.find({ restaurantId, isAvailable: true }).exec();
 };
 
