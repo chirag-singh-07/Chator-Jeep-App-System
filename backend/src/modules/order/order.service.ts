@@ -11,6 +11,7 @@ import { deductUserWallet, refundUserWallet } from "../wallet/user-wallet.servic
 import { createRazorpayOrder, verifyRazorpayPayment } from "../payment/razorpay.service";
 import { Order } from "./order.model";
 import { UserWalletTransaction } from "../wallet/user-wallet.model";
+import { addEarningsToRestaurant } from "../restaurant/restaurant.service";
 
 // ─── Status transition guard ─────────────────────────────────────────────────
 
@@ -320,7 +321,6 @@ export const updateOrderStatus = async (
   // ── When COMPLETED → credit restaurant wallet ─────────────────────────────
   if (nextStatus === ORDER_STATUS.COMPLETED && order.status !== ORDER_STATUS.COMPLETED) {
     try {
-      const { addEarningsToRestaurant } = await import("../restaurant/restaurant.service");
       await addEarningsToRestaurant(order.restaurantId.toString(), order.totalAmount);
     } catch (e) {
       console.error("Failed to credit restaurant wallet:", e);

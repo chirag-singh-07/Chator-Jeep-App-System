@@ -259,10 +259,19 @@ export const updateMenuItemStock = async (userId: string, itemId: string, isAvai
   return item;
 };
 
+/** Credit restaurant wallet after order completion */
 export const addEarningsToRestaurant = async (restaurantId: string, amount: number) => {
+  const earnings = Math.round((amount + Number.EPSILON) * 100) / 100;
+  if (earnings <= 0) return;
+
   return Restaurant.findByIdAndUpdate(
     restaurantId,
-    { $inc: { walletBalance: amount, totalEarnings: amount } },
+    { 
+      $inc: { 
+        walletBalance: earnings,
+        totalEarnings: earnings 
+      } 
+    },
     { new: true }
   );
 };
@@ -372,3 +381,4 @@ export const createReview = async (input: {
 
   return review;
 };
+

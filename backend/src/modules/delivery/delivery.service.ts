@@ -5,14 +5,19 @@ import { findRestaurantById } from "../restaurant/restaurant.repository";
 import { getOrderById, updateOrder } from "../order/order.repository";
 import { IUser, User } from "../user/user.model";
 import { Order } from "../order/order.model";
-import { creditDeliveryPartnerEarnings, getDeliveryWalletOverview } from "../wallet/wallet.service";
+import {
+  creditDeliveryPartnerEarnings,
+  getDeliveryWalletOverview,
+} from "../wallet/wallet.service";
 import * as repo from "./delivery.repository";
 import { DeliveryPartner, IDeliveryPartner } from "./delivery.model";
 import { generateOTP } from "../../common/utils/otp.util";
 import { Types } from "mongoose";
 import { NotificationService } from "../notification/notification.service";
+import { addEarningsToRestaurant } from "../restaurant/restaurant.service";
 
-const roundAmount = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
+const roundAmount = (value: number) =>
+  Math.round((value + Number.EPSILON) * 100) / 100;
 
 const haversineKm = (from: [number, number], to: [number, number]) => {
   const toRadians = (value: number) => (value * Math.PI) / 180;
@@ -27,12 +32,17 @@ const haversineKm = (from: [number, number], to: [number, number]) => {
 
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(startLat) * Math.cos(endLat) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    Math.cos(startLat) *
+      Math.cos(endLat) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
 
   return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-const formatRestaurantAddress = (restaurant: Awaited<ReturnType<typeof findRestaurantById>>) => {
+const formatRestaurantAddress = (
+  restaurant: Awaited<ReturnType<typeof findRestaurantById>>,
+) => {
   if (!restaurant?.address) {
     return "Pickup address not available";
   }
@@ -70,11 +80,13 @@ const getDeliveryFeeConfig = () => {
 
 const calculateDeliveryEarnings = (
   pickupCoordinates?: [number, number],
-  dropCoordinates?: [number, number]
+  dropCoordinates?: [number, number],
 ) => {
   const { base, perKm } = getDeliveryFeeConfig();
   const distanceKm =
-    pickupCoordinates && dropCoordinates ? haversineKm(pickupCoordinates, dropCoordinates) : 0;
+    pickupCoordinates && dropCoordinates
+      ? haversineKm(pickupCoordinates, dropCoordinates)
+      : 0;
   const estimatedAmount = roundAmount(base + distanceKm * perKm);
 
   return {
@@ -107,15 +119,16 @@ const buildStatusTimeline = (delivery: any) => [
   },
 ];
 
-const emitDeliveryUpdate = (rooms: string[], event: string, payload: unknown) => {
+const emitDeliveryUpdate = (
+  rooms: string[],
+  event: string,
+  payload: unknown,
+) => {
   rooms.forEach((room) => deliveryEvent(room, event, payload));
 };
 
 const getRelatedRooms = (delivery: any, order: any) => {
-  const rooms = [
-    `rider_${delivery.riderId.toString()}`,
-    "admin",
-  ];
+  const rooms = [`rider_${delivery.riderId.toString()}`, "admin"];
 
   if (order?.userId) {
     rooms.push(`user_${order.userId.toString()}`);
@@ -130,11 +143,15 @@ const getRelatedRooms = (delivery: any, order: any) => {
 
 const buildDeliveryPayload = async (delivery: any) => {
   const [order, rider, restaurant] = await Promise.all([
-    delivery.orderId ? getOrderById(delivery.orderId.toString()) : Promise.resolve(null),
+    delivery.orderId
+      ? getOrderById(delivery.orderId.toString())
+      : Promise.resolve(null),
     User.findById(delivery.riderId).exec(),
     delivery.orderId
       ? getOrderById(delivery.orderId.toString()).then((orderDoc) =>
-          orderDoc ? findRestaurantById(orderDoc.restaurantId.toString()) : null
+          orderDoc
+            ? findRestaurantById(orderDoc.restaurantId.toString())
+            : null,
         )
       : Promise.resolve(null),
   ]);
@@ -142,7 +159,9 @@ const buildDeliveryPayload = async (delivery: any) => {
   const customer = order ? await User.findById(order.userId).exec() : null;
   const deliveryAddress = formatUserAddress(customer);
   const deliveryCoordinates =
-    delivery.route?.dropCoordinates || getDeliveryCoordinates(customer) || undefined;
+    delivery.route?.dropCoordinates ||
+    getDeliveryCoordinates(customer) ||
+    undefined;
   const pickupCoordinates =
     delivery.route?.pickupCoordinates ||
     (restaurant?.location?.coordinates as [number, number] | undefined);
@@ -167,7 +186,8 @@ const buildDeliveryPayload = async (delivery: any) => {
     currentLocation: delivery.currentLocation,
     lastLocationUpdatedAt: delivery.lastLocationUpdatedAt,
     route: {
-      pickupAddress: delivery.route?.pickupAddress || formatRestaurantAddress(restaurant),
+      pickupAddress:
+        delivery.route?.pickupAddress || formatRestaurantAddress(restaurant),
       dropAddress: delivery.route?.dropAddress || deliveryAddress,
       pickupCoordinates,
       dropCoordinates: deliveryCoordinates,
@@ -229,11 +249,16 @@ export const notifyRidersForOrder = async (orderId: string) => {
     currentOrderId: null,
     currentLocation: {
       $near: {
-        $geometry: { type: "Point", coordinates: restaurant.location.coordinates },
-        $maxDistance: 5000 // 5km
-      }
-    }
-  }).limit(10).exec();
+        $geometry: {
+          type: "Point",
+          coordinates: restaurant.location.coordinates,
+        },
+        $maxDistance: 5000, // 5km
+      },
+    },
+  })
+    .limit(10)
+    .exec();
 
   if (riders.length === 0) {
     // Re-trigger or notify admin
@@ -242,7 +267,10 @@ export const notifyRidersForOrder = async (orderId: string) => {
 
   const pickupCoordinates = restaurant.location.coordinates as [number, number];
   const dropCoordinates = getDeliveryCoordinates(customer);
-  const earnings = calculateDeliveryEarnings(pickupCoordinates, dropCoordinates);
+  const earnings = calculateDeliveryEarnings(
+    pickupCoordinates,
+    dropCoordinates,
+  );
 
   const requestPayload = {
     orderId: order._id.toString(),
@@ -254,14 +282,18 @@ export const notifyRidersForOrder = async (orderId: string) => {
     expiresIn: 30, // 30 seconds
   };
 
-  riders.forEach(rider => {
-    deliveryEvent(`rider_${rider.userId.toString()}`, "delivery:request", requestPayload);
+  riders.forEach((rider) => {
+    deliveryEvent(
+      `rider_${rider.userId.toString()}`,
+      "delivery:request",
+      requestPayload,
+    );
     // ⚡ Send Push Notification
     void NotificationService.sendToPartner(rider._id.toString(), {
       title: "New Delivery Request!",
       body: `New order near ${restaurant.name}. Earnings: ₹${earnings.estimatedAmount}`,
       type: "NEW_DELIVERY_REQUEST",
-      data: requestPayload
+      data: requestPayload,
     });
   });
 
@@ -271,20 +303,28 @@ export const notifyRidersForOrder = async (orderId: string) => {
 export const acceptOrderRequest = async (userId: string, orderId: string) => {
   const order = await getOrderById(orderId);
   if (!order) throw new AppError("Order not found", 404);
-  if (order.deliveryId) throw new AppError("Order already accepted by another rider", 400);
+  if (order.deliveryId)
+    throw new AppError("Order already accepted by another rider", 400);
 
   const partner = await repo.findDeliveryByRiderId(userId);
   if (!partner) throw new AppError("Partner profile not found", 404);
-  if (partner.currentOrderId) throw new AppError("You are already handling an order", 400);
+  if (partner.currentOrderId)
+    throw new AppError("You are already handling an order", 400);
 
   const [restaurant, customer] = await Promise.all([
     findRestaurantById(order.restaurantId.toString()),
     User.findById(order.userId).exec(),
   ]);
 
-  const pickupCoordinates = restaurant?.location?.coordinates as [number, number];
+  const pickupCoordinates = restaurant?.location?.coordinates as [
+    number,
+    number,
+  ];
   const dropCoordinates = getDeliveryCoordinates(customer);
-  const earnings = calculateDeliveryEarnings(pickupCoordinates, dropCoordinates);
+  const earnings = calculateDeliveryEarnings(
+    pickupCoordinates,
+    dropCoordinates,
+  );
 
   const delivery = await repo.updateRiderAvailability(userId, {
     currentOrderId: order._id as any,
@@ -295,17 +335,24 @@ export const acceptOrderRequest = async (userId: string, orderId: string) => {
 
   if (!delivery) throw new AppError("Unable to accept order", 500);
 
-  await updateOrder(orderId, { deliveryId: delivery._id as any, status: ORDER_STATUS.ACCEPTED });
-  
+  await updateOrder(orderId, {
+    deliveryId: delivery._id as any,
+    status: ORDER_STATUS.ACCEPTED,
+  });
+
   const payload = await buildDeliveryPayload(delivery);
-  emitDeliveryUpdate(getRelatedRooms(delivery, order), "delivery:accepted", payload);
-  
+  emitDeliveryUpdate(
+    getRelatedRooms(delivery, order),
+    "delivery:accepted",
+    payload,
+  );
+
   // ⚡ Notify Customer
   void NotificationService.sendToCustomer(order.userId.toString(), {
     title: "Delivery Partner Assigned",
     body: `${partner.fullName} will be delivering your order.`,
     type: "ORDER_ACCEPTED",
-    data: { orderId: orderId, partnerName: partner.fullName }
+    data: { orderId: orderId, partnerName: partner.fullName },
   });
 
   return payload;
@@ -338,11 +385,15 @@ export const getDeliveryPartnerProfile = async (userId: string) => {
   return partner;
 };
 
-export const updatePartnerStatus = async (partnerId: string, status: string, remarks?: string) => {
+export const updatePartnerStatus = async (
+  partnerId: string,
+  status: string,
+  remarks?: string,
+) => {
   const partner = await DeliveryPartner.findByIdAndUpdate(
     partnerId,
     { status, adminRemarks: remarks },
-    { new: true }
+    { new: true },
   );
   if (!partner) throw new AppError("Partner not found", 404);
   return partner;
@@ -354,10 +405,15 @@ export const listAllPartners = async () => {
 
 export const listAssignedOrders = async (riderId: string) => {
   const deliveries = await repo.findAssignedByRider(riderId);
-  return Promise.all(deliveries.map((delivery) => buildDeliveryPayload(delivery)));
+  return Promise.all(
+    deliveries.map((delivery) => buildDeliveryPayload(delivery)),
+  );
 };
 
-export const getAssignedOrderDetail = async (riderId: string, orderId: string) => {
+export const getAssignedOrderDetail = async (
+  riderId: string,
+  orderId: string,
+) => {
   const delivery = await repo.findDeliveryByOrderId(orderId);
   const deliveryUserId = (delivery?.riderId || delivery?.userId)?.toString();
   if (!delivery || deliveryUserId !== riderId) {
@@ -388,7 +444,11 @@ export const acceptAssignedOrder = async (riderId: string, orderId: string) => {
 
   const order = await getOrderById(orderId);
   const payload = await buildDeliveryPayload(updated);
-  emitDeliveryUpdate(getRelatedRooms(updated, order), "delivery:accepted", payload);
+  emitDeliveryUpdate(
+    getRelatedRooms(updated, order),
+    "delivery:accepted",
+    payload,
+  );
 
   return payload;
 };
@@ -421,7 +481,7 @@ export const getRiderDashboard = async (riderId: string) => {
 
 export const updateAvailability = async (
   riderId: string,
-  input: { isOnline: boolean; coordinates?: [number, number] }
+  input: { isOnline: boolean; coordinates?: [number, number] },
 ) => {
   const current = await repo.findDeliveryByRiderId(riderId);
 
@@ -438,7 +498,10 @@ export const updateAvailability = async (
     payload.currentLocation = { type: "Point", coordinates: input.coordinates };
     payload.lastLocationUpdatedAt = new Date();
   } else if (!current) {
-    payload.currentLocation = { type: "Point", coordinates: [77.1025, 28.7041] };
+    payload.currentLocation = {
+      type: "Point",
+      coordinates: [77.1025, 28.7041],
+    };
   }
 
   const updated = await repo.updateRiderAvailability(riderId, payload as any);
@@ -446,7 +509,9 @@ export const updateAvailability = async (
     throw new AppError("Unable to update availability", 400);
   }
 
-  const order = updated.orderId ? await getOrderById(updated.orderId.toString()) : null;
+  const order = updated.orderId
+    ? await getOrderById(updated.orderId.toString())
+    : null;
   const response = {
     isOnline: updated.isOnline,
     isAvailable: updated.isAvailable,
@@ -454,14 +519,24 @@ export const updateAvailability = async (
     lastLocationUpdatedAt: updated.lastLocationUpdatedAt,
   };
 
-  emitDeliveryUpdate(getRelatedRooms(updated, order), "delivery:availability_update", response);
+  emitDeliveryUpdate(
+    getRelatedRooms(updated, order),
+    "delivery:availability_update",
+    response,
+  );
 
   return response;
 };
 
-export const updateDeliveryStatus = async (riderId: string, orderId: string, status: string, otp?: string) => {
+export const updateDeliveryStatus = async (
+  riderId: string,
+  orderId: string,
+  status: string,
+  otp?: string,
+) => {
   const delivery = await repo.findDeliveryByOrderId(orderId);
-  if (!delivery || delivery.userId.toString() !== riderId) throw new AppError("Delivery not found", 404);
+  if (!delivery || delivery.userId.toString() !== riderId)
+    throw new AppError("Delivery not found", 404);
 
   const order = await getOrderById(orderId);
   if (!order) {
@@ -471,7 +546,7 @@ export const updateDeliveryStatus = async (riderId: string, orderId: string, sta
   if (status === "PICKED_UP") {
     const deliveryOtp = generateOTP(4);
     await updateOrder(orderId, { status: ORDER_STATUS.PICKED_UP, deliveryOtp });
-    
+
     const updated = await repo.updateDeliveryByOrder(orderId, {
       pickedUpAt: new Date(),
     });
@@ -479,14 +554,18 @@ export const updateDeliveryStatus = async (riderId: string, orderId: string, sta
     if (!updated) throw new AppError("Unable to update delivery status", 400);
 
     const payload = await buildDeliveryPayload(updated);
-    emitDeliveryUpdate(getRelatedRooms(updated, order), "delivery:status_update", payload);
-    
+    emitDeliveryUpdate(
+      getRelatedRooms(updated, order),
+      "delivery:status_update",
+      payload,
+    );
+
     // ⚡ Notify Customer
     void NotificationService.sendToCustomer(order.userId.toString(), {
       title: "Order Picked Up",
       body: "Your order is on the way!",
       type: "ORDER_PICKED_UP",
-      data: { orderId: orderId, deliveryOtp }
+      data: { orderId: orderId, deliveryOtp },
     });
 
     return { ...payload, deliveryOtp };
@@ -496,14 +575,18 @@ export const updateDeliveryStatus = async (riderId: string, orderId: string, sta
     await updateOrder(orderId, { status: ORDER_STATUS.ARRIVED });
     const updated = await repo.updateDeliveryByOrder(orderId, {});
     const payload = await buildDeliveryPayload(updated!);
-    emitDeliveryUpdate(getRelatedRooms(updated!, order), "delivery:status_update", payload);
-    
+    emitDeliveryUpdate(
+      getRelatedRooms(updated!, order),
+      "delivery:status_update",
+      payload,
+    );
+
     // ⚡ Notify Customer
     void NotificationService.sendToCustomer(order.userId.toString(), {
       title: "Delivery Partner Arrived",
       body: "Your delivery partner has arrived at your location.",
       type: "DELIVERY_ARRIVED",
-      data: { orderId: orderId }
+      data: { orderId: orderId },
     });
 
     return payload;
@@ -513,7 +596,8 @@ export const updateDeliveryStatus = async (riderId: string, orderId: string, sta
     // Verify OTP
     const orderWithOtp = await Order.findById(orderId).select("+deliveryOtp");
     if (!orderWithOtp) throw new AppError("Order not found", 404);
-    if (orderWithOtp.deliveryOtp !== otp) throw new AppError("Invalid Delivery OTP", 400);
+    if (orderWithOtp.deliveryOtp !== otp)
+      throw new AppError("Invalid Delivery OTP", 400);
 
     const completed = await repo.updateDeliveryByOrder(orderId, {
       deliveredAt: new Date(),
@@ -524,7 +608,7 @@ export const updateDeliveryStatus = async (riderId: string, orderId: string, sta
     if (!completed) throw new AppError("Unable to complete delivery", 400);
 
     await updateOrder(orderId, { status: ORDER_STATUS.COMPLETED });
-    
+
     // Credit earnings
     await creditDeliveryPartnerEarnings({
       riderId,
@@ -539,21 +623,30 @@ export const updateDeliveryStatus = async (riderId: string, orderId: string, sta
 
     // ⚡ Credit Restaurant Wallet
     try {
-      const { addEarningsToRestaurant } = await import("../restaurant/restaurant.service");
-      await addEarningsToRestaurant(order.restaurantId.toString(), order.totalAmount);
+      await addEarningsToRestaurant(
+        order.restaurantId.toString(),
+        order.totalAmount,
+      );
     } catch (e) {
-      console.error("Failed to credit restaurant wallet from delivery service:", e);
+      console.error(
+        "Failed to credit restaurant wallet from delivery service:",
+        e,
+      );
     }
 
     const payload = await buildDeliveryPayload(completed);
-    emitDeliveryUpdate(getRelatedRooms(completed, order), "delivery:status_update", payload);
-    
+    emitDeliveryUpdate(
+      getRelatedRooms(completed, order),
+      "delivery:status_update",
+      payload,
+    );
+
     // ⚡ Notify Customer
     void NotificationService.sendToCustomer(order.userId.toString(), {
       title: "Order Delivered",
       body: "Enjoy your meal!",
       type: "ORDER_DELIVERED",
-      data: { orderId: orderId }
+      data: { orderId: orderId },
     });
 
     return payload;
@@ -562,7 +655,10 @@ export const updateDeliveryStatus = async (riderId: string, orderId: string, sta
   throw new AppError("Invalid status transition", 400);
 };
 
-export const updateMyLocation = async (riderId: string, coordinates: [number, number]) => {
+export const updateMyLocation = async (
+  riderId: string,
+  coordinates: [number, number],
+) => {
   const delivery = await repo.updateRiderAvailability(riderId, {
     currentLocation: { type: "Point", coordinates },
     lastLocationUpdatedAt: new Date(),
@@ -570,7 +666,9 @@ export const updateMyLocation = async (riderId: string, coordinates: [number, nu
 
   if (!delivery) throw new AppError("Unable to update location", 400);
 
-  const order = delivery.orderId ? await getOrderById(delivery.orderId.toString()) : null;
+  const order = delivery.orderId
+    ? await getOrderById(delivery.orderId.toString())
+    : null;
   const payload = {
     riderId,
     orderId: delivery.orderId?.toString() ?? null,
@@ -579,6 +677,10 @@ export const updateMyLocation = async (riderId: string, coordinates: [number, nu
     status: delivery.status,
   };
 
-  emitDeliveryUpdate(getRelatedRooms(delivery, order), "delivery:location_update", payload);
+  emitDeliveryUpdate(
+    getRelatedRooms(delivery, order),
+    "delivery:location_update",
+    payload,
+  );
   return payload;
 };
