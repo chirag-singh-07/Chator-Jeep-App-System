@@ -1,34 +1,35 @@
 import { Types } from "mongoose";
-import { Delivery, IDelivery } from "./delivery.model";
+import { DeliveryPartner, IDeliveryPartner } from "./delivery.model";
 
-export const createDelivery = (payload: Partial<IDelivery>): Promise<IDelivery> => Delivery.create(payload);
+export const createDeliveryPartner = (payload: Partial<IDeliveryPartner>): Promise<IDeliveryPartner> => DeliveryPartner.create(payload);
 
-export const findAssignedByRider = (riderId: string): Promise<IDelivery[]> =>
-  Delivery.find({
-    riderId: new Types.ObjectId(riderId),
-    orderId: { $ne: null },
+export const findAssignedByRider = (userId: string): Promise<IDeliveryPartner[]> =>
+  DeliveryPartner.find({
+    userId: new Types.ObjectId(userId),
+    currentOrderId: { $ne: null },
     isAvailable: false
   })
     .sort({ createdAt: -1 })
     .exec();
 
-export const findDeliveryByOrderId = (orderId: string): Promise<IDelivery | null> =>
-  Delivery.findOne({ orderId: new Types.ObjectId(orderId) }).exec();
+export const findDeliveryByOrderId = (orderId: string): Promise<IDeliveryPartner | null> =>
+  DeliveryPartner.findOne({ currentOrderId: new Types.ObjectId(orderId) }).exec();
 
-export const findDeliveryByRiderId = (riderId: string): Promise<IDelivery | null> =>
-  Delivery.findOne({ riderId: new Types.ObjectId(riderId) }).exec();
+export const findDeliveryByRiderId = (userId: string): Promise<IDeliveryPartner | null> =>
+  DeliveryPartner.findOne({ userId: new Types.ObjectId(userId) }).exec();
 
-export const updateDeliveryByOrder = (orderId: string, payload: Partial<IDelivery>): Promise<IDelivery | null> =>
-  Delivery.findOneAndUpdate({ orderId: new Types.ObjectId(orderId) }, payload, { new: true }).exec();
+export const updateDeliveryByOrder = (orderId: string, payload: Partial<IDeliveryPartner>): Promise<IDeliveryPartner | null> =>
+  DeliveryPartner.findOneAndUpdate({ currentOrderId: new Types.ObjectId(orderId) }, payload, { new: true }).exec();
 
 export const findNearestAvailableRider = (
   coordinates: [number, number],
   maxDistance = 5000
-): Promise<IDelivery | null> =>
-  Delivery.findOne({
+): Promise<IDeliveryPartner | null> =>
+  DeliveryPartner.findOne({
     isAvailable: true,
     isOnline: true,
-    orderId: null,
+    status: "approved",
+    currentOrderId: null,
     currentLocation: {
       $near: {
         $geometry: { type: "Point", coordinates },
@@ -38,21 +39,21 @@ export const findNearestAvailableRider = (
   }).exec();
 
 export const updateRiderAvailability = (
-  riderId: string,
-  payload: Partial<IDelivery>
-): Promise<IDelivery | null> =>
-  Delivery.findOneAndUpdate(
-    { riderId: new Types.ObjectId(riderId) },
+  userId: string,
+  payload: Partial<IDeliveryPartner>
+): Promise<IDeliveryPartner | null> =>
+  DeliveryPartner.findOneAndUpdate(
+    { userId: new Types.ObjectId(userId) },
     payload,
     { new: true, upsert: true }
   ).exec();
 
 export const resetRiderAfterDelivery = (
-  riderId: string,
-  payload: Partial<IDelivery>
-): Promise<IDelivery | null> =>
-  Delivery.findOneAndUpdate(
-    { riderId: new Types.ObjectId(riderId) },
+  userId: string,
+  payload: Partial<IDeliveryPartner>
+): Promise<IDeliveryPartner | null> =>
+  DeliveryPartner.findOneAndUpdate(
+    { userId: new Types.ObjectId(userId) },
     payload,
     { new: true }
   ).exec();

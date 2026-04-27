@@ -1,12 +1,36 @@
+export type PartnerStatus = "pending" | "approved" | "rejected" | "blocked";
+
+export type DeliveryPartnerProfile = {
+  id: string;
+  userId: string;
+  fullName: string;
+  phoneNumber: string;
+  email: string;
+  profilePhoto?: string;
+  vehicleType: "Bike" | "Cycle" | "Car";
+  drivingLicense?: string;
+  bankDetails: {
+    accountHolderName: string;
+    accountNumber: string;
+    ifscCode: string;
+    bankName: string;
+  };
+  status: PartnerStatus;
+  isOnline: boolean;
+  currentOrderId?: string | null;
+  adminRemarks?: string;
+};
+
 export type DeliveryOrder = {
   id: string;
   orderId: string;
-  status: "ASSIGNED" | "PICKED_UP" | "DELIVERED";
+  status: "ACCEPTED" | "PICKED_UP" | "ARRIVED" | "COMPLETED";
   acceptedAt?: string | null;
   pickedUpAt?: string | null;
   deliveredAt?: string | null;
-  isAvailable: boolean;
-  isOnline: boolean;
+  deliveryOtp?: string;
+  isAvailable?: boolean;
+  isOnline?: boolean;
   currentLocation?: {
     type: "Point";
     coordinates: [number, number];

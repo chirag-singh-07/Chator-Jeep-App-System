@@ -8,14 +8,27 @@ export interface IOrderItemSnapshot {
   quantity: number;
 }
 
+export type PaymentMethod = "COD" | "ONLINE" | "WALLET" | "PARTIAL_WALLET";
+
 export interface IOrder extends Document {
   userId: Types.ObjectId;
   restaurantId: Types.ObjectId;
   deliveryId?: Types.ObjectId;
   items: IOrderItemSnapshot[];
   totalAmount: number;
+  deliveryAddress: string;
+  location: {
+    type: "Point";
+    coordinates: [number, number];
+  };
   status: OrderStatus;
   paymentStatus: PaymentStatus;
+  paymentMethod: PaymentMethod;
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
+  walletAmountUsed?: number;
+  deliveryOtp?: string;
+  cancellationReason?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +47,11 @@ const orderSchema = new Schema<IOrder>(
       }
     ],
     totalAmount: { type: Number, required: true, min: 0 },
+    deliveryAddress: { type: String, required: true },
+    location: {
+      type: { type: String, enum: ["Point"], default: "Point" },
+      coordinates: { type: [Number], required: true }
+    },
     status: {
       type: String,
       enum: Object.values(ORDER_STATUS),
@@ -44,7 +62,17 @@ const orderSchema = new Schema<IOrder>(
       type: String,
       enum: Object.values(PAYMENT_STATUS),
       default: PAYMENT_STATUS.UNPAID
-    }
+    },
+    paymentMethod: {
+      type: String,
+      enum: ["COD", "ONLINE", "WALLET", "PARTIAL_WALLET"],
+      default: "COD"
+    },
+    razorpayOrderId: { type: String, default: null },
+    razorpayPaymentId: { type: String, default: null },
+    walletAmountUsed: { type: Number, default: 0 },
+    deliveryOtp: { type: String, select: false },
+    cancellationReason: { type: String, default: null }
   },
   { timestamps: true }
 );

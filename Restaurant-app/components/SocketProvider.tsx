@@ -30,11 +30,17 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
       socketRef.current.on("connect", () => {
         console.log("Restaurant socket connected");
+        socketRef.current?.emit("join", `restaurant_${user.restaurantId}`);
       });
 
       socketRef.current.on("new_order", (data) => {
-        // Trigger alert
         setIncomingOrder(data.order);
+      });
+
+      socketRef.current.on("notification", (data) => {
+        console.log("Generic notification received:", data);
+        // This is handled by useNotifications hook for push, 
+        // but we can also update UI here if needed.
       });
 
       return () => {

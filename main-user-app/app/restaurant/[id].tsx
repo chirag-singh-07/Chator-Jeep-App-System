@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   StyleSheet, 
   View, 
@@ -8,7 +8,8 @@ import {
   TouchableOpacity, 
   Dimensions, 
   FlatList,
-  StatusBar
+  StatusBar,
+  ActivityIndicator
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
@@ -19,54 +20,59 @@ import Animated, {
   useAnimatedScrollHandler, 
   useAnimatedStyle, 
   useSharedValue,
+  withRepeat,
+  withTiming,
+  withSequence,
   Extrapolate
 } from 'react-native-reanimated';
+import { useMenuStore } from '@/store/useMenuStore';
+import { useCartStore } from '@/store/useCartStore';
+import * as Haptics from 'expo-haptics';
 
 const { width } = Dimensions.get('window');
 const HEADER_HEIGHT = 300;
 
-const MENU_CATEGORIES = ["Recommended", "New Arrivals", "Best Sellers", "Pizza", "Sides"];
+const Skeleton = ({ width: w, height: h, borderRadius = 8, style = {} }: any) => {
+  const opacity = useAnimatedStyle(() => ({
+    opacity: withRepeat(
+      withSequence(
+        withTiming(0.4, { duration: 800 }),
+        withTiming(0.7, { duration: 800 })
+      ),
+      -1,
+      true
+    ),
+  }));
 
-const FOOD_ITEMS = [
-  {
-    id: '1',
-    name: 'Margherita Pepperoni',
-    price: 349,
-    description: 'A classic pizza with fresh mozzarella, sun-dried tomatoes, and spicy pepperoni.',
-    image: 'https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=400',
-    isVeg: false,
-    rating: 4.5,
-  },
-  {
-    id: '2',
-    name: 'Tandoori Paneer',
-    price: 299,
-    description: 'Soft cottage cheese chunks marinated in yogurt and Indian spices.',
-    image: 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400',
-    isVeg: true,
-    rating: 4.8,
-  },
-  {
-    id: '3',
-    name: 'Garlic Breadsticks',
-    price: 149,
-    description: 'Oven-baked breadsticks brushed with garlic butter and herbs.',
-    image: 'https://images.unsplash.com/photo-1541745537411-b8046dc6d66c?w=400',
-    isVeg: true,
-    rating: 4.2,
-  },
-];
+  return <Animated.View style={[style, { width: w, height: h, borderRadius, backgroundColor: '#E1E9EE' }, opacity]} />;
+};
 
 export default function RestaurantDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const [selectedCategory, setSelectedCategory] = useState("Recommended");
-  const [cartCount, setCartCount] = useState(0);
+  const { selectedRestaurant: res, menu, isLoading, fetchRestaurantDetail } = useMenuStore();
+  const { addItem, updateQuantity, items, totalAmount, totalItems } = useCartStore();
+  
+  const [selectedCategory, setSelectedCategory] = useState("All");
   
   const scrollY = useSharedValue(0);
   const onScroll = useAnimatedScrollHandler((event) => {
     scrollY.value = event.contentOffset.y;
   });
+
+  useEffect(() => {
+    if (id) fetchRestaurantDetail(id as string);
+  }, [id]);
+
+  const categories = useMemo(() => {
+    const cats = ["All", ...new Set(menu.map(item => item.category).filter(Boolean))];
+    return cats;
+  }, [menu]);
+
+  const filteredMenu = useMemo(() => {
+    if (selectedCategory === "All") return menu;
+    return menu.filter(item => item.category === selectedCategory);
+  }, [menu, selectedCategory]);
 
   const headerStyle = useAnimatedStyle(() => {
     return {
@@ -85,17 +91,46 @@ export default function RestaurantDetailScreen() {
     };
   });
 
+  const getQuantity = (itemId: string) => {
+    return items.find(i => i.id === itemId)?.quantity || 0;
+  };
+
+  const handleAddItem = (item: any) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    addItem(
+      {
+        id: item._id,
+        name: item.name,
+        price: item.price,
+        restaurantId: id as string,
+        image: item.imageUrl || item.images?.original
+      },
+      { id: id as string, name: res?.name || "Restaurant" }
+    );
+  };
+
+  if (isLoading && !res) {
+    return (
+      <View style={styles.container}>
+        <Skeleton width="100%" height={HEADER_HEIGHT} borderRadius={0} />
+        <View style={{ padding: 25 }}>
+          <Skeleton width="70%" height={30} />
+          <Skeleton width="40%" height={20} style={{ marginTop: 10 }} />
+          <Skeleton width="100%" height={80} style={{ marginTop: 30 }} />
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Animated Header Image */}
       <Animated.Image 
-        source={{ uri: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800' }}
+        source={{ uri: res?.bannerUrls?.original || 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800' }}
         style={[styles.headerImage, headerStyle]}
       />
 
-      {/* Floating Buttons */}
       <SafeAreaView style={styles.floatingBtns} edges={['top']}>
         <TouchableOpacity style={styles.iconCircle} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={22} color={Colors.light.text} />
@@ -119,13 +154,13 @@ export default function RestaurantDetailScreen() {
         <View style={styles.content}>
           <View style={styles.infoCard}>
             <View style={styles.resHeader}>
-              <Text style={styles.resName}>The Pizza Hub</Text>
+              <Text style={styles.resName}>{res?.name}</Text>
               <View style={styles.ratingBox}>
                 <Ionicons name="star" size={12} color="#FFF" />
-                <Text style={styles.ratingText}>4.8 (500+)</Text>
+                <Text style={styles.ratingText}>{res?.rating || "4.2"} (500+)</Text>
               </View>
             </View>
-            <Text style={styles.resTags}>Pizza • Italian • Fast Food</Text>
+            <Text style={styles.resTags}>{res?.cuisines?.join(' • ') || "Fast Food • Indian"}</Text>
             <View style={styles.divider} />
             <View style={styles.metaRow}>
               <View style={styles.metaItem}>
@@ -140,7 +175,7 @@ export default function RestaurantDetailScreen() {
               <View style={styles.metaDivider} />
               <View style={styles.metaItem}>
                 <Ionicons name="cash-outline" size={18} color="#ebaf00" />
-                <Text style={styles.metaLabel}>₹200 for two</Text>
+                <Text style={styles.metaLabel}>₹250 for two</Text>
               </View>
             </View>
           </View>
@@ -151,10 +186,13 @@ export default function RestaurantDetailScreen() {
             showsHorizontalScrollIndicator={false} 
             contentContainerStyle={styles.categoriesScroll}
           >
-            {MENU_CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <TouchableOpacity 
                 key={cat} 
-                onPress={() => setSelectedCategory(cat)}
+                onPress={() => {
+                  setSelectedCategory(cat);
+                  Haptics.selectionAsync();
+                }}
                 style={[styles.catBtn, selectedCategory === cat && styles.catBtnActive]}
               >
                 <Text style={[styles.catText, selectedCategory === cat && styles.catTextActive]}>
@@ -166,23 +204,36 @@ export default function RestaurantDetailScreen() {
 
           {/* Food List */}
           <View style={styles.foodList}>
-            {FOOD_ITEMS.map((item) => (
-              <View key={item.id} style={styles.foodCard}>
+            {filteredMenu.map((item) => (
+              <View key={item._id} style={styles.foodCard}>
                 <View style={styles.foodInfo}>
                   <Ionicons name="stop-circle" size={16} color={item.isVeg ? "#48bb78" : "#e53e3e"} />
                   <Text style={styles.foodName}>{item.name}</Text>
                   <Text style={styles.foodPrice}>₹{item.price}</Text>
-                  <Text style={styles.foodDesc} numberOfLines={2}>{item.description}</Text>
+                  <Text style={styles.foodDesc} numberOfLines={2}>{item.description || item.shortDescription}</Text>
                 </View>
                 <View style={styles.foodImageContainer}>
-                  <Image source={{ uri: item.image }} style={styles.foodImage} />
-                  <TouchableOpacity 
-                    style={styles.addBtn}
-                    onPress={() => setCartCount(c => c + 1)}
-                  >
-                    <Text style={styles.addBtnText}>ADD</Text>
-                    <Ionicons name="add" size={14} color={Colors.light.primary} />
-                  </TouchableOpacity>
+                  <Image source={{ uri: item.imageUrl || item.images?.original || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400' }} style={styles.foodImage} />
+                  
+                  {getQuantity(item._id) > 0 ? (
+                    <View style={styles.quantityContainer}>
+                      <TouchableOpacity onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); updateQuantity(item._id, -1); }}>
+                         <Ionicons name="remove" size={18} color={Colors.light.primary} />
+                      </TouchableOpacity>
+                      <Text style={styles.quantityText}>{getQuantity(item._id)}</Text>
+                      <TouchableOpacity onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); updateQuantity(item._id, 1); }}>
+                         <Ionicons name="add" size={18} color={Colors.light.primary} />
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <TouchableOpacity 
+                      style={styles.addBtn}
+                      onPress={() => handleAddItem(item)}
+                    >
+                      <Text style={styles.addBtnText}>ADD</Text>
+                      <Ionicons name="add" size={14} color={Colors.light.primary} />
+                    </TouchableOpacity>
+                  )}
                 </View>
               </View>
             ))}
@@ -191,7 +242,7 @@ export default function RestaurantDetailScreen() {
       </Animated.ScrollView>
 
       {/* Floating Cart Button */}
-      {cartCount > 0 && (
+      {totalItems > 0 && (
         <TouchableOpacity 
           activeOpacity={0.9} 
           style={styles.floatingCart}
@@ -199,11 +250,11 @@ export default function RestaurantDetailScreen() {
         >
           <View style={styles.cartInfo}>
             <View style={styles.cartCountCircle}>
-              <Text style={styles.cartBadgeText}>{cartCount}</Text>
+              <Text style={styles.cartBadgeText}>{totalItems}</Text>
             </View>
             <View style={{marginLeft: 12}}>
               <Text style={styles.viewCartText}>View Cart</Text>
-              <Text style={styles.cartPriceText}>₹{cartCount * 349} plus taxes</Text>
+              <Text style={styles.cartPriceText}>₹{totalAmount} plus taxes</Text>
             </View>
           </View>
           <Ionicons name="arrow-forward" size={20} color="#FFF" />
@@ -212,6 +263,7 @@ export default function RestaurantDetailScreen() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -443,5 +495,28 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.8)',
     fontSize: 11,
     fontWeight: '600',
+  },
+  quantityContainer: {
+    position: 'absolute',
+    bottom: -10,
+    alignSelf: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: Colors.light.primary,
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 10,
+    borderWidth: 1,
+    borderColor: Colors.light.primary + '30',
+    gap: 15,
+  },
+  quantityText: {
+    color: Colors.light.primary,
+    fontWeight: '900',
+    fontSize: 16,
   },
 });

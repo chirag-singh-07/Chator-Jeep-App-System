@@ -1,74 +1,80 @@
-import React from 'react';
-import { StyleSheet, View, Text, FlatList, Image, TouchableOpacity } from 'react-native';
+import React, { useEffect, useCallback } from 'react';
+import { StyleSheet, View, Text, FlatList, Image, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInLeft } from 'react-native-reanimated';
-
-const ORDERS = [
-  {
-    id: 'ORD123',
-    restaurant: 'The Pizza Hub',
-    status: 'Delivered',
-    date: '21 Apr 2026, 10:30 PM',
-    price: 543,
-    items: ['Margherita x1', 'Breadsticks x2'],
-    image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=200',
-  },
-  {
-    id: 'ORD122',
-    restaurant: 'Burger King Royale',
-    status: 'Delivered',
-    date: '19 Apr 2026, 08:15 PM',
-    price: 299,
-    items: ['Whopper Junior x2'],
-    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200',
-  }
-];
+import { useOrderStore } from '@/store/useOrderStore';
+import { format } from 'date-fns';
 
 export default function OrdersScreen() {
   const router = useRouter();
+  const { orders, isLoading, fetchMyOrders } = useOrderStore();
+
+  useEffect(() => {
+    fetchMyOrders();
+  }, []);
+
+  const onRefresh = useCallback(() => {
+    fetchMyOrders();
+  }, []);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'COMPLETED': return '#48bb78';
+      case 'CANCELLED': return '#e53e3e';
+      case 'PENDING': return '#ebaf00';
+      default: return Colors.light.primary;
+    }
+  };
 
   const renderItem = ({ item, index }: { item: any, index: number }) => (
     <Animated.View 
       entering={FadeInLeft.delay(index * 100)}
       style={styles.card}
     >
-      <View style={styles.cardHeader}>
-         <Image source={{ uri: item.image }} style={styles.resImg} />
-         <View style={{flex: 1, marginLeft: 15}}>
-            <Text style={styles.resName}>{item.restaurant}</Text>
-            <View style={styles.statusRow}>
-               <View style={[styles.statusDot, { backgroundColor: item.status === 'Delivered' ? '#48bb78' : Colors.light.primary }]} />
-               <Text style={styles.statusText}>{item.status}</Text>
-               <Text style={styles.dotSeparator}>•</Text>
-               <Text style={styles.orderId}>#{item.id}</Text>
-            </View>
-         </View>
-         <TouchableOpacity style={styles.detailsBtn}>
-            <Ionicons name="chevron-forward" size={20} color="#CCC" />
-         </TouchableOpacity>
-      </View>
+      <TouchableOpacity 
+        activeOpacity={0.7}
+        onPress={() => router.push(`/order-tracking/${item._id}`)}
+      >
+        <View style={styles.cardHeader}>
+           <View style={styles.resImgPlaceholder}>
+              <Ionicons name="restaurant" size={24} color="#DDD" />
+           </View>
+           <View style={{flex: 1, marginLeft: 15}}>
+              <Text style={styles.resName}>{item.restaurantId?.name || "Restaurant"}</Text>
+              <View style={styles.statusRow}>
+                 <View style={[styles.statusDot, { backgroundColor: getStatusColor(item.status) }]} />
+                 <Text style={styles.statusText}>{item.status}</Text>
+                 <Text style={styles.dotSeparator}>•</Text>
+                 <Text style={styles.orderId}>#{item._id.slice(-6).toUpperCase()}</Text>
+              </View>
+           </View>
+           <Ionicons name="chevron-forward" size={20} color="#CCC" />
+        </View>
 
-      <View style={styles.divider} />
-      
-      <View style={styles.cardBody}>
-         <Text style={styles.itemsList}>{item.items.join(', ')}</Text>
-         <View style={styles.bottomRow}>
-            <View>
-               <Text style={styles.dateText}>{item.date}</Text>
-               <Text style={styles.priceText}>₹{item.price}</Text>
-            </View>
-            <TouchableOpacity 
-               style={styles.reorderBtn}
-               onPress={() => router.push(`/restaurant/${item.id}`)}
-            >
-               <Ionicons name="refresh" size={16} color={Colors.light.primary} />
-               <Text style={styles.reorderText}>REORDER</Text>
-            </TouchableOpacity>
-         </View>
-      </View>
+        <View style={styles.divider} />
+        
+        <View style={styles.cardBody}>
+           <Text style={styles.itemsList} numberOfLines={1}>
+              {item.items.map((i: any) => i.name).join(', ')}
+           </Text>
+           <View style={styles.bottomRow}>
+              <View>
+                 <Text style={styles.dateText}>{format(new Date(item.createdAt), 'dd MMM yyyy, hh:mm a')}</Text>
+                 <Text style={styles.priceText}>₹{item.totalAmount}</Text>
+              </View>
+              <TouchableOpacity 
+                 style={styles.reorderBtn}
+                 onPress={() => router.push(`/restaurant/${item.restaurantId?._id}`)}
+              >
+                 <Ionicons name="refresh" size={16} color={Colors.light.primary} />
+                 <Text style={styles.reorderText}>REORDER</Text>
+              </TouchableOpacity>
+           </View>
+        </View>
+      </TouchableOpacity>
     </Animated.View>
   );
 
@@ -82,15 +88,27 @@ export default function OrdersScreen() {
       </View>
 
       <FlatList
-        data={ORDERS}
+        data={orders}
         renderItem={renderItem}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item._id}
         contentContainerStyle={styles.list}
-        ListHeaderComponent={<Text style={styles.sectionTitle}>Past Orders</Text>}
+        refreshControl={
+          <RefreshControl refreshing={isLoading && orders.length > 0} onRefresh={onRefresh} tintColor={Colors.light.primary} />
+        }
+        ListEmptyComponent={
+          !isLoading ? (
+            <View style={styles.emptyContainer}>
+               <Ionicons name="receipt-outline" size={80} color="#EEE" />
+               <Text style={styles.emptyText}>No orders yet</Text>
+            </View>
+          ) : <ActivityIndicator size="large" color={Colors.light.primary} style={{ marginTop: 50 }} />
+        }
+        ListHeaderComponent={orders.length > 0 ? <Text style={styles.sectionTitle}>Your Orders</Text> : null}
       />
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -229,5 +247,27 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: Colors.light.primary,
     letterSpacing: 0.5,
+  },
+  resImgPlaceholder: {
+    width: 55,
+    height: 55,
+    borderRadius: 18,
+    backgroundColor: '#F9FAFB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 100,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#999',
+    fontWeight: '700',
+    marginTop: 20,
   },
 });

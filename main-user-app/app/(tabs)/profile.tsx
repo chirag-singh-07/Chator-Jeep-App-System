@@ -1,12 +1,34 @@
 import React from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, SafeAreaView } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, SafeAreaView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { useAuthStore } from '@/store/useAuthStore';
+import * as Haptics from 'expo-haptics';
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { user, logout } = useAuthStore();
+
+  const handleLogout = () => {
+    Alert.alert(
+      "Sign Out",
+      "Are you sure you want to log out?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Logout", 
+          style: "destructive", 
+          onPress: async () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            await logout();
+            router.replace('/(auth)/login');
+          } 
+        }
+      ]
+    );
+  };
 
   const ProfileItem = ({ icon, title, subtitle, onPress, color = Colors.light.text }: { icon: string, title: string, subtitle?: string, onPress?: () => void, color?: string }) => (
     <TouchableOpacity style={styles.item} onPress={onPress}>
@@ -28,29 +50,29 @@ export default function ProfileScreen() {
         <View style={styles.header}>
            <Animated.View entering={FadeInUp} style={styles.avatarContainer}>
               <Image 
-                source={{ uri: 'https://i.pravatar.cc/150?u=user123' }} 
+                source={{ uri: `https://i.pravatar.cc/150?u=${user?.email}` }} 
                 style={styles.avatar} 
               />
               <TouchableOpacity style={styles.editBadge}>
                  <Ionicons name="camera" size={16} color="#FFF" />
               </TouchableOpacity>
            </Animated.View>
-           <Text style={styles.userName}>Chirag Singh</Text>
-           <Text style={styles.userEmail}>chirag@example.com</Text>
+           <Text style={styles.userName}>{user?.name || "Guest User"}</Text>
+           <Text style={styles.userEmail}>{user?.email || "guest@example.com"}</Text>
            
            <View style={styles.statsRow}>
               <View style={styles.statBox}>
-                 <Text style={styles.statVal}>12</Text>
+                 <Text style={styles.statVal}>0</Text>
                  <Text style={styles.statLab}>Orders</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statBox}>
-                 <Text style={styles.statVal}>₹4.2k</Text>
+                 <Text style={styles.statVal}>₹0</Text>
                  <Text style={styles.statLab}>Spent</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statBox}>
-                 <Text style={styles.statVal}>450</Text>
+                 <Text style={styles.statVal}>100</Text>
                  <Text style={styles.statLab}>Points</Text>
               </View>
            </View>
@@ -77,8 +99,8 @@ export default function ProfileScreen() {
            <ProfileItem 
               icon="heart-outline" 
               title="Favorite Restaurants" 
-              subtitle="3 saved places" 
-              onPress={() => router.push('/(tabs)/favorites')}
+              subtitle="0 saved places" 
+              onPress={() => {}}
            />
         </View>
 
@@ -103,7 +125,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Logout */}
-        <TouchableOpacity style={styles.logoutBtn} onPress={() => router.replace('/(auth)/login')}>
+        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
            <Ionicons name="log-out-outline" size={22} color={Colors.light.primary} />
            <Text style={styles.logoutText}>SIGN OUT</Text>
         </TouchableOpacity>

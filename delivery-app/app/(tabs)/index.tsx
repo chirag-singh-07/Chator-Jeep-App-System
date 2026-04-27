@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { RefreshControl, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, Switch, Text, View, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Location from "expo-location";
@@ -15,20 +15,50 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { formatCurrency, formatRelativeTime } from "@/lib/format";
 import { DeliveryOrder } from "@/types";
+import VerificationPending from "../(onboarding)/verification-pending";
+import { OrderRequestModal } from "@/components/OrderRequestModal";
 
 export default function DashboardScreen() {
   const user = useAuthStore((state: ReturnType<typeof useAuthStore.getState>) => state.user);
   const {
     dashboard,
+    partnerProfile,
+    activeRequest,
     isLoading,
     fetchDashboard,
+    fetchProfile,
+    setActiveRequest,
+    acceptOrder,
     toggleAvailability,
   } = useDeliveryStore();
   const activeOrder = dashboard?.activeOrder ?? null;
 
   useEffect(() => {
+    void fetchProfile();
     void fetchDashboard();
-  }, [fetchDashboard]);
+  }, [fetchProfile, fetchDashboard]);
+
+  useEffect(() => {
+    if (!isLoading && !partnerProfile) {
+      router.replace("/(auth)/register");
+    }
+  }, [isLoading, partnerProfile]);
+
+  if (isLoading && !partnerProfile) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ScreenContainer>
+          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+            <ActivityIndicator size="large" color="#FBBF24" />
+          </View>
+        </ScreenContainer>
+      </SafeAreaView>
+    );
+  }
+
+  if (partnerProfile && partnerProfile.status !== "approved") {
+    return <VerificationPending />;
+  }
 
   const handleAvailabilityChange = async (nextValue: boolean) => {
     let coords: [number, number] | undefined;
@@ -156,6 +186,11 @@ export default function DashboardScreen() {
           </InfoCard>
         </ScrollView>
       </ScreenContainer>
+      <OrderRequestModal
+        request={activeRequest}
+        onAccept={acceptOrder}
+        onReject={() => setActiveRequest(null)}
+      />
     </SafeAreaView>
   );
 }

@@ -1,5 +1,5 @@
-import { useEffect, useMemo } from "react";
-import { Linking, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { Linking, ScrollView, StyleSheet, Text, View, TextInput, Alert } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DeliveryMapCard } from "@/components/DeliveryMapCard";
@@ -21,6 +21,7 @@ export default function OrderDetailScreen() {
     acceptOrder,
     updateOrderStatus,
   } = useDeliveryStore();
+  const [otp, setOtp] = useState("");
 
   useEffect(() => {
     if (params.id) {
@@ -30,9 +31,10 @@ export default function OrderDetailScreen() {
 
   const order = selectedOrder;
 
-  const canAccept = useMemo(() => order && !order.acceptedAt && order.status === "ASSIGNED", [order]);
-  const canPickup = useMemo(() => order && order.status === "ASSIGNED" && Boolean(order.acceptedAt), [order]);
-  const canDeliver = useMemo(() => order && order.status === "PICKED_UP", [order]);
+  const canAccept = useMemo(() => order && order.status === "ACCEPTED" && !order.acceptedAt, [order]);
+  const canPickup = useMemo(() => order && order.status === "ACCEPTED", [order]);
+  const canArrive = useMemo(() => order && order.status === "PICKED_UP", [order]);
+  const canComplete = useMemo(() => order && order.status === "ARRIVED", [order]);
 
   const openNavigation = async (coordinates?: [number, number], fallbackAddress?: string) => {
     const destination = coordinates
@@ -72,30 +74,56 @@ export default function OrderDetailScreen() {
           <InfoCard accent="amber">
             <Text style={styles.sectionTitle}>Delivery actions</Text>
             <View style={styles.actionStack}>
-              {canAccept ? (
-                <PrimaryButton label="Accept assignment" onPress={() => void acceptOrder(order.orderId)} />
-              ) : null}
-              <PrimaryButton
-                label="Navigate to pickup"
-                variant="secondary"
-                onPress={() => void openNavigation(order.route.pickupCoordinates, order.route.pickupAddress)}
-              />
               {canPickup ? (
                 <PrimaryButton
                   label="Mark picked up"
                   onPress={() => void updateOrderStatus(order.orderId, "PICKED_UP")}
                 />
               ) : null}
+              
+              <PrimaryButton
+                label="Navigate to pickup"
+                variant="secondary"
+                onPress={() => void openNavigation(order.route.pickupCoordinates, order.route.pickupAddress)}
+                style={{ marginBottom: 10 }}
+              />
+
+              {canArrive ? (
+                <PrimaryButton
+                  label="Mark Arrived"
+                  onPress={() => void updateOrderStatus(order.orderId, "ARRIVED")}
+                />
+              ) : null}
+
               <PrimaryButton
                 label="Navigate to customer"
                 variant="secondary"
                 onPress={() => void openNavigation(order.route.dropCoordinates, order.route.dropAddress)}
+                style={{ marginBottom: 10 }}
               />
-              {canDeliver ? (
-                <PrimaryButton
-                  label="Mark delivered"
-                  onPress={() => void updateOrderStatus(order.orderId, "DELIVERED")}
-                />
+
+              {canComplete ? (
+                <View style={styles.otpSection}>
+                  <Text style={styles.otpLabel}>Enter Delivery OTP</Text>
+                  <TextInput
+                    style={styles.otpInput}
+                    placeholder="4-digit OTP"
+                    keyboardType="numeric"
+                    maxLength={4}
+                    value={otp}
+                    onChangeText={setOtp}
+                  />
+                  <PrimaryButton
+                    label="Complete Delivery"
+                    onPress={() => {
+                      if (otp.length !== 4) {
+                        Alert.alert("Error", "Please enter a valid 4-digit OTP");
+                        return;
+                      }
+                      updateOrderStatus(order.orderId, "COMPLETED", otp);
+                    }}
+                  />
+                </View>
               ) : null}
             </View>
           </InfoCard>
@@ -200,5 +228,30 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     gap: 10,
+  },
+  otpSection: {
+    marginTop: 10,
+    padding: 16,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  otpLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1e293b",
+    marginBottom: 10,
+  },
+  otpInput: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    fontSize: 18,
+    textAlign: "center",
+    letterSpacing: 10,
+    marginBottom: 15,
   },
 });

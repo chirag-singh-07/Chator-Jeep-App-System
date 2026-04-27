@@ -1,31 +1,76 @@
 import { Alert } from "react-native";
 import { create } from "zustand";
 import { apiClient } from "@/lib/api";
-import { DeliveryDashboard, DeliveryOrder } from "@/types";
+import {
+  DeliveryDashboard,
+  DeliveryOrder,
+  DeliveryPartnerProfile,
+} from "@/types";
 
 type DeliveryState = {
   dashboard: DeliveryDashboard | null;
   orders: DeliveryOrder[];
   selectedOrder: DeliveryOrder | null;
+  partnerProfile: DeliveryPartnerProfile | null;
+  activeRequest: any | null;
   isLoading: boolean;
   fetchDashboard: () => Promise<void>;
   fetchAssignedOrders: () => Promise<void>;
   fetchOrderDetail: (orderId: string) => Promise<void>;
-  toggleAvailability: (isOnline: boolean, coordinates?: [number, number]) => Promise<void>;
+  fetchProfile: () => Promise<void>;
+  register: (data: any) => Promise<void>;
+  toggleAvailability: (
+    isOnline: boolean,
+    coordinates?: [number, number],
+  ) => Promise<void>;
+  setActiveRequest: (request: any | null) => void;
   acceptOrder: (orderId: string) => Promise<void>;
-  updateOrderStatus: (orderId: string, status: "PICKED_UP" | "DELIVERED") => Promise<void>;
+  updateOrderStatus: (
+    orderId: string,
+    status: string,
+    otp?: string,
+  ) => Promise<void>;
   pushLocationUpdate: (coordinates: [number, number]) => Promise<void>;
   mergeRealtimeDelivery: (order: DeliveryOrder) => void;
 };
 
 const sortOrders = (orders: DeliveryOrder[]) =>
-  [...orders].sort((a, b) => Number(new Date(b.order?.createdAt ?? 0)) - Number(new Date(a.order?.createdAt ?? 0)));
+  [...orders].sort(
+    (a, b) =>
+      Number(new Date(b.order?.createdAt ?? 0)) -
+      Number(new Date(a.order?.createdAt ?? 0)),
+  );
 
 export const useDeliveryStore = create<DeliveryState>((set, get) => ({
   dashboard: null,
   orders: [],
   selectedOrder: null,
+  partnerProfile: null,
+  activeRequest: null,
   isLoading: false,
+
+  fetchProfile: async () => {
+    try {
+      const response = await apiClient.get("/delivery/profile");
+      set({ partnerProfile: response.data });
+    } catch (error) {
+      set({ partnerProfile: null });
+    }
+  },
+
+  register: async (data) => {
+    set({ isLoading: true });
+    try {
+      await apiClient.post("/delivery/register", data);
+      await get().fetchProfile();
+      set({ isLoading: false });
+    } catch (error: any) {
+      set({ isLoading: false });
+      throw new Error(error?.response?.data?.message || "Registration failed");
+    }
+  },
+
+  setActiveRequest: (request) => set({ activeRequest: request }),
 
   fetchDashboard: async () => {
     set({ isLoading: true });
@@ -60,7 +105,10 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
   },
 
   toggleAvailability: async (isOnline, coordinates) => {
-    const response = await apiClient.patch("/delivery/availability", { isOnline, coordinates });
+    const response = await apiClient.patch("/delivery/availability", {
+      isOnline,
+      coordinates,
+    });
     set((state) => ({
       dashboard: state.dashboard
         ? {
@@ -75,16 +123,24 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
   },
 
   acceptOrder: async (orderId) => {
-    const response = await apiClient.patch(`/delivery/orders/${orderId}/accept`);
+    const response = await apiClient.patch(
+      `/delivery/orders/${orderId}/accept`,
+    );
     get().mergeRealtimeDelivery(response.data);
   },
 
-  updateOrderStatus: async (orderId, status) => {
-    const response = await apiClient.patch(`/delivery/orders/${orderId}/status`, { status });
+  updateOrderStatus: async (orderId, status, otp) => {
+    const response = await apiClient.patch(
+      `/delivery/orders/${orderId}/status`,
+      { status, otp },
+    );
     get().mergeRealtimeDelivery(response.data);
 
-    if (status === "DELIVERED") {
-      Alert.alert("Delivery completed", "The order was marked delivered and earnings were credited to your wallet.");
+    if (status === "COMPLETED") {
+      Alert.alert(
+        "Delivery completed",
+        "The order was marked completed and earnings were credited to your wallet.",
+      );
       await get().fetchDashboard();
     }
   },
@@ -98,18 +154,19 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
       const nextOrders = sortOrders([
         order,
         ...state.orders.filter((existing) => existing.id !== order.id),
-      ]).filter((item) => item.status !== "DELIVERED");
+      ]).filter((item) => item.status !== "COMPLETED");
 
       return {
         orders: nextOrders,
         selectedOrder:
-          state.selectedOrder?.id === order.id || state.selectedOrder?.orderId === order.orderId
+          state.selectedOrder?.id === order.id ||
+          state.selectedOrder?.orderId === order.orderId
             ? order
             : state.selectedOrder,
         dashboard: state.dashboard
           ? {
               ...state.dashboard,
-              activeOrder: order.status !== "DELIVERED" ? order : null,
+              activeOrder: order.status !== "COMPLETED" ? order : null,
               assignedOrders: nextOrders,
             }
           : state.dashboard,

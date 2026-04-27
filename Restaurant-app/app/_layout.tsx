@@ -2,13 +2,16 @@ import { Stack, router, useSegments, useRootNavigationState } from "expo-router"
 import { useEffect } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { SocketProvider } from "@/components/SocketProvider";
-import { AlertOverlay } from "@/components/AlertOverlay";
+import { useNotifications } from "@/hooks/useNotifications";
 import { StatusBar } from "expo-status-bar";
 
 export default function RootLayout() {
   const { isAuthenticated, user } = useAuthStore();
   const segments = useSegments();
   const navigationState = useRootNavigationState();
+
+  // Initialize Notifications
+  useNotifications();
 
   useEffect(() => {
     // Wait until navigation state is ready

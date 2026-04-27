@@ -24,6 +24,9 @@ import Animated, {
   FadeInUp,
 } from 'react-native-reanimated';
 
+import api from '@/lib/api';
+import { useAuthStore } from '@/store/useAuthStore';
+
 const { width, height } = Dimensions.get('window');
 
 export default function RegisterScreen() {
@@ -38,11 +41,12 @@ export default function RegisterScreen() {
     locationName: '',
   });
   
-  const [loadingLocation, setLoadingLocation] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [otp, setOtp] = useState('');
   const router = useRouter();
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === 1) {
       if (!formData.name || !formData.email || !formData.phone || !formData.password) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -51,12 +55,36 @@ export default function RegisterScreen() {
       }
       setStep(2);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } else if (step === 2) {
+      if (!formData.homeAddress || !formData.locationName) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        Alert.alert("Location Required", "Please provide your delivery address.");
+        return;
+      }
+      
+      try {
+        setLoading(true);
+        // Request OTP from backend
+        const response = await api.post('/auth/request-otp', {
+          email: formData.email,
+          type: 'register'
+        });
+        
+        if (response.data.success) {
+          setStep(3);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
+      } catch (error: any) {
+        Alert.alert("Error", error.response?.data?.message || "Failed to send OTP. Please try again.");
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   const getCurrentLocation = async () => {
     try {
-      setLoadingLocation(true);
+      setLoading(true);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -93,21 +121,36 @@ export default function RegisterScreen() {
     } catch (error) {
       Alert.alert('Error', 'Could not fetch your location. Please enter it manually.');
     } finally {
-      setLoadingLocation(false);
+      setLoading(false);
     }
   };
 
-  const handleRegister = () => {
-    if (!formData.homeAddress || !formData.locationName) {
+  const handleRegister = async () => {
+    if (!otp || otp.length < 6) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Alert.alert("Location Required", "Please provide your delivery address.");
+      Alert.alert("Invalid OTP", "Please enter the 6-digit code sent to your email.");
       return;
     }
 
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    // Simulate API call
-    console.log("Registering user:", formData);
-    router.replace('/(tabs)');
+    try {
+      setLoading(true);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      
+      const response = await api.post('/auth/register', {
+        ...formData,
+        otp
+      });
+      
+      const { user, accessToken, refreshToken } = response.data;
+      await useAuthStore.getState().setAuth(user, { accessToken, refreshToken });
+      
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      router.replace('/(tabs)');
+    } catch (error: any) {
+      Alert.alert("Registration Failed", error.response?.data?.message || "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -126,21 +169,21 @@ export default function RegisterScreen() {
           >
             <View style={styles.header}>
               <TouchableOpacity 
-                onPress={() => step === 1 ? router.back() : setStep(1)}
+                onPress={() => step === 1 ? router.back() : setStep(step - 1)}
                 style={styles.backBtn}
               >
                 <Ionicons name="arrow-back" size={24} color={Colors.light.white} />
               </TouchableOpacity>
               
               <Animated.Text entering={FadeInUp} style={styles.title}>
-                {step === 1 ? "Create Account" : "Location Details"}
+                {step === 1 ? "Create Account" : step === 2 ? "Location Details" : "Verify Email"}
               </Animated.Text>
               <Animated.Text entering={FadeInUp.delay(100)} style={styles.subtext}>
-                {step === 1 ? "Join the family and start ordering!" : "Where should we deliver your food?"}
+                {step === 1 ? "Join the family and start ordering!" : step === 2 ? "Where should we deliver your food?" : "Enter the code sent to your inbox"}
               </Animated.Text>
               
               <View style={styles.progressContainer}>
-                <View style={[styles.progressBar, { width: step === 1 ? '50%' : '100%' }]} />
+                <View style={[styles.progressBar, { width: `${(step / 3) * 100}%` }]} />
               </View>
             </View>
 
@@ -148,7 +191,7 @@ export default function RegisterScreen() {
               entering={FadeInDown.duration(600)}
               style={styles.formSection}
             >
-              {step === 1 ? (
+              {step === 1 && (
                 <>
                   <View style={styles.inputGroup}>
                     <Text style={styles.label}>Full Name</Text>
@@ -222,15 +265,17 @@ export default function RegisterScreen() {
                     <Ionicons name="arrow-forward" size={20} color="white" style={{marginLeft: 10}} />
                   </TouchableOpacity>
                 </>
-              ) : (
+              )}
+
+              {step === 2 && (
                 <>
                   <TouchableOpacity 
                     activeOpacity={0.7}
                     style={styles.locationPulseBtn}
                     onPress={getCurrentLocation}
-                    disabled={loadingLocation}
+                    disabled={loading}
                   >
-                    {loadingLocation ? (
+                    {loading ? (
                        <ActivityIndicator color={Colors.light.primary} />
                     ) : (
                       <>
@@ -276,9 +321,62 @@ export default function RegisterScreen() {
                   <TouchableOpacity 
                     activeOpacity={0.8}
                     style={styles.primaryBtn} 
-                    onPress={handleRegister}
+                    onPress={handleNext}
+                    disabled={loading}
                   >
-                    <Text style={styles.primaryBtnText}>CREATE ACCOUNT</Text>
+                    {loading ? (
+                      <ActivityIndicator color="white" />
+                    ) : (
+                      <>
+                        <Text style={styles.primaryBtnText}>VERIFY EMAIL</Text>
+                        <Ionicons name="mail-outline" size={20} color="white" style={{marginLeft: 10}} />
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </>
+              )}
+
+              {step === 3 && (
+                <>
+                  <View style={styles.otpHeader}>
+                    <Ionicons name="mail-open-outline" size={64} color={Colors.light.primary} />
+                    <Text style={styles.otpTitle}>Verify your email</Text>
+                    <Text style={styles.otpSubtext}>We've sent a 6-digit code to</Text>
+                    <Text style={styles.otpEmail}>{formData.email}</Text>
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Enter OTP</Text>
+                    <View style={[styles.inputContainer, { justifyContent: 'center' }]}>
+                      <TextInput
+                        style={[styles.input, { textAlign: 'center', fontSize: 28, letterSpacing: 10 }]}
+                        placeholder="000000"
+                        keyboardType="number-pad"
+                        maxLength={6}
+                        value={otp}
+                        onChangeText={setOtp}
+                      />
+                    </View>
+                  </View>
+
+                  <TouchableOpacity 
+                    activeOpacity={0.8}
+                    style={styles.primaryBtn} 
+                    onPress={handleRegister}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color="white" />
+                    ) : (
+                      <Text style={styles.primaryBtnText}>COMPLETE REGISTRATION</Text>
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={styles.resendBtn}
+                    onPress={() => setStep(2)}
+                  >
+                    <Text style={styles.resendText}>Change Email or Re-send Code</Text>
                   </TouchableOpacity>
                 </>
               )}
@@ -445,6 +543,37 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '900',
     letterSpacing: 1,
+  },
+  otpHeader: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  otpTitle: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: Colors.light.text,
+    marginTop: 15,
+  },
+  otpSubtext: {
+    fontSize: 14,
+    color: Colors.light.textMuted,
+    marginTop: 5,
+  },
+  otpEmail: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.light.primary,
+    marginTop: 2,
+  },
+  resendBtn: {
+    marginTop: 25,
+    alignItems: 'center',
+  },
+  resendText: {
+    color: Colors.light.primary,
+    fontWeight: '800',
+    fontSize: 14,
+    textDecorationLine: 'underline',
   },
   footer: {
     flexDirection: 'row',

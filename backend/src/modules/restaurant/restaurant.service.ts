@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { AppError } from "../../common/errors/app-error";
 import { hashPassword, comparePassword } from "../../common/utils/hash";
 import { signAccessToken, signRefreshToken, verifyRefreshToken, AuthPayload } from "../../common/utils/jwt";
@@ -15,6 +16,7 @@ import {
   updateRestaurantById,
 } from "./restaurant.repository";
 import { RESTAURANT_STATUS, RestaurantStatus, MenuItem, Restaurant } from "./restaurant.model";
+import Review from "./review.model";
 
 // ─── Register Restaurant ─────────────────────────────────────────────────────
 export const registerRestaurant = async (input: {
@@ -199,6 +201,7 @@ export const adminFlagRestaurant = async (id: string, adminUserId: string, reaso
   return restaurant;
 };
 
+
 // ─── Menu Management ─────────────────────────────────────────────────────────
 export const addMenuItem = async (userId: string, body: any) => {
   const restaurant = await findRestaurantByOwner(userId);
@@ -287,4 +290,85 @@ export const updateRestaurantOpenStatus = async (userId: string, isOpen: boolean
   }
 
   return updateRestaurantById(restaurant._id.toString(), { isOpen });
+};
+
+export const listRestaurants = async (query: {
+  categoryId?: string;
+  search?: string;
+  lat?: string;
+  lng?: string;
+  page?: string;
+  limit?: string;
+}) => {
+  const page = parseInt(query.page ?? "1");
+  const limit = parseInt(query.limit ?? "20");
+  const skip = (page - 1) * limit;
+
+  const filter: any = { status: RESTAURANT_STATUS.ACTIVE };
+
+  if (query.search) {
+    filter.name = { $regex: query.search, $options: "i" };
+  }
+  
+  if (query.categoryId) {
+    filter.cuisines = { $in: [query.categoryId] };
+  }
+
+  let sort: any = { createdAt: -1 };
+
+  // If coordinates provided, sort by proximity
+  if (query.lat && query.lng) {
+    const latitude = parseFloat(query.lat);
+    const longitude = parseFloat(query.lng);
+    filter.location = {
+      $near: {
+        $geometry: { type: "Point", coordinates: [longitude, latitude] },
+        $maxDistance: 15000, // 15km
+      },
+    };
+    // Mongoose $near automatically sorts by distance
+    sort = null; 
+  }
+
+  const [restaurants, total] = await Promise.all([
+    Restaurant.find(filter)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .exec(),
+    Restaurant.countDocuments(filter).exec(),
+  ]);
+
+  return {
+    restaurants,
+    pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+  };
+};
+
+export const createReview = async (input: {
+  userId: string;
+  restaurantId: string;
+  orderId: string;
+  rating: number;
+  comment?: string;
+}) => {
+  const existing = await Review.findOne({ orderId: input.orderId });
+  if (existing) throw new AppError("Review already submitted for this order", 400);
+
+  const review = await Review.create(input);
+
+  // Update restaurant average rating
+  const stats = await Review.aggregate([
+    { $match: { restaurantId: new mongoose.Types.ObjectId(input.restaurantId) } },
+    { $group: { _id: "$restaurantId", avgRating: { $avg: "$rating" }, totalReviews: { $sum: 1 } } }
+  ]);
+
+  if (stats.length > 0) {
+    await Restaurant.findByIdAndUpdate(input.restaurantId, {
+      rating: stats[0].avgRating,
+      totalReviews: stats[0].totalReviews
+    });
+  }
+
+  return review;
 };

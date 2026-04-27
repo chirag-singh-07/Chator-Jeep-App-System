@@ -1,62 +1,87 @@
 import { Schema, model, Document, Types } from "mongoose";
 
-export interface IDelivery extends Document {
-  riderId: Types.ObjectId;
+export type PartnerStatus = "pending" | "approved" | "rejected" | "blocked";
+export type VehicleType = "Bike" | "Cycle" | "Car";
+
+export interface IDeliveryPartner extends Document {
+  userId: Types.ObjectId;
+  /** Alias for userId — used in some service functions */
+  riderId?: Types.ObjectId;
+  /** The order currently being handled */
   orderId?: Types.ObjectId | null;
-  status: "AVAILABLE" | "ASSIGNED" | "PICKED_UP" | "DELIVERED";
-  isAvailable: boolean;
+  fullName: string;
+  phoneNumber: string;
+  email: string;
+  profilePhoto?: string;
+  vehicleType: VehicleType;
+  drivingLicense?: string;
+  bankDetails: {
+    accountHolderName: string;
+    accountNumber: string;
+    ifscCode: string;
+    bankName: string;
+  };
+  status: PartnerStatus;
   isOnline: boolean;
+  isAvailable: boolean;
+  currentOrderId?: Types.ObjectId | null;
+  adminRemarks?: string;
+  currentLocation: {
+    type: "Point";
+    coordinates: [number, number];
+  };
+  lastLocationUpdatedAt?: Date | null;
   acceptedAt?: Date | null;
   pickedUpAt?: Date | null;
   deliveredAt?: Date | null;
-  lastLocationUpdatedAt?: Date | null;
-  route?: {
-    pickupAddress?: string;
-    dropAddress?: string;
-    pickupCoordinates?: [number, number];
-    dropCoordinates?: [number, number];
-  } | null;
   earnings?: {
     estimatedAmount: number;
     finalAmount: number;
     distanceKm: number;
   } | null;
-  currentLocation: {
-    type: "Point";
-    coordinates: [number, number];
-  };
+  fcmTokens: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const deliverySchema = new Schema<IDelivery>(
+const deliveryPartnerSchema = new Schema<IDeliveryPartner>(
   {
-    riderId: { type: Schema.Types.ObjectId, ref: "User", required: true, unique: true, index: true },
-    orderId: { type: Schema.Types.ObjectId, ref: "Order", default: null, unique: true, sparse: true, index: true },
-    status: { type: String, enum: ["AVAILABLE", "ASSIGNED", "PICKED_UP", "DELIVERED"], default: "AVAILABLE" },
-    isAvailable: { type: Boolean, default: true, index: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, unique: true, index: true },
+    fullName: { type: String, required: true, trim: true },
+    phoneNumber: { type: String, required: true, unique: true, trim: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    profilePhoto: { type: String },
+    vehicleType: { type: String, enum: ["Bike", "Cycle", "Car"], required: true },
+    drivingLicense: { type: String },
+    bankDetails: {
+      accountHolderName: { type: String, required: true },
+      accountNumber: { type: String, required: true },
+      ifscCode: { type: String, required: true },
+      bankName: { type: String, required: true },
+    },
+    status: { type: String, enum: ["pending", "approved", "rejected", "blocked"], default: "pending", index: true },
     isOnline: { type: Boolean, default: false, index: true },
+    isAvailable: { type: Boolean, default: false, index: true },
+    currentOrderId: { type: Schema.Types.ObjectId, ref: "Order", default: null, index: true },
+    adminRemarks: { type: String },
+    currentLocation: {
+      type: { type: String, enum: ["Point"], default: "Point" },
+      coordinates: { type: [Number], default: [0, 0] }
+    },
+    lastLocationUpdatedAt: { type: Date, default: null },
     acceptedAt: { type: Date, default: null },
     pickedUpAt: { type: Date, default: null },
     deliveredAt: { type: Date, default: null },
-    lastLocationUpdatedAt: { type: Date, default: null },
-    route: {
-      pickupAddress: { type: String },
-      dropAddress: { type: String },
-      pickupCoordinates: { type: [Number] },
-      dropCoordinates: { type: [Number] },
-    },
     earnings: {
       estimatedAmount: { type: Number },
       finalAmount: { type: Number },
       distanceKm: { type: Number },
     },
-    currentLocation: {
-      type: { type: String, enum: ["Point"], required: true },
-      coordinates: { type: [Number], required: true }
-    }
+    fcmTokens: { type: [String], default: [] },
   },
   { timestamps: true }
 );
 
-deliverySchema.index({ currentLocation: "2dsphere" });
+deliveryPartnerSchema.index({ currentLocation: "2dsphere" });
 
-export const Delivery = model<IDelivery>("Delivery", deliverySchema);
+export const DeliveryPartner = model<IDeliveryPartner>("DeliveryPartner", deliveryPartnerSchema);

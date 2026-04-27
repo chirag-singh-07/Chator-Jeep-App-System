@@ -1,20 +1,66 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, ScrollView, TouchableOpacity, FlatList, Image } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { StyleSheet, View, Text, TextInput, ScrollView, TouchableOpacity, FlatList, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
-
-const RECENT_SEARCHES = ['Pizza Hub', 'Burger King', 'Sushi', 'Desserts near me'];
-const TRENDING = [
-  { id: '1', name: 'Butter Chicken', type: 'Dish' },
-  { id: '2', name: 'Starbucks', type: 'Restaurant' },
-  { id: '3', name: 'Cold Coffee', type: 'Dish' },
-  { id: '4', name: 'Biryani Blues', type: 'Restaurant' },
-];
+import { useMenuStore } from '@/store/useMenuStore';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import debounce from 'lodash/debounce';
 
 export default function SearchScreen() {
+  const { categoryId } = useLocalSearchParams();
   const [query, setQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState('Everything');
+  const { restaurants, isLoading, fetchRestaurants, categories } = useMenuStore();
+  const router = useRouter();
+
+  // Initial load or category-based search
+  useEffect(() => {
+    if (categoryId) {
+      fetchRestaurants({ categoryId });
+    }
+  }, [categoryId]);
+
+  // Debounced search
+  const debouncedSearch = useCallback(
+    debounce((q: string) => {
+      const params: any = { search: q };
+      if (activeFilter === 'Rating 4.0+') params.minRating = 4;
+      if (activeFilter === 'Pure Veg') params.isVeg = true;
+      fetchRestaurants(params);
+    }, 500),
+    [activeFilter]
+  );
+
+  useEffect(() => {
+    if (query) {
+      debouncedSearch(query);
+    }
+  }, [query, activeFilter]);
+
+  const toggleFilter = (filter: string) => {
+    setActiveFilter(filter === activeFilter ? 'Everything' : filter);
+  };
+
+  const renderResult = (item: any, index: number) => (
+    <Animated.View entering={FadeInDown.delay(index * 50)} key={item._id}>
+      <TouchableOpacity 
+        style={styles.resultItem}
+        onPress={() => router.push(`/restaurant/${item._id}`)}
+      >
+        <Image 
+          source={{ uri: item.bannerUrls?.original || `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&q=80` }} 
+          style={styles.resultImg} 
+        />
+        <View style={{flex: 1, marginLeft: 15}}>
+           <Text style={styles.resultName}>{item.name}</Text>
+           <Text style={styles.resultContext}>{item.cuisines?.join(', ')} • {item.rating || '4.0'} ★</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color="#CCC" />
+      </TouchableOpacity>
+    </Animated.View>
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -27,10 +73,10 @@ export default function SearchScreen() {
             placeholder="Search for restaurants or dishes..."
             value={query}
             onChangeText={setQuery}
-            autoFocus={false}
+            autoFocus={!!categoryId}
           />
           {query ? (
-            <TouchableOpacity onPress={() => setQuery('')}>
+            <TouchableOpacity onPress={() => { setQuery(''); fetchRestaurants({}); }}>
               <Ionicons name="close-circle" size={20} color="#CCC" />
             </TouchableOpacity>
           ) : (
@@ -42,22 +88,27 @@ export default function SearchScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         {/* Chips / Filters */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
-           <TouchableOpacity style={[styles.chip, styles.chipActive]}>
-              <Text style={styles.chipTextActive}>Everything</Text>
+           <TouchableOpacity 
+             style={[styles.chip, activeFilter === 'Everything' && styles.chipActive]}
+             onPress={() => toggleFilter('Everything')}
+           >
+              <Text style={activeFilter === 'Everything' ? styles.chipTextActive : styles.chipText}>Everything</Text>
            </TouchableOpacity>
-           <TouchableOpacity style={styles.chip}>
-              <Text style={styles.chipText}>Dietary</Text>
-              <Ionicons name="chevron-down" size={14} color="#666" />
+           <TouchableOpacity 
+             style={[styles.chip, activeFilter === 'Rating 4.0+' && styles.chipActive]}
+             onPress={() => toggleFilter('Rating 4.0+')}
+           >
+              <Text style={activeFilter === 'Rating 4.0+' ? styles.chipTextActive : styles.chipText}>Rating 4.0+</Text>
            </TouchableOpacity>
-           <TouchableOpacity style={styles.chip}>
-              <Text style={styles.chipText}>Rating 4.0+</Text>
-           </TouchableOpacity>
-           <TouchableOpacity style={styles.chip}>
-              <Text style={styles.chipText}>Pure Veg</Text>
+           <TouchableOpacity 
+             style={[styles.chip, activeFilter === 'Pure Veg' && styles.chipActive]}
+             onPress={() => toggleFilter('Pure Veg')}
+           >
+              <Text style={activeFilter === 'Pure Veg' ? styles.chipTextActive : styles.chipText}>Pure Veg</Text>
            </TouchableOpacity>
         </ScrollView>
 
-        {!query ? (
+        {!query && !categoryId ? (
           <Animated.View entering={FadeIn.delay(200)}>
             {/* Recent Searches */}
             <View style={styles.section}>
@@ -66,29 +117,10 @@ export default function SearchScreen() {
                   <TouchableOpacity><Text style={styles.clearAll}>Clear All</Text></TouchableOpacity>
                </View>
                <View style={styles.recentGrid}>
-                  {RECENT_SEARCHES.map((item, i) => (
-                    <TouchableOpacity key={i} style={styles.recentItem}>
+                  {['Pizza', 'Burger', 'Biryani'].map((item, i) => (
+                    <TouchableOpacity key={i} style={styles.recentItem} onPress={() => setQuery(item)}>
                        <Ionicons name="time-outline" size={16} color="#999" />
                        <Text style={styles.recentText}>{item}</Text>
-                    </TouchableOpacity>
-                  ))}
-               </View>
-            </View>
-
-            {/* Trending */}
-            <View style={styles.section}>
-               <Text style={styles.sectionTitle}>Trending Searches</Text>
-               <View style={styles.trendingList}>
-                  {TRENDING.map((item, i) => (
-                    <TouchableOpacity key={i} style={styles.trendingItem}>
-                       <View style={styles.trendingIcon}>
-                          <Ionicons name={item.type === 'Dish' ? "restaurant" : "business"} size={14} color={Colors.light.primary} />
-                       </View>
-                       <View style={{flex: 1, marginLeft: 15}}>
-                          <Text style={styles.trendingName}>{item.name}</Text>
-                          <Text style={styles.trendingType}>{item.type}</Text>
-                       </View>
-                       <Ionicons name="arrow-redo-outline" size={16} color="#DDD" />
                     </TouchableOpacity>
                   ))}
                </View>
@@ -98,10 +130,12 @@ export default function SearchScreen() {
             <View style={styles.section}>
                <Text style={styles.sectionTitle}>Cuisines To Explore</Text>
                <View style={styles.cuisineGrid}>
-                  {['Indian', 'Chinese', 'Italian', 'Healthy', 'Bakery', 'American'].map((name, i) => (
-                    <TouchableOpacity key={i} style={styles.cuisineCard}>
-                       <View style={styles.cuisineCircle} />
-                       <Text style={styles.cuisineName}>{name}</Text>
+                  {categories.slice(0, 6).map((cat: any, i: number) => (
+                    <TouchableOpacity key={cat._id} style={styles.cuisineCard} onPress={() => router.setParams({ categoryId: cat._id })}>
+                       <View style={styles.cuisineCircle}>
+                          {cat.image ? <Image source={{ uri: cat.image }} style={styles.fullImg} /> : <Ionicons name="restaurant" size={24} color="#DDD" />}
+                       </View>
+                       <Text style={styles.cuisineName}>{cat.name}</Text>
                     </TouchableOpacity>
                   ))}
                </View>
@@ -109,26 +143,28 @@ export default function SearchScreen() {
           </Animated.View>
         ) : (
           <View style={styles.resultsContainer}>
-             <Text style={styles.resultsLabel}>Top results for "{query}"</Text>
-             {/* Simple result placeholder */}
-             {[1,2,3].map(i => (
-               <TouchableOpacity key={i} style={styles.resultItem}>
-                  <Image source={{ uri: `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&q=80` }} style={styles.resultImg} />
-                  <View style={{flex: 1, marginLeft: 15}}>
-                     <Text style={styles.resultName}>Spicy Veg Burger {i}</Text>
-                     <Text style={styles.resultContext}>In Burger King • ₹199</Text>
-                  </View>
-                  <TouchableOpacity style={styles.quickAdd}>
-                     <Ionicons name="add" size={18} color={Colors.light.primary} />
-                  </TouchableOpacity>
-               </TouchableOpacity>
-             ))}
+             <View style={styles.resHeader}>
+                <Text style={styles.resultsLabel}>
+                  {isLoading ? "Searching..." : `Showing results for "${query || 'Category'}"`}
+                </Text>
+                {isLoading && <ActivityIndicator size="small" color={Colors.light.primary} />}
+             </View>
+             
+             {restaurants.length > 0 ? (
+               restaurants.map((res, index) => renderResult(res, index))
+             ) : !isLoading && (
+               <View style={styles.noResults}>
+                  <Ionicons name="search-outline" size={60} color="#EEE" />
+                  <Text style={styles.noResultsText}>No results found</Text>
+               </View>
+             )}
           </View>
         )}
       </ScrollView>
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -324,5 +360,27 @@ const styles = StyleSheet.create({
      justifyContent: 'center',
      borderWidth: 1,
      borderColor: Colors.light.primary + '20',
-  }
+  },
+  fullImg: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 32,
+  },
+  resHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  noResults: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 50,
+  },
+  noResultsText: {
+    marginTop: 15,
+    fontSize: 14,
+    color: '#999',
+    fontWeight: '700',
+  },
 });

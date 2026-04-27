@@ -6,9 +6,12 @@ import { loginSchema, refreshSchema, registerSchema } from "./auth.validation";
 
 const router = Router();
 
+router.post("/request-otp", controller.requestOtp);
 router.post("/register", validate(registerSchema), controller.register);
 router.post("/login", validate(loginSchema), controller.login);
+router.post("/login-otp", controller.loginWithOtp);
 router.post("/refresh", validate(refreshSchema), controller.refresh);
+router.post("/reset-password", controller.resetPassword);
 router.post("/logout", authMiddleware, controller.logout);
 
 export default router;

@@ -6,6 +6,15 @@ import * as ctrl from "./restaurant.controller";
 const router = Router();
 
 // Public
+/** GET /api/v1/restaurants - List all active restaurants */
+router.get("/", ctrl.listRestaurants);
+
+/** GET /api/v1/restaurants/:id - Get restaurant details */
+router.get("/:id", ctrl.getRestaurant);
+
+/** POST /api/v1/restaurants/reviews - Submit a review */
+router.post("/reviews", authMiddleware, ctrl.createReview);
+
 /** POST /api/v1/restaurants/register - Restaurant owner signs up */
 router.post("/register", ctrl.registerRestaurant);
 

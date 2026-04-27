@@ -26,37 +26,66 @@ const SLIDES = [
   {
     id: '1',
     title: 'Welcome to Fleet',
-    description: 'Join thousands of partners delivering joy across the city every day.',
+    description: 'Join thousands of partners delivering joy across the city every day with speed and reliability.',
     icon: 'bicycle-outline',
-    color: '#E6F0FF'
+    color: '#E6F0FF',
+    accent: '#3B82F6'
   },
   {
     id: '2',
     title: 'Earn on Your Terms',
-    description: 'Work whenever you want. Set your own schedule and track daily earnings.',
+    description: 'Work whenever you want. Set your own schedule, take breaks, and track daily earnings in real-time.',
     icon: 'wallet-outline',
-    color: '#F0F7FF'
+    color: '#F0F7FF',
+    accent: '#10B981'
   },
   {
     id: '3',
     title: 'Smart Navigation',
-    description: 'AI-powered routing that finds the fastest path to avoid city traffic.',
+    description: 'AI-powered routing that finds the fastest path to avoid city traffic and save your fuel.',
     icon: 'navigate-outline',
-    color: '#E6F0FF'
+    color: '#E6F0FF',
+    accent: '#F59E0B'
   },
   {
     id: '4',
-    title: 'Instant Settlements',
-    description: 'No waiting periods. Get your incentives and tips settled directly to your wallet.',
-    icon: 'cash-outline',
-    color: '#F0F7FF'
+    title: 'Safety First',
+    description: 'Every trip is protected. We provide insurance and 24/7 emergency support for your peace of mind.',
+    icon: 'shield-checkmark-outline',
+    color: '#FEF2F2',
+    accent: '#EF4444'
   },
   {
     id: '5',
+    title: 'Weekly Bonuses',
+    description: 'Complete targets to unlock massive weekly incentives and performance-based rewards.',
+    icon: 'gift-outline',
+    color: '#FDF2F8',
+    accent: '#EC4899'
+  },
+  {
+    id: '6',
+    title: 'Instant Settlements',
+    description: 'No waiting periods. Get your incentives and tips settled directly to your wallet within minutes.',
+    icon: 'cash-outline',
+    color: '#F0FDF4',
+    accent: '#059669'
+  },
+  {
+    id: '7',
+    title: 'Community Support',
+    description: 'Connect with a thriving community of riders and get dedicated support whenever you need it.',
+    icon: 'people-outline',
+    color: '#F5F3FF',
+    accent: '#8B5CF6'
+  },
+  {
+    id: '8',
     title: 'Ready to Roll?',
-    description: 'A few more steps to verify your documents and you are good to go!',
+    description: 'A few more steps to verify your documents and you are good to go! Let\'s start your journey.',
     icon: 'checkmark-circle-outline',
-    color: '#E6F0FF'
+    color: '#E6F0FF',
+    accent: '#3B82F6'
   },
 ];
 
@@ -96,7 +125,7 @@ export default function OnboardingScreen() {
               style={[
                 styles.indicator,
                 currentSlideIndex === index && {
-                  backgroundColor: Colors.light.primary,
+                  backgroundColor: SLIDES[currentSlideIndex].accent,
                   width: 25,
                 },
               ]}
@@ -108,7 +137,7 @@ export default function OnboardingScreen() {
           {currentSlideIndex === SLIDES.length - 1 ? (
             <TouchableOpacity 
               activeOpacity={0.8}
-              style={styles.btn}
+              style={[styles.btn, { backgroundColor: SLIDES[currentSlideIndex].accent, shadowColor: SLIDES[currentSlideIndex].accent }]}
               onPress={() => router.replace('/(auth)/login')}
             >
               <Text style={styles.btnText}>START EARNING</Text>
@@ -128,7 +157,7 @@ export default function OnboardingScreen() {
               <View style={{ flex: 1 }} />
               <TouchableOpacity 
                 activeOpacity={0.8}
-                style={[styles.btn, { width: 140, flex: 0 }]} 
+                style={[styles.btn, { width: 140, flex: 0, backgroundColor: SLIDES[currentSlideIndex].accent, shadowColor: SLIDES[currentSlideIndex].accent }]} 
                 onPress={goToNextSlide}
               >
                 <Text style={styles.btnText}>NEXT</Text>
@@ -157,7 +186,8 @@ export default function OnboardingScreen() {
               entering={FadeInDown.duration(800)}
               style={[styles.iconContainer, { backgroundColor: item.color }]}
             >
-               <Ionicons name={item.icon as any} size={130} color={Colors.light.primary} />
+               <View style={[styles.decorativeCircle, { backgroundColor: item.accent, opacity: 0.1 }]} />
+               <Ionicons name={item.icon as any} size={130} color={item.accent} />
             </Animated.View>
             <View style={{ paddingHorizontal: 40, alignItems: 'center' }}>
               <Animated.Text entering={FadeInUp.delay(200)} style={styles.title}>{item.title}</Animated.Text>
@@ -240,5 +270,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: Colors.light.white,
     letterSpacing: 1,
+  },
+  decorativeCircle: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
   },
 });

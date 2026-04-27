@@ -4,11 +4,13 @@ import { connectDB } from "./config/db";
 import { env } from "./config/env";
 import { ensureRedisConnection, isRedisEnabled } from "./config/redis";
 import { initSocket } from "./sockets";
+import { initFirebase } from "./config/firebase";
 import { initWorkers } from "./jobs/workers";
 import { initKeepAlive } from "./common/utils/cron";
 
 const bootstrap = async (): Promise<void> => {
   await connectDB();
+  initFirebase();
 
   const server = createServer(app);
   initSocket(server);

@@ -24,6 +24,7 @@ export interface IUser extends Document {
   status: UserStatus;
   refreshToken?: string | null;
   addresses: IAddress[];
+  fcmTokens: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -97,6 +98,10 @@ const userSchema = new Schema<IUser>(
     },
     addresses: {
       type: [addressSchema],
+      default: [],
+    },
+    fcmTokens: {
+      type: [String],
       default: [],
     },
   },

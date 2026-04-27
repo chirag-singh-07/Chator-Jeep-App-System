@@ -4,8 +4,13 @@ import { deliveryEvent, orderEvent } from "../../sockets/events";
 import { findRestaurantById } from "../restaurant/restaurant.repository";
 import { getOrderById, updateOrder } from "../order/order.repository";
 import { IUser, User } from "../user/user.model";
+import { Order } from "../order/order.model";
 import { creditDeliveryPartnerEarnings, getDeliveryWalletOverview } from "../wallet/wallet.service";
 import * as repo from "./delivery.repository";
+import { DeliveryPartner, IDeliveryPartner } from "./delivery.model";
+import { generateOTP } from "../../common/utils/otp.util";
+import { Types } from "mongoose";
+import { NotificationService } from "../notification/notification.service";
 
 const roundAmount = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 
@@ -206,7 +211,7 @@ const buildDeliveryPayload = async (delivery: any) => {
   };
 };
 
-export const assignNearestRiderToOrder = async (orderId: string) => {
+export const notifyRidersForOrder = async (orderId: string) => {
   const order = await getOrderById(orderId);
   if (!order) throw new AppError("Order not found", 404);
 
@@ -216,38 +221,135 @@ export const assignNearestRiderToOrder = async (orderId: string) => {
   ]);
   if (!restaurant) throw new AppError("Restaurant not found", 404);
 
-  const rider = await repo.findNearestAvailableRider(restaurant.location.coordinates);
-  if (!rider || !rider.riderId) throw new AppError("No available rider found", 404);
+  // Find all nearby online riders who are not on an order
+  const riders = await DeliveryPartner.find({
+    isAvailable: true,
+    isOnline: true,
+    status: "approved",
+    currentOrderId: null,
+    currentLocation: {
+      $near: {
+        $geometry: { type: "Point", coordinates: restaurant.location.coordinates },
+        $maxDistance: 5000 // 5km
+      }
+    }
+  }).limit(10).exec();
+
+  if (riders.length === 0) {
+    // Re-trigger or notify admin
+    return { notifiedCount: 0 };
+  }
 
   const pickupCoordinates = restaurant.location.coordinates as [number, number];
   const dropCoordinates = getDeliveryCoordinates(customer);
   const earnings = calculateDeliveryEarnings(pickupCoordinates, dropCoordinates);
 
-  const delivery = await repo.updateRiderAvailability(rider.riderId.toString(), {
-    orderId: order._id,
-    status: "ASSIGNED",
-    isAvailable: false,
-    acceptedAt: null,
-    pickedUpAt: null,
-    deliveredAt: null,
-    route: {
-      pickupAddress: formatRestaurantAddress(restaurant),
-      dropAddress: formatUserAddress(customer),
-      pickupCoordinates,
-      dropCoordinates,
-    },
-    earnings,
+  const requestPayload = {
+    orderId: order._id.toString(),
+    restaurantName: restaurant.name,
+    distanceKm: earnings.distanceKm,
+    earnings: earnings.estimatedAmount,
+    pickupAddress: formatRestaurantAddress(restaurant),
+    dropAddress: formatUserAddress(customer),
+    expiresIn: 30, // 30 seconds
+  };
+
+  riders.forEach(rider => {
+    deliveryEvent(`rider_${rider.userId.toString()}`, "delivery:request", requestPayload);
+    // ⚡ Send Push Notification
+    void NotificationService.sendToPartner(rider._id.toString(), {
+      title: "New Delivery Request!",
+      body: `New order near ${restaurant.name}. Earnings: ₹${earnings.estimatedAmount}`,
+      type: "NEW_DELIVERY_REQUEST",
+      data: requestPayload
+    });
   });
 
-  if (!delivery) throw new AppError("Unable to assign rider", 500);
+  return { notifiedCount: riders.length };
+};
 
-  await updateOrder(orderId, { deliveryId: delivery._id, status: ORDER_STATUS.OUT_FOR_DELIVERY });
+export const acceptOrderRequest = async (userId: string, orderId: string) => {
+  const order = await getOrderById(orderId);
+  if (!order) throw new AppError("Order not found", 404);
+  if (order.deliveryId) throw new AppError("Order already accepted by another rider", 400);
+
+  const partner = await repo.findDeliveryByRiderId(userId);
+  if (!partner) throw new AppError("Partner profile not found", 404);
+  if (partner.currentOrderId) throw new AppError("You are already handling an order", 400);
+
+  const [restaurant, customer] = await Promise.all([
+    findRestaurantById(order.restaurantId.toString()),
+    User.findById(order.userId).exec(),
+  ]);
+
+  const pickupCoordinates = restaurant?.location?.coordinates as [number, number];
+  const dropCoordinates = getDeliveryCoordinates(customer);
+  const earnings = calculateDeliveryEarnings(pickupCoordinates, dropCoordinates);
+
+  const delivery = await repo.updateRiderAvailability(userId, {
+    currentOrderId: order._id as any,
+    isAvailable: false,
+    acceptedAt: new Date(),
+    earnings: earnings as any,
+  });
+
+  if (!delivery) throw new AppError("Unable to accept order", 500);
+
+  await updateOrder(orderId, { deliveryId: delivery._id as any, status: ORDER_STATUS.ACCEPTED });
+  
   const payload = await buildDeliveryPayload(delivery);
-
-  emitDeliveryUpdate(getRelatedRooms(delivery, order), "delivery:assigned", payload);
-  orderEvent(`user_${order.userId.toString()}`, "delivery:assigned", payload);
+  emitDeliveryUpdate(getRelatedRooms(delivery, order), "delivery:accepted", payload);
+  
+  // ⚡ Notify Customer
+  void NotificationService.sendToCustomer(order.userId.toString(), {
+    title: "Delivery Partner Assigned",
+    body: `${partner.fullName} will be delivering your order.`,
+    type: "ORDER_ACCEPTED",
+    data: { orderId: orderId, partnerName: partner.fullName }
+  });
 
   return payload;
+};
+
+export const registerDeliveryPartner = async (userId: string, data: any) => {
+  const existing = await repo.findDeliveryByRiderId(userId);
+  if (existing) throw new AppError("Delivery partner already registered", 400);
+
+  const partner = await repo.createDeliveryPartner({
+    userId: new Types.ObjectId(userId) as any,
+    fullName: data.fullName,
+    phoneNumber: data.phoneNumber,
+    email: data.email,
+    profilePhoto: data.profilePhoto,
+    vehicleType: data.vehicleType,
+    drivingLicense: data.drivingLicense,
+    bankDetails: data.bankDetails,
+    status: "pending",
+    isOnline: false,
+    isAvailable: false,
+  });
+
+  return partner;
+};
+
+export const getDeliveryPartnerProfile = async (userId: string) => {
+  const partner = await repo.findDeliveryByRiderId(userId);
+  if (!partner) throw new AppError("Delivery partner not found", 404);
+  return partner;
+};
+
+export const updatePartnerStatus = async (partnerId: string, status: string, remarks?: string) => {
+  const partner = await DeliveryPartner.findByIdAndUpdate(
+    partnerId,
+    { status, adminRemarks: remarks },
+    { new: true }
+  );
+  if (!partner) throw new AppError("Partner not found", 404);
+  return partner;
+};
+
+export const listAllPartners = async () => {
+  return DeliveryPartner.find().sort({ createdAt: -1 });
 };
 
 export const listAssignedOrders = async (riderId: string) => {
@@ -257,7 +359,8 @@ export const listAssignedOrders = async (riderId: string) => {
 
 export const getAssignedOrderDetail = async (riderId: string, orderId: string) => {
   const delivery = await repo.findDeliveryByOrderId(orderId);
-  if (!delivery || delivery.riderId.toString() !== riderId) {
+  const deliveryUserId = (delivery?.riderId || delivery?.userId)?.toString();
+  if (!delivery || deliveryUserId !== riderId) {
     throw new AppError("Delivery not found", 404);
   }
 
@@ -266,7 +369,8 @@ export const getAssignedOrderDetail = async (riderId: string, orderId: string) =
 
 export const acceptAssignedOrder = async (riderId: string, orderId: string) => {
   const delivery = await repo.findDeliveryByOrderId(orderId);
-  if (!delivery || delivery.riderId.toString() !== riderId) {
+  const deliveryUserId = (delivery?.riderId || delivery?.userId)?.toString();
+  if (!delivery || deliveryUserId !== riderId) {
     throw new AppError("Delivery not found", 404);
   }
 
@@ -355,9 +459,9 @@ export const updateAvailability = async (
   return response;
 };
 
-export const updateDeliveryStatus = async (riderId: string, orderId: string, status: "PICKED_UP" | "DELIVERED") => {
+export const updateDeliveryStatus = async (riderId: string, orderId: string, status: string, otp?: string) => {
   const delivery = await repo.findDeliveryByOrderId(orderId);
-  if (!delivery || delivery.riderId.toString() !== riderId) throw new AppError("Delivery not found", 404);
+  if (!delivery || delivery.userId.toString() !== riderId) throw new AppError("Delivery not found", 404);
 
   const order = await getOrderById(orderId);
   if (!order) {
@@ -365,62 +469,97 @@ export const updateDeliveryStatus = async (riderId: string, orderId: string, sta
   }
 
   if (status === "PICKED_UP") {
+    const deliveryOtp = generateOTP(4);
+    await updateOrder(orderId, { status: ORDER_STATUS.PICKED_UP, deliveryOtp });
+    
     const updated = await repo.updateDeliveryByOrder(orderId, {
-      status,
       pickedUpAt: new Date(),
-      acceptedAt: delivery.acceptedAt ?? new Date(),
     });
 
-    if (!updated) {
-      throw new AppError("Unable to update delivery status", 400);
-    }
+    if (!updated) throw new AppError("Unable to update delivery status", 400);
 
     const payload = await buildDeliveryPayload(updated);
     emitDeliveryUpdate(getRelatedRooms(updated, order), "delivery:status_update", payload);
-    orderEvent(`user_${order.userId.toString()}`, "order:status_update", payload);
+    
+    // ⚡ Notify Customer
+    void NotificationService.sendToCustomer(order.userId.toString(), {
+      title: "Order Picked Up",
+      body: "Your order is on the way!",
+      type: "ORDER_PICKED_UP",
+      data: { orderId: orderId, deliveryOtp }
+    });
+
+    return { ...payload, deliveryOtp };
+  }
+
+  if (status === "ARRIVED") {
+    await updateOrder(orderId, { status: ORDER_STATUS.ARRIVED });
+    const updated = await repo.updateDeliveryByOrder(orderId, {});
+    const payload = await buildDeliveryPayload(updated!);
+    emitDeliveryUpdate(getRelatedRooms(updated!, order), "delivery:status_update", payload);
+    
+    // ⚡ Notify Customer
+    void NotificationService.sendToCustomer(order.userId.toString(), {
+      title: "Delivery Partner Arrived",
+      body: "Your delivery partner has arrived at your location.",
+      type: "DELIVERY_ARRIVED",
+      data: { orderId: orderId }
+    });
+
     return payload;
   }
 
-  const completed = await repo.updateDeliveryByOrder(orderId, {
-    status,
-    deliveredAt: new Date(),
-    pickedUpAt: delivery.pickedUpAt ?? new Date(),
-    acceptedAt: delivery.acceptedAt ?? new Date(),
-    isAvailable: true,
-  });
+  if (status === "COMPLETED") {
+    // Verify OTP
+    const orderWithOtp = await Order.findById(orderId).select("+deliveryOtp");
+    if (!orderWithOtp) throw new AppError("Order not found", 404);
+    if (orderWithOtp.deliveryOtp !== otp) throw new AppError("Invalid Delivery OTP", 400);
 
-  if (!completed) {
-    throw new AppError("Unable to update delivery status", 400);
+    const completed = await repo.updateDeliveryByOrder(orderId, {
+      deliveredAt: new Date(),
+      isAvailable: true,
+      currentOrderId: null,
+    });
+
+    if (!completed) throw new AppError("Unable to complete delivery", 400);
+
+    await updateOrder(orderId, { status: ORDER_STATUS.COMPLETED });
+    
+    // Credit earnings
+    await creditDeliveryPartnerEarnings({
+      riderId,
+      amount: completed.earnings?.finalAmount ?? 0,
+      orderId,
+      description: "Delivery earnings credited",
+      metadata: {
+        distanceKm: completed.earnings?.distanceKm ?? 0,
+        orderTotal: order.totalAmount,
+      },
+    });
+
+    // ⚡ Credit Restaurant Wallet
+    try {
+      const { addEarningsToRestaurant } = await import("../restaurant/restaurant.service");
+      await addEarningsToRestaurant(order.restaurantId.toString(), order.totalAmount);
+    } catch (e) {
+      console.error("Failed to credit restaurant wallet from delivery service:", e);
+    }
+
+    const payload = await buildDeliveryPayload(completed);
+    emitDeliveryUpdate(getRelatedRooms(completed, order), "delivery:status_update", payload);
+    
+    // ⚡ Notify Customer
+    void NotificationService.sendToCustomer(order.userId.toString(), {
+      title: "Order Delivered",
+      body: "Enjoy your meal!",
+      type: "ORDER_DELIVERED",
+      data: { orderId: orderId }
+    });
+
+    return payload;
   }
 
-  await updateOrder(orderId, { status: ORDER_STATUS.DELIVERED });
-  await creditDeliveryPartnerEarnings({
-    riderId,
-    amount: completed.earnings?.finalAmount ?? 0,
-    orderId,
-    description: "Delivery earnings credited",
-    metadata: {
-      distanceKm: completed.earnings?.distanceKm ?? 0,
-      orderTotal: order.totalAmount,
-    },
-  });
-
-  const payload = await buildDeliveryPayload(completed);
-  emitDeliveryUpdate(getRelatedRooms(completed, order), "delivery:status_update", payload);
-  orderEvent(`user_${order.userId.toString()}`, "order:status_update", payload);
-
-  await repo.resetRiderAfterDelivery(riderId, {
-    orderId: null,
-    status: "AVAILABLE",
-    isAvailable: true,
-    acceptedAt: null,
-    pickedUpAt: null,
-    deliveredAt: null,
-    route: null,
-    earnings: null,
-  });
-
-  return payload;
+  throw new AppError("Invalid status transition", 400);
 };
 
 export const updateMyLocation = async (riderId: string, coordinates: [number, number]) => {

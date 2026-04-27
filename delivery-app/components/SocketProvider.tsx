@@ -38,15 +38,29 @@ export function SocketProvider({ children }: PropsWithChildren) {
       socket.emit("join", `rider_${user.id}`);
     });
 
+    const setActiveRequest = useDeliveryStore.getState().setActiveRequest;
+
+    socket.on("delivery:request", (payload: any) => {
+      setActiveRequest(payload);
+    });
+
     socket.on("delivery:assigned", (payload: any) => {
       mergeRealtimeDelivery(payload);
-      Alert.alert("New delivery assigned", `${payload.restaurant?.name ?? "A restaurant"} has a new order for you.`);
+      Alert.alert("Order assigned", "You have been assigned to an order.");
     });
-    socket.on("delivery:accepted", mergeRealtimeDelivery);
+    
+    socket.on("delivery:accepted", (payload: any) => {
+      mergeRealtimeDelivery(payload);
+      setActiveRequest(null); // Clear the request modal if open
+    });
     socket.on("delivery:status_update", mergeRealtimeDelivery);
     socket.on("delivery:location_update", () => undefined);
     socket.on("delivery:payout_updated", () => {
       void fetchWalletOverview();
+    });
+
+    socket.on("notification", (data: any) => {
+      console.log("Real-time notification:", data);
     });
 
     return () => {

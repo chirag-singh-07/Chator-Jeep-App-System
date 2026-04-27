@@ -1,15 +1,22 @@
 import { Router } from "express";
-import * as controller from "./notification.controller";
 import { authMiddleware } from "../../common/middleware/auth.middleware";
-import { roleMiddleware } from "../../common/middleware/role.middleware";
-import { ROLES } from "../../common/constants/roles";
+import * as ctrl from "./notification.controller";
 
 const router = Router();
 
-router.get("/info", controller.info);
+/** PATCH /api/v1/notifications/fcm-token - Update FCM token for current user */
+router.patch("/fcm-token", authMiddleware, ctrl.updateFcmToken);
 
-// Admin Broadcast routes
-router.post("/broadcast", authMiddleware, roleMiddleware([ROLES.ADMIN]), controller.broadcast);
-router.get("/broadcast/history", authMiddleware, roleMiddleware([ROLES.ADMIN]), controller.getBroadcastHistory);
+/** GET /api/v1/notifications - Get notification history */
+router.get("/", authMiddleware, ctrl.getNotifications);
+
+/** PATCH /api/v1/notifications/:id/read - Mark notification as read */
+router.patch("/:id/read", authMiddleware, ctrl.markAsRead);
+
+/** POST /api/v1/notifications/broadcast - Send broadcast (Admin only) */
+router.post("/broadcast", authMiddleware, ctrl.broadcastNotification);
+
+/** GET /api/v1/notifications/broadcast/history - Get broadcast history */
+router.get("/broadcast/history", authMiddleware, ctrl.getBroadcastHistory);
 
 export default router;

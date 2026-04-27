@@ -182,3 +182,37 @@ export const updateMenuItemStock = asyncHandler(
     res.status(200).json({ success: true, data: item });
   },
 );
+
+export const listRestaurants = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await service.listRestaurants(req.query as any);
+    res.status(200).json({ success: true, ...result });
+  },
+);
+
+export const getRestaurant = asyncHandler(
+  async (req: Request, res: Response) => {
+    const restaurant = await service.adminGetRestaurant(
+      req.params.id as string,
+    );
+    res.status(200).json({ success: true, data: restaurant });
+  },
+);
+
+export const createReview = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { restaurantId, orderId, rating, comment } = req.body;
+    if (!restaurantId || !rating) {
+      return res.status(400).json({ success: false, message: "restaurantId and rating are required" });
+    }
+    const review = await service.createReview({
+      userId: req.user!.userId,
+      restaurantId,
+      orderId,
+      rating,
+      comment,
+    });
+    res.status(201).json({ success: true, data: review });
+  },
+);
+

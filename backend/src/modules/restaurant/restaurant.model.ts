@@ -63,6 +63,7 @@ export interface IRestaurant extends Document {
   };
   walletBalance: number;
   totalEarnings: number;
+  fcmTokens: string[];
 }
 
 // ─── Schema ────────────────────────────────────────────────────────────────────
@@ -133,6 +134,7 @@ const restaurantSchema = new Schema<IRestaurant>(
     },
     walletBalance: { type: Number, default: 0 },
     totalEarnings: { type: Number, default: 0 },
+    fcmTokens: { type: [String], default: [] },
   },
   { timestamps: true }
 );
