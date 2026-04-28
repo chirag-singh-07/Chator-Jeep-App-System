@@ -51,9 +51,10 @@ function DropdownMenuTrigger({
     );
   }
 
-  return React.cloneElement(children as React.ReactElement<{ onClick?: () => void }>, {
+  return React.cloneElement(children as React.ReactElement<any>, {
     onClick: (e: React.MouseEvent) => {
       e.stopPropagation();
+      (children.props as any).onClick?.(e);
       setOpen(true);
     }
   });
