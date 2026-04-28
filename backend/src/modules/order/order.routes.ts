@@ -29,17 +29,7 @@ router.get("/wallet", authMiddleware, roleMiddleware([ROLES.USER]), controller.g
 /** GET /api/v1/orders/wallet/transactions — User wallet history */
 router.get("/wallet/transactions", authMiddleware, roleMiddleware([ROLES.USER]), controller.getWalletTransactions);
 
-/** GET /api/v1/orders/:orderId — Order detail */
-router.get("/:orderId", authMiddleware, controller.getOrderDetail);
 
-/** DELETE /api/v1/orders/:orderId — Cancel order */
-router.delete("/:orderId", authMiddleware, roleMiddleware([ROLES.USER]), controller.cancelOrder);
-
-/** POST /api/v1/orders/:orderId/payment — Initiate Razorpay payment */
-router.post("/:orderId/payment", authMiddleware, roleMiddleware([ROLES.USER]), controller.initiatePayment);
-
-/** POST /api/v1/orders/:orderId/payment/verify — Verify Razorpay payment */
-router.post("/:orderId/payment/verify", authMiddleware, roleMiddleware([ROLES.USER]), controller.verifyPayment);
 
 // ─── Restaurant / Admin Routes ─────────────────────────────────────────────────
 
@@ -59,5 +49,17 @@ router.patch(
   validate(updateOrderStatusSchema),
   controller.updateStatus
 );
+
+/** GET /api/v1/orders/:orderId — Order detail */
+router.get("/:orderId", authMiddleware, controller.getOrderDetail);
+
+/** DELETE /api/v1/orders/:orderId — Cancel order */
+router.delete("/:orderId", authMiddleware, roleMiddleware([ROLES.USER]), controller.cancelOrder);
+
+/** POST /api/v1/orders/:orderId/payment — Initiate Razorpay payment */
+router.post("/:orderId/payment", authMiddleware, roleMiddleware([ROLES.USER]), controller.initiatePayment);
+
+/** POST /api/v1/orders/:orderId/payment/verify — Verify Razorpay payment */
+router.post("/:orderId/payment/verify", authMiddleware, roleMiddleware([ROLES.USER]), controller.verifyPayment);
 
 export default router;

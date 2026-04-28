@@ -9,8 +9,7 @@ const router = Router();
 /** GET /api/v1/restaurants - List all active restaurants */
 router.get("/", ctrl.listRestaurants);
 
-/** GET /api/v1/restaurants/:id - Get restaurant details */
-router.get("/:id", ctrl.getRestaurant);
+
 
 /** POST /api/v1/restaurants/reviews - Submit a review */
 router.post("/reviews", authMiddleware, ctrl.createReview);
@@ -86,8 +85,7 @@ router.patch(
   ctrl.updateMyOpenStatus
 );
 
-/** GET /api/v1/restaurants/:restaurantId/menu - Public menu for a restaurant */
-router.get("/:restaurantId/menu", ctrl.listRestaurantMenu);
+
 
 // Admin Routes
 /** GET /api/v1/restaurants/admin/all - List all restaurants with filters */
@@ -137,5 +135,11 @@ router.patch(
   roleMiddleware(["ADMIN"]),
   ctrl.adminFlag
 );
+
+/** GET /api/v1/restaurants/:id - Get restaurant details */
+router.get("/:id", ctrl.getRestaurant);
+
+/** GET /api/v1/restaurants/:restaurantId/menu - Public menu for a restaurant */
+router.get("/:restaurantId/menu", ctrl.listRestaurantMenu);
 
 export default router;
