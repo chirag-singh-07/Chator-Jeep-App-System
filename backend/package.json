@@ -10,6 +10,7 @@
     "start": "node dist/server.js",
     "test": "vitest run",
     "seed:categories": "ts-node-dev --transpile-only --no-notify src/scripts/seed-categories.ts",
+    "seed:restaurants": "ts-node-dev --transpile-only --no-notify src/scripts/seed-restaurants.ts",
     "create:admin": "ts-node-dev --transpile-only --no-notify src/scripts/create-admin.ts",
     "verify:admin": "ts-node-dev --transpile-only --no-notify src/scripts/verify-admin.ts",
     "rename:admin-email": "ts-node-dev --transpile-only --no-notify src/scripts/rename-admin-email.ts"

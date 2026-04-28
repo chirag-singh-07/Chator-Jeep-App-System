@@ -1,25 +1,6 @@
-To test both the Foreground Screen Alerts (while the app is open) and the Background/Killed Output, I've set up two testing mechanisms for you:
+for test restaurant
 
-1. Test the UI, Audio, & Vibration (Foreground)
-I have just added a "Test Incoming Order Alarm" button right on the Profile (Settings) tab inside your app.
+User: owner.burger@gmail.com (or owner.pizza@gmail.com / owner.sushi@gmail.com)
+Password: password123
 
-Open the App in your Expo Go / Emulator.
-Navigate to the Settings tab.
-Click the blue Test Incoming Order Alarm button.
-The alarm should immediately go off, vibrate the device, and block the screen with the Accept/Reject full-screen modal!
-(Hitting Accept or Reject will immediately kill the vibration and looping audio).
 
-2. Test the Native Push Notifications (Background & Killed States)
-To test how the system reacts when the phone is locked or the app is completely closed:
-
-In your Node/Backend console, you'll see a log line that looks like FCM/Device Push Token: ExponentPushToken[xxxxxxx] when the app starts up. Copy this token.
-Go to the official Expo Push Tool: https://expo.dev/notifications
-Paste your token into the box.
-In the Message Data (JSON) box at the bottom, paste this exact payload:
-json
-{
-  "orderId": "mock_test_123"
-}
-Lock your phone or close the app entirely.
-Hit Send Notification on the web tool.
-Within 1 second, your locked phone should receive a MAX priority alert that forces a loud notification popup, bypassing normal silent configurations!

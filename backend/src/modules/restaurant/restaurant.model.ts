@@ -147,6 +147,7 @@ export const Restaurant = models.Restaurant || model<IRestaurant>("Restaurant", 
 export interface IAddOn {
   name: string;
   price: number;
+  imageUrl?: string;
 }
 
 export interface IMenuVariant {
@@ -232,6 +233,7 @@ const menuItemSchema = new Schema<IMenuItem>(
       {
         name: { type: String, required: true },
         price: { type: Number, required: true, min: 0 },
+        imageUrl: { type: String },
       },
     ],
   },
