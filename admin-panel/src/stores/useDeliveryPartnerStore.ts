@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { apiClient } from "@/lib/api";
+import { apiClient } from "@/lib/api-client";
 
 export type PartnerStatus = "pending" | "approved" | "rejected" | "blocked";
 

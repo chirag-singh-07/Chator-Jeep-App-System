@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "160634269949",
+    "project_id": "food-order-system-a9245",
+    "storage_bucket": "food-order-system-a9245.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:160634269949:android:2317837bd3fe139e944e94",
+        "android_client_info": {
+          "package_name": "com.chatorijeep.deliveryapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACsSvjuWaOZsvaAohkZXmfwXff2_e4hKE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:160634269949:android:f0fcb948de283568944e94",
+        "android_client_info": {
+          "package_name": "com.chatorijeep.restaurantapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACsSvjuWaOZsvaAohkZXmfwXff2_e4hKE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:160634269949:android:692ca42bd49c2374944e94",
+        "android_client_info": {
+          "package_name": "com.chatorijeep.userapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACsSvjuWaOZsvaAohkZXmfwXff2_e4hKE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

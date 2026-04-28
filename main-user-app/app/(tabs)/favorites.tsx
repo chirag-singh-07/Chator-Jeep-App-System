@@ -75,7 +75,7 @@ export default function FavoritesScreen() {
             <Ionicons name="heart-outline" size={80} color="#EEE" />
             <Text style={styles.emptyText}>No favorites yet</Text>
             <Text style={styles.emptySub}>Start exploring and like some restaurants!</Text>
-          </TouchableOpacity>
+          </View>
         }
       />
     </SafeAreaView>
