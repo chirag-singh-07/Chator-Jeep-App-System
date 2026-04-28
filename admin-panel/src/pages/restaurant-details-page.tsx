@@ -43,11 +43,11 @@ export function RestaurantDetailsPage() {
               <StatusBadge value={restaurant.status} />
               <StatusBadge
                 value={
-                  restaurant.type === "requested"
+                  restaurant.type === "REQUESTED"
                     ? "Pending"
-                    : restaurant.type === "flagged"
+                    : restaurant.type === "FLAGGED"
                       ? "Inactive"
-                      : restaurant.type === "closed"
+                      : restaurant.type === "CLOSED"
                         ? "Closed"
                         : "Open"
                 }

@@ -20,6 +20,8 @@ export function AddonsPage() {
   const [addons, setAddons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
 
   useEffect(() => {
     fetchAddons();
@@ -130,6 +132,9 @@ export function AddonsPage() {
           description="Monitoring all customization logic defined by partners."
           columns={columns}
           rows={filteredAddons}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
           emptyTitle="No Customization Found"
           emptyDescription="Currently no addons are registered in the system."
           className="border-0 shadow-none bg-transparent"

@@ -33,7 +33,7 @@ function DropdownMenuTrigger({
   children
 }: {
   asChild?: boolean;
-  children: React.ReactElement<{ onClick?: () => void }>;
+  children: React.ReactElement<{ onClick?: (e: React.MouseEvent) => void }>;
 }) {
   const { setOpen } = useDropdownContext();
 
