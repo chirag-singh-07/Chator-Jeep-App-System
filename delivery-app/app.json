@@ -7,7 +7,7 @@
     "icon": "./assets/icons/ios-icon-1024x1024.png",
     "scheme": "deliveryapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
       "infoPlist": {

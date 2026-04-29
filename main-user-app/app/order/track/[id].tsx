@@ -108,7 +108,7 @@ export default function OrderTrackingScreen() {
                     ]}>{step.title}</Text>
                     <Text style={styles.timelineTime}>{step.time}</Text>
                   </View>
-                </Animated.View>
+                </View>
               ))}
            </View>
            

@@ -9,6 +9,7 @@ export interface IOrderItemSnapshot {
 }
 
 export type PaymentMethod = "COD" | "ONLINE" | "WALLET" | "PARTIAL_WALLET";
+export type PaymentGateway = "PHONEPE" | "RAZORPAY" | null;
 
 export interface IOrder extends Document {
   userId: Types.ObjectId;
@@ -24,6 +25,9 @@ export interface IOrder extends Document {
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   paymentMethod: PaymentMethod;
+  paymentGateway?: PaymentGateway;
+  phonepeMerchantOrderId?: string;
+  phonepeTransactionId?: string;
   razorpayOrderId?: string;
   razorpayPaymentId?: string;
   walletAmountUsed?: number;
@@ -68,6 +72,13 @@ const orderSchema = new Schema<IOrder>(
       enum: ["COD", "ONLINE", "WALLET", "PARTIAL_WALLET"],
       default: "COD"
     },
+    paymentGateway: {
+      type: String,
+      enum: ["PHONEPE", "RAZORPAY", null],
+      default: null
+    },
+    phonepeMerchantOrderId: { type: String, default: null },
+    phonepeTransactionId: { type: String, default: null },
     razorpayOrderId: { type: String, default: null },
     razorpayPaymentId: { type: String, default: null },
     walletAmountUsed: { type: Number, default: 0 },

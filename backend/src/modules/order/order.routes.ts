@@ -56,8 +56,11 @@ router.get("/:orderId", authMiddleware, controller.getOrderDetail);
 /** DELETE /api/v1/orders/:orderId — Cancel order */
 router.delete("/:orderId", authMiddleware, roleMiddleware([ROLES.USER]), controller.cancelOrder);
 
-/** POST /api/v1/orders/:orderId/payment — Initiate Razorpay payment */
+/** POST /api/v1/orders/:orderId/payment — Initiate PhonePe payment */
 router.post("/:orderId/payment", authMiddleware, roleMiddleware([ROLES.USER]), controller.initiatePayment);
+
+/** GET /api/v1/orders/:orderId/payment/status — Poll PhonePe payment status */
+router.get("/:orderId/payment/status", authMiddleware, roleMiddleware([ROLES.USER]), controller.getPaymentStatus);
 
 /** POST /api/v1/orders/:orderId/payment/verify — Verify Razorpay payment */
 router.post("/:orderId/payment/verify", authMiddleware, roleMiddleware([ROLES.USER]), controller.verifyPayment);

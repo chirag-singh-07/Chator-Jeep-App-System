@@ -1,7 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  StyleSheet, View, Text, ScrollView, TouchableOpacity,
-  SafeAreaView, StatusBar, ActivityIndicator, Alert, Switch,
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  SafeAreaView,
+  StatusBar,
+  ActivityIndicator,
+  Alert,
+  Switch,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
@@ -12,12 +20,11 @@ import { useOrderStore } from '@/store/useOrderStore';
 import { useWalletStore } from '@/store/useWalletStore';
 import Animated, { FadeInRight } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import api from '@/lib/api';
 
-// NOTE: react-native-razorpay is a native module — ensure it is linked in android/ios.
-// For Expo bare/managed, use the package directly after expo prebuild.
-let RazorpayCheckout: any = null;
-try { RazorpayCheckout = require('react-native-razorpay').default; } catch {}
+WebBrowser.maybeCompleteAuthSession();
 
 type PaymentMethod = 'COD' | 'ONLINE' | 'WALLET' | 'PARTIAL_WALLET';
 
@@ -41,17 +48,39 @@ export default function CheckoutScreen() {
   const walletDeductable = Math.min(balance, grandTotal);
   const remainingAfterWallet = grandTotal - walletDeductable;
 
-  useEffect(() => { fetchBalance(); }, []);
+  useEffect(() => {
+    fetchBalance();
+  }, [fetchBalance]);
 
-  // Auto-select wallet if full coverage
   const effectivePaymentMethod: PaymentMethod =
-    paymentMethod === 'WALLET' ? 'WALLET' :
-    paymentMethod === 'ONLINE' && useWalletPartial && walletDeductable > 0 ? 'PARTIAL_WALLET' :
-    paymentMethod;
+    paymentMethod === 'WALLET'
+      ? 'WALLET'
+      : paymentMethod === 'ONLINE' && useWalletPartial && walletDeductable > 0
+        ? 'PARTIAL_WALLET'
+        : paymentMethod;
+
+  const pollPhonePeStatus = async (orderId: string) => {
+    let lastStatus: any = null;
+
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const res = await api.get(`/orders/${orderId}/payment/status`);
+      lastStatus = res.data?.data;
+
+      if (lastStatus?.paymentStatus === 'PAID' || lastStatus?.providerState === 'FAILED') {
+        break;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
+
+    return lastStatus;
+  };
 
   const handlePlaceOrder = async () => {
+    let createdOrderId: string | null = null;
+
     if (!selectedAddress) {
-      Alert.alert("Error", "Please select a delivery address");
+      Alert.alert('Error', 'Please select a delivery address');
       return;
     }
 
@@ -61,72 +90,67 @@ export default function CheckoutScreen() {
     try {
       const baseOrderData = {
         restaurantId,
-        items: items.map(i => ({ menuItemId: i.id, quantity: i.quantity })),
+        items: items.map((item) => ({ menuItemId: item.id, quantity: item.quantity })),
         deliveryAddress: `${selectedAddress.label || selectedAddress.type || 'Address'}: ${selectedAddress.line1 || selectedAddress.flat}, ${selectedAddress.city || selectedAddress.area}`,
-        location: { type: "Point", coordinates: selectedAddress.coordinates ? [selectedAddress.coordinates.longitude, selectedAddress.coordinates.latitude] : [77.1025, 28.7041] },
+        location: {
+          type: 'Point',
+          coordinates: selectedAddress.coordinates
+            ? [selectedAddress.coordinates.longitude, selectedAddress.coordinates.latitude]
+            : [77.1025, 28.7041],
+        },
         paymentMethod: effectivePaymentMethod,
         useWalletAmount: effectivePaymentMethod === 'PARTIAL_WALLET' ? walletDeductable : undefined,
       };
 
-      // ── Razorpay flow ────────────────────────────────────────────────────
       if (effectivePaymentMethod === 'ONLINE' || effectivePaymentMethod === 'PARTIAL_WALLET') {
-        // 1. Place order (creates DB entry, deducts wallet if PARTIAL)
         const order = await placeOrder(baseOrderData);
         const orderId = order._id || order.id;
+        createdOrderId = orderId;
 
-        // 2. Initiate Razorpay order from backend
-        const payRes = await api.post(`/orders/${orderId}/payment`);
-        const { razorpayOrderId, amount, currency, key } = payRes.data.data;
+        const returnUrl = Linking.createURL('/payment-status');
+        const payRes = await api.post(`/orders/${orderId}/payment`, { redirectUrl: returnUrl });
+        const { checkoutUrl } = payRes.data.data;
 
-        if (!RazorpayCheckout || !key) {
-          // Fallback if Razorpay not linked (dev only)
-          Alert.alert("Dev Mode", "Razorpay not linked. Order placed, payment pending.");
-          clearCart();
-          router.push(`/order-tracking/${orderId}`);
-          return;
+        if (!checkoutUrl) {
+          throw new Error('PhonePe checkout URL is missing.');
         }
 
-        // 3. Open Razorpay SDK checkout
-        const options = {
-          description: 'Food Order Payment',
-          image: 'https://your-logo-url.png',
-          currency,
-          key,
-          amount: amount * 100,
-          name: 'Chator Jeep',
-          order_id: razorpayOrderId,
-          prefill: { email: '', contact: '' },
-          theme: { color: Colors.light.primary },
-        };
-
-        const rzpData = await RazorpayCheckout.open(options);
-
-        // 4. Verify on backend
-        await api.post(`/orders/${orderId}/payment/verify`, {
-          razorpayOrderId: rzpData.razorpay_order_id,
-          razorpayPaymentId: rzpData.razorpay_payment_id,
-          razorpaySignature: rzpData.razorpay_signature,
-        });
+        await WebBrowser.openAuthSessionAsync(checkoutUrl, returnUrl);
+        const paymentStatus = await pollPhonePeStatus(orderId);
 
         clearCart();
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        if (paymentStatus?.paymentStatus === 'PAID') {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } else {
+          Alert.alert(
+            'Payment Pending',
+            'Your order was created, but PhonePe has not confirmed the payment yet. You can keep tracking the order from the app.'
+          );
+        }
+
         router.push(`/order-tracking/${orderId}`);
         return;
       }
 
-      // ── COD / Full Wallet flow ───────────────────────────────────────────
       const order = await placeOrder(baseOrderData);
       const orderId = order._id || order.id;
       clearCart();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.push(`/order-tracking/${orderId}`);
-
     } catch (error: any) {
-      const msg = error?.response?.data?.message || error?.message || "Something went wrong";
-      if (msg.includes('cancelled') || error?.code === 'PAYMENT_CANCELLED') {
-        Alert.alert("Payment Cancelled", "Your payment was cancelled.");
+      const msg = error?.response?.data?.message || error?.message || 'Something went wrong';
+
+      if (createdOrderId && (effectivePaymentMethod === 'ONLINE' || effectivePaymentMethod === 'PARTIAL_WALLET')) {
+        clearCart();
+        Alert.alert(
+          'Payment Pending',
+          'Your order was created, but the PhonePe payment flow did not finish inside the app. You can track the order status from your orders screen.'
+        );
+        router.push(`/order-tracking/${createdOrderId}`);
+      } else if (msg.includes('cancelled') || error?.code === 'PAYMENT_CANCELLED') {
+        Alert.alert('Payment Cancelled', 'Your payment was cancelled.');
       } else {
-        Alert.alert("Order Failed", msg);
+        Alert.alert('Order Failed', msg);
       }
     } finally {
       setIsProcessing(false);
@@ -140,13 +164,12 @@ export default function CheckoutScreen() {
       <StatusBar barStyle="dark-content" />
       <SafeAreaView style={styles.safeHeader}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => step > 1 ? setStep(s => s - 1) : router.back()} style={styles.backBtn}>
-            <Ionicons name={step > 1 ? "arrow-back" : "close"} size={22} color={Colors.light.text} />
+          <TouchableOpacity onPress={() => (step > 1 ? setStep((value) => value - 1) : router.back())} style={styles.backBtn}>
+            <Ionicons name={step > 1 ? 'arrow-back' : 'close'} size={22} color={Colors.light.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Checkout</Text>
           <View style={{ width: 40 }} />
         </View>
-        {/* Step indicator */}
         <View style={styles.stepIndicator}>
           <View style={[styles.stepDot, step >= 1 && styles.stepDotActive]} />
           <View style={[styles.stepLine, step >= 2 && styles.stepLineActive]} />
@@ -155,24 +178,37 @@ export default function CheckoutScreen() {
       </SafeAreaView>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-
-        {/* ── STEP 1: Address ─────────────────────────────── */}
         {step === 1 ? (
           <Animated.View entering={FadeInRight} style={styles.stepContent}>
             <Text style={styles.sectionTitle}>Delivery Address</Text>
             {savedAddresses.length > 0 ? (
-              savedAddresses.map((addr: any, i: number) => (
+              savedAddresses.map((addr: any, index: number) => (
                 <TouchableOpacity
-                  key={i}
+                  key={index}
                   style={[styles.addressCard, selectedAddress?.label === addr.label && styles.selectedCard]}
-                  onPress={() => { setSelectedAddress(addr); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+                  onPress={() => {
+                    setSelectedAddress(addr);
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }}
                 >
                   <View style={styles.addressIcon}>
-                    <Ionicons name={(addr.label || addr.type) === 'Home' ? "home" : (addr.label || addr.type) === 'Work' ? "briefcase" : "location"} size={20} color={(selectedAddress?.label || selectedAddress?.type) === (addr.label || addr.type) ? Colors.light.primary : "#999"} />
+                    <Ionicons
+                      name={
+                        (addr.label || addr.type) === 'Home'
+                          ? 'home'
+                          : (addr.label || addr.type) === 'Work'
+                            ? 'briefcase'
+                            : 'location'
+                      }
+                      size={20}
+                      color={(selectedAddress?.label || selectedAddress?.type) === (addr.label || addr.type) ? Colors.light.primary : '#999'}
+                    />
                   </View>
                   <View style={{ flex: 1, marginLeft: 15 }}>
                     <Text style={styles.addressType}>{addr.label || addr.type}</Text>
-                    <Text style={styles.addressText} numberOfLines={2}>{addr.line1 || addr.flat}, {addr.city || addr.area}</Text>
+                    <Text style={styles.addressText} numberOfLines={2}>
+                      {addr.line1 || addr.flat}, {addr.city || addr.area}
+                    </Text>
                   </View>
                   {(selectedAddress?.label || selectedAddress?.type) === (addr.label || addr.type) && (
                     <Ionicons name="checkmark-circle" size={22} color={Colors.light.primary} />
@@ -189,19 +225,19 @@ export default function CheckoutScreen() {
               </View>
             )}
           </Animated.View>
-
         ) : (
-          /* ── STEP 2: Payment ─────────────────────────────── */
           <Animated.View entering={FadeInRight} style={styles.stepContent}>
             <Text style={styles.sectionTitle}>Payment Method</Text>
 
-            {/* COD */}
             <TouchableOpacity
               style={[styles.paymentCard, paymentMethod === 'COD' && styles.selectedCard]}
-              onPress={() => { setPaymentMethod('COD'); setUseWalletPartial(false); }}
+              onPress={() => {
+                setPaymentMethod('COD');
+                setUseWalletPartial(false);
+              }}
             >
               <View style={styles.paymentIconBox}>
-                <Ionicons name="cash-outline" size={22} color={paymentMethod === 'COD' ? Colors.light.primary : "#888"} />
+                <Ionicons name="cash-outline" size={22} color={paymentMethod === 'COD' ? Colors.light.primary : '#888'} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.paymentTitle}>Cash on Delivery</Text>
@@ -210,42 +246,39 @@ export default function CheckoutScreen() {
               <View style={styles.radio}>{paymentMethod === 'COD' && <View style={styles.radioInner} />}</View>
             </TouchableOpacity>
 
-            {/* Online (Razorpay) */}
             <TouchableOpacity
               style={[styles.paymentCard, paymentMethod === 'ONLINE' && styles.selectedCard]}
               onPress={() => setPaymentMethod('ONLINE')}
             >
               <View style={styles.paymentIconBox}>
-                <Ionicons name="card-outline" size={22} color={paymentMethod === 'ONLINE' ? Colors.light.primary : "#888"} />
+                <Ionicons name="phone-portrait-outline" size={22} color={paymentMethod === 'ONLINE' ? Colors.light.primary : '#888'} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.paymentTitle}>Pay Online</Text>
-                <Text style={styles.paymentSub}>UPI, Cards, Net Banking (Razorpay)</Text>
+                <Text style={styles.paymentTitle}>PhonePe</Text>
+                <Text style={styles.paymentSub}>UPI, cards and net banking via PhonePe</Text>
               </View>
               <View style={styles.radio}>{paymentMethod === 'ONLINE' && <View style={styles.radioInner} />}</View>
             </TouchableOpacity>
 
-            {/* Wallet (Full) */}
             <TouchableOpacity
               style={[styles.paymentCard, paymentMethod === 'WALLET' && styles.selectedCard, !canAffordWithWallet && styles.disabledCard]}
-              onPress={() => canAffordWithWallet ? setPaymentMethod('WALLET') : null}
+              onPress={() => (canAffordWithWallet ? setPaymentMethod('WALLET') : null)}
             >
               <View style={styles.paymentIconBox}>
-                <Ionicons name="wallet-outline" size={22} color={paymentMethod === 'WALLET' ? Colors.light.primary : "#888"} />
+                <Ionicons name="wallet-outline" size={22} color={paymentMethod === 'WALLET' ? Colors.light.primary : '#888'} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.paymentTitle}>Wallet — ₹{balance.toFixed(0)}</Text>
-                <Text style={styles.paymentSub}>{canAffordWithWallet ? "Pay fully from wallet" : "Insufficient balance"}</Text>
+                <Text style={styles.paymentTitle}>Wallet - Rs.{balance.toFixed(0)}</Text>
+                <Text style={styles.paymentSub}>{canAffordWithWallet ? 'Pay fully from wallet' : 'Insufficient balance'}</Text>
               </View>
               <View style={styles.radio}>{paymentMethod === 'WALLET' && <View style={styles.radioInner} />}</View>
             </TouchableOpacity>
 
-            {/* Partial wallet toggle (if ONLINE selected and has balance) */}
             {paymentMethod === 'ONLINE' && balance > 0 && (
               <View style={styles.partialWalletRow}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.partialTitle}>Use ₹{walletDeductable.toFixed(0)} from Wallet</Text>
-                  <Text style={styles.partialSub}>Pay remaining ₹{remainingAfterWallet.toFixed(0)} online</Text>
+                  <Text style={styles.partialTitle}>Use Rs.{walletDeductable.toFixed(0)} from Wallet</Text>
+                  <Text style={styles.partialSub}>Pay remaining Rs.{remainingAfterWallet.toFixed(0)} on PhonePe</Text>
                 </View>
                 <Switch
                   value={useWalletPartial}
@@ -256,35 +289,36 @@ export default function CheckoutScreen() {
               </View>
             )}
 
-            {/* Order Summary */}
             <View style={styles.summaryCard}>
               <Text style={styles.summaryTitle}>Order Summary</Text>
-              {items.map((item: any, i: number) => (
-                <View key={i} style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel} numberOfLines={1}>{item.quantity}× {item.name}</Text>
-                  <Text style={styles.summaryValue}>₹{item.price * item.quantity}</Text>
+              {items.map((item: any, index: number) => (
+                <View key={index} style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel} numberOfLines={1}>
+                    {item.quantity}x {item.name}
+                  </Text>
+                  <Text style={styles.summaryValue}>Rs.{item.price * item.quantity}</Text>
                 </View>
               ))}
               <View style={styles.summaryDivider} />
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Delivery Fee</Text>
-                <Text style={styles.summaryValue}>₹{DELIVERY_FEE}</Text>
+                <Text style={styles.summaryValue}>Rs.{DELIVERY_FEE}</Text>
               </View>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Taxes (5%)</Text>
-                <Text style={styles.summaryValue}>₹{TAXES}</Text>
+                <Text style={styles.summaryValue}>Rs.{TAXES}</Text>
               </View>
               {(useWalletPartial || paymentMethod === 'WALLET') && walletDeductable > 0 && (
                 <View style={styles.summaryRow}>
                   <Text style={[styles.summaryLabel, { color: '#22C55E' }]}>Wallet Discount</Text>
-                  <Text style={[styles.summaryValue, { color: '#22C55E' }]}>−₹{walletDeductable.toFixed(0)}</Text>
+                  <Text style={[styles.summaryValue, { color: '#22C55E' }]}>-Rs.{walletDeductable.toFixed(0)}</Text>
                 </View>
               )}
               <View style={styles.summaryDivider} />
               <View style={styles.summaryRow}>
                 <Text style={styles.grandTotalLabel}>Total to Pay</Text>
                 <Text style={styles.grandTotalValue}>
-                  ₹{(paymentMethod === 'WALLET' ? 0 : useWalletPartial ? remainingAfterWallet : grandTotal).toFixed(0)}
+                  Rs.{(paymentMethod === 'WALLET' ? 0 : useWalletPartial ? remainingAfterWallet : grandTotal).toFixed(0)}
                 </Text>
               </View>
             </View>
@@ -292,7 +326,6 @@ export default function CheckoutScreen() {
         )}
       </ScrollView>
 
-      {/* ── Footer ────────────────────────────────────────── */}
       <View style={styles.footer}>
         {step === 1 ? (
           <TouchableOpacity
@@ -315,10 +348,13 @@ export default function CheckoutScreen() {
               <>
                 <Ionicons name="bag-check" size={20} color="#FFF" />
                 <Text style={styles.placeOrderText}>
-                  {paymentMethod === 'COD' ? 'Place Order (COD)' :
-                   paymentMethod === 'WALLET' ? 'Pay from Wallet' :
-                   useWalletPartial ? `Pay ₹${remainingAfterWallet.toFixed(0)} Online` :
-                   `Pay ₹${grandTotal} Online`}
+                  {paymentMethod === 'COD'
+                    ? 'Place Order (COD)'
+                    : paymentMethod === 'WALLET'
+                      ? 'Pay from Wallet'
+                      : useWalletPartial
+                        ? `Pay Rs.${remainingAfterWallet.toFixed(0)} with PhonePe`
+                        : `Pay Rs.${grandTotal} with PhonePe`}
                 </Text>
               </>
             )}
@@ -344,13 +380,13 @@ const styles = StyleSheet.create({
   stepContent: {},
   sectionTitle: { fontSize: 20, fontWeight: '900', color: '#111', marginBottom: 18 },
   addressCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', padding: 18, borderRadius: 20, marginBottom: 12, borderWidth: 1.5, borderColor: '#F3F4F6' },
-  selectedCard: { borderColor: Colors.light.primary, backgroundColor: Colors.light.primary + '08' },
+  selectedCard: { borderColor: Colors.light.primary, backgroundColor: `${Colors.light.primary}08` },
   addressIcon: { width: 44, height: 44, borderRadius: 14, backgroundColor: '#F9FAFB', alignItems: 'center', justifyContent: 'center' },
   addressType: { fontSize: 15, fontWeight: '800', color: '#111' },
   addressText: { fontSize: 12, color: '#666', marginTop: 2 },
   noAddress: { alignItems: 'center', paddingVertical: 50, gap: 12 },
   noAddressText: { color: '#999', fontSize: 14, fontWeight: '600' },
-  addAddrBtn: { backgroundColor: Colors.light.primary + '15', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20 },
+  addAddrBtn: { backgroundColor: `${Colors.light.primary}15`, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20 },
   addAddrBtnText: { color: Colors.light.primary, fontWeight: '800', fontSize: 14 },
   paymentCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', padding: 18, borderRadius: 20, marginBottom: 12, borderWidth: 1.5, borderColor: '#F3F4F6', gap: 14 },
   disabledCard: { opacity: 0.5 },
