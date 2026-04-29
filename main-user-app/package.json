@@ -11,8 +11,8 @@
     "lint": "expo lint"
   },
   "dependencies": {
-    "@expo/vector-icons": "^15.0.3",
-    "@react-native-async-storage/async-storage": "2.2.0",
+    "@expo/vector-icons": "^14.0.0",
+    "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-firebase/app": "^24.0.0",
     "@react-native-firebase/messaging": "^24.0.0",
     "@react-navigation/bottom-tabs": "^7.4.0",
@@ -49,7 +49,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
-    "@types/react": "~19.1.0",
+    "@types/react": "~18.3.1",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
     "typescript": "~5.9.2"
