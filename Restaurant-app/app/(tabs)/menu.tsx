@@ -651,6 +651,7 @@ export default function MenuScreen() {
     icon?: keyof typeof Ionicons.glyphMap
   ) => (
     <TouchableOpacity
+      key={label}
       style={[styles.optionChip, active && styles.optionChipActive]}
       onPress={onPress}
     >

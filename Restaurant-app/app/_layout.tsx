@@ -4,6 +4,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { SocketProvider } from "@/components/SocketProvider";
 import { useNotifications } from "@/hooks/useNotifications";
 import { StatusBar } from "expo-status-bar";
+import { AlertOverlay } from "@/components/AlertOverlay";
 
 export default function RootLayout() {
   const { isAuthenticated, user } = useAuthStore();

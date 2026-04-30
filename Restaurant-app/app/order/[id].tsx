@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,8 +11,9 @@ export default function OrderDetailsScreen() {
   const { id } = useLocalSearchParams();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [prepTime, setPrepTime] = useState('15');
 
-  const { orders } = useOrderStore();
+  const { orders, updateOrderStatus } = useOrderStore();
 
   useEffect(() => {
     const foundOrder = orders.find(o => o._id === id);
@@ -86,7 +87,7 @@ export default function OrderDetailsScreen() {
           <Text style={styles.infoText}><Text style={styles.boldText}>Delivery Address:</Text> {order.customerData.address}</Text>
           
           <TouchableOpacity style={styles.actionBtn}>
-             <Ionicons name="call" size={16} color="white" />
+             <Ionicons name="call" size={16} color="black" />
              <Text style={styles.actionBtnText}>Call Customer</Text>
           </TouchableOpacity>
         </View>
@@ -118,20 +119,54 @@ export default function OrderDetailsScreen() {
             <Ionicons name="card" size={20} color={Colors.light.primary} />
             <Text style={styles.sectionTitle}>Payment Details</Text>
           </View>
-          <Text style={styles.infoText}><Text style={styles.boldText}>Method:</Text> {order.paymentMethod}</Text>
+          <Text style={styles.infoText}><Text style={styles.boldText}>Method:</Text> {order.paymentMethod || "Online"}</Text>
           <Text style={styles.infoText}>
              <Text style={styles.boldText}>Status:</Text> 
-             <Text style={{ color: order.paymentStatus === 'Paid' ? Colors.light.success : Colors.light.error, fontWeight: 'bold' }}> {order.paymentStatus}</Text>
+             <Text style={{ color: order.paymentStatus === 'Paid' ? Colors.light.success : Colors.light.error, fontWeight: 'bold' }}> {order.paymentStatus || "Paid"}</Text>
           </Text>
         </View>
-
       </ScrollView>
 
       {/* Persistent Bottom Action */}
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.primaryBtn}>
-          <Text style={styles.primaryBtnText}>Print KOT Receipt</Text>
-        </TouchableOpacity>
+        {order.status === 'ACCEPTED' && (
+           <>
+              <View style={styles.prepTimeRow}>
+                 <Text style={styles.prepTimeLabel}>Prep Time (mins):</Text>
+                 <TextInput 
+                   style={styles.prepTimeInput} 
+                   value={prepTime} 
+                   onChangeText={setPrepTime} 
+                   keyboardType="numeric" 
+                 />
+              </View>
+              <TouchableOpacity style={styles.primaryBtn} onPress={() => updateOrderStatus(order._id, 'PREPARING')}>
+                <Ionicons name="flame" size={20} color="#000" />
+                <Text style={styles.primaryBtnText}>Start Preparing</Text>
+              </TouchableOpacity>
+           </>
+        )}
+        
+        {order.status === 'PREPARING' && (
+           <TouchableOpacity style={[styles.primaryBtn, {backgroundColor: '#00E676'}]} onPress={() => updateOrderStatus(order._id, 'READY')}>
+             <Ionicons name="checkmark-circle" size={20} color="#000" />
+             <Text style={styles.primaryBtnText}>Ready for Pickup</Text>
+           </TouchableOpacity>
+        )}
+        
+        {order.status === 'READY' && (
+           <TouchableOpacity style={[styles.primaryBtn, {backgroundColor: '#FF8C00'}]} onPress={() => updateOrderStatus(order._id, 'OUT_FOR_DELIVERY')}>
+             <Ionicons name="bicycle" size={20} color="#000" />
+             <Text style={styles.primaryBtnText}>Handover to Rider</Text>
+           </TouchableOpacity>
+        )}
+        
+        {['PENDING', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'].includes(order.status) && (
+           <TouchableOpacity style={styles.secondaryBtn}>
+             <Ionicons name="print" size={20} color="#FFF" />
+             <Text style={styles.secondaryBtnText}>Print KOT Receipt</Text>
+           </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -224,7 +259,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   actionBtnText: {
-    color: 'white',
+    color: 'black',
     fontWeight: 'bold',
   },
   itemRow: {
@@ -257,7 +292,6 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: '#F0F0F0',
-    my: 15,
     marginVertical: 15,
   },
   totalRow: {
@@ -280,14 +314,66 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: '#F0F0F0',
   },
+  prepTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+    backgroundColor: '#F8F9FA',
+    padding: 15,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
+  },
+  prepTimeLabel: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#333',
+  },
+  prepTimeInput: {
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#DDD',
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    fontSize: 16,
+    fontWeight: 'bold',
+    width: 80,
+    textAlign: 'center',
+  },
   primaryBtn: {
-    backgroundColor: Colors.light.text,
+    backgroundColor: Colors.light.primary,
+    flexDirection: 'row',
     width: '100%',
-    padding: 16,
+    padding: 18,
     borderRadius: 15,
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    shadowColor: Colors.light.primary,
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
   },
   primaryBtnText: {
+    color: 'black',
+    fontWeight: '900',
+    fontSize: 16,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  secondaryBtn: {
+    backgroundColor: '#111',
+    flexDirection: 'row',
+    width: '100%',
+    padding: 18,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  secondaryBtnText: {
     color: 'white',
     fontWeight: 'bold',
     fontSize: 16,

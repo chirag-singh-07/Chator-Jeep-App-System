@@ -44,9 +44,13 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      // Clear token, redirect will be handled by auth watcher
       await AsyncStorage.removeItem("token");
-      // A state management action (Zustand) would ideally un-set the user here
+      try {
+        const { useAuthStore } = require('../store/useAuthStore');
+        useAuthStore.getState().logout();
+      } catch (e) {
+        console.warn('Could not trigger logout from interceptor', e);
+      }
     }
     return Promise.reject(error);
   },
