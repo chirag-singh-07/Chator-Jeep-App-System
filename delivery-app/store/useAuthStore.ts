@@ -18,6 +18,8 @@ type AuthState = {
   isLoading: boolean;
   hasHydrated: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (data: any) => Promise<void>;
+  requestOtp: (email: string, type: "register" | "login" | "forgot_password") => Promise<void>;
   logout: () => Promise<void>;
   markHydrated: () => void;
 };
@@ -32,6 +34,37 @@ export const useAuthStore = create<AuthState>()(
       hasHydrated: false,
 
       markHydrated: () => set({ hasHydrated: true }),
+
+      register: async (data) => {
+        set({ isLoading: true });
+        try {
+          // Force the role to DELIVERY for this app
+          const response = await apiClient.post("/auth/register", { ...data, role: "DELIVERY" });
+          const { accessToken, user } = response.data;
+
+          await AsyncStorage.setItem("delivery-token", accessToken);
+          set({
+            token: accessToken,
+            user,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } catch (error: any) {
+          set({ isLoading: false });
+          throw new Error(error?.response?.data?.message || error?.message || "Registration failed");
+        }
+      },
+
+      requestOtp: async (email, type) => {
+        set({ isLoading: true });
+        try {
+          await apiClient.post("/auth/request-otp", { email, type });
+          set({ isLoading: false });
+        } catch (error: any) {
+          set({ isLoading: false });
+          throw new Error(error?.response?.data?.message || error?.message || "Failed to send OTP");
+        }
+      },
 
       login: async (email, password) => {
         set({ isLoading: true });

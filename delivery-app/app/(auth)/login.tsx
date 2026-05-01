@@ -14,6 +14,7 @@ import { ScreenContainer } from "@/components/ScreenContainer";
 import { ThemedInput } from "@/components/ThemedInput";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 
 export default function LoginScreen() {
   const { login, isLoading } = useAuthStore();
@@ -36,7 +37,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <ScreenContainer>
+    <ScreenContainer withSafeArea>
       <LinearGradient
         colors={[Colors.light.background, Colors.light.surface, "#121212"]}
         style={styles.gradient}
@@ -109,7 +110,7 @@ export default function LoginScreen() {
                 <PrimaryButton
                   label="Register Now"
                   variant="outline"
-                  onPress={() => {}}
+                  onPress={() => router.replace("/(auth)/register")}
                   style={styles.registerButton}
                   textStyle={styles.registerButtonText}
                 />

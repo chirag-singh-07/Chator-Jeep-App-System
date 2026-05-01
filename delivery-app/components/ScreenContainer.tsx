@@ -1,5 +1,6 @@
 import React, { PropsWithChildren } from "react";
-import { StyleSheet, View, StatusBar, Platform, SafeAreaView } from "react-native";
+import { StyleSheet, View, StatusBar, Platform } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
 
 interface ScreenContainerProps extends PropsWithChildren {
