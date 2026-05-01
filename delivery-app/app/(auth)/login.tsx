@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuthStore } from "@/store/useAuthStore";
-import { Colors, Spacing, Radius, Shadows } from "@/constants/Colors";
+import { Colors, Spacing, Radius, Shadows } from "../../constants/Colors";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { ThemedInput } from "@/components/ThemedInput";
 import { PrimaryButton } from "@/components/PrimaryButton";
@@ -31,6 +31,7 @@ export default function LoginScreen() {
     setError(null);
     try {
       await login(email.trim(), password);
+      router.replace("/(tabs)");
     } catch (err: any) {
       setError(err?.message ?? "Unable to sign in right now.");
     }

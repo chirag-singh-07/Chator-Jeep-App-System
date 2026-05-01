@@ -117,6 +117,9 @@ export default function OnboardingScreen() {
       
       {/* Header with Skip Button */}
       <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.replace('/(auth)/login')} style={styles.loginTopButton}>
+          <Text style={styles.loginTopText}>LOGIN</Text>
+        </TouchableOpacity>
         {currentSlideIndex < SLIDES.length - 1 && (
           <TouchableOpacity onPress={skip} style={styles.skipButton}>
             <Text style={styles.skipText}>SKIP</Text>
@@ -188,9 +191,20 @@ const styles = StyleSheet.create({
   },
   header: {
     height: 60,
-    justifyContent: 'center',
-    alignItems: 'flex-end',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: Spacing.lg,
+  },
+  loginTopButton: {
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+  },
+  loginTopText: {
+    color: Colors.light.textDim,
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 1,
   },
   skipButton: {
     paddingVertical: Spacing.xs,

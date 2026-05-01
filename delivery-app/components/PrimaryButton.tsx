@@ -1,5 +1,6 @@
 import { Pressable, StyleProp, StyleSheet, Text, ViewStyle, TextStyle, ActivityIndicator } from "react-native";
-import { Colors, Spacing, Radius, Shadows } from "@/constants/Colors";
+import { Colors, Spacing, Radius, Shadows } from "../constants/Colors";
+import { Ionicons } from "@expo/vector-icons";
 
 interface PrimaryButtonProps {
   label: string;
@@ -9,7 +10,7 @@ interface PrimaryButtonProps {
   loading?: boolean;
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
-  icon?: React.ReactNode;
+  icon?: keyof typeof Ionicons.glyphMap | React.ReactNode;
 }
 
 export function PrimaryButton({
@@ -38,7 +39,14 @@ export function PrimaryButton({
         <ActivityIndicator color={variant === "primary" ? Colors.light.black : Colors.light.primary} />
       ) : (
         <>
-          {icon}
+          {typeof icon === "string" ? (
+            <Ionicons 
+              name={icon as any} 
+              size={20} 
+              color={variant === "primary" ? Colors.light.black : Colors.light.primary} 
+              style={{ marginRight: Spacing.sm }}
+            />
+          ) : icon}
           <Text 
             style={[
               styles.textBase,

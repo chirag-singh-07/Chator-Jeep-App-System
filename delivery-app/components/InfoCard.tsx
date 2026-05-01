@@ -1,6 +1,6 @@
 import { PropsWithChildren } from "react";
 import { StyleSheet, View } from "react-native";
-import { Colors, Spacing, Radius, Shadows } from "@/constants/Colors";
+import { Colors, Spacing, Radius, Shadows } from "../constants/Colors";
 
 export function InfoCard({
   children,

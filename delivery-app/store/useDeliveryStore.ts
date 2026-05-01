@@ -14,6 +14,7 @@ type DeliveryState = {
   orders: DeliveryOrder[];
   selectedOrder: DeliveryOrder | null;
   partnerProfile: DeliveryPartnerProfile | null;
+  initialProfileFetched: boolean;
   activeRequest: any | null;
   isLoading: boolean;
   fetchDashboard: () => Promise<void>;
@@ -34,6 +35,7 @@ type DeliveryState = {
   ) => Promise<void>;
   pushLocationUpdate: (coordinates: [number, number]) => Promise<void>;
   mergeRealtimeDelivery: (order: DeliveryOrder) => void;
+  simulateOrder: () => void;
 };
 
 const sortOrders = (orders: DeliveryOrder[]) =>
@@ -48,15 +50,17 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
   orders: [],
   selectedOrder: null,
   partnerProfile: null,
+  initialProfileFetched: false,
   activeRequest: null,
   isLoading: false,
 
   fetchProfile: async () => {
+    set({ isLoading: true });
     try {
       const response = await apiClient.get("/delivery/profile");
-      set({ partnerProfile: response.data });
+      set({ partnerProfile: response.data, isLoading: false, initialProfileFetched: true });
     } catch (error) {
-      set({ partnerProfile: null });
+      set({ partnerProfile: null, isLoading: false, initialProfileFetched: true });
     }
   },
 
@@ -181,5 +185,20 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
           : state.dashboard,
       };
     });
+  },
+
+  simulateOrder: () => {
+    const mockRequest = {
+      orderId: "MOCK-" + Math.random().toString(36).substr(2, 9).toUpperCase(),
+      pickupAddress: "123 Kitchen Street, Gourmet Valley",
+      deliveryAddress: "456 Customer Lane, Happy Heights",
+      totalAmount: 450,
+      itemsCount: 3,
+      restaurantName: "The Chatori Kitchen",
+      estimatedDistance: "4.2 km",
+      estimatedTime: "15 mins",
+      earnings: 45.00,
+    };
+    set({ activeRequest: mockRequest });
   },
 }));

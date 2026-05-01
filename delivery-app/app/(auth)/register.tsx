@@ -14,7 +14,7 @@ import { useRouter } from "expo-router";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Spacing, Radius, Shadows } from "@/constants/Colors";
+import { Colors, Spacing, Radius, Shadows } from "../../constants/Colors";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { ThemedInput } from "@/components/ThemedInput";
 import { PrimaryButton } from "@/components/PrimaryButton";
@@ -181,6 +181,13 @@ export default function RegisterScreen() {
               value={form.password}
               onChangeText={(text) => setForm({ ...form, password: text })}
             />
+
+            <View style={styles.loginLinkContainer}>
+              <Text style={styles.loginLinkText}>Already have an account?</Text>
+              <TouchableOpacity onPress={() => router.replace("/(auth)/login")}>
+                <Text style={styles.loginLinkAction}>Login</Text>
+              </TouchableOpacity>
+            </View>
           </Animated.View>
         );
       case 2:
@@ -325,4 +332,20 @@ const styles = StyleSheet.create({
   vehicleDescActive: { color: Colors.light.textDim },
   footer: { paddingBottom: Spacing.xl, paddingTop: Spacing.md },
   mainBtn: { ...Shadows.gold },
+  loginLinkContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: Spacing.xl,
+    gap: Spacing.xs,
+  },
+  loginLinkText: {
+    color: Colors.light.textDim,
+    fontSize: 14,
+  },
+  loginLinkAction: {
+    color: Colors.light.primary,
+    fontSize: 14,
+    fontWeight: '700',
+  },
 });

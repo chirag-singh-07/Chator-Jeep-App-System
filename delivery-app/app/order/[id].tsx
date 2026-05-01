@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Linking, ScrollView, StyleSheet, Text, View, TextInput, Alert } from "react-native";
-import { useLocalSearchParams } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Linking, ScrollView, StyleSheet, Text, View, Alert, TouchableOpacity, ActivityIndicator } from "react-native";
+import { useLocalSearchParams, router } from "expo-router";
 import { DeliveryMapCard } from "@/components/DeliveryMapCard";
 import { InfoCard } from "@/components/InfoCard";
 import { PrimaryButton } from "@/components/PrimaryButton";
@@ -9,16 +8,18 @@ import { ScreenContainer } from "@/components/ScreenContainer";
 import { SectionHeader } from "@/components/SectionHeader";
 import { StatusTimeline } from "@/components/StatusTimeline";
 import { StatusPill } from "@/components/StatusPill";
+import { ThemedInput } from "@/components/ThemedInput";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { formatCurrency } from "@/lib/format";
 import { DeliveryOrder } from "@/types";
+import { Colors, Spacing, Radius, Shadows } from "@/constants/Colors";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function OrderDetailScreen() {
   const params = useLocalSearchParams<{ id: string }>();
   const {
     selectedOrder,
     fetchOrderDetail,
-    acceptOrder,
     updateOrderStatus,
   } = useDeliveryStore();
   const [otp, setOtp] = useState("");
@@ -31,7 +32,6 @@ export default function OrderDetailScreen() {
 
   const order = selectedOrder;
 
-  const canAccept = useMemo(() => order && order.status === "ACCEPTED" && !order.acceptedAt, [order]);
   const canPickup = useMemo(() => order && order.status === "ACCEPTED", [order]);
   const canArrive = useMemo(() => order && order.status === "PICKED_UP", [order]);
   const canComplete = useMemo(() => order && order.status === "ARRIVED", [order]);
@@ -45,213 +45,348 @@ export default function OrderDetailScreen() {
 
   if (!order) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <ScreenContainer>
-          <InfoCard accent="slate">
-            <Text style={styles.sectionTitle}>Loading order details...</Text>
-          </InfoCard>
-        </ScreenContainer>
-      </SafeAreaView>
+      <ScreenContainer withSafeArea style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.light.primary} />
+        <Text style={styles.loadingText}>Loading Shipment...</Text>
+      </ScreenContainer>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScreenContainer>
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
-            <View style={{ flex: 1, gap: 6 }}>
-              <Text style={styles.title}>Delivery order</Text>
-              <Text style={styles.subtitle}>
-                {order.restaurant?.name ?? "Restaurant"} to {order.customer?.name ?? "Customer"}
-              </Text>
+    <ScreenContainer withSafeArea style={{ backgroundColor: Colors.light.background }}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Ionicons name="arrow-back" size={24} color={Colors.light.text} />
+        </TouchableOpacity>
+        <View style={styles.headerInfo}>
+          <Text style={styles.headerLabel}>ORDER ID</Text>
+          <Text style={styles.headerTitle}>#{order.orderId}</Text>
+        </View>
+        <StatusPill label={order.status} status={order.status} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <DeliveryMapCard order={order} />
+
+        <View style={styles.actionCard}>
+          <Text style={styles.actionTitle}>Next Step</Text>
+          <View style={styles.actionStack}>
+            {canPickup && (
+              <PrimaryButton
+                label="Pick Up Order"
+                onPress={() => void updateOrderStatus(order.orderId, "PICKED_UP")}
+                icon="cube-outline"
+                style={styles.mainAction}
+              />
+            )}
+            
+            {canArrive && (
+              <PrimaryButton
+                label="Reached Destination"
+                onPress={() => void updateOrderStatus(order.orderId, "ARRIVED")}
+                icon="location-outline"
+                style={styles.mainAction}
+              />
+            )}
+
+            {canComplete && (
+              <View style={styles.otpSection}>
+                <Text style={styles.otpLabel}>Enter 4-Digit OTP</Text>
+                <ThemedInput
+                  placeholder="----"
+                  keyboardType="numeric"
+                  maxLength={4}
+                  value={otp}
+                  onChangeText={setOtp}
+                  containerStyle={styles.otpInput}
+                  style={styles.otpText}
+                />
+                <PrimaryButton
+                  label="Handover & Complete"
+                  onPress={() => {
+                    if (otp.length !== 4) {
+                      Alert.alert("Error", "Please enter a valid 4-digit OTP");
+                      return;
+                    }
+                    updateOrderStatus(order.orderId, "COMPLETED", otp);
+                  }}
+                  icon="checkmark-done"
+                  style={styles.completeBtn}
+                />
+              </View>
+            )}
+
+            <View style={styles.navRow}>
+              <TouchableOpacity 
+                style={styles.navBtn}
+                onPress={() => void openNavigation(order.route.pickupCoordinates, order.route.pickupAddress)}
+              >
+                <Ionicons name="restaurant" size={20} color={Colors.light.primary} />
+                <Text style={styles.navBtnText}>Store Location</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.navBtn}
+                onPress={() => void openNavigation(order.route.dropCoordinates, order.route.dropAddress)}
+              >
+                <Ionicons name="person" size={20} color={Colors.light.primary} />
+                <Text style={styles.navBtnText}>Customer Location</Text>
+              </TouchableOpacity>
             </View>
-            <StatusPill label={order.status} status={order.status} />
+          </View>
+        </View>
+
+        <View style={styles.detailsSection}>
+          <SectionHeader title="Shipment Details" />
+          
+          <View style={styles.detailRow}>
+            <View style={styles.detailIcon}>
+              <Ionicons name="restaurant-outline" size={22} color={Colors.light.primary} />
+            </View>
+            <View style={styles.detailInfo}>
+              <Text style={styles.detailLabel}>Pickup From</Text>
+              <Text style={styles.detailValue}>{order.restaurant?.name ?? "Restaurant"}</Text>
+              <Text style={styles.detailSubValue}>{order.route.pickupAddress}</Text>
+            </View>
           </View>
 
-          <DeliveryMapCard order={order} />
-
-          <InfoCard accent="amber">
-            <Text style={styles.sectionTitle}>Delivery actions</Text>
-            <View style={styles.actionStack}>
-              {canPickup ? (
-                <PrimaryButton
-                  label="Mark picked up"
-                  onPress={() => void updateOrderStatus(order.orderId, "PICKED_UP")}
-                />
-              ) : null}
-              
-              <PrimaryButton
-                label="Navigate to pickup"
-                variant="secondary"
-                onPress={() => void openNavigation(order.route.pickupCoordinates, order.route.pickupAddress)}
-                style={{ marginBottom: 10 }}
-              />
-
-              {canArrive ? (
-                <PrimaryButton
-                  label="Mark Arrived"
-                  onPress={() => void updateOrderStatus(order.orderId, "ARRIVED")}
-                />
-              ) : null}
-
-              <PrimaryButton
-                label="Navigate to customer"
-                variant="secondary"
-                onPress={() => void openNavigation(order.route.dropCoordinates, order.route.dropAddress)}
-                style={{ marginBottom: 10 }}
-              />
-
-              {canComplete ? (
-                <View style={styles.otpSection}>
-                  <Text style={styles.otpLabel}>Enter Delivery OTP</Text>
-                  <TextInput
-                    style={styles.otpInput}
-                    placeholder="4-digit OTP"
-                    keyboardType="numeric"
-                    maxLength={4}
-                    value={otp}
-                    onChangeText={setOtp}
-                  />
-                  <PrimaryButton
-                    label="Complete Delivery"
-                    onPress={() => {
-                      if (otp.length !== 4) {
-                        Alert.alert("Error", "Please enter a valid 4-digit OTP");
-                        return;
-                      }
-                      updateOrderStatus(order.orderId, "COMPLETED", otp);
-                    }}
-                  />
-                </View>
-              ) : null}
+          <View style={styles.detailRow}>
+            <View style={styles.detailIcon}>
+              <Ionicons name="person-outline" size={22} color={Colors.light.primary} />
             </View>
-          </InfoCard>
-
-          <InfoCard accent="slate">
-            <SectionHeader title="Pickup" />
-            <Text style={styles.sectionTitle}>{order.restaurant?.name ?? "Restaurant details unavailable"}</Text>
-            <Text style={styles.sectionText}>{order.route.pickupAddress}</Text>
-            <Text style={styles.sectionText}>{order.restaurant?.phone || "No phone number"}</Text>
-          </InfoCard>
-
-          <InfoCard accent="slate">
-            <SectionHeader title="Drop" />
-            <Text style={styles.sectionTitle}>{order.customer?.name ?? "Customer"}</Text>
-            <Text style={styles.sectionText}>{order.route.dropAddress}</Text>
-            <Text style={styles.sectionText}>{order.customer?.phone || "No phone number"}</Text>
-          </InfoCard>
-
-          <InfoCard accent="blue">
-            <SectionHeader title="Order items" />
-            <View style={styles.itemsList}>
-              {order.order?.items?.map((item: NonNullable<DeliveryOrder["order"]>["items"][number]) => (
-                <View key={`${item.menuItemId}-${item.name}`} style={styles.rowBetween}>
-                  <Text style={styles.sectionText}>
-                    {item.quantity} x {item.name}
-                  </Text>
-                  <Text style={styles.sectionText}>{formatCurrency(item.price * item.quantity)}</Text>
-                </View>
-              ))}
+            <View style={styles.detailInfo}>
+              <Text style={styles.detailLabel}>Deliver To</Text>
+              <Text style={styles.detailValue}>{order.customer?.name ?? "Customer"}</Text>
+              <Text style={styles.detailSubValue}>{order.route.dropAddress}</Text>
             </View>
-          </InfoCard>
+          </View>
+        </View>
 
-          <InfoCard accent="green">
-            <SectionHeader title="Payment summary" />
-            <View style={styles.rowBetween}>
-              <Text style={styles.sectionText}>Order total</Text>
-              <Text style={styles.sectionTitle}>{formatCurrency(order.paymentSummary?.totalAmount ?? 0)}</Text>
-            </View>
-            <View style={styles.rowBetween}>
-              <Text style={styles.sectionText}>Payment status</Text>
-              <StatusPill label={order.paymentSummary?.paymentStatus ?? "UNKNOWN"} status={order.paymentSummary?.paymentStatus ?? "UNKNOWN"} />
-            </View>
-            <View style={styles.rowBetween}>
-              <Text style={styles.sectionText}>Expected earning</Text>
-              <Text style={styles.sectionTitle}>{formatCurrency(order.earnings?.finalAmount ?? 0)}</Text>
-            </View>
-          </InfoCard>
+        <View style={styles.summaryCard}>
+          <SectionHeader title="Payment Info" />
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Order Value</Text>
+            <Text style={styles.summaryValue}>{formatCurrency(order.paymentSummary?.totalAmount ?? 0)}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Payment Mode</Text>
+            <Text style={styles.summaryValue}>{order.paymentSummary?.paymentStatus === 'PAID' ? 'PREPAID' : 'CASH ON DELIVERY'}</Text>
+          </View>
+          <View style={[styles.summaryRow, styles.earningsRow]}>
+            <Text style={styles.earningsLabel}>Your Earning</Text>
+            <Text style={styles.earningsValue}>{formatCurrency(order.earnings?.finalAmount ?? 0)}</Text>
+          </View>
+        </View>
 
-          <InfoCard accent="slate">
-            <SectionHeader title="Status timeline" />
-            <StatusTimeline items={order.statusTimeline} />
-          </InfoCard>
-        </ScrollView>
-      </ScreenContainer>
-    </SafeAreaView>
+        <View style={styles.timelineSection}>
+          <SectionHeader title="Status History" />
+          <StatusTimeline items={order.statusTimeline} />
+        </View>
+      </ScrollView>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  loadingContainer: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: Spacing.md,
   },
-  content: {
-    paddingBottom: 28,
-    gap: 16,
+  loadingText: {
+    color: Colors.light.textDim,
+    fontSize: 16,
+    fontWeight: '700',
   },
   header: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    gap: Spacing.md,
   },
-  title: {
-    color: "#0F172A",
-    fontSize: 28,
-    fontWeight: "800",
+  backBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: Radius.lg,
+    backgroundColor: Colors.light.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.light.border,
   },
-  subtitle: {
-    color: "#475569",
+  headerInfo: {
+    flex: 1,
+  },
+  headerLabel: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: Colors.light.textMuted,
+    letterSpacing: 1,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: Colors.light.text,
+  },
+  content: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+    paddingBottom: 40,
+    gap: Spacing.xl,
+  },
+  actionCard: {
+    backgroundColor: Colors.light.surface,
+    borderRadius: Radius.xl,
+    padding: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    ...Shadows.soft,
+  },
+  actionTitle: {
     fontSize: 14,
-    lineHeight: 20,
-  },
-  sectionTitle: {
-    color: "#0F172A",
-    fontSize: 17,
-    fontWeight: "800",
-  },
-  sectionText: {
-    color: "#475569",
-    fontSize: 14,
-    lineHeight: 20,
+    fontWeight: '800',
+    color: Colors.light.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: Spacing.md,
   },
   actionStack: {
-    gap: 10,
-    marginTop: 12,
+    gap: Spacing.md,
   },
-  itemsList: {
-    gap: 8,
-  },
-  rowBetween: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 10,
+  mainAction: {
+    height: 64,
+    ...Shadows.gold,
   },
   otpSection: {
-    marginTop: 10,
-    padding: 16,
-    backgroundColor: "#fff",
-    borderRadius: 12,
+    gap: Spacing.sm,
+    backgroundColor: Colors.light.surfaceSecondary,
+    padding: Spacing.md,
+    borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: Colors.light.border,
   },
   otpLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1e293b",
-    marginBottom: 10,
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.light.primary,
+    textAlign: 'center',
   },
   otpInput: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: "#cbd5e1",
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    fontSize: 18,
-    textAlign: "center",
-    letterSpacing: 10,
-    marginBottom: 15,
+    height: 60,
+    backgroundColor: Colors.light.background,
   },
+  otpText: {
+    fontSize: 24,
+    fontWeight: '900',
+    textAlign: 'center',
+    letterSpacing: 12,
+    color: Colors.light.primary,
+  },
+  completeBtn: {
+    height: 56,
+  },
+  navRow: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  navBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 48,
+    borderRadius: Radius.lg,
+    backgroundColor: Colors.light.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    gap: Spacing.sm,
+  },
+  navBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.light.text,
+  },
+  detailsSection: {
+    gap: Spacing.md,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    backgroundColor: Colors.light.surface,
+    padding: Spacing.md,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+  },
+  detailIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.light.surfaceSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  detailInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  detailLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: Colors.light.textMuted,
+    textTransform: 'uppercase',
+  },
+  detailValue: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.light.text,
+  },
+  detailSubValue: {
+    fontSize: 13,
+    color: Colors.light.textDim,
+    lineHeight: 18,
+  },
+  summaryCard: {
+    backgroundColor: Colors.light.surface,
+    borderRadius: Radius.xl,
+    padding: Spacing.lg,
+    gap: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: Colors.light.textDim,
+  },
+  summaryValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.light.text,
+  },
+  earningsRow: {
+    marginTop: Spacing.sm,
+    paddingTop: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.light.border,
+  },
+  earningsLabel: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.light.text,
+  },
+  earningsValue: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: Colors.light.primary,
+  },
+  timelineSection: {
+    gap: Spacing.md,
+  }
 });
+

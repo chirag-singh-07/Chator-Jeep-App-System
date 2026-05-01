@@ -8,7 +8,7 @@ import {
   StyleProp, 
   ViewStyle 
 } from 'react-native';
-import { Colors, Spacing, Radius } from '@/constants/Colors';
+import { Colors, Spacing, Radius } from '../constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 
 interface ThemedInputProps extends TextInputProps {

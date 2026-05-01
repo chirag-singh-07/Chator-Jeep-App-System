@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 import messaging from "@react-native-firebase/messaging";
-import { api } from "../lib/api";
+import { apiClient } from "../lib/api";
 import { useAuthStore } from "../store/useAuthStore";
 import { Alert } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const useNotifications = () => {
   const { user, isAuthenticated } = useAuthStore();
@@ -17,12 +18,22 @@ export const useNotifications = () => {
 
   const getFcmToken = async () => {
     try {
-      const token = await messaging().getToken();
-      if (token) {
-        await api.patch("/notifications/fcm-token", { fcmToken: token });
+      const fcmToken = await messaging().getToken();
+      if (fcmToken) {
+        console.log("FCM Token acquired:", fcmToken.substring(0, 10) + "...");
+        const authToken = await AsyncStorage.getItem("delivery-token");
+        if (!authToken) {
+          console.log("Waiting for auth token before registering FCM...");
+          return;
+        }
+        await apiClient.patch("/notifications/fcm-token", { fcmToken });
+        console.log("FCM Token registered successfully");
       }
-    } catch (error) {
-      console.log("Error getting FCM token:", error);
+    } catch (error: any) {
+      console.log(
+        "Error registering FCM token:",
+        error?.response?.data?.message || error.message,
+      );
     }
   };
 
@@ -37,7 +48,7 @@ export const useNotifications = () => {
       const unsubscribe = messaging().onMessage(async (remoteMessage) => {
         Alert.alert(
           remoteMessage.notification?.title || "Delivery Update",
-          remoteMessage.notification?.body || ""
+          remoteMessage.notification?.body || "",
         );
       });
 

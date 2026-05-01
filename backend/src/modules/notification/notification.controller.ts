@@ -15,6 +15,8 @@ export const updateFcmToken = async (req: AuthenticatedRequest, res: Response) =
     return res.status(400).json({ success: false, message: "fcmToken is required" });
   }
 
+  console.log(`[Notification] Updating FCM token for user ${userId} with role ${role}`);
+
   try {
     let Model: any;
     let query: any = { _id: userId };
@@ -29,15 +31,26 @@ export const updateFcmToken = async (req: AuthenticatedRequest, res: Response) =
       query = { userId: userId };
     }
 
-    if (Model) {
-      await Model.findOneAndUpdate(query, {
-        $addToSet: { fcmTokens: fcmToken }
-      });
+    if (!Model) {
+      console.warn(`[Notification] No model found for role ${role}`);
+      return res.status(400).json({ success: false, message: `Invalid role for FCM update: ${role}` });
     }
 
+    const updated = await Model.findOneAndUpdate(query, {
+      $addToSet: { fcmTokens: fcmToken }
+    }, { new: true });
+
+    if (!updated) {
+      console.warn(`[Notification] Document not found for query:`, query);
+      // If delivery partner doesn't exist, it might be the cause
+      return res.status(404).json({ success: false, message: "Associated profile not found" });
+    }
+
+    console.log(`[Notification] FCM token updated successfully for ${userId}`);
     res.json({ success: true, message: "FCM token updated successfully" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to update FCM token" });
+  } catch (error: any) {
+    console.error(`[Notification] Error updating FCM token:`, error.message);
+    res.status(500).json({ success: false, message: "Failed to update FCM token", error: error.message });
   }
 };
 

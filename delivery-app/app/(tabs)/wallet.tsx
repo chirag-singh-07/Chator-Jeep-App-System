@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { InfoCard } from "@/components/InfoCard";
 import { PrimaryButton } from "@/components/PrimaryButton";
@@ -11,7 +12,7 @@ import { StatusPill } from "@/components/StatusPill";
 import { useWalletStore } from "@/store/useWalletStore";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 import { WalletOverview } from "@/types";
-import { Colors, Spacing, Radius } from "@/constants/Colors";
+import { Colors, Spacing, Radius, Shadows } from "../../constants/Colors";
 
 export default function WalletScreen() {
   const { overview, isLoading, fetchWalletOverview } = useWalletStore();
@@ -31,79 +32,102 @@ export default function WalletScreen() {
           subtitle="Track balances, payout requests, and delivery earnings with a clean audit trail."
         />
 
-        <View style={styles.grid}>
-          <StatTile label="Available" value={formatCurrency(overview?.balance ?? 0)} tone="green" />
-          <StatTile label="Held" value={formatCurrency(overview?.heldBalance ?? 0)} tone="amber" />
-          <StatTile label="Total earned" value={formatCurrency(overview?.totalEarnings ?? 0)} tone="blue" />
-          <StatTile label="Paid out" value={formatCurrency(overview?.totalPaidOut ?? 0)} tone="slate" />
-        </View>
-
-        <View style={styles.promoCard}>
-          <Text style={styles.promoTitle}>Request a Payout</Text>
-          <Text style={styles.promoSubtitle}>
-            Available balance is ready for withdrawal. Held balance awaits admin approval.
-          </Text>
-          <PrimaryButton
-            label="New payout request"
-            onPress={() => router.push("/wallet/request")}
-            style={styles.payoutButton}
+        <View style={styles.statsContainer}>
+          <StatTile 
+            label="AVAILABLE" 
+            value={formatCurrency(overview?.balance ?? 0)} 
+            tone="green" 
+            icon="wallet"
+          />
+          <StatTile 
+            label="HELD" 
+            value={formatCurrency(overview?.heldBalance ?? 0)} 
+            tone="amber" 
+            icon="timer"
+          />
+          <StatTile 
+            label="EARNED" 
+            value={formatCurrency(overview?.totalEarnings ?? 0)} 
+            tone="blue" 
+            icon="stats-chart"
           />
         </View>
 
-        <SectionHeader title="Recent payout requests" />
+        <View style={styles.promoCard}>
+          <View style={styles.promoInfo}>
+            <Text style={styles.promoTitle}>Request Withdrawal</Text>
+            <Text style={styles.promoSubtitle}>
+              Transfer your available balance to your bank account or UPI ID.
+            </Text>
+          </View>
+          <PrimaryButton
+            label="New Payout"
+            onPress={() => router.push("/wallet/request")}
+            style={styles.payoutButton}
+            icon="arrow-up-circle-outline"
+          />
+        </View>
+
+        <SectionHeader title="Recent Payouts" />
         <View style={styles.stack}>
           {overview?.payouts?.length ? (
             overview.payouts.map((payout: WalletOverview["payouts"][number]) => (
-              <InfoCard key={payout._id} accent="slate">
-                <View style={styles.rowBetween}>
-                  <View style={{ gap: 4, flex: 1 }}>
-                    <Text style={styles.cardTitle}>{formatCurrency(payout.amount)}</Text>
-                    <Text style={styles.cardText}>
-                      {payout.paymentMethod.type === "UPI"
-                        ? payout.paymentMethod.upiId
-                        : `${payout.paymentMethod.bankName ?? "Bank account"} · ****${payout.paymentMethod.accountNumber?.slice(-4) ?? ""}`}
-                    </Text>
-                    <Text style={styles.meta}>{formatDateTime(payout.createdAt)}</Text>
-                  </View>
-                  <StatusPill label={payout.status} status={payout.status} />
+              <View key={payout._id} style={styles.transactionItem}>
+                <View style={styles.itemIcon}>
+                  <Ionicons name="card-outline" size={20} color={Colors.light.primary} />
                 </View>
-              </InfoCard>
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text style={styles.cardTitle}>{formatCurrency(payout.amount)}</Text>
+                  <Text style={styles.cardText}>
+                    {payout.paymentMethod.type === "UPI"
+                      ? payout.paymentMethod.upiId
+                      : `${payout.paymentMethod.bankName ?? "Bank"} · ****${payout.paymentMethod.accountNumber?.slice(-4) ?? ""}`}
+                  </Text>
+                  <Text style={styles.meta}>{formatDateTime(payout.createdAt)}</Text>
+                </View>
+                <StatusPill label={payout.status} status={payout.status} />
+              </View>
             ))
           ) : (
-            <View style={styles.emptyCard}>
-              <Text style={styles.emptyText}>No payout requests yet</Text>
+            <View style={styles.emptyRow}>
+              <Text style={styles.emptyRowText}>No payout requests yet</Text>
             </View>
           )}
         </View>
 
-        <SectionHeader title="Recent transactions" />
+        <SectionHeader title="Transaction History" />
         <View style={styles.stack}>
           {overview?.transactions?.length ? (
             overview.transactions.map((transaction: WalletOverview["transactions"][number]) => (
-              <InfoCard key={transaction._id} accent="slate">
-                <View style={styles.rowBetween}>
-                  <View style={{ flex: 1, gap: 4 }}>
-                    <Text style={styles.cardTitle}>{transaction.description}</Text>
-                    <Text style={styles.cardText}>{formatDateTime(transaction.createdAt)}</Text>
-                  </View>
-                  <View style={{ alignItems: "flex-end", gap: 4 }}>
-                    <Text
-                      style={[
-                        styles.amount,
-                        transaction.amount >= 0 ? styles.positiveAmount : styles.negativeAmount,
-                      ]}
-                    >
-                      {transaction.amount >= 0 ? "+" : ""}
-                      {formatCurrency(transaction.amount)}
-                    </Text>
-                    <Text style={styles.meta}>Bal. {formatCurrency(transaction.balanceAfter)}</Text>
-                  </View>
+              <View key={transaction._id} style={styles.transactionItem}>
+                <View style={[styles.itemIcon, { backgroundColor: transaction.amount >= 0 ? 'rgba(76, 175, 80, 0.1)' : 'rgba(255, 75, 58, 0.1)' }]}>
+                  <Ionicons 
+                    name={transaction.amount >= 0 ? "add-circle-outline" : "remove-circle-outline"} 
+                    size={20} 
+                    color={transaction.amount >= 0 ? Colors.light.success : Colors.light.error} 
+                  />
                 </View>
-              </InfoCard>
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text style={styles.cardTitle}>{transaction.description}</Text>
+                  <Text style={styles.meta}>{formatDateTime(transaction.createdAt)}</Text>
+                </View>
+                <View style={{ alignItems: "flex-end", gap: 2 }}>
+                  <Text
+                    style={[
+                      styles.amount,
+                      transaction.amount >= 0 ? styles.positiveAmount : styles.negativeAmount,
+                    ]}
+                  >
+                    {transaction.amount >= 0 ? "+" : ""}
+                    {formatCurrency(transaction.amount)}
+                  </Text>
+                  <Text style={styles.meta}>Balance {formatCurrency(transaction.balanceAfter)}</Text>
+                </View>
+              </View>
             ))
           ) : (
-            <View style={styles.emptyCard}>
-              <Text style={styles.emptyText}>No transactions yet</Text>
+            <View style={styles.emptyRow}>
+              <Text style={styles.emptyRowText}>No transactions found</Text>
             </View>
           )}
         </View>
@@ -115,53 +139,72 @@ export default function WalletScreen() {
 const styles = StyleSheet.create({
   content: {
     paddingHorizontal: Spacing.md,
-    paddingBottom: Spacing.xl,
+    paddingBottom: Spacing.xxl,
+    paddingTop: Spacing.md,
     gap: Spacing.lg,
   },
-  grid: {
+  statsContainer: {
     flexDirection: "row",
-    flexWrap: "wrap",
     gap: Spacing.md,
   },
   stack: {
     gap: Spacing.md,
   },
-  rowBetween: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: Spacing.md,
-  },
   promoCard: {
-    backgroundColor: Colors.light.surfaceSecondary,
+    backgroundColor: Colors.light.surface,
     borderRadius: Radius.xl,
     padding: Spacing.lg,
     borderWidth: 1,
     borderColor: Colors.light.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    ...Shadows.soft,
+  },
+  promoInfo: {
+    flex: 1,
+    gap: 4,
   },
   promoTitle: {
     color: Colors.light.text,
-    fontSize: 20,
-    fontWeight: "800",
-    marginBottom: Spacing.xs,
+    fontSize: 18,
+    fontWeight: "900",
   },
   promoSubtitle: {
     color: Colors.light.textDim,
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: Spacing.lg,
+    fontSize: 12,
+    lineHeight: 18,
   },
   payoutButton: {
-    height: 50,
+    height: 44,
+    paddingHorizontal: Spacing.lg,
+  },
+  transactionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.light.surface,
+    padding: Spacing.md,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    gap: Spacing.md,
+  },
+  itemIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.light.surfaceSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cardTitle: {
     color: Colors.light.text,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "800",
   },
   cardText: {
     color: Colors.light.textDim,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 12,
   },
   meta: {
     color: Colors.light.textMuted,
@@ -169,7 +212,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   amount: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "900",
   },
   positiveAmount: {
@@ -178,17 +221,17 @@ const styles = StyleSheet.create({
   negativeAmount: {
     color: Colors.light.error,
   },
-  emptyCard: {
+  emptyRow: {
+    padding: Spacing.xxl,
     backgroundColor: Colors.light.surface,
-    borderRadius: Radius.lg,
-    padding: Spacing.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: Radius.xl,
     borderStyle: 'dashed',
     borderWidth: 1.5,
     borderColor: Colors.light.border,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  emptyText: {
+  emptyRowText: {
     color: Colors.light.textMuted,
     fontSize: 14,
     fontWeight: '600',

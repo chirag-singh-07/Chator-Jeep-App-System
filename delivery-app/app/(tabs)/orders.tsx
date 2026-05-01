@@ -1,12 +1,13 @@
 import { useEffect } from "react";
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { OrderCard } from "@/components/OrderCard";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { DeliveryOrder } from "@/types";
-import { Colors, Spacing, Radius } from "@/constants/Colors";
+import { Colors, Spacing, Radius } from "../../constants/Colors";
 
 export default function OrdersScreen() {
   const { orders, isLoading, fetchAssignedOrders } = useDeliveryStore();
@@ -46,6 +47,9 @@ export default function OrdersScreen() {
           </View>
         ) : (
           <View style={styles.emptyCard}>
+            <View style={styles.emptyIconBg}>
+              <Ionicons name="bicycle-outline" size={32} color={Colors.light.textMuted} />
+            </View>
             <Text style={styles.emptyTitle}>Queue is Clear</Text>
             <Text style={styles.emptySubtitle}>
               New assignments will show up here as soon as they are dispatched to you.
@@ -68,8 +72,8 @@ const styles = StyleSheet.create({
   },
   emptyCard: {
     backgroundColor: Colors.light.surface,
-    borderRadius: Radius.lg,
-    padding: Spacing.xl,
+    borderRadius: Radius.xl,
+    padding: Spacing.xxl,
     alignItems: 'center',
     justifyContent: 'center',
     borderStyle: 'dashed',
@@ -77,8 +81,17 @@ const styles = StyleSheet.create({
     borderColor: Colors.light.border,
     marginTop: Spacing.md,
   },
+  emptyIconBg: {
+    width: 64,
+    height: 64,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.light.surfaceSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.md,
+  },
   emptyTitle: {
-    color: Colors.light.textDim,
+    color: Colors.light.text,
     fontSize: 18,
     fontWeight: '800',
     textAlign: 'center',

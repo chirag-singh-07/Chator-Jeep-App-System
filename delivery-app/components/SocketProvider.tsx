@@ -1,6 +1,8 @@
 import { PropsWithChildren, useEffect, useRef } from "react";
-import { Alert } from "react-native";
+import { Alert, Vibration } from "react-native";
 import { io, Socket } from "socket.io-client";
+import { Audio } from "expo-av";
+import * as Haptics from "expo-haptics";
 import { getSocketUrl } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
@@ -40,7 +42,31 @@ export function SocketProvider({ children }: PropsWithChildren) {
 
     const setActiveRequest = useDeliveryStore.getState().setActiveRequest;
 
+    const playNotificationSound = async () => {
+      try {
+        const { sound } = await Audio.Sound.createAsync(
+          require("../assets/audios/order-incoming-sound.wav")
+        );
+        await sound.playAsync();
+        // Unload after playing
+        sound.setOnPlaybackStatusUpdate(async (status) => {
+          if (status.isLoaded && status.didJustFinish) {
+            await sound.unloadAsync();
+          }
+        });
+      } catch (error) {
+        console.log("Error playing sound:", error);
+      }
+    };
+
+    const triggerAlert = () => {
+      void playNotificationSound();
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Vibration.vibrate([0, 500, 200, 500]); // Pattern: wait 0, vibrate 500, wait 200, vibrate 500
+    };
+
     socket.on("delivery:request", (payload: any) => {
+      triggerAlert();
       setActiveRequest(payload);
     });
 

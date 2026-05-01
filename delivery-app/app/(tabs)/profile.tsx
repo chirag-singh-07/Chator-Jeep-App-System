@@ -4,10 +4,13 @@ import { InfoCard } from "@/components/InfoCard";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { Colors, Spacing, Radius } from "@/constants/Colors";
+import { router } from "expo-router";
 
 export default function ProfileScreen() {
   const { user, logout } = useAuthStore();
+  const { simulateOrder } = useDeliveryStore();
 
   return (
     <ScreenContainer withSafeArea>
@@ -44,6 +47,20 @@ export default function ProfileScreen() {
             Payout requests move available wallet balance into a held state until admin approval or rejection.
           </Text>
         </InfoCard>
+
+        <View style={styles.devSection}>
+          <Text style={styles.devTitle}>Developer Tools</Text>
+          <PrimaryButton 
+            label="Simulate Test Order" 
+            onPress={() => {
+              simulateOrder();
+              router.push("/(tabs)");
+            }} 
+            style={styles.devButton}
+            textStyle={styles.devButtonText}
+            icon="flask-outline"
+          />
+        </View>
 
         <PrimaryButton 
           label="Sign out" 
@@ -118,5 +135,25 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     color: Colors.light.error,
+  },
+  devSection: {
+    marginTop: Spacing.md,
+    gap: Spacing.md,
+  },
+  devTitle: {
+    color: Colors.light.textMuted,
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: -Spacing.xs,
+  },
+  devButton: {
+    backgroundColor: Colors.light.surfaceSecondary,
+    borderColor: Colors.light.border,
+    borderWidth: 1,
+  },
+  devButtonText: {
+    color: Colors.light.text,
   }
 });
