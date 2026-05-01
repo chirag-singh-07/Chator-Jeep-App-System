@@ -23,6 +23,7 @@ import * as Haptics from 'expo-haptics';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import api from '@/lib/api';
+import RazorpayCheckout from 'react-native-razorpay';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -59,21 +60,36 @@ export default function CheckoutScreen() {
         ? 'PARTIAL_WALLET'
         : paymentMethod;
 
-  const pollPhonePeStatus = async (orderId: string) => {
-    let lastStatus: any = null;
+  const handleRazorpayPayment = async (orderId: string, razorpayData: any) => {
+    const options = {
+      description: 'Food Order Payment',
+      image: 'https://chatorijeep.com/logo.png', // Fallback logo
+      currency: razorpayData.currency || 'INR',
+      key: razorpayData.key,
+      amount: razorpayData.amount,
+      name: 'Chatori Jeep',
+      order_id: razorpayData.razorpayOrderId,
+      prefill: {
+        email: 'user@example.com',
+        contact: '9876543210',
+        name: 'Customer',
+      },
+      theme: { color: '#3399cc' }
+    };
 
-    for (let attempt = 0; attempt < 4; attempt += 1) {
-      const res = await api.get(`/orders/${orderId}/payment/status`);
-      lastStatus = res.data?.data;
-
-      if (lastStatus?.paymentStatus === 'PAID' || lastStatus?.providerState === 'FAILED') {
-        break;
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      const data = await RazorpayCheckout.open(options);
+      // Payment successful, now verify on backend
+      await api.post(`/orders/${orderId}/payment/verify`, {
+        razorpayOrderId: razorpayData.razorpayOrderId,
+        razorpayPaymentId: data.razorpay_payment_id,
+        razorpaySignature: data.razorpay_signature,
+      });
+      return true;
+    } catch (error: any) {
+      console.log('Razorpay Error:', error);
+      throw new Error(error.description || 'Payment failed or cancelled');
     }
-
-    return lastStatus;
   };
 
   const handlePlaceOrder = async () => {
@@ -107,27 +123,13 @@ export default function CheckoutScreen() {
         const orderId = order._id || order.id;
         createdOrderId = orderId;
 
-        const returnUrl = Linking.createURL('/payment-status');
-        const payRes = await api.post(`/orders/${orderId}/payment`, { redirectUrl: returnUrl });
-        const { checkoutUrl } = payRes.data.data;
+        const payRes = await api.post(`/orders/${orderId}/payment`);
+        const razorpayData = payRes.data.data;
 
-        if (!checkoutUrl) {
-          throw new Error('PhonePe checkout URL is missing.');
-        }
-
-        await WebBrowser.openAuthSessionAsync(checkoutUrl, returnUrl);
-        const paymentStatus = await pollPhonePeStatus(orderId);
+        await handleRazorpayPayment(orderId, razorpayData);
 
         clearCart();
-        if (paymentStatus?.paymentStatus === 'PAID') {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        } else {
-          Alert.alert(
-            'Payment Pending',
-            'Your order was created, but PhonePe has not confirmed the payment yet. You can keep tracking the order from the app.'
-          );
-        }
-
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         router.push(`/order-tracking/${orderId}`);
         return;
       }
@@ -144,7 +146,7 @@ export default function CheckoutScreen() {
         clearCart();
         Alert.alert(
           'Payment Pending',
-          'Your order was created, but the PhonePe payment flow did not finish inside the app. You can track the order status from your orders screen.'
+          'Your order was created, but the Razorpay payment flow did not finish inside the app. You can track the order status from your orders screen.'
         );
         router.push(`/order-tracking/${createdOrderId}`);
       } else if (msg.includes('cancelled') || error?.code === 'PAYMENT_CANCELLED') {
@@ -251,13 +253,19 @@ export default function CheckoutScreen() {
               onPress={() => setPaymentMethod('ONLINE')}
             >
               <View style={styles.paymentIconBox}>
-                <Ionicons name="phone-portrait-outline" size={22} color={paymentMethod === 'ONLINE' ? Colors.light.primary : '#888'} />
+                <Ionicons name="card-outline" size={22} color={paymentMethod === 'ONLINE' ? '#3399cc' : '#888'} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.paymentTitle}>PhonePe</Text>
-                <Text style={styles.paymentSub}>UPI, cards and net banking via PhonePe</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={styles.paymentTitle}>Razorpay</Text>
+                  <View style={styles.secureBadge}>
+                    <Ionicons name="shield-checkmark" size={10} color="#22C55E" />
+                    <Text style={styles.secureText}>SECURE</Text>
+                  </View>
+                </View>
+                <Text style={styles.paymentSub}>Cards, UPI & Net Banking</Text>
               </View>
-              <View style={styles.radio}>{paymentMethod === 'ONLINE' && <View style={styles.radioInner} />}</View>
+              <View style={styles.radio}>{paymentMethod === 'ONLINE' && <View style={[styles.radioInner, { backgroundColor: '#3399cc' }]} />}</View>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -353,8 +361,8 @@ export default function CheckoutScreen() {
                     : paymentMethod === 'WALLET'
                       ? 'Pay from Wallet'
                       : useWalletPartial
-                        ? `Pay Rs.${remainingAfterWallet.toFixed(0)} with PhonePe`
-                        : `Pay Rs.${grandTotal} with PhonePe`}
+                        ? `Pay Rs.${remainingAfterWallet.toFixed(0)} with Razorpay`
+                        : `Pay Rs.${grandTotal} with Razorpay`}
                 </Text>
               </>
             )}
@@ -412,4 +420,6 @@ const styles = StyleSheet.create({
   btnDisabled: { opacity: 0.45 },
   placeOrderBtn: { backgroundColor: '#22C55E', height: 58, borderRadius: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   placeOrderText: { color: '#FFF', fontSize: 16, fontWeight: '900' },
+  secureBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0FDF4', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, gap: 3 },
+  secureText: { fontSize: 8, fontWeight: '900', color: '#166534' },
 });

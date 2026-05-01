@@ -39,7 +39,7 @@ export const cancelOrder = asyncHandler(async (req: AuthenticatedRequest, res: R
 // ─── Payment ──────────────────────────────────────────────────────────────────
 
 export const initiatePayment = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const result = await service.initiatePhonePePayment(req.user!.userId, req.params.orderId as string, req.body);
+  const result = await service.initiateRazorpayPayment(req.user!.userId, req.params.orderId as string);
   res.status(200).json({ success: true, data: result });
 });
 

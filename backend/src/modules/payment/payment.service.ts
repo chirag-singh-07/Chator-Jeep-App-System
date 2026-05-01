@@ -2,8 +2,8 @@ import { notImplemented } from "./payment.repository";
 
 export const getPaymentInfo = () => ({
   ...notImplemented(),
-  activeGateway: "PHONEPE",
-  availableGateways: ["PHONEPE", "RAZORPAY"],
+  activeGateway: "RAZORPAY",
+  availableGateways: ["RAZORPAY"],
 });
 
 export const renderPhonePeRedirectPage = (targetUrl?: string, merchantOrderId?: string) => {
