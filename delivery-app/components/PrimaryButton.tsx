@@ -1,65 +1,101 @@
-import { Pressable, StyleProp, StyleSheet, Text, ViewStyle } from "react-native";
+import { Pressable, StyleProp, StyleSheet, Text, ViewStyle, TextStyle, ActivityIndicator } from "react-native";
+import { Colors, Spacing, Radius, Shadows } from "@/constants/Colors";
+
+interface PrimaryButtonProps {
+  label: string;
+  onPress: () => void;
+  variant?: "primary" | "secondary" | "outline";
+  disabled?: boolean;
+  loading?: boolean;
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
+  icon?: React.ReactNode;
+}
 
 export function PrimaryButton({
   label,
   onPress,
   variant = "primary",
   disabled,
+  loading,
   style,
-}: {
-  label: string;
-  onPress: () => void;
-  variant?: "primary" | "secondary";
-  disabled?: boolean;
-  style?: StyleProp<ViewStyle>;
-}) {
+  textStyle,
+  icon,
+}: PrimaryButtonProps) {
   return (
     <Pressable
-      disabled={disabled}
+      disabled={disabled || loading}
       onPress={onPress}
       style={({ pressed }) => [
         styles.base,
-        variant === "primary" ? styles.primary : styles.secondary,
-        pressed && !disabled ? styles.pressed : null,
-        disabled ? styles.disabled : null,
+        styles[variant],
+        pressed && !disabled && !loading && styles.pressed,
+        disabled && styles.disabled,
         style,
       ]}
     >
-      <Text style={variant === "primary" ? styles.primaryText : styles.secondaryText}>{label}</Text>
+      {loading ? (
+        <ActivityIndicator color={variant === "primary" ? Colors.light.black : Colors.light.primary} />
+      ) : (
+        <>
+          {icon}
+          <Text 
+            style={[
+              styles.textBase,
+              variant === "primary" ? styles.primaryText : styles.secondaryText,
+              textStyle
+            ]}
+          >
+            {label}
+          </Text>
+        </>
+      )}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   base: {
-    minHeight: 50,
-    borderRadius: 18,
+    height: 56,
+    borderRadius: Radius.lg,
+    flexDirection: 'row',
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 16,
+    paddingHorizontal: Spacing.lg,
+    ...Shadows.soft,
   },
   primary: {
-    backgroundColor: "#F59E0B",
+    backgroundColor: Colors.light.primary,
   },
   secondary: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.surfaceSecondary,
     borderWidth: 1,
-    borderColor: "#CBD5E1",
+    borderColor: Colors.light.border,
+  },
+  outline: {
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    borderColor: Colors.light.primary,
   },
   disabled: {
-    opacity: 0.5,
+    opacity: 0.4,
   },
   pressed: {
-    opacity: 0.85,
+    opacity: 0.8,
+    transform: [{ scale: 0.98 }],
+  },
+  textBase: {
+    fontSize: 16,
+    fontWeight: "800",
+    letterSpacing: 0.5,
   },
   primaryText: {
-    color: "#111827",
-    fontSize: 15,
-    fontWeight: "800",
+    color: Colors.light.black,
   },
   secondaryText: {
-    color: "#0F172A",
-    fontSize: 15,
-    fontWeight: "800",
+    color: Colors.light.text,
   },
+  outlineText: {
+    color: Colors.light.primary,
+  }
 });

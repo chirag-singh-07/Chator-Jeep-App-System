@@ -1,13 +1,12 @@
 import { useEffect } from "react";
-import { RefreshControl, ScrollView, StyleSheet, Text } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { DashboardHeader } from "@/components/DashboardHeader";
-import { InfoCard } from "@/components/InfoCard";
 import { OrderCard } from "@/components/OrderCard";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { DeliveryOrder } from "@/types";
+import { Colors, Spacing, Radius } from "@/constants/Colors";
 
 export default function OrdersScreen() {
   const { orders, isLoading, fetchAssignedOrders } = useDeliveryStore();
@@ -17,57 +16,78 @@ export default function OrdersScreen() {
   }, [fetchAssignedOrders]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScreenContainer>
-        <ScrollView
-          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => void fetchAssignedOrders()} />}
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
-        >
-          <DashboardHeader
-            title="Assigned orders"
-            subtitle="Track every active pickup and delivery from one place."
+    <ScreenContainer withSafeArea>
+      <ScrollView
+        refreshControl={
+          <RefreshControl 
+            refreshing={isLoading} 
+            onRefresh={() => void fetchAssignedOrders()} 
+            tintColor={Colors.light.primary}
+            colors={[Colors.light.primary]}
           />
+        }
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <DashboardHeader
+          title="Assigned Queue"
+          subtitle="Manage all your active pickups and delivery assignments."
+        />
 
-          {orders.length ? (
-            orders.map((order: DeliveryOrder) => (
+        {orders.length ? (
+          <View style={styles.stack}>
+            {orders.map((order: DeliveryOrder) => (
               <OrderCard
                 key={order.id}
                 order={order}
                 onPress={() => router.push(`/order/${order.orderId}`)}
               />
-            ))
-          ) : (
-            <InfoCard accent="slate">
-              <Text style={styles.title}>No assigned orders</Text>
-              <Text style={styles.subtitle}>
-                Your current assignments will appear here as soon as dispatch sends one your way.
-              </Text>
-            </InfoCard>
-          )}
-        </ScrollView>
-      </ScreenContainer>
-    </SafeAreaView>
+            ))}
+          </View>
+        ) : (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyTitle}>Queue is Clear</Text>
+            <Text style={styles.emptySubtitle}>
+              New assignments will show up here as soon as they are dispatched to you.
+            </Text>
+          </View>
+        )}
+      </ScrollView>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-  },
   content: {
-    paddingBottom: 30,
-    gap: 12,
+    paddingHorizontal: Spacing.md,
+    paddingBottom: Spacing.xl,
+    gap: Spacing.lg,
   },
-  title: {
-    color: "#0F172A",
+  stack: {
+    gap: Spacing.md,
+  },
+  emptyCard: {
+    backgroundColor: Colors.light.surface,
+    borderRadius: Radius.lg,
+    padding: Spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderStyle: 'dashed',
+    borderWidth: 1.5,
+    borderColor: Colors.light.border,
+    marginTop: Spacing.md,
+  },
+  emptyTitle: {
+    color: Colors.light.textDim,
     fontSize: 18,
-    fontWeight: "800",
+    fontWeight: '800',
+    textAlign: 'center',
   },
-  subtitle: {
-    color: "#475569",
+  emptySubtitle: {
+    color: Colors.light.textMuted,
     fontSize: 14,
-    lineHeight: 21,
+    textAlign: 'center',
+    marginTop: Spacing.sm,
+    lineHeight: 20,
   },
 });

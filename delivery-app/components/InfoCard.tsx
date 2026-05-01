@@ -1,5 +1,6 @@
 import { PropsWithChildren } from "react";
 import { StyleSheet, View } from "react-native";
+import { Colors, Spacing, Radius, Shadows } from "@/constants/Colors";
 
 export function InfoCard({
   children,
@@ -10,27 +11,28 @@ export function InfoCard({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 24,
-    padding: 18,
-    borderWidth: 1,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    borderWidth: 1.5,
+    ...Shadows.soft,
   },
 });
 
 const accentStyles = StyleSheet.create({
   amber: {
-    backgroundColor: "#FFFBEB",
-    borderColor: "#FDE68A",
+    backgroundColor: Colors.light.surface,
+    borderColor: Colors.light.primary,
   },
   green: {
-    backgroundColor: "#F0FDF4",
-    borderColor: "#BBF7D0",
+    backgroundColor: Colors.light.surface,
+    borderColor: Colors.light.success,
   },
   blue: {
-    backgroundColor: "#EFF6FF",
-    borderColor: "#BFDBFE",
+    backgroundColor: Colors.light.surface,
+    borderColor: '#3B82F6',
   },
   slate: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#E2E8F0",
+    backgroundColor: Colors.light.surface,
+    borderColor: Colors.light.border,
   },
 });

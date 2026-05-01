@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Colors, Spacing } from "@/constants/Colors";
 
 export function SectionHeader({
   title,
@@ -26,16 +27,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    gap: 12,
+    gap: Spacing.md,
+    marginBottom: -Spacing.xs,
   },
   title: {
-    color: "#0F172A",
+    color: Colors.light.text,
     fontSize: 20,
-    fontWeight: "800",
+    fontWeight: "900",
   },
   action: {
-    color: "#D97706",
-    fontSize: 13,
+    color: Colors.light.primary,
+    fontSize: 14,
     fontWeight: "800",
   },
 });

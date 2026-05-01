@@ -1,6 +1,13 @@
+import { Colors } from "@/constants/Colors";
 import { StyleSheet, Text, View } from "react-native";
 
-export function DashboardHeader({ title, subtitle }: { title: string; subtitle: string }) {
+export function DashboardHeader({
+  title,
+  subtitle,
+}: {
+  title: string;
+  subtitle: string;
+}) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{title}</Text>
@@ -14,12 +21,12 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   title: {
-    color: "#0F172A",
+    color: Colors.light.text,
     fontSize: 30,
     fontWeight: "800",
   },
   subtitle: {
-    color: "#475569",
+    color: Colors.light.textMuted,
     fontSize: 15,
     lineHeight: 22,
   },

@@ -1,4 +1,5 @@
 import { Stack, router, useRootNavigationState, useSegments } from "expo-router";
+import { ThemeProvider, DarkTheme } from "@react-navigation/native";
 import { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -36,42 +37,44 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <SocketProvider>
-        <View style={{ flex: 1 }}>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen
-              name="order/[id]"
-              options={{
-                presentation: "card",
-              }}
-            />
-            <Stack.Screen
-              name="wallet/request"
-              options={{
-                presentation: "modal",
-              }}
-            />
-          </Stack>
+      <ThemeProvider value={DarkTheme}>
+        <SocketProvider>
+          <View style={{ flex: 1, backgroundColor: "#000000" }}>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="(auth)" />
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen
+                name="order/[id]"
+                options={{
+                  presentation: "card",
+                }}
+              />
+              <Stack.Screen
+                name="wallet/request"
+                options={{
+                  presentation: "modal",
+                }}
+              />
+            </Stack>
 
-          {!hasHydrated && (
-            <View
-              style={[
-                StyleSheet.absoluteFill,
-                {
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#0B1220",
-                  zIndex: 999,
-                },
-              ]}
-            >
-              <ActivityIndicator color="#F59E0B" size="large" />
-            </View>
-          )}
-        </View>
-      </SocketProvider>
+            {!hasHydrated && (
+              <View
+                style={[
+                  StyleSheet.absoluteFill,
+                  {
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "#000000",
+                    zIndex: 999,
+                  },
+                ]}
+              >
+                <ActivityIndicator color="#D4AF37" size="large" />
+              </View>
+            )}
+          </View>
+        </SocketProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

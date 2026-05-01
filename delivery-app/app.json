@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Chatori Jeeb",
+    "name": "Chatori Jeeb Delivery App",
     "slug": "delivery-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -24,10 +24,7 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "permissions": [
-        "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
-      ],
+      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },

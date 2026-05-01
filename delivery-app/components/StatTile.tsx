@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
+import { Colors, Spacing, Radius } from "@/constants/Colors";
 
 export function StatTile({
   label,
@@ -12,47 +13,48 @@ export function StatTile({
   return (
     <View style={[styles.card, tones[tone]]}>
       <Text style={styles.label}>{label}</Text>
-      <Text style={styles.value}>{value}</Text>
+      <Text style={[styles.value, { color: tone === 'amber' ? Colors.light.primary : Colors.light.text }]}>{value}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    flexGrow: 1,
-    minWidth: "47%",
-    borderRadius: 22,
-    padding: 16,
-    borderWidth: 1,
-    gap: 8,
+    flex: 1,
+    minWidth: 100,
+    borderRadius: Radius.lg,
+    padding: Spacing.md,
+    borderWidth: 1.5,
+    gap: Spacing.xs,
   },
   label: {
-    color: "#475569",
-    fontSize: 13,
+    color: Colors.light.textMuted,
+    fontSize: 12,
     fontWeight: "700",
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   value: {
-    color: "#0F172A",
     fontSize: 20,
-    fontWeight: "800",
+    fontWeight: "900",
   },
 });
 
 const tones = StyleSheet.create({
   amber: {
-    backgroundColor: "#FFFBEB",
-    borderColor: "#FDE68A",
+    backgroundColor: Colors.light.surface,
+    borderColor: Colors.light.primary,
   },
   green: {
-    backgroundColor: "#F0FDF4",
-    borderColor: "#BBF7D0",
+    backgroundColor: Colors.light.surface,
+    borderColor: Colors.light.success,
   },
   blue: {
-    backgroundColor: "#EFF6FF",
-    borderColor: "#BFDBFE",
+    backgroundColor: Colors.light.surface,
+    borderColor: '#3B82F6',
   },
   slate: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#E2E8F0",
+    backgroundColor: Colors.light.surface,
+    borderColor: Colors.light.border,
   },
 });

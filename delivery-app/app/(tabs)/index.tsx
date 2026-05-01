@@ -1,11 +1,17 @@
 import { useEffect } from "react";
-import { RefreshControl, ScrollView, StyleSheet, Switch, Text, View, ActivityIndicator } from "react-native";
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+  ActivityIndicator,
+} from "react-native";
 import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
 import * as Location from "expo-location";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { DeliveryMapCard } from "@/components/DeliveryMapCard";
-import { InfoCard } from "@/components/InfoCard";
 import { OrderCard } from "@/components/OrderCard";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { ScreenContainer } from "@/components/ScreenContainer";
@@ -17,9 +23,12 @@ import { formatCurrency, formatRelativeTime } from "@/lib/format";
 import { DeliveryOrder } from "@/types";
 import VerificationPending from "../(onboarding)/verification-pending";
 import { OrderRequestModal } from "@/components/OrderRequestModal";
+import { Colors, Spacing, Radius, Shadows } from "@/constants/Colors";
 
 export default function DashboardScreen() {
-  const user = useAuthStore((state: ReturnType<typeof useAuthStore.getState>) => state.user);
+  const user = useAuthStore(
+    (state: ReturnType<typeof useAuthStore.getState>) => state.user,
+  );
   const {
     dashboard,
     partnerProfile,
@@ -46,13 +55,11 @@ export default function DashboardScreen() {
 
   if (isLoading && !partnerProfile) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <ScreenContainer>
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-            <ActivityIndicator size="large" color="#FBBF24" />
-          </View>
-        </ScreenContainer>
-      </SafeAreaView>
+      <ScreenContainer withSafeArea>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.light.primary} />
+        </View>
+      </ScreenContainer>
     );
   }
 
@@ -75,161 +82,241 @@ export default function DashboardScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScreenContainer>
-        <ScrollView
-          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => void fetchDashboard()} />}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.content}
-        >
-          <DashboardHeader
-            title={`Hey ${user?.name?.split(" ")[0] ?? "Rider"}`}
-            subtitle="Your live dispatch board for active deliveries and payout health."
+    <ScreenContainer withSafeArea>
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={() => void fetchDashboard()}
+            tintColor={Colors.light.primary}
+            colors={[Colors.light.primary]}
           />
+        }
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+      >
+        <DashboardHeader
+          title={`Hey ${user?.name?.split(" ")[0] ?? "Rider"}`}
+          subtitle="Live dispatch board for your active deliveries."
+        />
 
-          <InfoCard accent="amber">
-            <View style={styles.availabilityRow}>
-              <View style={{ flex: 1, gap: 4 }}>
-                <Text style={styles.infoTitle}>Availability</Text>
-                <Text style={styles.infoSubtitle}>
-                  {dashboard?.availability.isOnline
-                    ? dashboard?.availability.isAvailable
-                      ? "Online and ready for new assignments"
-                      : "Online with an active delivery in progress"
-                    : "Offline until you go live"}
-                </Text>
-                {dashboard?.availability.lastLocationUpdatedAt ? (
-                  <Text style={styles.metaText}>
-                    Last synced {formatRelativeTime(dashboard.availability.lastLocationUpdatedAt)}
-                  </Text>
-                ) : null}
-              </View>
-              <Switch
-                value={Boolean(dashboard?.availability.isOnline)}
-                onValueChange={handleAvailabilityChange}
-                trackColor={{ false: "#CBD5E1", true: "#FBBF24" }}
-                thumbColor="#FFFFFF"
-              />
-            </View>
-          </InfoCard>
-
-          <View style={styles.grid}>
-            <StatTile label="Assigned orders" value={String(dashboard?.assignedOrders.length ?? 0)} tone="amber" />
-            <StatTile
-              label="Wallet balance"
-              value={formatCurrency(dashboard?.wallet.balance ?? 0)}
-              tone="green"
-            />
-            <StatTile
-              label="Total earnings"
-              value={formatCurrency(dashboard?.wallet.totalEarnings ?? 0)}
-              tone="blue"
-            />
-          </View>
-
-          <SectionHeader
-            title="Active delivery"
-            actionLabel={activeOrder ? "Open details" : undefined}
-            onPress={activeOrder ? () => router.push(`/order/${activeOrder.orderId}`) : undefined}
-          />
-
-          {activeOrder ? (
-            <>
-              <OrderCard order={activeOrder} compact={false} />
-              <DeliveryMapCard order={activeOrder} />
-            </>
-          ) : (
-            <InfoCard accent="slate">
-              <Text style={styles.infoTitle}>No active delivery right now</Text>
-              <Text style={styles.infoSubtitle}>
-                Go online to receive assignments. As soon as a dispatch lands, it will appear here in real time.
+        <View style={styles.availabilityCard}>
+          <View style={styles.availabilityInfo}>
+            <Text style={styles.infoTitle}>Shift Status</Text>
+            <Text style={styles.infoSubtitle}>
+              {dashboard?.availability.isOnline
+                ? dashboard?.availability.isAvailable
+                  ? "Online and ready for new assignments"
+                  : "Active delivery in progress"
+                : "Offline until you go live"}
+            </Text>
+            {dashboard?.availability.lastLocationUpdatedAt && (
+              <Text style={styles.metaText}>
+                Synced{" "}
+                {formatRelativeTime(
+                  dashboard.availability.lastLocationUpdatedAt,
+                )}
               </Text>
-            </InfoCard>
-          )}
-
-          <SectionHeader
-            title="Assigned queue"
-            actionLabel="View all"
-            onPress={() => router.push("/(tabs)/orders")}
+            )}
+          </View>
+          <Switch
+            value={Boolean(dashboard?.availability.isOnline)}
+            onValueChange={handleAvailabilityChange}
+            trackColor={{
+              false: Colors.light.border,
+              true: Colors.light.primary,
+            }}
+            thumbColor={Colors.light.white}
           />
+        </View>
 
-          <View style={styles.stack}>
-            {dashboard?.assignedOrders.length ? (
-              dashboard.assignedOrders.slice(0, 3).map((order: DeliveryOrder) => (
+        <View style={styles.grid}>
+          <StatTile
+            label="Assigned"
+            value={String(dashboard?.assignedOrders.length ?? 0)}
+            tone="amber"
+          />
+          <StatTile
+            label="Wallet"
+            value={formatCurrency(dashboard?.wallet.balance ?? 0)}
+            tone="green"
+          />
+          <StatTile
+            label="Total"
+            value={formatCurrency(dashboard?.wallet.totalEarnings ?? 0)}
+            tone="blue"
+          />
+        </View>
+
+        <SectionHeader
+          title="Active Delivery"
+          actionLabel={activeOrder ? "Details" : undefined}
+          onPress={
+            activeOrder
+              ? () => router.push(`/order/${activeOrder.orderId}`)
+              : undefined
+          }
+        />
+
+        {activeOrder ? (
+          <View style={styles.activeOrderContainer}>
+            <OrderCard order={activeOrder} compact={false} />
+            <DeliveryMapCard order={activeOrder} />
+          </View>
+        ) : (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyTitle}>Quiet right now</Text>
+            <Text style={styles.emptySubtitle}>
+              Go online to receive assignments. New dispatches appear here
+              instantly.
+            </Text>
+          </View>
+        )}
+
+        <SectionHeader
+          title="Upcoming Queue"
+          actionLabel="View all"
+          onPress={() => router.push("/(tabs)/orders")}
+        />
+
+        <View style={styles.stack}>
+          {dashboard?.assignedOrders.length ? (
+            dashboard.assignedOrders
+              .slice(0, 3)
+              .map((order: DeliveryOrder) => (
                 <OrderCard
                   key={order.id}
                   order={order}
                   onPress={() => router.push(`/order/${order.orderId}`)}
                 />
               ))
-            ) : (
-              <InfoCard accent="slate">
-                <Text style={styles.infoTitle}>Your queue is clear</Text>
-                <Text style={styles.infoSubtitle}>
-                  New assignments will show up here when nearby orders are dispatched to you.
-                </Text>
-              </InfoCard>
-            )}
-          </View>
+          ) : (
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyTitle}>Queue is empty</Text>
+            </View>
+          )}
+        </View>
 
-          <InfoCard accent="green">
-            <Text style={styles.infoTitle}>Payout readiness</Text>
-            <Text style={styles.infoSubtitle}>
-              Available now: {formatCurrency(dashboard?.wallet.balance ?? 0)}. Held in pending requests:{" "}
-              {formatCurrency(dashboard?.wallet.heldBalance ?? 0)}.
+        <View style={styles.payoutCard}>
+          <View style={styles.payoutHeader}>
+            <Text style={styles.infoTitle}>Payout Readiness</Text>
+            <Text style={styles.payoutAmount}>
+              {formatCurrency(dashboard?.wallet.balance ?? 0)}
             </Text>
-            <PrimaryButton
-              label="Open wallet"
-              onPress={() => router.push("/(tabs)/wallet")}
-              style={{ marginTop: 14 }}
-            />
-          </InfoCard>
-        </ScrollView>
-      </ScreenContainer>
+          </View>
+          <Text style={styles.infoSubtitle}>
+            Pending settlements:{" "}
+            {formatCurrency(dashboard?.wallet.heldBalance ?? 0)}
+          </Text>
+          <PrimaryButton
+            label="Manage Wallet"
+            onPress={() => router.push("/(tabs)/wallet")}
+            style={styles.walletButton}
+          />
+        </View>
+      </ScrollView>
+
       <OrderRequestModal
         request={activeRequest}
         onAccept={acceptOrder}
         onReject={() => setActiveRequest(null)}
       />
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  loadingContainer: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    justifyContent: "center",
+    alignItems: "center",
   },
   content: {
-    paddingBottom: 36,
-    gap: 18,
+    paddingHorizontal: Spacing.md,
+    paddingBottom: Spacing.xxl,
+    paddingTop: Spacing.md,
+    gap: Spacing.lg,
   },
-  availabilityRow: {
+  availabilityCard: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 18,
+    backgroundColor: Colors.light.surface,
+    padding: Spacing.lg,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    ...Shadows.soft,
+  },
+  availabilityInfo: {
+    flex: 1,
+    gap: Spacing.xs,
   },
   infoTitle: {
-    color: "#0F172A",
+    color: Colors.light.text,
     fontSize: 18,
     fontWeight: "800",
   },
   infoSubtitle: {
-    color: "#475569",
+    color: Colors.light.textDim,
     fontSize: 14,
-    lineHeight: 21,
+    lineHeight: 20,
   },
   metaText: {
-    color: "#64748B",
+    color: Colors.light.textMuted,
     fontSize: 12,
     fontWeight: "600",
   },
   grid: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
+    gap: Spacing.md,
   },
   stack: {
-    gap: 12,
+    gap: Spacing.md,
+  },
+  activeOrderContainer: {
+    gap: Spacing.md,
+  },
+  emptyCard: {
+    backgroundColor: Colors.light.surface,
+    borderRadius: Radius.lg,
+    padding: Spacing.xl,
+    alignItems: "center",
+    justifyContent: "center",
+    borderStyle: "dashed",
+    borderWidth: 1.5,
+    borderColor: Colors.light.border,
+  },
+  emptyTitle: {
+    color: Colors.light.textDim,
+    fontSize: 16,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  emptySubtitle: {
+    color: Colors.light.textMuted,
+    fontSize: 14,
+    textAlign: "center",
+    marginTop: Spacing.sm,
+  },
+  payoutCard: {
+    backgroundColor: Colors.light.surfaceSecondary,
+    borderRadius: Radius.xl,
+    padding: Spacing.lg,
+    gap: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+  },
+  payoutHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  payoutAmount: {
+    color: Colors.light.primary,
+    fontSize: 20,
+    fontWeight: "900",
+  },
+  walletButton: {
+    marginTop: Spacing.md,
   },
 });

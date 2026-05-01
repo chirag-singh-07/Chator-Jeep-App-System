@@ -1,17 +1,19 @@
 import { useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
+  ScrollView,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuthStore } from "@/store/useAuthStore";
+import { Colors, Spacing, Radius, Shadows } from "@/constants/Colors";
+import { ScreenContainer } from "@/components/ScreenContainer";
+import { ThemedInput } from "@/components/ThemedInput";
+import { PrimaryButton } from "@/components/PrimaryButton";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function LoginScreen() {
   const { login, isLoading } = useAuthStore();
@@ -21,7 +23,7 @@ export default function LoginScreen() {
 
   const isDisabled = useMemo(
     () => !email.trim() || password.trim().length < 8 || isLoading,
-    [email, isLoading, password]
+    [email, isLoading, password],
   );
 
   const handleLogin = async () => {
@@ -34,164 +36,175 @@ export default function LoginScreen() {
   };
 
   return (
-    <LinearGradient colors={["#0F172A", "#111827", "#1F2937"]} style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
+    <ScreenContainer>
+      <LinearGradient
+        colors={[Colors.light.background, Colors.light.surface, "#121212"]}
+        style={styles.gradient}
+      >
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardArea}
         >
-          <View style={styles.hero}>
-            <Text style={styles.kicker}>Delivery Partner Console</Text>
-            <Text style={styles.title}>Stay online, deliver faster, and track your payouts live.</Text>
-            <Text style={styles.subtitle}>
-              Sign in with your rider credentials to manage active deliveries, route updates, and wallet requests.
-            </Text>
-          </View>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.header}>
+              <View style={styles.logoContainer}>
+                <Ionicons
+                  name="bicycle"
+                  size={40}
+                  color={Colors.light.primary}
+                />
+              </View>
+              <Text style={styles.kicker}>Partner Console</Text>
+              <Text style={styles.title}>Drive. Deliver.{"\n"}Earn Gold.</Text>
+              <Text style={styles.subtitle}>
+                Sign in to your rider account to manage deliveries and track
+                your daily performance.
+              </Text>
+            </View>
 
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Rider sign in</Text>
-            <Text style={styles.cardDescription}>This app is for delivery partners only.</Text>
-
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Email</Text>
-              <TextInput
-                autoCapitalize="none"
-                keyboardType="email-address"
-                placeholder="rider@example.com"
-                placeholderTextColor="#94A3B8"
-                style={styles.input}
+            <View style={styles.card}>
+              <ThemedInput
+                label="Email Address"
+                placeholder="rider@chatorijeep.com"
+                icon="mail-outline"
                 value={email}
                 onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
               />
-            </View>
 
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Password</Text>
-              <TextInput
-                secureTextEntry
-                placeholder="Minimum 8 characters"
-                placeholderTextColor="#94A3B8"
-                style={styles.input}
+              <ThemedInput
+                label="Password"
+                placeholder="••••••••"
+                icon="lock-closed-outline"
                 value={password}
                 onChangeText={setPassword}
+                secureTextEntry
               />
-            </View>
 
-            {error ? <Text style={styles.error}>{error}</Text> : null}
-
-            <Pressable
-              disabled={isDisabled}
-              onPress={handleLogin}
-              style={({ pressed }) => [
-                styles.button,
-                isDisabled && styles.buttonDisabled,
-                pressed && !isDisabled && styles.buttonPressed,
-              ]}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="#081018" />
-              ) : (
-                <Text style={styles.buttonText}>Sign in</Text>
+              {error && (
+                <View style={styles.errorContainer}>
+                  <Ionicons
+                    name="alert-circle"
+                    size={16}
+                    color={Colors.light.error}
+                  />
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
               )}
-            </Pressable>
-          </View>
+
+              <PrimaryButton
+                label="Sign In"
+                onPress={handleLogin}
+                loading={isLoading}
+                disabled={isDisabled}
+                style={styles.loginButton}
+              />
+
+              <View style={styles.footer}>
+                <Text style={styles.footerText}>New partner?</Text>
+                <PrimaryButton
+                  label="Register Now"
+                  variant="outline"
+                  onPress={() => {}}
+                  style={styles.registerButton}
+                  textStyle={styles.registerButtonText}
+                />
+              </View>
+            </View>
+          </ScrollView>
         </KeyboardAvoidingView>
-      </SafeAreaView>
-    </LinearGradient>
+      </LinearGradient>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  safeArea: {
+  gradient: {
     flex: 1,
   },
   keyboardArea: {
     flex: 1,
-    justifyContent: "space-between",
-    paddingHorizontal: 24,
-    paddingVertical: 24,
   },
-  hero: {
-    marginTop: 24,
-    gap: 12,
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.xl,
+  },
+  header: {
+    marginTop: 60,
+    marginBottom: Spacing.xl,
+  },
+  logoContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: Radius.lg,
+    backgroundColor: Colors.light.surfaceSecondary,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
   },
   kicker: {
-    color: "#FBBF24",
-    fontSize: 12,
+    color: Colors.light.primary,
+    fontSize: 14,
     fontWeight: "700",
-    letterSpacing: 1.6,
+    letterSpacing: 2,
     textTransform: "uppercase",
+    marginBottom: Spacing.xs,
   },
   title: {
-    color: "#F8FAFC",
-    fontSize: 34,
-    fontWeight: "800",
-    lineHeight: 42,
+    color: Colors.light.text,
+    fontSize: 40,
+    fontWeight: "900",
+    lineHeight: 48,
+    marginBottom: Spacing.md,
   },
   subtitle: {
-    color: "#CBD5E1",
+    color: Colors.light.textDim,
     fontSize: 16,
     lineHeight: 24,
   },
   card: {
-    backgroundColor: "rgba(255,255,255,0.08)",
-    borderColor: "rgba(255,255,255,0.12)",
+    backgroundColor: Colors.light.surface,
+    borderRadius: Radius.xl,
+    padding: Spacing.lg,
     borderWidth: 1,
-    borderRadius: 28,
-    padding: 22,
-    gap: 16,
-    marginBottom: 18,
+    borderColor: Colors.light.border,
+    ...Shadows.soft,
   },
-  cardTitle: {
-    color: "#F8FAFC",
-    fontSize: 24,
-    fontWeight: "800",
+  errorContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xs,
+    marginBottom: Spacing.md,
   },
-  cardDescription: {
-    color: "#CBD5E1",
+  errorText: {
+    color: Colors.light.error,
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  loginButton: {
+    marginTop: Spacing.sm,
+  },
+  footer: {
+    marginTop: Spacing.xl,
+    alignItems: "center",
+    gap: Spacing.md,
+  },
+  footerText: {
+    color: Colors.light.textMuted,
     fontSize: 14,
   },
-  fieldGroup: {
-    gap: 8,
+  registerButton: {
+    height: 44,
+    width: "100%",
   },
-  label: {
-    color: "#E2E8F0",
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  input: {
-    borderRadius: 18,
-    backgroundColor: "#F8FAFC",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    color: "#0F172A",
-    fontSize: 15,
-  },
-  button: {
-    backgroundColor: "#FBBF24",
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 54,
-    marginTop: 6,
-  },
-  buttonDisabled: {
-    opacity: 0.45,
-  },
-  buttonPressed: {
-    opacity: 0.82,
-  },
-  buttonText: {
-    color: "#0B1220",
-    fontSize: 16,
-    fontWeight: "800",
-  },
-  error: {
-    color: "#FCA5A5",
-    fontSize: 13,
-    fontWeight: "600",
+  registerButtonText: {
+    fontSize: 14,
   },
 });
