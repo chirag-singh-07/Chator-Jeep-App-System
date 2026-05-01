@@ -17,7 +17,7 @@ const router = Router();
 
 router.post("/assign/:orderId", authMiddleware, roleMiddleware([ROLES.ADMIN, ROLES.KITCHEN]), validate(assignOrderSchema), controller.assignOrder);
 router.get("/me/dashboard", authMiddleware, roleMiddleware([ROLES.DELIVERY]), controller.dashboard);
-router.post("/register", authMiddleware, roleMiddleware([ROLES.DELIVERY]), controller.register);
+router.post("/register", authMiddleware, roleMiddleware([ROLES.DELIVERY, ROLES.USER]), controller.register);
 router.get("/profile", authMiddleware, roleMiddleware([ROLES.DELIVERY]), controller.getProfile);
 router.patch("/availability", authMiddleware, roleMiddleware([ROLES.DELIVERY]), validate(updateAvailabilitySchema), controller.updateAvailability);
 router.get("/orders/assigned", authMiddleware, roleMiddleware([ROLES.DELIVERY]), controller.myAssignedOrders);

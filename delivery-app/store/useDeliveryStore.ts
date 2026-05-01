@@ -6,6 +6,8 @@ import {
   DeliveryOrder,
   DeliveryPartnerProfile,
 } from "@/types";
+import { useAuthStore } from "./useAuthStore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type DeliveryState = {
   dashboard: DeliveryDashboard | null;
@@ -61,9 +63,16 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
   register: async (data) => {
     set({ isLoading: true });
     try {
-      await apiClient.post("/delivery/register", data);
-      await get().fetchProfile();
-      set({ isLoading: false });
+      const response = await apiClient.post("/delivery/register", data);
+      const { accessToken, partner } = response.data;
+      
+      // Update the auth token with the new role
+      if (accessToken) {
+        await AsyncStorage.setItem("delivery-token", accessToken);
+        useAuthStore.setState({ token: accessToken });
+      }
+
+      set({ partnerProfile: partner, isLoading: false });
     } catch (error: any) {
       set({ isLoading: false });
       throw new Error(error?.response?.data?.message || "Registration failed");

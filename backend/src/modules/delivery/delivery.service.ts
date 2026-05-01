@@ -1,5 +1,5 @@
 import { AppError } from "../../common/errors/app-error";
-import { ORDER_STATUS } from "../../common/constants";
+import { ORDER_STATUS, ROLES } from "../../common/constants";
 import { deliveryEvent, orderEvent } from "../../sockets/events";
 import { findRestaurantById } from "../restaurant/restaurant.repository";
 import { getOrderById, updateOrder } from "../order/order.repository";
@@ -12,9 +12,10 @@ import {
 import * as repo from "./delivery.repository";
 import { DeliveryPartner, IDeliveryPartner } from "./delivery.model";
 import { generateOTP } from "../../common/utils/otp.util";
-import { Types } from "mongoose";
+import { signAccessToken, signRefreshToken } from "../../common/utils/jwt";
 import { NotificationService } from "../notification/notification.service";
 import { addEarningsToRestaurant } from "../restaurant/restaurant.service";
+import { Types } from "mongoose";
 
 const roundAmount = (value: number) =>
   Math.round((value + Number.EPSILON) * 100) / 100;
@@ -376,7 +377,20 @@ export const registerDeliveryPartner = async (userId: string, data: any) => {
     isAvailable: false,
   });
 
-  return partner;
+  // Update User Role to DELIVERY
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { role: ROLES.DELIVERY },
+    { new: true },
+  );
+  if (!user) throw new AppError("User not found", 404);
+
+  // Generate fresh tokens with the new role
+  const payload = { userId: user._id.toString(), role: user.role };
+  const accessToken = signAccessToken(payload);
+  const refreshToken = signRefreshToken(payload);
+
+  return { partner, accessToken, refreshToken };
 };
 
 export const getDeliveryPartnerProfile = async (userId: string) => {
