@@ -121,4 +121,15 @@ export const adminService = {
     const response = await apiClient.get("/system/logs", { params });
     return response.data;
   },
+
+  // System Settings
+  getSettings: async () => {
+    const response = await apiClient.get("/system/settings");
+    return response.data;
+  },
+
+  updateSetting: async (data: { key: string; value: any; description?: string }) => {
+    const response = await apiClient.post("/system/settings", data);
+    return response.data;
+  },
 };

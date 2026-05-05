@@ -5,12 +5,23 @@ import * as controller from "./system.controller";
 
 const router = Router();
 
-// GET /api/v1/system/logs?type=system|cron
 router.get(
   "/logs",
   authMiddleware,
   roleMiddleware(["ADMIN"]),
-  controller.getSystemLogs
+  controller.getSystemLogs,
+);
+router.get(
+  "/settings",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  controller.getSettings,
+);
+router.post(
+  "/settings",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  controller.updateSetting,
 );
 
 export default router;

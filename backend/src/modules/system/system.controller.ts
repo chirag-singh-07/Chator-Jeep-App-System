@@ -2,6 +2,26 @@ import { Response } from "express";
 import { asyncHandler } from "../../common/utils/async-handler";
 import { AuthenticatedRequest } from "../../common/middleware/auth.middleware";
 import { getLogs } from "../../common/utils/logger";
+import * as service from "./system.service";
+
+export const getSettings = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const config = await service.getPlatformConfig();
+    res.status(200).json({ success: true, data: config });
+  }
+);
+
+export const updateSetting = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { key, value, description } = req.body;
+    if (!key || value === undefined) {
+      return res.status(400).json({ success: false, message: "Key and Value are required" });
+    }
+    const setting = await service.updateSetting(key, value, description);
+    res.status(200).json({ success: true, data: setting });
+  }
+);
+
 
 export const getSystemLogs = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {

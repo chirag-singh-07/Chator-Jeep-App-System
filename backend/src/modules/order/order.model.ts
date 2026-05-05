@@ -16,6 +16,10 @@ export interface IOrder extends Document {
   restaurantId: Types.ObjectId;
   deliveryId?: Types.ObjectId;
   items: IOrderItemSnapshot[];
+  foodAmount: number;
+  deliveryFee: number;
+  commissionAmount: number;
+  platformFee: number;
   totalAmount: number;
   deliveryAddress: string;
   location: {
@@ -50,6 +54,10 @@ const orderSchema = new Schema<IOrder>(
         quantity: { type: Number, required: true, min: 1 }
       }
     ],
+    foodAmount: { type: Number, required: true, min: 0 },
+    deliveryFee: { type: Number, default: 0, min: 0 },
+    commissionAmount: { type: Number, default: 0, min: 0 },
+    platformFee: { type: Number, default: 0, min: 0 },
     totalAmount: { type: Number, required: true, min: 0 },
     deliveryAddress: { type: String, required: true },
     location: {

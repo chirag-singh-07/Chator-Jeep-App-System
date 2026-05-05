@@ -13,6 +13,9 @@ import { createRazorpayOrder, verifyRazorpayPayment } from "../payment/razorpay.
 import { Order } from "./order.model";
 import { UserWalletTransaction } from "../wallet/user-wallet.model";
 import { addEarningsToRestaurant } from "../restaurant/restaurant.service";
+import { getPlatformConfig } from "../system/system.service";
+import { haversineKm } from "../../common/utils/geo.util";
+import { Restaurant } from "../restaurant/restaurant.model";
 
 const canTransition = (current: OrderStatus, next: OrderStatus, actorRole: Role): boolean => {
   if ((next as string) === ORDER_STATUS.CANCELLED) {
@@ -62,7 +65,24 @@ export const createOrder = async (
     return { menuItemId: new Types.ObjectId(menuItemId), name: item.name, price: item.price, quantity };
   });
 
-  const itemsTotal = snapshotItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const foodTotal = snapshotItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  
+  // Calculate Delivery Fee & Commission
+  const restaurant = await Restaurant.findById(input.restaurantId).exec();
+  if (!restaurant) throw new AppError("Restaurant not found", 404);
+
+  const config = await getPlatformConfig();
+  
+  const distanceKm = haversineKm(
+    restaurant.location.coordinates as [number, number],
+    input.location.coordinates
+  );
+
+  const deliveryFee = Math.round(config.deliveryBaseFee + distanceKm * config.deliveryPerKmFee);
+  const commissionAmount = Math.round((foodTotal * config.commissionPercentage) / 100);
+  const platformFee = config.platformFixedFee;
+
+  const itemsTotal = foodTotal + deliveryFee + platformFee;
   const paymentMethod = input.paymentMethod || "COD";
 
   let walletAmountUsed = 0;
@@ -84,6 +104,10 @@ export const createOrder = async (
     userId: new Types.ObjectId(userId),
     restaurantId: new Types.ObjectId(input.restaurantId),
     items: snapshotItems,
+    foodAmount: foodTotal,
+    deliveryFee,
+    commissionAmount,
+    platformFee,
     totalAmount: itemsTotal,
     deliveryAddress: input.deliveryAddress,
     location: input.location,
@@ -392,7 +416,8 @@ export const updateOrderStatus = async (
 
   if (nextStatus === ORDER_STATUS.COMPLETED && order.status !== ORDER_STATUS.COMPLETED) {
     try {
-      await addEarningsToRestaurant(order.restaurantId.toString(), order.totalAmount);
+      const restaurantEarning = (order.foodAmount || order.totalAmount) - (order.commissionAmount || 0);
+      await addEarningsToRestaurant(order.restaurantId.toString(), restaurantEarning);
     } catch (error) {
       console.error("Failed to credit restaurant wallet:", error);
     }

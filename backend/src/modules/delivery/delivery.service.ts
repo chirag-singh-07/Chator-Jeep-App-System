@@ -20,26 +20,7 @@ import { Types } from "mongoose";
 const roundAmount = (value: number) =>
   Math.round((value + Number.EPSILON) * 100) / 100;
 
-const haversineKm = (from: [number, number], to: [number, number]) => {
-  const toRadians = (value: number) => (value * Math.PI) / 180;
-  const [lng1, lat1] = from;
-  const [lng2, lat2] = to;
-
-  const earthRadiusKm = 6371;
-  const dLat = toRadians(lat2 - lat1);
-  const dLng = toRadians(lng2 - lng1);
-  const startLat = toRadians(lat1);
-  const endLat = toRadians(lat2);
-
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(startLat) *
-      Math.cos(endLat) *
-      Math.sin(dLng / 2) *
-      Math.sin(dLng / 2);
-
-  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-};
+import { haversineKm } from "../../common/utils/geo.util";
 
 const formatRestaurantAddress = (
   restaurant: Awaited<ReturnType<typeof findRestaurantById>>,
@@ -626,7 +607,7 @@ export const updateDeliveryStatus = async (
     // Credit earnings
     await creditDeliveryPartnerEarnings({
       riderId,
-      amount: completed.earnings?.finalAmount ?? 0,
+      amount: order.deliveryFee || completed.earnings?.finalAmount || 0,
       orderId,
       description: "Delivery earnings credited",
       metadata: {
@@ -637,9 +618,10 @@ export const updateDeliveryStatus = async (
 
     // ⚡ Credit Restaurant Wallet
     try {
+      const restaurantEarning = (order.foodAmount || order.totalAmount) - (order.commissionAmount || 0);
       await addEarningsToRestaurant(
         order.restaurantId.toString(),
-        order.totalAmount,
+        restaurantEarning,
       );
     } catch (e) {
       console.error(
