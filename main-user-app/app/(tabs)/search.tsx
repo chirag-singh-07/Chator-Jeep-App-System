@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Text, TextInput, ScrollView, TouchableOpacity, FlatList, Image, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, TextInput, ScrollView, TouchableOpacity, FlatList, Image, ActivityIndicator, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,6 +7,8 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useMenuStore } from '@/store/useMenuStore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import debounce from 'lodash/debounce';
+
+const { width } = Dimensions.get('window');
 
 export default function SearchScreen() {
   const { categoryId } = useLocalSearchParams();

@@ -290,6 +290,21 @@ export const updateRestaurantBranding = async (
   return updateRestaurantById(restaurant._id.toString(), updates);
 };
 
+export const updateRestaurantLegalDocs = async (
+  userId: string,
+  docs: {
+    aadharCard?: any;
+    panCard?: any;
+    livePhoto?: any;
+    documents?: any[];
+  }
+) => {
+  const restaurant = await findRestaurantByOwner(userId);
+  if (!restaurant) throw new AppError("Restaurant not found", 404);
+
+  return updateRestaurantById(restaurant._id.toString(), docs);
+};
+
 export const updateRestaurantOpenStatus = async (userId: string, isOpen: boolean) => {
   const restaurant = await findRestaurantByOwner(userId);
   if (!restaurant) throw new AppError("Restaurant not found", 404);

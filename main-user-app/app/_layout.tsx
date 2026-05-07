@@ -15,12 +15,16 @@ function AuthGate() {
   useEffect(() => {
     if (!hasHydrated) return;
 
-    const inAuthGroup = segments[0] === "(auth)";
-    const inOnboardingGroup = segments[0] === "(onboarding)";
+    const inAuthGroup = segments.some(s => s === "(auth)");
+    const inOnboardingGroup = segments.some(s => s === "(onboarding)");
+
+    console.log('AuthGate:', { isAuthenticated, segments, inAuthGroup, inOnboardingGroup });
 
     if (!isAuthenticated && !inAuthGroup && !inOnboardingGroup) {
+      console.log('Redirecting to onboarding');
       router.replace("/(onboarding)");
     } else if (isAuthenticated && (inAuthGroup || inOnboardingGroup)) {
+      console.log('Redirecting to tabs');
       router.replace("/(tabs)");
     }
   }, [isAuthenticated, hasHydrated, segments]);

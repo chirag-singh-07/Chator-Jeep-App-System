@@ -23,11 +23,11 @@ import { Image } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
-const STEPS = ['Account', 'Kitchen', 'Brand', 'Location'];
+const STEPS = ['Account', 'Kitchen', 'Brand', 'Location', 'Legal'];
 
 export default function RegisterScreen() {
   const [currentStep, setCurrentStep] = useState(0);
-  const { register, uploadBranding, isLoading } = useAuthStore();
+  const { register, uploadBranding, uploadLegalDocs, isLoading } = useAuthStore();
 
   // Step 1: Account
   const [email, setEmail] = useState('');
@@ -42,9 +42,13 @@ export default function RegisterScreen() {
   const [logo, setLogo] = useState<any>(null);
   const [banner, setBanner] = useState<any>(null);
 
-  // Step 4: Location
   const [address, setAddress] = useState('');
   const [pinCode, setPinCode] = useState('');
+
+  // Step 5: Legal
+  const [aadhar, setAadhar] = useState<any>(null);
+  const [pan, setPan] = useState<any>(null);
+  const [livePhoto, setLivePhoto] = useState<any>(null);
 
   const pickImage = async (type: 'logo' | 'banner') => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -57,6 +61,37 @@ export default function RegisterScreen() {
     if (!result.canceled) {
       if (type === 'logo') setLogo(result.assets[0]);
       else setBanner(result.assets[0]);
+    }
+  };
+
+  const pickDoc = async (type: 'aadhar' | 'pan') => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      if (type === 'aadhar') setAadhar(result.assets[0]);
+      else setPan(result.assets[0]);
+    }
+  };
+
+  const takeLivePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('PERMISSION DENIED', 'Camera access is required for identity verification.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      setLivePhoto(result.assets[0]);
     }
   };
 
@@ -82,6 +117,10 @@ export default function RegisterScreen() {
 
         if (logo || banner) {
           await uploadBranding(logo, banner);
+        }
+
+        if (aadhar || pan || livePhoto) {
+          await uploadLegalDocs(aadhar, pan, livePhoto, []);
         }
 
         Alert.alert(
@@ -261,6 +300,56 @@ export default function RegisterScreen() {
                 onChangeText={setPinCode} 
                 keyboardType="numeric" 
               />
+            </View>
+          </View>
+        );
+      case 4:
+        return (
+          <View style={styles.stepContent}>
+            <Text style={styles.stepTitle}>LEGAL PROTOCOL</Text>
+            <Text style={styles.stepSub}>Verification documents required for platform activation. Securely stored in encrypted nodes.</Text>
+            
+            <View style={styles.docGrid}>
+              <TouchableOpacity style={styles.docItem} onPress={() => pickDoc('aadhar')}>
+                {aadhar ? (
+                  <Image source={{ uri: aadhar.uri }} style={styles.previewImage} />
+                ) : (
+                  <>
+                    <View style={styles.docIcon}>
+                      <Ionicons name="card" size={24} color={Colors.light.primary} />
+                    </View>
+                    <Text style={styles.docLabel}>AADHAR CARD</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.docItem} onPress={() => pickDoc('pan')}>
+                {pan ? (
+                  <Image source={{ uri: pan.uri }} style={styles.previewImage} />
+                ) : (
+                  <>
+                    <View style={styles.docIcon}>
+                      <Ionicons name="document-text" size={24} color={Colors.light.primary} />
+                    </View>
+                    <Text style={styles.docLabel}>PAN CARD</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ marginTop: 25 }}>
+               <Text style={styles.label}>LIVE IDENTITY VERIFICATION</Text>
+               <TouchableOpacity style={styles.livePhotoBox} onPress={takeLivePhoto}>
+                 {livePhoto ? (
+                    <Image source={{ uri: livePhoto.uri }} style={styles.previewImage} />
+                 ) : (
+                   <View style={{ alignItems: 'center' }}>
+                      <Ionicons name="camera" size={40} color={Colors.light.primary} />
+                      <Text style={styles.livePhotoText}>CAPTURE LIVE PHOTO</Text>
+                      <Text style={{ fontSize: 9, color: '#444', marginTop: 5 }}>ENSURE CLEAR LIGHTING</Text>
+                   </View>
+                 )}
+               </TouchableOpacity>
             </View>
           </View>
         );
@@ -518,5 +607,53 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '900',
     letterSpacing: 1.5,
+  },
+  docGrid: {
+    flexDirection: 'row',
+    gap: 15,
+  },
+  docItem: {
+    flex: 1,
+    height: 120,
+    backgroundColor: '#0A0A0A',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#1A1A1A',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  docIcon: {
+    width: 45,
+    height: 45,
+    borderRadius: 15,
+    backgroundColor: '#111',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  docLabel: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#666',
+    letterSpacing: 1,
+  },
+  livePhotoBox: {
+    width: '100%',
+    height: 180,
+    backgroundColor: '#0A0A0A',
+    borderRadius: 25,
+    borderWidth: 1.5,
+    borderColor: '#1A1A1A',
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+  livePhotoText: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: Colors.light.primary,
+    marginTop: 10,
+    letterSpacing: 1,
   },
 });

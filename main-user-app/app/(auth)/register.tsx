@@ -262,7 +262,7 @@ export default function RegisterScreen() {
                     onPress={handleNext}
                   >
                     <Text style={styles.primaryBtnText}>NEXT STEP</Text>
-                    <Ionicons name="arrow-forward" size={20} color="white" style={{marginLeft: 10}} />
+                    <Ionicons name="arrow-forward" size={20} color="#1A1A1A" style={{marginLeft: 10}} />
                   </TouchableOpacity>
                 </>
               )}
@@ -325,11 +325,11 @@ export default function RegisterScreen() {
                     disabled={loading}
                   >
                     {loading ? (
-                      <ActivityIndicator color="white" />
+                      <ActivityIndicator color="#1A1A1A" />
                     ) : (
                       <>
                         <Text style={styles.primaryBtnText}>VERIFY EMAIL</Text>
-                        <Ionicons name="mail-outline" size={20} color="white" style={{marginLeft: 10}} />
+                        <Ionicons name="mail-outline" size={20} color="#1A1A1A" style={{marginLeft: 10}} />
                       </>
                     )}
                   </TouchableOpacity>
@@ -366,7 +366,7 @@ export default function RegisterScreen() {
                     disabled={loading}
                   >
                     {loading ? (
-                      <ActivityIndicator color="white" />
+                      <ActivityIndicator color="#1A1A1A" />
                     ) : (
                       <Text style={styles.primaryBtnText}>COMPLETE REGISTRATION</Text>
                     )}
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFF5F5',
+    backgroundColor: '#FFFDF5',
     borderWidth: 1.5,
     borderColor: Colors.light.primary,
     borderStyle: 'dashed',
@@ -539,7 +539,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   primaryBtnText: {
-    color: '#FFF',
+    color: '#1A1A1A',
     fontSize: 18,
     fontWeight: '900',
     letterSpacing: 1,

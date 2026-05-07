@@ -72,7 +72,7 @@ const BANNERS = [
     id: "1",
     title: "Flat 50% OFF",
     sub: "On your first order",
-    color: "#FF4D4D",
+    color: "#FDBE15", // Matched with primary yellow
     icon: "gift",
   },
   {
@@ -261,7 +261,7 @@ export default function HomeScreen() {
                 <Text style={styles.bannerTitle}>{banner.title}</Text>
                 <Text style={styles.bannerSub}>{banner.sub}</Text>
                 <TouchableOpacity style={styles.bannerBtn}>
-                  <Text style={[styles.bannerBtnText, { color: banner.color }]}>
+                  <Text style={[styles.bannerBtnText, { color: banner.id === '1' ? '#1A1A1A' : banner.color }]}>
                     GRAB NOW
                   </Text>
                 </TouchableOpacity>
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 14,
-    backgroundColor: "#FFF5F5",
+    backgroundColor: "#FFFDF5",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -642,7 +642,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   offerText: {
-    color: "#FFF",
+    color: "#1A1A1A",
     fontSize: 12,
     fontWeight: "900",
   },

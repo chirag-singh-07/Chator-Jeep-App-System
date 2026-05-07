@@ -28,13 +28,24 @@ export const createRestaurantSchema = z.object({
   })
 });
 
+const restaurantDocumentSchema = z.object({
+  label: z.string().optional(),
+  key: z.string(),
+  url: z.string().url(),
+  verifiedAt: z.union([z.string(), z.date()]).optional(),
+});
+
 export const updateRestaurantSchema = z.object({
   body: z.object({
     name: z.string().min(2).optional(),
     description: z.string().optional(),
     cuisines: z.array(z.string()).optional(),
     isOpen: z.boolean().optional(),
-    location: z.object({ coordinates: z.tuple([z.number(), z.number()]) }).optional()
+    location: z.object({ coordinates: z.tuple([z.number(), z.number()]) }).optional(),
+    aadharCard: restaurantDocumentSchema.optional(),
+    panCard: restaurantDocumentSchema.optional(),
+    livePhoto: restaurantDocumentSchema.optional(),
+    documents: z.array(restaurantDocumentSchema).optional(),
   })
 });
 

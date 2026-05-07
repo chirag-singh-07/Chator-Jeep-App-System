@@ -77,6 +77,14 @@ router.patch(
   ctrl.updateMyBranding
 );
 
+/** PATCH /api/v1/restaurants/me/legal-docs - Update legal documents */
+router.patch(
+  "/me/legal-docs",
+  authMiddleware,
+  roleMiddleware(["KITCHEN"]),
+  ctrl.updateMyLegalDocs
+);
+
 /** PATCH /api/v1/restaurants/me/status - Toggle restaurant open/closed */
 router.patch(
   "/me/status",

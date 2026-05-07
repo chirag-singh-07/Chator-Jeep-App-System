@@ -23,6 +23,7 @@ interface AuthState {
   logout: () => Promise<void>;
   updateUserStatus: (status: string) => void;
   uploadBranding: (logoJson: any, bannerJson: any) => Promise<void>;
+  uploadLegalDocs: (aadhar: any, pan: any, livePhoto: any, otherDocs: any[]) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -129,6 +130,67 @@ export const useAuthStore = create<AuthState>()(
       logout: async () => {
         await AsyncStorage.removeItem("token");
         set({ user: null, token: null, isAuthenticated: false });
+      },
+
+      uploadLegalDocs: async (aadhar, pan, livePhoto, otherDocs) => {
+        set({ isLoading: true });
+        try {
+          const formData = new FormData();
+          if (aadhar) {
+            // @ts-ignore
+            formData.append('aadharCard', {
+              uri: aadhar.uri,
+              name: 'aadhar.jpg',
+              type: 'image/jpeg',
+            });
+          }
+          if (pan) {
+            // @ts-ignore
+            formData.append('panCard', {
+              uri: pan.uri,
+              name: 'pan.jpg',
+              type: 'image/jpeg',
+            });
+          }
+          if (livePhoto) {
+            // @ts-ignore
+            formData.append('livePhoto', {
+              uri: livePhoto.uri,
+              name: 'live-photo.jpg',
+              type: 'image/jpeg',
+            });
+          }
+          if (otherDocs && otherDocs.length > 0) {
+            otherDocs.forEach((doc, index) => {
+              // @ts-ignore
+              formData.append('otherDocs', {
+                uri: doc.uri,
+                name: `doc-${index}.jpg`,
+                type: 'image/jpeg',
+              });
+            });
+          }
+
+          // 1. Upload documents
+          const uploadRes = await apiClient.post('/uploads/restaurant-legal', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+
+          const { aadharCard, panCard, livePhoto: livePhotoUrls, otherDocs: uploadedOtherDocs } = uploadRes.data.data;
+
+          // 2. Update restaurant legal docs in database
+          await apiClient.patch('/restaurants/me/legal-docs', {
+            aadharCard,
+            panCard,
+            livePhoto: livePhotoUrls,
+            documents: uploadedOtherDocs,
+          });
+
+          set({ isLoading: false });
+        } catch (error: any) {
+          set({ isLoading: false });
+          throw error.response?.data?.message || error.message || 'Document upload failed';
+        }
       },
 
       updateUserStatus: (status) => {

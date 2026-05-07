@@ -1,14 +1,14 @@
 export const Colors = {
   light: {
-    primary: '#E31837', // Vibrant Red
+    primary: '#FDBE15', // Vibrant Yellow
     secondary: '#FFFFFF',
     background: '#FFFFFF',
-    surface: '#F8F8F8',
+    surface: '#FFFDF5', // Slightly yellowish white
     text: '#1A1A1A',
     textMuted: '#757575',
     border: '#EEEEEE',
-    success: '#4CAF50',
-    error: '#FF5252',
+    success: '#22C55E',
+    error: '#EF4444',
     white: '#FFFFFF',
     black: '#000000',
   },

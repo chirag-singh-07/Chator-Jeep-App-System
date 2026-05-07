@@ -220,35 +220,81 @@ export function RestaurantReviewPage() {
             <h2 className="font-black text-lg mb-6 flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-primary" /> Verification Documents
             </h2>
-            <div className="space-y-3">
-              {(restaurant.documents || []).length > 0 ? (
-                restaurant.documents.map((doc: any) => (
-                  <div key={doc.key} className="flex items-center justify-between p-4 rounded-2xl bg-white border group hover:border-primary/50 transition-all">
-                    <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center group-hover:bg-primary/10">
-                        <FileText className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-black">{doc.label}</p>
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold">Uploaded on {doc.verifiedAt ? new Date(doc.verifiedAt).toLocaleDateString() : "Recent"}</p>
-                      </div>
+            <div className="space-y-6">
+              {/* Mandatory Legal Documents */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {restaurant.aadharCard && (
+                  <div className="p-4 rounded-2xl bg-white border hover:border-primary/50 transition-all">
+                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-2">Aadhar Card</p>
+                    <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted mb-3">
+                      <img src={restaurant.aadharCard.medium} alt="Aadhar" className="w-full h-full object-cover" />
                     </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="ghost" className="rounded-xl h-9 w-9 p-0" asChild>
-                         <a href={doc.url} target="_blank" rel="noreferrer"><Eye className="h-4 w-4" /></a>
-                      </Button>
-                      <Button size="sm" variant="ghost" className="rounded-xl h-9 w-9 p-0">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Button variant="outline" size="sm" className="w-full rounded-xl gap-2" asChild>
+                      <a href={restaurant.aadharCard.full} target="_blank" rel="noreferrer"><Eye className="h-4 w-4" /> View Full Image</a>
+                    </Button>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-8 rounded-2xl border-2 border-dashed bg-muted/20">
-                    <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-30" />
-                    <p className="text-sm text-muted-foreground font-bold">No documents uploaded yet</p>
+                )}
+                {restaurant.panCard && (
+                  <div className="p-4 rounded-2xl bg-white border hover:border-primary/50 transition-all">
+                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-2">PAN Card</p>
+                    <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted mb-3">
+                      <img src={restaurant.panCard.medium} alt="PAN" className="w-full h-full object-cover" />
+                    </div>
+                    <Button variant="outline" size="sm" className="w-full rounded-xl gap-2" asChild>
+                      <a href={restaurant.panCard.full} target="_blank" rel="noreferrer"><Eye className="h-4 w-4" /> View Full Image</a>
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Live Verification Photo */}
+              {restaurant.livePhoto && (
+                <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <User className="h-4 w-4 text-primary" />
+                    </div>
+                    <p className="text-sm font-black">Live Identity Verification</p>
+                  </div>
+                  <div className="aspect-square w-48 mx-auto rounded-3xl overflow-hidden border-4 border-white shadow-lg mb-4">
+                    <img src={restaurant.livePhoto.medium} alt="Live Photo" className="w-full h-full object-cover" />
+                  </div>
+                  <p className="text-[10px] text-center text-muted-foreground uppercase font-bold">Captured via live camera during onboarding</p>
                 </div>
               )}
+
+              {/* Supplemental Documents */}
+              <div className="space-y-3 pt-4 border-t">
+                <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-2">Supplemental Documents</p>
+                {(restaurant.documents || []).length > 0 ? (
+                  restaurant.documents.map((doc: any) => (
+                    <div key={doc.key} className="flex items-center justify-between p-4 rounded-2xl bg-white border group hover:border-primary/50 transition-all">
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center group-hover:bg-primary/10">
+                          <FileText className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-black">{doc.label || "Document"}</p>
+                          <p className="text-[10px] text-muted-foreground uppercase font-bold">Uploaded on {doc.verifiedAt ? new Date(doc.verifiedAt).toLocaleDateString() : "Recent"}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="ghost" className="rounded-xl h-9 w-9 p-0" asChild>
+                           <a href={doc.url} target="_blank" rel="noreferrer"><Eye className="h-4 w-4" /></a>
+                        </Button>
+                        <Button size="sm" variant="ghost" className="rounded-xl h-9 w-9 p-0">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 rounded-2xl border-2 border-dashed bg-muted/20">
+                      <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-30" />
+                      <p className="text-sm text-muted-foreground font-bold">No supplemental documents</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

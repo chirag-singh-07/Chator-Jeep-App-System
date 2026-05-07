@@ -28,6 +28,7 @@ export type ImageProfileKey = keyof typeof IMAGE_PROFILES;
 export type UploadFolder =
   | "restaurants/logos"
   | "restaurants/banners"
+  | "restaurants/legal-docs"
   | "menu-items"
   | "users/avatars"
   | "categories";
@@ -85,6 +86,32 @@ export async function processAndUpload(
   );
 
   return urls as Record<ImageProfileKey, string>;
+}
+
+/**
+ * Uploads a raw file buffer to S3 without processing.
+ * Useful for PDFs or non-image documents.
+ */
+export async function uploadRawFile(
+  buffer: Buffer,
+  folder: UploadFolder,
+  fileName: string,
+  contentType: string
+): Promise<{ key: string; url: string }> {
+  const s3Key = `${folder}/${randomUUID()}-${fileName}`;
+
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: S3_BUCKET_NAME,
+      Key: s3Key,
+      Body: buffer,
+      ContentType: contentType,
+      ContentLength: buffer.length,
+      CacheControl: "public, max-age=31536000, immutable",
+    })
+  );
+
+  return { key: s3Key, url: buildPublicUrl(s3Key) };
 }
 
 /**

@@ -9,6 +9,7 @@ import {
   uploadSingleImage,
   uploadMultipleImages,
   uploadRestaurantBrand,
+  uploadRestaurantLegalDocs,
   uploadAvatar,
   getPresignedUploadUrl,
   deleteImages,
@@ -55,6 +56,21 @@ router.post(
     { name: "banner", maxCount: 1 },
   ]),
   uploadRestaurantBrand
+);
+
+/**
+ * POST /api/v1/uploads/restaurant-legal
+ * Upload Aadhar, PAN, and live photo.
+ */
+router.post(
+  "/restaurant-legal",
+  uploadFields([
+    { name: "aadharCard", maxCount: 1 },
+    { name: "panCard", maxCount: 1 },
+    { name: "livePhoto", maxCount: 1 },
+    { name: "otherDocs", maxCount: 5 },
+  ]),
+  uploadRestaurantLegalDocs
 );
 
 /**

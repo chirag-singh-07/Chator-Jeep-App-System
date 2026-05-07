@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { AuthenticatedRequest } from "../../common/middleware/auth.middleware";
 import {
   processAndUpload,
+  uploadRawFile,
   generatePresignedUploadUrl,
   deleteUploadedFiles,
   listAllFiles,
@@ -128,6 +129,56 @@ export const uploadRestaurantBrand = async (
       data: {
         logo: logoUrls,
         banner: bannerUrls,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * Upload legal documents during onboarding.
+ * Fields: aadharCard, panCard, livePhoto (single), otherDocs (multiple)
+ */
+export const uploadRestaurantLegalDocs = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const filesMap = req.files as Record<string, Express.Multer.File[]> | undefined;
+    if (!filesMap) throw new AppError("No files received", 400);
+
+    const aadharFile = filesMap["aadharCard"]?.[0];
+    const panFile = filesMap["panCard"]?.[0];
+    const livePhotoFile = filesMap["livePhoto"]?.[0];
+    const otherDocs = filesMap["otherDocs"] ?? [];
+
+    const [aadharUrls, panUrls, livePhotoUrls, uploadedOtherDocs] = await Promise.all([
+      aadharFile
+        ? processAndUpload(aadharFile.buffer, "restaurants/legal-docs", ["thumbnail", "medium"])
+        : null,
+      panFile
+        ? processAndUpload(panFile.buffer, "restaurants/legal-docs", ["thumbnail", "medium"])
+        : null,
+      livePhotoFile
+        ? processAndUpload(livePhotoFile.buffer, "restaurants/legal-docs", ["thumbnail", "medium"])
+        : null,
+      Promise.all(
+        otherDocs.map((file) =>
+          uploadRawFile(file.buffer, "restaurants/legal-docs", file.originalname, file.mimetype)
+        )
+      ),
+    ]);
+
+    res.status(201).json({
+      success: true,
+      message: "Legal documents uploaded",
+      data: {
+        aadharCard: aadharUrls,
+        panCard: panUrls,
+        livePhoto: livePhotoUrls,
+        otherDocs: uploadedOtherDocs,
       },
     });
   } catch (err) {

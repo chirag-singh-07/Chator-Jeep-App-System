@@ -231,7 +231,7 @@ export default function LoginScreen() {
                 disabled={loading || (loginMethod === 'OTP' && !otpSent)}
               >
                 {loading ? (
-                  <ActivityIndicator color="white" />
+                  <ActivityIndicator color="#1A1A1A" />
                 ) : (
                   <Text style={styles.loginBtnText}>{loginMethod === 'OTP' && !otpSent ? 'WAITING FOR OTP' : 'LOGIN'}</Text>
                 )}
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     height: 90,
     width: 90,
     borderRadius: 30,
-    backgroundColor: '#FFF5F5',
+    backgroundColor: '#FFFDF5',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: Colors.light.primary,
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   loginBtnText: {
-    color: Colors.light.white,
+    color: '#1A1A1A',
     fontSize: 18,
     fontWeight: '900',
     letterSpacing: 2,

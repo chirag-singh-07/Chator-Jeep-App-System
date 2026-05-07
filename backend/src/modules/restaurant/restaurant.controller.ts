@@ -142,6 +142,16 @@ export const updateMyBranding = asyncHandler(
   },
 );
 
+export const updateMyLegalDocs = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const result = await service.updateRestaurantLegalDocs(
+      req.user!.userId,
+      req.body,
+    );
+    res.status(200).json({ success: true, data: result });
+  },
+);
+
 export const updateMyOpenStatus = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { isOpen } = req.body;

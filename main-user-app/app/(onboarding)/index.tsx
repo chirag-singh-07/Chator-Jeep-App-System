@@ -7,7 +7,8 @@ import {
   TouchableOpacity, 
   Dimensions, 
   SafeAreaView,
-  StatusBar
+  StatusBar,
+  Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
@@ -24,38 +25,24 @@ const { width, height } = Dimensions.get('window');
 const SLIDES = [
   {
     id: '1',
-    title: 'Discover Flavor',
-    description: 'Explore curated menus from the finest local kitchens and gourmet restaurants.',
-    icon: 'restaurant-outline',
-    color: '#FFF5F5'
+    title: 'Discover Gourmet',
+    description: 'Explore the best local kitchens and premium restaurants curated just for you.',
+    image: require('@/assets/images/onboarding_food_discover.png'),
+    color: '#FFFDF5'
   },
   {
     id: '2',
-    title: 'Lightning speed',
-    description: 'Craving satisfied in record time. Our fleet is ready to zip to your door.',
-    icon: 'flash-outline',
-    color: '#FFF0F0'
+    title: 'Swift Delivery',
+    description: 'Get your favorites delivered at lightning speed by our dedicated fleet.',
+    image: require('@/assets/images/onboarding_delivery_speed.png'),
+    color: '#FFFDF5'
   },
   {
     id: '3',
-    title: 'Live Logistics',
-    description: 'Watch your meal travel across the map with hyper-accurate real-time tracking.',
-    icon: 'map-outline',
-    color: '#FFF5F5'
-  },
-  {
-    id: '4',
-    title: 'Gourmet Rewards',
-    description: 'Earn points on every bite. Unlock exclusive member-only deals and surprises.',
-    icon: 'gift-outline',
-    color: '#FFF0F0'
-  },
-  {
-    id: '5',
-    title: 'Pure Satisfaction',
-    description: 'Quality ingredients, expertly prepared, delivered with a smile every time.',
-    icon: 'heart-outline',
-    color: '#FFF5F5'
+    title: 'Real-time Tracking',
+    description: 'Watch your meal travel on the map with hyper-accurate live updates.',
+    image: require('@/assets/images/onboarding_tracking.png'),
+    color: '#FFFDF5'
   },
 ];
 
@@ -85,64 +72,21 @@ export default function OnboardingScreen() {
     router.replace('/(auth)/login');
   };
 
-  const Footer = () => {
-    return (
-      <View style={styles.footer}>
-        <View style={styles.indicatorContainer}>
-          {SLIDES.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.indicator,
-                currentSlideIndex === index && {
-                  backgroundColor: Colors.light.primary,
-                  width: 25,
-                },
-              ]}
-            />
-          ))}
-        </View>
 
-        <Animated.View entering={FadeInDown.delay(200)} style={{ marginBottom: 30 }}>
-          {currentSlideIndex === SLIDES.length - 1 ? (
-            <TouchableOpacity 
-              activeOpacity={0.8}
-              style={styles.btn}
-              onPress={() => router.replace('/(auth)/login')}
-            >
-              <Text style={styles.btnText}>START FEASTING</Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={{ flexDirection: 'row' }}>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={skip}
-                style={[
-                  styles.btn,
-                  { backgroundColor: 'transparent' },
-                ]}
-              >
-                <Text style={[styles.btnText, { color: Colors.light.textMuted }]}>SKIP</Text>
-              </TouchableOpacity>
-              <View style={{ flex: 1 }} />
-              <TouchableOpacity 
-                activeOpacity={0.8}
-                style={[styles.btn, { width: 140, flex: 0 }]} 
-                onPress={goToNextSlide}
-              >
-                <Text style={styles.btnText}>NEXT</Text>
-                <Ionicons name="arrow-forward" size={18} color="white" style={{ marginLeft: 8 }} />
-              </TouchableOpacity>
-            </View>
-          )}
-        </Animated.View>
-      </View>
-    );
-  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      
+      {/* Improved Skip Button */}
+      {currentSlideIndex < SLIDES.length - 1 && (
+        <View style={styles.header}>
+          <TouchableOpacity onPress={skip} style={styles.skipBtn}>
+            <Text style={styles.skipText}>Skip</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <FlatList
         ref={flatListRef}
         onMomentumScrollEnd={updateCurrentSlideIndex}
@@ -150,94 +94,217 @@ export default function OnboardingScreen() {
         data={SLIDES}
         horizontal
         showsHorizontalScrollIndicator={false}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <View style={styles.slide}>
-            <Animated.View 
-              entering={FadeInDown.duration(800)}
-              style={[styles.iconContainer, { backgroundColor: item.color }]}
-            >
-               <Ionicons name={item.icon as any} size={130} color={Colors.light.primary} />
-            </Animated.View>
-            <View style={{ paddingHorizontal: 40, alignItems: 'center' }}>
-              <Animated.Text entering={FadeInUp.delay(200)} style={styles.title}>{item.title}</Animated.Text>
-              <Animated.Text entering={FadeInUp.delay(400)} style={styles.description}>{item.description}</Animated.Text>
+            <View style={styles.topSection}>
+              <Animated.View 
+                entering={FadeInDown.duration(1000)}
+                style={styles.imageContainer}
+              >
+                <Image 
+                  source={item.image} 
+                  style={styles.illustration} 
+                  resizeMode="contain"
+                />
+              </Animated.View>
+            </View>
+            
+            <View style={styles.bottomSection}>
+              <View style={styles.card}>
+                <View style={styles.textContainer}>
+                  <Animated.Text entering={FadeInDown.delay(200)} style={styles.title}>{item.title}</Animated.Text>
+                  <Animated.Text entering={FadeInDown.delay(400)} style={styles.description}>{item.description}</Animated.Text>
+                </View>
+
+                <View style={styles.footerContainer}>
+                  {index < SLIDES.length - 1 ? (
+                    <View style={styles.footerRow}>
+                      <View style={styles.indicatorRow}>
+                        {SLIDES.map((_, i) => (
+                          <View
+                            key={i}
+                            style={[
+                              styles.indicator,
+                              currentSlideIndex === i && styles.activeIndicator,
+                            ]}
+                          />
+                        ))}
+                      </View>
+                      <TouchableOpacity 
+                        style={styles.nextBtn}
+                        onPress={goToNextSlide}
+                      >
+                        <Ionicons name="arrow-forward" size={24} color="#1A1A1A" />
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View style={styles.authContainer}>
+                      <TouchableOpacity 
+                        style={styles.primaryBtn}
+                        onPress={() => router.replace('/(auth)/register')}
+                      >
+                        <Text style={styles.primaryBtnText}>GET STARTED</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={styles.secondaryBtn}
+                        onPress={() => router.replace('/(auth)/login')}
+                      >
+                        <Text style={styles.secondaryBtnText}>I already have an account</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              </View>
             </View>
           </View>
         )}
       />
-      <Footer />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: Colors.light.primary, // Yellow top
+  },
+  header: {
+    position: 'absolute',
+    top: 60,
+    right: 25,
+    zIndex: 100,
+  },
+  skipBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 25,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  skipText: {
+    color: '#1A1A1A',
+    fontWeight: '800',
+    fontSize: 14,
   },
   slide: {
     width,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 100,
+    height: height,
   },
-  iconContainer: {
-    height: 300,
-    width: 300,
-    borderRadius: 150,
+  topSection: {
+    flex: 1.2,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 60,
+    backgroundColor: Colors.light.primary,
+  },
+  imageContainer: {
+    width: width * 0.8,
+    height: width * 0.8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  illustration: {
+    width: '100%',
+    height: '100%',
+  },
+  bottomSection: {
+    flex: 1,
+    backgroundColor: Colors.light.primary,
+  },
+  card: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    padding: 40,
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 20,
+  },
+  textContainer: {
+    alignItems: 'center',
+    marginTop: 10,
   },
   title: {
-    color: Colors.light.text,
+    color: '#1A1A1A',
     fontSize: 32,
     fontWeight: '900',
     textAlign: 'center',
-    marginBottom: 20,
-    letterSpacing: -0.5,
+    marginBottom: 16,
+    letterSpacing: -1,
   },
   description: {
-    color: Colors.light.textMuted,
-    fontSize: 18,
+    color: '#666',
+    fontSize: 16,
     textAlign: 'center',
-    lineHeight: 28,
+    lineHeight: 24,
     maxWidth: 300,
   },
-  footer: {
-    justifyContent: 'space-between',
-    paddingHorizontal: 30,
+  footerContainer: {
+    marginBottom: 20,
   },
-  indicatorContainer: {
+  footerRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 40,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  indicatorRow: {
+    flexDirection: 'row',
+    gap: 8,
   },
   indicator: {
-    height: 6,
-    width: 10,
-    backgroundColor: '#E0E0E0',
-    marginHorizontal: 4,
-    borderRadius: 3,
+    height: 8,
+    width: 8,
+    borderRadius: 4,
+    backgroundColor: '#EEEEEE',
   },
-  btn: {
-    flex: 1,
-    height: 60,
-    borderRadius: 20,
+  activeIndicator: {
+    width: 24,
     backgroundColor: Colors.light.primary,
-    flexDirection: 'row',
-    justifyContent: 'center',
+  },
+  nextBtn: {
+    width: 65,
+    height: 65,
+    borderRadius: 32,
+    backgroundColor: Colors.light.primary,
     alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: Colors.light.primary,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
     elevation: 5,
   },
-  btnText: {
-    fontWeight: 'bold',
+  authContainer: {
+    gap: 15,
+  },
+  primaryBtn: {
+    height: 65,
+    borderRadius: 22,
+    backgroundColor: Colors.light.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: Colors.light.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  primaryBtnText: {
     fontSize: 18,
-    color: Colors.light.white,
+    fontWeight: '900',
+    color: '#1A1A1A',
     letterSpacing: 1,
+  },
+  secondaryBtn: {
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#666',
   },
 });
