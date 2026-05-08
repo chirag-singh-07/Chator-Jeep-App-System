@@ -1,4 +1,4 @@
-import { Restaurant, IRestaurant, RestaurantStatus, MenuItem } from "./restaurant.model";
+import { Restaurant, IRestaurant, RestaurantStatus, MenuItem, IMenuItem } from "./restaurant.model";
 import { Types } from "mongoose";
 
 // ─── Creation ──────────────────────────────────────────────────────────────────
@@ -128,6 +128,10 @@ export const flagRestaurant = (
     },
     { new: true }
   ).exec();
+
+// ─── Menu Management ─────────────────────────────────────────────────────────
+export const listMenuByRestaurant = (restaurantId: string): Promise<IMenuItem[]> =>
+  MenuItem.find({ restaurantId: new Types.ObjectId(restaurantId) }).exec();
 
 // ─── Deletion ────────────────────────────────────────────────────────────────
 export const deleteRestaurantById = async (id: string): Promise<boolean> => {
