@@ -128,8 +128,6 @@ export const useRestaurantStore = create<RestaurantState>((set, get) => ({
       }
       set({ loading: false });
     } catch (err: any) {
-      set({ loading: false });
-    } catch (err: any) {
        set({ error: err.message, loading: false });
        throw err;
     }
