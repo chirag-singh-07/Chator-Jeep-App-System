@@ -86,11 +86,12 @@ const BANNERS = [
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { restaurants, categories, isLoading, fetchHomeData } = useMenuStore();
+  const { restaurants, categories, popularItems, isLoading, fetchHomeData } = useMenuStore();
   const { currentAddress, savedAddresses, setCurrentAddress } =
     useLocationStore();
   const [refreshing, setRefreshing] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("Nearby");
 
   useEffect(() => {
     loadData();
@@ -243,38 +244,76 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
 
-        {/* Feature Banners */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          snapToInterval={width - 40}
-          decelerationRate="fast"
-          contentContainerStyle={styles.bannerList}
+        {/* Filter Chips */}
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={styles.filterList}
         >
-          {BANNERS.map((banner, index) => (
-            <Animated.View
-              key={banner.id}
-              entering={FadeInRight.delay(index * 200)}
-              style={[styles.bannerCard, { backgroundColor: banner.color }]}
+          {["Nearby", "Rating 4.0+", "Fast Delivery", "Pure Veg", "Offers"].map((filter) => (
+            <TouchableOpacity 
+              key={filter} 
+              style={[styles.filterChip, activeFilter === filter && styles.activeFilterChip]}
+              onPress={() => {
+                setActiveFilter(filter);
+                Haptics.selectionAsync();
+              }}
             >
-              <View style={styles.bannerText}>
-                <Text style={styles.bannerTitle}>{banner.title}</Text>
-                <Text style={styles.bannerSub}>{banner.sub}</Text>
-                <TouchableOpacity style={styles.bannerBtn}>
-                  <Text style={[styles.bannerBtnText, { color: banner.id === '1' ? '#1A1A1A' : banner.color }]}>
-                    GRAB NOW
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <Ionicons
-                name={banner.icon as any}
-                size={80}
-                color="rgba(255,255,255,0.2)"
-                style={styles.bannerIcon}
-              />
-            </Animated.View>
+              <Text style={[styles.filterText, activeFilter === filter && styles.activeFilterText]}>{filter}</Text>
+              {activeFilter === filter && <Ionicons name="close-circle" size={14} color="#1A1A1A" style={{ marginLeft: 4 }} />}
+            </TouchableOpacity>
           ))}
         </ScrollView>
+
+        {/* Trending Dishes Section */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Trending Dishes</Text>
+          <TouchableOpacity>
+            <Text style={styles.viewAllText}>See More</Text>
+          </TouchableOpacity>
+        </View>
+
+        {isLoading && popularItems.length === 0 ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20, marginBottom: 30 }}>
+            {[1, 2, 3].map((i) => (
+              <View key={i} style={{ marginRight: 20 }}>
+                <Skeleton width={200} height={140} borderRadius={20} />
+                <Skeleton width={120} height={15} style={{ marginTop: 10 }} />
+                <Skeleton width={80} height={12} style={{ marginTop: 6 }} />
+              </View>
+            ))}
+          </ScrollView>
+        ) : (
+          <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={popularItems}
+            contentContainerStyle={{ paddingLeft: 20, marginBottom: 30 }}
+            renderItem={({ item, index }) => (
+              <AnimatedTouchableOpacity
+                entering={FadeInRight.delay(index * 100)}
+                style={styles.foodCard}
+                onPress={() => router.push(`/restaurant/${item.restaurantId?._id}`)}
+              >
+                <Image source={{ uri: item.imageUrl || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400" }} style={styles.foodImage} />
+                <View style={styles.foodBadge}>
+                   <Ionicons name="star" size={10} color="#1A1A1A" />
+                   <Text style={styles.foodBadgeText}>BESTSELLER</Text>
+                </View>
+                <View style={styles.foodInfo}>
+                  <Text style={styles.foodName} numberOfLines={1}>{item.name}</Text>
+                  <Text style={styles.foodRes} numberOfLines={1}>{item.restaurantId?.name || "Premium Kitchen"}</Text>
+                  <View style={styles.foodFooter}>
+                    <Text style={styles.foodPrice}>₹{item.price}</Text>
+                    <TouchableOpacity style={styles.addBtn} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}>
+                      <Ionicons name="add" size={20} color="#1A1A1A" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </AnimatedTouchableOpacity>
+            )}
+          />
+        )}
 
         {/* Categories Section */}
         <View style={styles.sectionHeader}>
@@ -347,7 +386,7 @@ export default function HomeScreen() {
               <View key={i} style={[styles.restaurantCard, { padding: 0 }]}>
                 <Skeleton width="100%" height={200} borderRadius={0} />
                 <View style={{ padding: 15 }}>
-                  <div
+                  <View
                     style={{
                       flexDirection: "row",
                       justifyContent: "space-between",
@@ -355,7 +394,7 @@ export default function HomeScreen() {
                   >
                     <Skeleton width="60%" height={20} />
                     <Skeleton width="15%" height={20} />
-                  </div>
+                  </View>
                   <Skeleton width="40%" height={15} style={{ marginTop: 8 }} />
                   <Skeleton width="100%" height={1} style={{ marginTop: 15 }} />
                   <Skeleton width="50%" height={15} style={{ marginTop: 15 }} />
@@ -612,9 +651,104 @@ const styles = StyleSheet.create({
   },
   categoryName: {
     fontSize: 13,
-    fontWeight: "700",
+    fontWeight: "800",
     color: Colors.light.text,
     marginTop: 8,
+  },
+  filterList: {
+    paddingLeft: 20,
+    paddingRight: 10,
+    marginBottom: 20,
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
+    backgroundColor: '#F9FAFB',
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  activeFilterChip: {
+    backgroundColor: Colors.light.primary,
+    borderColor: Colors.light.primary,
+  },
+  filterText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#666',
+  },
+  activeFilterText: {
+    color: '#1A1A1A',
+  },
+  foodCard: {
+    width: 200,
+    backgroundColor: '#FFF',
+    borderRadius: 25,
+    marginRight: 20,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  foodImage: {
+    width: '100%',
+    height: 120,
+  },
+  foodBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: Colors.light.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+  },
+  foodBadgeText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#1A1A1A',
+  },
+  foodInfo: {
+    padding: 12,
+  },
+  foodName: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: Colors.light.text,
+  },
+  foodRes: {
+    fontSize: 11,
+    color: Colors.light.textMuted,
+    marginTop: 2,
+    fontWeight: '600',
+  },
+  foodFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  foodPrice: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: Colors.light.text,
+  },
+  addBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: Colors.light.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   restaurantCard: {
     backgroundColor: "#FFF",

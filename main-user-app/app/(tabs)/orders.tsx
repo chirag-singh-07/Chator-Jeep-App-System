@@ -6,15 +6,19 @@ import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInLeft } from 'react-native-reanimated';
 import { useOrderStore } from '@/store/useOrderStore';
+import { useAuthStore } from '@/store/useAuthStore';
 import { format } from 'date-fns';
 
 export default function OrdersScreen() {
   const router = useRouter();
   const { orders, isLoading, fetchMyOrders } = useOrderStore();
+  const { isAuthenticated, hasHydrated } = useAuthStore();
 
   useEffect(() => {
-    fetchMyOrders();
-  }, []);
+    if (hasHydrated && isAuthenticated) {
+      fetchMyOrders();
+    }
+  }, [hasHydrated, isAuthenticated]);
 
   const onRefresh = useCallback(() => {
     fetchMyOrders();
@@ -29,54 +33,61 @@ export default function OrdersScreen() {
     }
   };
 
-  const renderItem = ({ item, index }: { item: any, index: number }) => (
-    <Animated.View 
-      entering={FadeInLeft.delay(index * 100)}
-      style={styles.card}
-    >
-      <TouchableOpacity 
-        activeOpacity={0.7}
-        onPress={() => router.push(`/order-tracking/${item._id}`)}
-      >
-        <View style={styles.cardHeader}>
-           <View style={styles.resImgPlaceholder}>
-              <Ionicons name="restaurant" size={24} color="#DDD" />
-           </View>
-           <View style={{flex: 1, marginLeft: 15}}>
-              <Text style={styles.resName}>{item.restaurantId?.name || "Restaurant"}</Text>
-              <View style={styles.statusRow}>
-                 <View style={[styles.statusDot, { backgroundColor: getStatusColor(item.status) }]} />
-                 <Text style={styles.statusText}>{item.status}</Text>
-                 <Text style={styles.dotSeparator}>•</Text>
-                 <Text style={styles.orderId}>#{item._id.slice(-6).toUpperCase()}</Text>
-              </View>
-           </View>
-           <Ionicons name="chevron-forward" size={20} color="#CCC" />
-        </View>
+  const renderItem = ({ item, index }: { item: any; index: number }) => {
+    const restaurantName = item.restaurantId?.name || "Restaurant";
+    const orderDate = item.createdAt ? new Date(item.createdAt) : new Date();
+    const dateText = item.createdAt ? format(orderDate, 'dd MMM yyyy, hh:mm a') : 'Recently';
+    const itemsText = item.items ? item.items.map((i: any) => i.name).join(', ') : 'Order Details';
 
-        <View style={styles.divider} />
-        
-        <View style={styles.cardBody}>
-           <Text style={styles.itemsList} numberOfLines={1}>
-              {item.items.map((i: any) => i.name).join(', ')}
-           </Text>
-           <View style={styles.bottomRow}>
-              <View>
-                 <Text style={styles.dateText}>{format(new Date(item.createdAt), 'dd MMM yyyy, hh:mm a')}</Text>
-                 <Text style={styles.priceText}>₹{item.totalAmount}</Text>
-              </View>
-              <TouchableOpacity 
-                 style={styles.reorderBtn}
-                 onPress={() => router.push(`/restaurant/${item.restaurantId?._id}`)}
-              >
-                 <Ionicons name="refresh" size={16} color={Colors.light.primary} />
-                 <Text style={styles.reorderText}>REORDER</Text>
-              </TouchableOpacity>
-           </View>
-        </View>
-      </TouchableOpacity>
-    </Animated.View>
-  );
+    return (
+      <Animated.View 
+        entering={FadeInLeft.delay(index * 100)}
+        style={styles.card}
+      >
+        <TouchableOpacity 
+          activeOpacity={0.7}
+          onPress={() => router.push(`/order-tracking/${item._id}`)}
+        >
+          <View style={styles.cardHeader}>
+             <View style={styles.resImgPlaceholder}>
+                <Ionicons name="restaurant" size={24} color="#DDD" />
+             </View>
+             <View style={{flex: 1, marginLeft: 15}}>
+                <Text style={styles.resName}>{restaurantName}</Text>
+                <View style={styles.statusRow}>
+                   <View style={[styles.statusDot, { backgroundColor: getStatusColor(item.status) }]} />
+                   <Text style={styles.statusText}>{item.status}</Text>
+                   <Text style={styles.dotSeparator}>•</Text>
+                   <Text style={styles.orderId}>#{item._id ? item._id.slice(-6).toUpperCase() : 'ORD'}</Text>
+                </View>
+             </View>
+             <Ionicons name="chevron-forward" size={20} color="#CCC" />
+          </View>
+  
+          <View style={styles.divider} />
+          
+          <View style={styles.cardBody}>
+             <Text style={styles.itemsList} numberOfLines={1}>
+                {itemsText}
+             </Text>
+             <View style={styles.bottomRow}>
+                <View>
+                   <Text style={styles.dateText}>{dateText}</Text>
+                   <Text style={styles.priceText}>₹{item.totalAmount}</Text>
+                </View>
+                <TouchableOpacity 
+                   style={styles.reorderBtn}
+                   onPress={() => item.restaurantId?._id && router.push(`/restaurant/${item.restaurantId?._id}`)}
+                >
+                   <Ionicons name="refresh" size={16} color={Colors.light.primary} />
+                   <Text style={styles.reorderText}>REORDER</Text>
+                </TouchableOpacity>
+             </View>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

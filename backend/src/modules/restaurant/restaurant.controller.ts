@@ -132,6 +132,14 @@ export const listRestaurantMenu = asyncHandler(
   },
 );
 
+export const listPopularItems = asyncHandler(
+  async (req: Request, res: Response) => {
+    const limit = parseInt(req.query.limit as string) || 10;
+    const items = await service.listPopularMenuItems(limit);
+    res.status(200).json({ success: true, data: items });
+  },
+);
+
 export const updateMyBranding = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const result = await service.updateRestaurantBranding(

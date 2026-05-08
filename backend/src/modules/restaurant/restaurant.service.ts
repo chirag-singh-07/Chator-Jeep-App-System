@@ -397,3 +397,15 @@ export const createReview = async (input: {
   return review;
 };
 
+export const listPopularMenuItems = async (limit: number = 10) => {
+  return MenuItem.find({ 
+    isAvailable: true, 
+    showInMenu: true,
+    "tags.isRecommended": true 
+  })
+    .populate("restaurantId", "name rating")
+    .limit(limit)
+    .sort({ createdAt: -1 })
+    .exec();
+};
+

@@ -3,6 +3,7 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { useAuthStore } from "@/store/useAuthStore";
 import { SocketProvider } from "@/context/SocketContext";
 import { useNotifications } from "@/hooks/useNotifications";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 function AuthGate() {
   const { isAuthenticated, hasHydrated } = useAuthStore();
@@ -37,5 +38,9 @@ function AuthGate() {
 }
 
 export default function RootLayout() {
-  return <AuthGate />;
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AuthGate />
+    </GestureHandlerRootView>
+  );
 }

@@ -130,7 +130,7 @@ export default function CheckoutScreen() {
 
         clearCart();
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        router.push(`/order-tracking/${orderId}`);
+        router.push(`/order/status?status=success&orderId=${orderId}`);
         return;
       }
 
@@ -138,7 +138,7 @@ export default function CheckoutScreen() {
       const orderId = order._id || order.id;
       clearCart();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.push(`/order-tracking/${orderId}`);
+      router.push(`/order/status?status=success&orderId=${orderId}`);
     } catch (error: any) {
       const msg = error?.response?.data?.message || error?.message || 'Something went wrong';
 
@@ -148,7 +148,7 @@ export default function CheckoutScreen() {
           'Payment Pending',
           'Your order was created, but the Razorpay payment flow did not finish inside the app. You can track the order status from your orders screen.'
         );
-        router.push(`/order-tracking/${createdOrderId}`);
+        router.push(`/order/status?status=success&orderId=${createdOrderId}`);
       } else if (msg.includes('cancelled') || error?.code === 'PAYMENT_CANCELLED') {
         Alert.alert('Payment Cancelled', 'Your payment was cancelled.');
       } else {

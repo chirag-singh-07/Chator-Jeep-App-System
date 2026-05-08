@@ -29,7 +29,7 @@ interface MenuState {
   restaurants: Restaurant[];
   categories: Category[];
   selectedRestaurant: Restaurant | null;
-  menu: any[];
+  popularItems: any[];
   isLoading: boolean;
   error: string | null;
   fetchHomeData: (lat?: number, lng?: number) => Promise<void>;
@@ -42,20 +42,23 @@ export const useMenuStore = create<MenuState>((set) => ({
   categories: [],
   selectedRestaurant: null,
   menu: [],
+  popularItems: [],
   isLoading: false,
   error: null,
 
   fetchHomeData: async (lat, lng) => {
     set({ isLoading: true, error: null });
     try {
-      const [resCategories, resRestaurants] = await Promise.all([
+      const [resCategories, resRestaurants, resPopular] = await Promise.all([
         api.get("/categories"),
         api.get("/restaurants", { params: { lat, lng, limit: 10 } }),
+        api.get("/restaurants/menu/popular"),
       ]);
 
       set({
         categories: resCategories.data.data || [],
         restaurants: resRestaurants.data.restaurants || [],
+        popularItems: resPopular.data.data || [],
         isLoading: false,
       });
     } catch (err: any) {

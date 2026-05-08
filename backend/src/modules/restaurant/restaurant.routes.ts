@@ -9,6 +9,9 @@ const router = Router();
 /** GET /api/v1/restaurants - List all active restaurants */
 router.get("/", ctrl.listRestaurants);
 
+/** GET /api/v1/restaurants/menu/popular - List popular items across all restaurants */
+router.get("/menu/popular", ctrl.listPopularItems);
+
 
 
 /** POST /api/v1/restaurants/reviews - Submit a review */
