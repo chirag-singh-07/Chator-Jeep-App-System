@@ -20,6 +20,7 @@ interface RestaurantState {
   approveRestaurant: (id: string) => Promise<void>;
   rejectRestaurant: (id: string, reason: string) => Promise<void>;
   flagRestaurant: (id: string, reason: string) => Promise<void>;
+  deleteRestaurant: (id: string) => Promise<void>;
 }
 
 export const useRestaurantStore = create<RestaurantState>((set, get) => ({
@@ -124,6 +125,23 @@ export const useRestaurantStore = create<RestaurantState>((set, get) => ({
       await get().fetchRestaurants();
       if (get().selectedRestaurant?._id === id) {
         await get().fetchRestaurantById(id);
+      }
+      set({ loading: false });
+    } catch (err: any) {
+      set({ loading: false });
+    } catch (err: any) {
+       set({ error: err.message, loading: false });
+       throw err;
+    }
+  },
+  
+  deleteRestaurant: async (id: string) => {
+    try {
+      set({ loading: true });
+      await adminService.deleteRestaurant(id);
+      await get().fetchRestaurants();
+      if (get().selectedRestaurant?._id === id) {
+        set({ selectedRestaurant: null });
       }
       set({ loading: false });
     } catch (err: any) {

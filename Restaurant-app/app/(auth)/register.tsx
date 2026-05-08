@@ -27,6 +27,10 @@ const STEPS = ['Account', 'Kitchen', 'Brand', 'Location', 'Legal'];
 
 export default function RegisterScreen() {
   const [currentStep, setCurrentStep] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState<{message: string, isUploading: boolean}>({
+    message: '',
+    isUploading: false
+  });
   const { register, uploadBranding, uploadLegalDocs, isLoading } = useAuthStore();
 
   // Step 1: Account
@@ -100,6 +104,7 @@ export default function RegisterScreen() {
       setCurrentStep(currentStep + 1);
     } else {
       try {
+        setUploadStatus({ message: 'CREATING ACCOUNT...', isUploading: true });
         await register({
           email,
           password,
@@ -116,19 +121,23 @@ export default function RegisterScreen() {
         });
 
         if (logo || banner) {
+          setUploadStatus({ message: 'UPLOADING BRAND ASSETS...', isUploading: true });
           await uploadBranding(logo, banner);
         }
 
         if (aadhar || pan || livePhoto) {
+          setUploadStatus({ message: 'UPLOADING LEGAL DOCUMENTS...', isUploading: true });
           await uploadLegalDocs(aadhar, pan, livePhoto, []);
         }
 
+        setUploadStatus({ message: 'REGISTRATION COMPLETE', isUploading: false });
         Alert.alert(
           'REGISTRATION SUCCESS',
           'Your restaurant details were submitted successfully and are now under review.',
           [{ text: 'OPEN STATUS', onPress: () => router.replace('/(auth)/pending') }]
         );
       } catch (error: any) {
+        setUploadStatus({ message: '', isUploading: false });
         Alert.alert('REGISTRATION ERROR', typeof error === 'string' ? error : 'We could not submit your restaurant details right now.');
       }
     }
@@ -177,7 +186,7 @@ export default function RegisterScreen() {
               <TextInput 
                 style={styles.input} 
                 placeholder="ops@chatorjeep.com" 
-                placeholderTextColor="#333"
+                placeholderTextColor="#666"
                 value={email} 
                 onChangeText={setEmail} 
                 keyboardType="email-address" 
@@ -189,7 +198,7 @@ export default function RegisterScreen() {
               <TextInput 
                 style={styles.input} 
                 placeholder="••••••••" 
-                placeholderTextColor="#333"
+                placeholderTextColor="#666"
                 value={password} 
                 onChangeText={setPassword} 
                 secureTextEntry 
@@ -376,11 +385,11 @@ export default function RegisterScreen() {
 
         <View style={styles.footer}>
           <TouchableOpacity 
-            style={[styles.mainBtn, isLoading && {opacity: 0.6}]} 
+            style={[styles.mainBtn, (isLoading || uploadStatus.isUploading) && {opacity: 0.6}]} 
             onPress={nextStep}
-            disabled={isLoading}
+            disabled={isLoading || uploadStatus.isUploading}
           >
-            {isLoading ? (
+            {isLoading || uploadStatus.isUploading ? (
               <ActivityIndicator color="black" />
             ) : (
               <>
@@ -392,6 +401,16 @@ export default function RegisterScreen() {
             )}
           </TouchableOpacity>
         </View>
+
+        {uploadStatus.isUploading && (
+          <View style={styles.uploadOverlay}>
+            <View style={styles.uploadModal}>
+              <ActivityIndicator size="large" color={Colors.light.primary} />
+              <Text style={styles.uploadTitle}>{uploadStatus.message}</Text>
+              <Text style={styles.uploadSub}>DO NOT CLOSE THE APP</Text>
+            </View>
+          </View>
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -489,19 +508,19 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   stepSub: {
-    fontSize: 12,
-    color: '#666',
-    lineHeight: 20,
+    fontSize: 13,
+    color: '#BBB',
+    lineHeight: 22,
     marginBottom: 35,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   inputGroup: {
     marginBottom: 25,
   },
   label: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '900',
-    color: '#444',
+    color: Colors.light.primary, // Using primary (yellow/gold) for labels
     marginBottom: 12,
     letterSpacing: 1.5,
     marginLeft: 5,
@@ -656,4 +675,35 @@ const styles = StyleSheet.create({
     marginTop: 10,
     letterSpacing: 1,
   },
+  uploadOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 100,
+  },
+  uploadModal: {
+    width: '80%',
+    padding: 30,
+    borderRadius: 30,
+    backgroundColor: '#0A0A0A',
+    borderWidth: 1,
+    borderColor: '#222',
+    alignItems: 'center',
+  },
+  uploadTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#FFF',
+    marginTop: 20,
+    letterSpacing: 1,
+    textAlign: 'center',
+  },
+  uploadSub: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#666',
+    marginTop: 10,
+    letterSpacing: 2,
+  }
 });

@@ -59,6 +59,16 @@ export const adminService = {
     const response = await apiClient.patch(`/restaurants/admin/${id}/flag`, { reason });
     return response.data;
   },
+  
+  deleteRestaurant: async (id: string) => {
+    const response = await apiClient.delete(`/restaurants/admin/${id}`);
+    return response.data;
+  },
+
+  getRestaurantStats: async (id: string) => {
+    const response = await apiClient.get(`/restaurants/admin/${id}/stats`);
+    return response.data;
+  },
 
   getDeliveryPayouts: async (params?: { status?: string }) => {
     const response = await apiClient.get("/wallet/admin/delivery-payouts", { params });

@@ -172,9 +172,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   inputLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "900",
-    color: "#444",
+    color: Colors.light.primary, // Brighter color
     letterSpacing: 2,
     marginLeft: 4,
   },
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   forgotText: {
-    color: "#444",
+    color: "#888", // Brighter gray
     fontSize: 12,
     fontWeight: "bold",
   },
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
   },
   footerLabel: {
     fontSize: 10,
-    color: "#333",
+    color: "#666", // Brighter gray
     fontWeight: "800",
     letterSpacing: 1,
   },
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#0A0A0A",
   },
   registerBtnText: {
-    color: "#CCC",
+    color: "#EEE", // Brighter white
     fontSize: 13,
     fontWeight: "bold",
     letterSpacing: 1,

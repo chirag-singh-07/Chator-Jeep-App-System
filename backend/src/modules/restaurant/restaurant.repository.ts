@@ -129,7 +129,12 @@ export const flagRestaurant = (
     { new: true }
   ).exec();
 
-// ─── Menu Management ─────────────────────────────────────────────────────────
-export const listMenuByRestaurant = async (restaurantId: string) => {
-  return MenuItem.find({ restaurantId: new Types.ObjectId(restaurantId) }).exec();
+// ─── Deletion ────────────────────────────────────────────────────────────────
+export const deleteRestaurantById = async (id: string): Promise<boolean> => {
+  const resId = new Types.ObjectId(id);
+  // 1. Delete all menu items
+  await MenuItem.deleteMany({ restaurantId: resId }).exec();
+  // 2. Delete the restaurant record
+  const result = await Restaurant.findByIdAndDelete(id).exec();
+  return !!result;
 };

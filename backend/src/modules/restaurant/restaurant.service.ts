@@ -17,6 +17,9 @@ import {
 } from "./restaurant.repository";
 import { RESTAURANT_STATUS, RestaurantStatus, MenuItem, Restaurant } from "./restaurant.model";
 import Review from "./review.model";
+import { deleteUploadedFiles } from "../../common/services/upload.service";
+import { deleteRestaurantById } from "./restaurant.repository";
+import { Order } from "../order/order.model";
 
 // ─── Register Restaurant ─────────────────────────────────────────────────────
 export const registerRestaurant = async (input: {
@@ -200,7 +203,69 @@ export const adminFlagRestaurant = async (id: string, adminUserId: string, reaso
   if (!restaurant) throw new AppError("Restaurant not found", 404);
   return restaurant;
 };
+export const adminDeleteRestaurant = async (id: string) => {
+  const restaurant = await findRestaurantById(id);
+  if (!restaurant) throw new AppError("Restaurant not found", 404);
 
+  // 1. Collect all S3 keys
+  const keysToDelete: string[] = [];
+
+  // Helper to extract key from public URL
+  const extractKey = (url: string) => {
+    if (!url) return null;
+    try {
+      // Tigris URL: https://bucket.t3.tigrisfiles.io/key
+      // Or old style: https://bucket.t3.storage.dev/key
+      if (url.includes(".io/")) return url.split(".io/")[1];
+      if (url.includes(".dev/")) return url.split(".dev/")[1];
+      return null;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  // Extract from logoUrls (Record<string, string>)
+  if (restaurant.logoUrls) {
+    Object.values(restaurant.logoUrls).forEach((url) => {
+      const key = extractKey(url as string);
+      if (key) keysToDelete.push(key);
+    });
+  }
+
+  // Extract from bannerUrls (Record<string, string>)
+  if (restaurant.bannerUrls) {
+    Object.values(restaurant.bannerUrls).forEach((url) => {
+      const key = extractKey(url as string);
+      if (key) keysToDelete.push(key);
+    });
+  }
+
+  // Extract from specific documents
+  if (restaurant.aadharCard?.key) keysToDelete.push(restaurant.aadharCard.key);
+  if (restaurant.panCard?.key) keysToDelete.push(restaurant.panCard.key);
+  if (restaurant.livePhoto?.key) keysToDelete.push(restaurant.livePhoto.key);
+
+  // Extract from documents array
+  if (restaurant.documents && restaurant.documents.length > 0) {
+    restaurant.documents.forEach((doc: any) => {
+      if (doc.key) keysToDelete.push(doc.key);
+    });
+  }
+
+  // 2. Delete from S3
+  if (keysToDelete.length > 0) {
+    console.log(`Deleting ${keysToDelete.length} files from S3 for restaurant ${id}`);
+    try {
+      await deleteUploadedFiles(keysToDelete);
+    } catch (err) {
+      console.warn("S3 Deletion failed during restaurant cleanup:", err);
+      // We continue even if S3 delete fails to ensure DB is cleaned up
+    }
+  }
+
+  // 3. Delete from Database (Restaurant + Menu Items)
+  return deleteRestaurantById(id);
+};
 
 // ─── Menu Management ─────────────────────────────────────────────────────────
 export const addMenuItem = async (userId: string, body: any) => {
@@ -407,5 +472,71 @@ export const listPopularMenuItems = async (limit: number = 10) => {
     .limit(limit)
     .sort({ createdAt: -1 })
     .exec();
+};
+
+export const adminGetRestaurantStats = async (id: string) => {
+  const restaurant = await findRestaurantById(id);
+  if (!restaurant) throw new AppError("Restaurant not found", 404);
+
+  const resId = new mongoose.Types.ObjectId(id);
+
+  // 1. Basic Stats
+  const stats = await Order.aggregate([
+    { $match: { restaurantId: resId, status: "COMPLETED" } },
+    {
+      $group: {
+        _id: null,
+        totalEarnings: { $sum: "$foodAmount" },
+        totalOrders: { $sum: 1 },
+        avgOrderValue: { $avg: "$foodAmount" }
+      }
+    }
+  ]);
+
+  // 2. Daily Sales (last 15 days)
+  const fifteenDaysAgo = new Date();
+  fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+
+  const dailySales = await Order.aggregate([
+    { 
+      $match: { 
+        restaurantId: resId, 
+        status: "COMPLETED",
+        createdAt: { $gte: fifteenDaysAgo }
+      } 
+    },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+        revenue: { $sum: "$foodAmount" },
+        count: { $sum: 1 }
+      }
+    },
+    { $sort: { "_id": 1 } }
+  ]);
+
+  // 3. Top Items
+  const topItems = await Order.aggregate([
+    { $match: { restaurantId: resId, status: "COMPLETED" } },
+    { $unwind: "$items" },
+    {
+      $group: {
+        _id: "$items.name",
+        quantity: { $sum: "$items.quantity" },
+        revenue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } }
+      }
+    },
+    { $sort: { quantity: -1 } },
+    { $limit: 5 }
+  ]);
+
+  return {
+    overview: stats[0] || { totalEarnings: 0, totalOrders: 0, avgOrderValue: 0 },
+    dailySales,
+    topItems,
+    rating: restaurant.rating,
+    totalReviews: restaurant.totalReviews,
+    walletBalance: restaurant.walletBalance
+  };
 };
 

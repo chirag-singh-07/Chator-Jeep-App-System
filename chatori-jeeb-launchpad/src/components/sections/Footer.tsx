@@ -1,3 +1,4 @@
+import React from "react";
 import { Link } from "react-router-dom";
 import { UtensilsCrossed, Instagram, Twitter, Facebook, Linkedin } from "lucide-react";
 
@@ -50,11 +51,9 @@ export const Footer = () => {
       <div className="container mx-auto px-4 md:px-6 py-16">
         <div className="grid md:grid-cols-6 gap-10">
           <div className="md:col-span-2">
-            <Link to="/" className="flex items-center gap-2 font-extrabold text-xl">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-primary shadow-glow">
-                <UtensilsCrossed className="h-5 w-5 text-primary-foreground" />
-              </span>
-              Chatori <span className="text-primary-deep">Jeeb</span>
+            <Link to="/" className="flex items-center gap-3 font-extrabold text-xl tracking-tighter">
+              <img src="/icons/web-icon-128x128.png" alt="Logo" className="h-9 w-9 object-contain shadow-glow rounded-xl" />
+              CHATORI <span className="text-primary-deep">JEEB</span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground max-w-sm">
               India's vibrant food delivery platform connecting foodies, riders, and restaurants — one delicious order at a time.

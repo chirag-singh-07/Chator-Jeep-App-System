@@ -40,6 +40,7 @@ import { MediaPage } from "@/pages/media-page";
 import { TaxSettingsPage } from "@/pages/tax-settings-page";
 import { MaintenanceModePage } from "@/pages/maintenance-mode-page";
 import { RestaurantReviewPage } from "@/pages/restaurant-review-page";
+import RestaurantPerformancePage from "@/pages/restaurant-performance-page";
 
 import { LoginPage } from "@/pages/login-page";
 
@@ -106,6 +107,7 @@ function App() {
         <Route path="/profile" element={<ProfilePage />} />
         
         <Route path="/restaurants/:id/review" element={<RestaurantReviewPage />} />
+        <Route path="/restaurants/:id/performance" element={<RestaurantPerformancePage />} />
 
         <Route path="*" element={<Navigate to="/overview" replace />} />
       </Route>

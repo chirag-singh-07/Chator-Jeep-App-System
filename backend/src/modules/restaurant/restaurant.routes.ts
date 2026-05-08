@@ -147,6 +147,22 @@ router.patch(
   ctrl.adminFlag
 );
 
+/** DELETE /api/v1/restaurants/admin/:id - Delete restaurant and all its assets */
+router.delete(
+  "/admin/:id",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  ctrl.adminDeleteRestaurant
+);
+
+/** GET /api/v1/restaurants/admin/:id/stats - Performance analytics for a restaurant */
+router.get(
+  "/admin/:id/stats",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  ctrl.adminGetRestaurantStats
+);
+
 /** GET /api/v1/restaurants/:id - Get restaurant details */
 router.get("/:id", ctrl.getRestaurant);
 

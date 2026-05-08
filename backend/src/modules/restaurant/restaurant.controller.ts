@@ -108,6 +108,16 @@ export const adminFlag = asyncHandler(
   },
 );
 
+export const adminDeleteRestaurant = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    await service.adminDeleteRestaurant(req.params.id as string);
+    res.status(200).json({
+      success: true,
+      message: "Restaurant and all associated assets deleted successfully.",
+    });
+  },
+);
+
 // ─── Menu Handlers ────────────────────────────────────────────────────────────
 export const addMenuItem = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
@@ -214,6 +224,13 @@ export const getRestaurant = asyncHandler(
       req.params.id as string,
     );
     res.status(200).json({ success: true, data: restaurant });
+  },
+);
+
+export const adminGetRestaurantStats = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const stats = await service.adminGetRestaurantStats(req.params.id as string);
+    res.status(200).json({ success: true, data: stats });
   },
 );
 

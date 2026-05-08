@@ -1,3 +1,4 @@
+import React from "react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -47,11 +48,9 @@ export const Navbar = () => {
       }`}
     >
       <nav className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-        <a href="#" className="flex items-center gap-2 font-extrabold text-xl">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-primary shadow-glow">
-            <UtensilsCrossed className="h-5 w-5 text-primary-foreground" />
-          </span>
-          <span>Chatori <span className="text-primary-deep">Jeeb</span></span>
+        <a href="#" className="flex items-center gap-3 font-extrabold text-xl tracking-tighter">
+          <img src="/icons/web-icon-128x128.png" alt="Logo" className="h-10 w-10 object-contain shadow-glow rounded-xl" />
+          <span>CHATORI <span className="text-primary-deep">JEEB</span></span>
         </a>
 
         <ul className="hidden lg:flex items-center gap-1 text-sm font-medium">

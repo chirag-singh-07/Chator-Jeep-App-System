@@ -16,12 +16,19 @@ import {
   Download,
   Eye,
   Flag,
+  BarChart3,
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useRestaurantStore } from "@/stores/useRestaurantStore";
 
 // ─── Rejection Modal ──────────────────────────────────────────────────────────
-function RejectionModal({ onConfirm, onClose }: { onConfirm: (r: string) => void; onClose: () => void }) {
+function RejectionModal({
+  onConfirm,
+  onClose,
+}: {
+  onConfirm: (r: string) => void;
+  onClose: () => void;
+}) {
   const [reason, setReason] = useState("");
   const QUICK_REASONS = [
     "Invalid FSSAI License",
@@ -39,13 +46,19 @@ function RejectionModal({ onConfirm, onClose }: { onConfirm: (r: string) => void
           </div>
           <div>
             <h3 className="font-bold text-lg">Reject Application</h3>
-            <p className="text-xs text-muted-foreground">This will notify the owner via the app.</p>
+            <p className="text-xs text-muted-foreground">
+              This will notify the owner via the app.
+            </p>
           </div>
         </div>
         <p className="text-sm font-medium mb-2">Select or type a reason</p>
         <div className="flex flex-wrap gap-2 mb-4">
           {QUICK_REASONS.map((r) => (
-            <button key={r} onClick={() => setReason(r)} className={`px-3 py-1.5 rounded-full text-xs border transition-all ${reason === r ? "bg-red-500 text-white border-red-500" : "border-muted hover:border-red-300"}`}>
+            <button
+              key={r}
+              onClick={() => setReason(r)}
+              className={`px-3 py-1.5 rounded-full text-xs border transition-all ${reason === r ? "bg-red-500 text-white border-red-500" : "border-muted hover:border-red-300"}`}
+            >
               {r}
             </button>
           ))}
@@ -58,8 +71,18 @@ function RejectionModal({ onConfirm, onClose }: { onConfirm: (r: string) => void
           onChange={(e) => setReason(e.target.value)}
         />
         <div className="flex gap-3 mt-4">
-          <Button variant="outline" className="flex-1 rounded-xl" onClick={onClose}>Cancel</Button>
-          <Button disabled={!reason.trim()} className="flex-1 rounded-xl bg-red-600 hover:bg-red-700" onClick={() => onConfirm(reason)}>
+          <Button
+            variant="outline"
+            className="flex-1 rounded-xl"
+            onClick={onClose}
+          >
+            Cancel
+          </Button>
+          <Button
+            disabled={!reason.trim()}
+            className="flex-1 rounded-xl bg-red-600 hover:bg-red-700"
+            onClick={() => onConfirm(reason)}
+          >
             Confirm Rejection
           </Button>
         </div>
@@ -80,7 +103,8 @@ export function RestaurantReviewPage() {
     fetchRestaurantById,
     approveRestaurant,
     rejectRestaurant,
-    flagRestaurant
+    flagRestaurant,
+    deleteRestaurant,
   } = useRestaurantStore();
 
   useEffect(() => {
@@ -109,12 +133,30 @@ export function RestaurantReviewPage() {
   };
 
   const handleFlag = async () => {
-     if (!id) return;
-     try {
-       await flagRestaurant(id, "Flagged by admin for investigation");
-     } catch (error) {
-       console.error("Flag action failed:", error);
-     }
+    if (!id) return;
+    try {
+      await flagRestaurant(id, "Flagged by admin for investigation");
+    } catch (error) {
+      console.error("Flag action failed:", error);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!id) return;
+    if (
+      !window.confirm(
+        "Are you SURE you want to delete this restaurant? This will permanently delete all menu items, documents, and S3 images. This action cannot be undone.",
+      )
+    ) {
+      return;
+    }
+    try {
+      await deleteRestaurant(id);
+      navigate("/admin/restaurants");
+    } catch (error) {
+      console.error("Deletion failed:", error);
+      alert("Failed to delete restaurant. Please try again.");
+    }
   };
 
   if (loading || !restaurant) {
@@ -131,17 +173,40 @@ export function RestaurantReviewPage() {
   }
 
   const StatusBadge = () => {
-    const config: Record<string, { label: string; icon: any; color: string }> = {
-      REQUESTED: { label: "Verification Requested", icon: Clock, color: "text-amber-600 bg-amber-50 border-amber-200" },
-      ACTIVE: { label: "Active & Verified", icon: CheckCircle, color: "text-emerald-600 bg-emerald-50 border-emerald-200" },
-      REJECTED: { label: "Rejected", icon: XCircle, color: "text-red-600 bg-red-50 border-red-200" },
-      CLOSED: { label: "Closed / Disabled", icon: XCircle, color: "text-gray-600 bg-gray-50 border-gray-200" },
-      FLAGGED: { label: "Flagged / Suspend", icon: Flag, color: "text-purple-600 bg-purple-50 border-purple-200" },
-    };
+    const config: Record<string, { label: string; icon: any; color: string }> =
+      {
+        REQUESTED: {
+          label: "Verification Requested",
+          icon: Clock,
+          color: "text-amber-600 bg-amber-50 border-amber-200",
+        },
+        ACTIVE: {
+          label: "Active & Verified",
+          icon: CheckCircle,
+          color: "text-emerald-600 bg-emerald-50 border-emerald-200",
+        },
+        REJECTED: {
+          label: "Rejected",
+          icon: XCircle,
+          color: "text-red-600 bg-red-50 border-red-200",
+        },
+        CLOSED: {
+          label: "Closed / Disabled",
+          icon: XCircle,
+          color: "text-gray-600 bg-gray-50 border-gray-200",
+        },
+        FLAGGED: {
+          label: "Flagged / Suspend",
+          icon: Flag,
+          color: "text-purple-600 bg-purple-50 border-purple-200",
+        },
+      };
     const cfg = config[restaurant.status] || config.REQUESTED;
     const Icon = cfg.icon;
     return (
-      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${cfg.color}`}>
+      <span
+        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${cfg.color}`}
+      >
         <Icon className="h-4 w-4" /> {cfg.label}
       </span>
     );
@@ -151,38 +216,62 @@ export function RestaurantReviewPage() {
     <div className="space-y-6 max-w-5xl">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" className="rounded-xl h-10 w-10 bg-white shadow-sm" onClick={() => navigate(-1)}>
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-xl h-10 w-10 bg-white shadow-sm"
+            onClick={() => navigate(-1)}
+          >
             <ChevronLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-black tracking-tight">Review Partner Application</h1>
+            <h1 className="text-2xl font-black tracking-tight">
+              Review Partner Application
+            </h1>
             <p className="text-xs text-muted-foreground mt-0.5 uppercase font-bold tracking-widest">
-              Submission ID: {restaurant._id?.slice(-8).toUpperCase()} · Joined {new Date(restaurant.createdAt).toLocaleDateString()}
+              Submission ID: {restaurant._id?.slice(-8).toUpperCase()} · Joined{" "}
+              {new Date(restaurant.createdAt).toLocaleDateString()}
             </p>
           </div>
         </div>
-        <StatusBadge />
+        <div className="flex items-center gap-3">
+          <Button
+            className="rounded-xl gap-2 font-bold bg-primary/10 text-primary hover:bg-primary/20 border-none shadow-none"
+            onClick={() => navigate(`/restaurants/${id}/performance`)}
+          >
+            <BarChart3 className="h-4 w-4" /> View Performance
+          </Button>
+          <StatusBadge />
+        </div>
       </div>
 
       <div className="rounded-3xl h-56 relative overflow-hidden border-2 border-white shadow-xl bg-muted group">
-        <img 
-          src={restaurant.bannerUrls?.medium || "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200"} 
-          alt="Banner" 
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+        <img
+          src={
+            restaurant.bannerUrls?.medium ||
+            "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200"
+          }
+          alt="Banner"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
         <div className="absolute bottom-6 left-6 flex items-center gap-4">
           <div className="h-20 w-20 rounded-2xl border-4 border-white overflow-hidden bg-white shadow-2xl">
-            <img 
-               src={restaurant.logoUrls?.thumbnail || "https://via.placeholder.com/150"} 
-               alt="Logo" 
-               className="h-full w-full object-cover" 
+            <img
+              src={
+                restaurant.logoUrls?.thumbnail ||
+                "https://via.placeholder.com/150"
+              }
+              alt="Logo"
+              className="h-full w-full object-cover"
             />
           </div>
           <div className="text-white">
-            <p className="font-black text-2xl drop-shadow-md">{restaurant.name}</p>
+            <p className="font-black text-2xl drop-shadow-md">
+              {restaurant.name}
+            </p>
             <p className="text-sm font-medium text-white/80 flex items-center gap-1.5">
-               {restaurant.cuisines?.join(" · ") || "General Restaurant"}
+              {restaurant.cuisines?.join(" · ") || "General Restaurant"}
             </p>
           </div>
         </div>
@@ -197,18 +286,45 @@ export function RestaurantReviewPage() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {[
-                { icon: User, label: "Owner Name", value: restaurant.ownerName },
-                { icon: Mail, label: "Business Email", value: restaurant.email },
-                { icon: Phone, label: "Business Phone", value: restaurant.phone },
-                { icon: MapPin, label: "Primary Address", value: restaurant.address ? `${restaurant.address.line1}, ${restaurant.address.city} - ${restaurant.address.pinCode}` : "Not provided" },
-                { icon: ShieldCheck, label: "FSSAI ID", value: restaurant.fssaiLicense || "Pending submission" },
+                {
+                  icon: User,
+                  label: "Owner Name",
+                  value: restaurant.ownerName,
+                },
+                {
+                  icon: Mail,
+                  label: "Business Email",
+                  value: restaurant.email,
+                },
+                {
+                  icon: Phone,
+                  label: "Business Phone",
+                  value: restaurant.phone,
+                },
+                {
+                  icon: MapPin,
+                  label: "Primary Address",
+                  value: restaurant.address
+                    ? `${restaurant.address.line1}, ${restaurant.address.city} - ${restaurant.address.pinCode}`
+                    : "Not provided",
+                },
+                {
+                  icon: ShieldCheck,
+                  label: "FSSAI ID",
+                  value: restaurant.fssaiLicense || "Pending submission",
+                },
               ].map(({ icon: Icon, label, value }) => (
-                <div key={label} className="flex items-start gap-3 p-3 rounded-2xl border bg-white/40">
+                <div
+                  key={label}
+                  className="flex items-start gap-3 p-3 rounded-2xl border bg-white/40"
+                >
                   <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                     <Icon className="h-4 w-4 text-primary" />
                   </div>
                   <div className="overflow-hidden">
-                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">{label}</p>
+                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">
+                      {label}
+                    </p>
                     <p className="text-sm font-bold mt-0.5 truncate">{value}</p>
                   </div>
                 </div>
@@ -218,30 +334,65 @@ export function RestaurantReviewPage() {
 
           <div className="rounded-3xl border bg-white/60 backdrop-blur-sm shadow-sm p-6">
             <h2 className="font-black text-lg mb-6 flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-primary" /> Verification Documents
+              <ShieldCheck className="h-5 w-5 text-primary" /> Verification
+              Documents
             </h2>
             <div className="space-y-6">
               {/* Mandatory Legal Documents */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {restaurant.aadharCard && (
                   <div className="p-4 rounded-2xl bg-white border hover:border-primary/50 transition-all">
-                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-2">Aadhar Card</p>
+                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-2">
+                      Aadhar Card
+                    </p>
                     <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted mb-3">
-                      <img src={restaurant.aadharCard.medium} alt="Aadhar" className="w-full h-full object-cover" />
+                      <img
+                        src={restaurant.aadharCard.medium}
+                        alt="Aadhar"
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                    <Button variant="outline" size="sm" className="w-full rounded-xl gap-2" asChild>
-                      <a href={restaurant.aadharCard.full} target="_blank" rel="noreferrer"><Eye className="h-4 w-4" /> View Full Image</a>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full rounded-xl gap-2"
+                      asChild
+                    >
+                      <a
+                        href={restaurant.aadharCard.full}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <Eye className="h-4 w-4" /> View Full Image
+                      </a>
                     </Button>
                   </div>
                 )}
                 {restaurant.panCard && (
                   <div className="p-4 rounded-2xl bg-white border hover:border-primary/50 transition-all">
-                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-2">PAN Card</p>
+                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-2">
+                      PAN Card
+                    </p>
                     <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted mb-3">
-                      <img src={restaurant.panCard.medium} alt="PAN" className="w-full h-full object-cover" />
+                      <img
+                        src={restaurant.panCard.medium}
+                        alt="PAN"
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                    <Button variant="outline" size="sm" className="w-full rounded-xl gap-2" asChild>
-                      <a href={restaurant.panCard.full} target="_blank" rel="noreferrer"><Eye className="h-4 w-4" /> View Full Image</a>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full rounded-xl gap-2"
+                      asChild
+                    >
+                      <a
+                        href={restaurant.panCard.full}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <Eye className="h-4 w-4" /> View Full Image
+                      </a>
                     </Button>
                   </div>
                 )}
@@ -254,35 +405,66 @@ export function RestaurantReviewPage() {
                     <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
                       <User className="h-4 w-4 text-primary" />
                     </div>
-                    <p className="text-sm font-black">Live Identity Verification</p>
+                    <p className="text-sm font-black">
+                      Live Identity Verification
+                    </p>
                   </div>
                   <div className="aspect-square w-48 mx-auto rounded-3xl overflow-hidden border-4 border-white shadow-lg mb-4">
-                    <img src={restaurant.livePhoto.medium} alt="Live Photo" className="w-full h-full object-cover" />
+                    <img
+                      src={restaurant.livePhoto.medium}
+                      alt="Live Photo"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                  <p className="text-[10px] text-center text-muted-foreground uppercase font-bold">Captured via live camera during onboarding</p>
+                  <p className="text-[10px] text-center text-muted-foreground uppercase font-bold">
+                    Captured via live camera during onboarding
+                  </p>
                 </div>
               )}
 
               {/* Supplemental Documents */}
               <div className="space-y-3 pt-4 border-t">
-                <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-2">Supplemental Documents</p>
+                <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-2">
+                  Supplemental Documents
+                </p>
                 {(restaurant.documents || []).length > 0 ? (
                   restaurant.documents.map((doc: any) => (
-                    <div key={doc.key} className="flex items-center justify-between p-4 rounded-2xl bg-white border group hover:border-primary/50 transition-all">
+                    <div
+                      key={doc.key}
+                      className="flex items-center justify-between p-4 rounded-2xl bg-white border group hover:border-primary/50 transition-all"
+                    >
                       <div className="flex items-center gap-4">
                         <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center group-hover:bg-primary/10">
                           <FileText className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                          <p className="text-sm font-black">{doc.label || "Document"}</p>
-                          <p className="text-[10px] text-muted-foreground uppercase font-bold">Uploaded on {doc.verifiedAt ? new Date(doc.verifiedAt).toLocaleDateString() : "Recent"}</p>
+                          <p className="text-sm font-black">
+                            {doc.label || "Document"}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground uppercase font-bold">
+                            Uploaded on{" "}
+                            {doc.verifiedAt
+                              ? new Date(doc.verifiedAt).toLocaleDateString()
+                              : "Recent"}
+                          </p>
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="ghost" className="rounded-xl h-9 w-9 p-0" asChild>
-                           <a href={doc.url} target="_blank" rel="noreferrer"><Eye className="h-4 w-4" /></a>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="rounded-xl h-9 w-9 p-0"
+                          asChild
+                        >
+                          <a href={doc.url} target="_blank" rel="noreferrer">
+                            <Eye className="h-4 w-4" />
+                          </a>
                         </Button>
-                        <Button size="sm" variant="ghost" className="rounded-xl h-9 w-9 p-0">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="rounded-xl h-9 w-9 p-0"
+                        >
                           <Download className="h-4 w-4" />
                         </Button>
                       </div>
@@ -290,8 +472,10 @@ export function RestaurantReviewPage() {
                   ))
                 ) : (
                   <div className="text-center py-8 rounded-2xl border-2 border-dashed bg-muted/20">
-                      <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-30" />
-                      <p className="text-sm text-muted-foreground font-bold">No supplemental documents</p>
+                    <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-30" />
+                    <p className="text-sm text-muted-foreground font-bold">
+                      No supplemental documents
+                    </p>
                   </div>
                 )}
               </div>
@@ -302,7 +486,9 @@ export function RestaurantReviewPage() {
         <div className="space-y-6">
           <div className="rounded-3xl border bg-white/60 backdrop-blur-sm shadow-lg p-6 sticky top-4">
             <h2 className="font-black text-lg mb-1">Decision Module</h2>
-            <p className="text-xs text-muted-foreground mb-6">Unified entity control for compliance and activation.</p>
+            <p className="text-xs text-muted-foreground mb-6">
+              Unified entity control for compliance and activation.
+            </p>
 
             <div className="space-y-3">
               <button
@@ -314,8 +500,12 @@ export function RestaurantReviewPage() {
                   <CheckCircle className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <p className="font-black text-sm text-emerald-900">Approve & Activate</p>
-                  <p className="text-[10px] text-emerald-800/60 font-bold uppercase">Grant full platform access</p>
+                  <p className="font-black text-sm text-emerald-900">
+                    Approve & Activate
+                  </p>
+                  <p className="text-[10px] text-emerald-800/60 font-bold uppercase">
+                    Grant full platform access
+                  </p>
                 </div>
               </button>
 
@@ -328,8 +518,12 @@ export function RestaurantReviewPage() {
                   <XCircle className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <p className="font-black text-sm text-red-900">Reject Application</p>
-                  <p className="text-[10px] text-red-800/60 font-bold uppercase">Request resubmission</p>
+                  <p className="font-black text-sm text-red-900">
+                    Reject Application
+                  </p>
+                  <p className="text-[10px] text-red-800/60 font-bold uppercase">
+                    Request resubmission
+                  </p>
                 </div>
               </button>
 
@@ -342,26 +536,62 @@ export function RestaurantReviewPage() {
                   <Flag className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <p className="font-black text-sm text-purple-900">Flag Entity</p>
-                  <p className="text-[10px] text-purple-800/60 font-bold uppercase">Mark for investigation</p>
+                  <p className="font-black text-sm text-purple-900">
+                    Flag Entity
+                  </p>
+                  <p className="text-[10px] text-purple-800/60 font-bold uppercase">
+                    Mark for investigation
+                  </p>
+                </div>
+              </button>
+
+              <button
+                disabled={loading}
+                onClick={handleDelete}
+                className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-gray-200 bg-gray-50 hover:bg-red-50 hover:border-red-200 transition-all text-left group/del disabled:opacity-50"
+              >
+                <div className="h-10 w-10 rounded-xl bg-gray-400 group-hover/del:bg-red-600 flex items-center justify-center shrink-0 shadow-lg transition-colors">
+                  <XCircle className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-black text-sm text-gray-900 group-hover/del:text-red-900">
+                    Delete Restaurant
+                  </p>
+                  <p className="text-[10px] text-gray-800/60 font-bold uppercase group-hover/del:text-red-800/60">
+                    Permanent removal & S3 cleanup
+                  </p>
                 </div>
               </button>
             </div>
 
             {restaurant.adminActions?.length > 0 && (
               <div className="mt-8 pt-6 border-t">
-                 <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-4">Audit Trail</p>
-                 <div className="space-y-4">
-                    {restaurant.adminActions.slice().reverse().map((act: any, i: number) => (
+                <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-4">
+                  Audit Trail
+                </p>
+                <div className="space-y-4">
+                  {restaurant.adminActions
+                    .slice()
+                    .reverse()
+                    .map((act: any, i: number) => (
                       <div key={i} className="flex gap-3">
-                         <div className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                         <div>
-                            <p className="text-xs font-bold leading-none">{act.action} <span className="text-muted-foreground font-medium">· {new Date(act.timestamp).toLocaleDateString()}</span></p>
-                            {act.reason && <p className="text-[10px] text-muted-foreground mt-1 leading-tight">{act.reason}</p>}
-                         </div>
+                        <div className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                        <div>
+                          <p className="text-xs font-bold leading-none">
+                            {act.action}{" "}
+                            <span className="text-muted-foreground font-medium">
+                              · {new Date(act.timestamp).toLocaleDateString()}
+                            </span>
+                          </p>
+                          {act.reason && (
+                            <p className="text-[10px] text-muted-foreground mt-1 leading-tight">
+                              {act.reason}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     ))}
-                 </div>
+                </div>
               </div>
             )}
           </div>

@@ -188,16 +188,17 @@ export function AdminShell({ children }: { children?: React.ReactNode }) {
               collapsed && "items-center",
             )}
           >
-            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-              <span className="inline-flex size-2 rounded-full bg-primary" />
-              {!collapsed ? "Chatori Jeep Platform" : null}
-            </div>
-            {!collapsed ? (
-              <div>
-                <h2 className="text-xl font-semibold">Admin Panel</h2>
-                <p className="text-sm text-muted-foreground">Control Center</p>
+            <div className="flex items-center gap-3 mb-2 px-1">
+              <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center overflow-hidden border border-primary/20 p-1 shadow-lg shadow-primary/10">
+                <img src="/icons/web-icon-128x128.png" alt="Logo" className="size-full object-contain" />
               </div>
-            ) : null}
+              {!collapsed && (
+                <div>
+                   <h2 className="text-lg font-black tracking-tighter leading-none">CHATORI JEEP</h2>
+                   <p className="text-[10px] font-black uppercase text-primary tracking-widest mt-1">Platform Admin</p>
+                </div>
+              )}
+            </div>
           </div>
 
           <SidebarNav
