@@ -199,13 +199,13 @@ export default function RestaurantPerformancePage() {
                   tickLine={false} 
                   tick={{fontSize: 10, fontWeight: 700, fill: '#888'}}
                   dy={10}
-                  tickFormatter={(val) => val.split('-').slice(1).join('/')}
+                  tickFormatter={(val: any) => val.split("-").slice(1).join("/")}
                 />
                 <YAxis 
                   axisLine={false} 
                   tickLine={false} 
                   tick={{fontSize: 10, fontWeight: 700, fill: '#888'}}
-                  tickFormatter={(val) => `₹${val}`}
+                  tickFormatter={(val: any) => `₹${val}`}
                 />
                 <Tooltip 
                   contentStyle={{borderRadius: '20px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', fontWeight: 900}}
