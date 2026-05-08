@@ -93,36 +93,41 @@ export const uploadRestaurantBrand = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
+    console.log("--- UPLOAD: Restaurant Branding Request Received ---");
     const filesMap = req.files as
       | Record<string, Express.Multer.File[]>
       | undefined;
 
-    if (!filesMap) throw new AppError("No files received", 400);
-
-    const logoFile = filesMap["logo"]?.[0];
-    const bannerFile = filesMap["banner"]?.[0];
-
-    if (!logoFile && !bannerFile) {
-      throw new AppError("Provide at least a logo or banner file", 400);
+    if (!filesMap) {
+      console.warn("UPLOAD: No filesMap found in request");
+      throw new AppError("No files received", 400);
     }
 
-    const [logoUrls, bannerUrls] = await Promise.all([
-      logoFile
-        ? processAndUpload(logoFile.buffer, "restaurants/logos", [
-            "placeholder",
-            "thumbnail",
-            "medium",
-          ])
-        : null,
-      bannerFile
-        ? processAndUpload(bannerFile.buffer, "restaurants/banners", [
-            "placeholder",
-            "medium",
-            "full",
-          ])
-        : null,
-    ]);
+    const logoFile = filesMap.logo?.[0];
+    const bannerFile = filesMap.banner?.[0];
 
+    let logoUrls = {};
+    let bannerUrls = {};
+
+    if (logoFile) {
+      console.log(`UPLOAD: Processing logo (${logoFile.size} bytes)...`);
+      logoUrls = await processAndUpload(
+        logoFile.buffer,
+        "restaurants/logos",
+        ["thumbnail", "medium"],
+      );
+    }
+
+    if (bannerFile) {
+      console.log(`UPLOAD: Processing banner (${bannerFile.size} bytes)...`);
+      bannerUrls = await processAndUpload(
+        bannerFile.buffer,
+        "restaurants/banners",
+        ["medium", "full"],
+      );
+    }
+
+    console.log("UPLOAD: Branding processing complete.");
     res.status(201).json({
       success: true,
       message: "Restaurant branding uploaded",
@@ -132,6 +137,7 @@ export const uploadRestaurantBrand = async (
       },
     });
   } catch (err) {
+    console.error("UPLOAD: Branding FAILED:", err);
     next(err);
   }
 };
@@ -146,31 +152,39 @@ export const uploadRestaurantLegalDocs = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
+    console.log("--- UPLOAD: Restaurant Legal Docs Request Received ---");
     const filesMap = req.files as Record<string, Express.Multer.File[]> | undefined;
-    if (!filesMap) throw new AppError("No files received", 400);
+    if (!filesMap) {
+      console.warn("UPLOAD: No filesMap found in request");
+      throw new AppError("No files received", 400);
+    }
 
     const aadharFile = filesMap["aadharCard"]?.[0];
     const panFile = filesMap["panCard"]?.[0];
     const livePhotoFile = filesMap["livePhoto"]?.[0];
     const otherDocs = filesMap["otherDocs"] ?? [];
 
+    console.log(`UPLOAD: Received files - Aadhar: ${!!aadharFile}, PAN: ${!!panFile}, LivePhoto: ${!!livePhotoFile}, Others: ${otherDocs.length}`);
+
     const [aadharUrls, panUrls, livePhotoUrls, uploadedOtherDocs] = await Promise.all([
       aadharFile
-        ? processAndUpload(aadharFile.buffer, "restaurants/legal-docs", ["thumbnail", "medium"])
+        ? (console.log("UPLOAD: Processing Aadhar..."), processAndUpload(aadharFile.buffer, "restaurants/legal-docs", ["thumbnail", "medium"]))
         : null,
       panFile
-        ? processAndUpload(panFile.buffer, "restaurants/legal-docs", ["thumbnail", "medium"])
+        ? (console.log("UPLOAD: Processing PAN..."), processAndUpload(panFile.buffer, "restaurants/legal-docs", ["thumbnail", "medium"]))
         : null,
       livePhotoFile
-        ? processAndUpload(livePhotoFile.buffer, "restaurants/legal-docs", ["thumbnail", "medium"])
+        ? (console.log("UPLOAD: Processing Live Photo..."), processAndUpload(livePhotoFile.buffer, "restaurants/legal-docs", ["thumbnail", "medium"]))
         : null,
       Promise.all(
-        otherDocs.map((file) =>
-          uploadRawFile(file.buffer, "restaurants/legal-docs", file.originalname, file.mimetype)
-        )
+        otherDocs.map((file) => {
+          console.log(`UPLOAD: Processing other doc: ${file.originalname}`);
+          return uploadRawFile(file.buffer, "restaurants/legal-docs", file.originalname, file.mimetype);
+        })
       ),
     ]);
 
+    console.log("UPLOAD: Legal documents processing complete.");
     res.status(201).json({
       success: true,
       message: "Legal documents uploaded",
@@ -182,6 +196,7 @@ export const uploadRestaurantLegalDocs = async (
       },
     });
   } catch (err) {
+    console.error("UPLOAD: Legal docs FAILED:", err);
     next(err);
   }
 };

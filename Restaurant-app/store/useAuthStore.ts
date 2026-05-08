@@ -88,9 +88,11 @@ export const useAuthStore = create<AuthState>()(
 
       uploadBranding: async (logo, banner) => {
         set({ isLoading: true });
+        console.log('--- STARTING BRANDING UPLOAD ---');
         try {
           const formData = new FormData();
           if (logo) {
+            console.log('Adding logo to form data:', logo.uri);
             // @ts-ignore
             formData.append('logo', {
               uri: logo.uri,
@@ -99,6 +101,7 @@ export const useAuthStore = create<AuthState>()(
             });
           }
           if (banner) {
+            console.log('Adding banner to form data:', banner.uri);
             // @ts-ignore
             formData.append('banner', {
               uri: banner.uri,
@@ -108,35 +111,43 @@ export const useAuthStore = create<AuthState>()(
           }
 
           // 1. Upload images
+          console.log('Sending request to /uploads/restaurant-brand...');
           const uploadRes = await apiClient.post('/uploads/restaurant-brand', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
           });
 
+          console.log('Upload response received:', uploadRes.data);
           const { logo: logoUrls, banner: bannerUrls } = uploadRes.data.data;
 
           // 2. Update restaurant branding in database
+          console.log('Updating restaurant branding in DB...');
           await apiClient.patch('/restaurants/me/branding', {
             logoUrls,
             bannerUrls,
           });
 
+          console.log('Branding update successful!');
           set({ isLoading: false });
         } catch (error: any) {
+          console.error('Branding upload FAILED:', error);
           set({ isLoading: false });
           throw error.response?.data?.message || error.message || 'Image upload failed';
         }
       },
 
       logout: async () => {
+        console.log('Logging out user...');
         await AsyncStorage.removeItem("token");
         set({ user: null, token: null, isAuthenticated: false });
       },
 
       uploadLegalDocs: async (aadhar, pan, livePhoto, otherDocs) => {
         set({ isLoading: true });
+        console.log('--- STARTING LEGAL DOCS UPLOAD ---');
         try {
           const formData = new FormData();
           if (aadhar) {
+            console.log('Adding Aadhar Card:', aadhar.uri);
             // @ts-ignore
             formData.append('aadharCard', {
               uri: aadhar.uri,
@@ -145,6 +156,7 @@ export const useAuthStore = create<AuthState>()(
             });
           }
           if (pan) {
+            console.log('Adding PAN Card:', pan.uri);
             // @ts-ignore
             formData.append('panCard', {
               uri: pan.uri,
@@ -153,6 +165,7 @@ export const useAuthStore = create<AuthState>()(
             });
           }
           if (livePhoto) {
+            console.log('Adding Live Photo:', livePhoto.uri);
             // @ts-ignore
             formData.append('livePhoto', {
               uri: livePhoto.uri,
@@ -161,6 +174,7 @@ export const useAuthStore = create<AuthState>()(
             });
           }
           if (otherDocs && otherDocs.length > 0) {
+            console.log(`Adding ${otherDocs.length} supplemental documents`);
             otherDocs.forEach((doc, index) => {
               // @ts-ignore
               formData.append('otherDocs', {
@@ -172,13 +186,16 @@ export const useAuthStore = create<AuthState>()(
           }
 
           // 1. Upload documents
+          console.log('Sending request to /uploads/restaurant-legal...');
           const uploadRes = await apiClient.post('/uploads/restaurant-legal', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
           });
 
+          console.log('Documents upload response:', uploadRes.data);
           const { aadharCard, panCard, livePhoto: livePhotoUrls, otherDocs: uploadedOtherDocs } = uploadRes.data.data;
 
           // 2. Update restaurant legal docs in database
+          console.log('Updating legal docs in DB...');
           await apiClient.patch('/restaurants/me/legal-docs', {
             aadharCard,
             panCard,
@@ -186,8 +203,10 @@ export const useAuthStore = create<AuthState>()(
             documents: uploadedOtherDocs,
           });
 
+          console.log('Legal docs update successful!');
           set({ isLoading: false });
         } catch (error: any) {
+          console.error('Legal docs upload FAILED:', error);
           set({ isLoading: false });
           throw error.response?.data?.message || error.message || 'Document upload failed';
         }
