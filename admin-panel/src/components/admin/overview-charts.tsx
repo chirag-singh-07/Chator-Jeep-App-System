@@ -14,7 +14,7 @@ export function OverviewCharts() {
           <CardTitle className="text-base">Orders Trend</CardTitle>
         </CardHeader>
         <CardContent className="h-[320px]">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <BarChart data={ordersTrendData}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="label" />
@@ -31,7 +31,7 @@ export function OverviewCharts() {
           <CardTitle className="text-base">Category Distribution</CardTitle>
         </CardHeader>
         <CardContent className="h-[320px]">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <PieChart>
               <Pie data={categoryDistributionData} dataKey="value" nameKey="name" innerRadius={58} outerRadius={88} paddingAngle={3}>
                 {categoryDistributionData.map((_, index) => (
@@ -49,7 +49,7 @@ export function OverviewCharts() {
           <CardTitle className="text-base">Revenue Trend</CardTitle>
         </CardHeader>
         <CardContent className="h-[280px]">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <LineChart data={revenueTrendData}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="label" />

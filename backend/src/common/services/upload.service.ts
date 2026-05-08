@@ -161,28 +161,36 @@ export async function deleteUploadedFiles(keys: string[]): Promise<void> {
  * Lists all objects in the bucket, returning keys and public URLs.
  */
 export async function listAllFiles(): Promise<Array<{ key: string; url: string; size?: number; lastModified?: Date }>> {
-  const command = new ListObjectsV2Command({
-    Bucket: S3_BUCKET_NAME,
-  });
+  try {
+    console.log("S3: Listing all files in bucket:", S3_BUCKET_NAME);
+    const command = new ListObjectsV2Command({
+      Bucket: S3_BUCKET_NAME,
+    });
 
-  const response = await s3Client.send(command);
-  
-  if (!response.Contents) return [];
+    const response = await s3Client.send(command);
+    
+    if (!response.Contents) {
+      console.log("S3: No files found in bucket.");
+      return [];
+    }
 
-  return response.Contents.map((obj) => ({
-    key: obj.Key!,
-    url: buildPublicUrl(obj.Key!),
-    size: obj.Size,
-    lastModified: obj.LastModified,
-  }));
+    console.log(`S3: Found ${response.Contents.length} files.`);
+    return response.Contents.map((obj) => ({
+      key: obj.Key!,
+      url: buildPublicUrl(obj.Key!),
+      size: obj.Size,
+      lastModified: obj.LastModified,
+    }));
+  } catch (error) {
+    console.error("S3: Failed to list files:", error);
+    throw error; // Rethrow to be caught by the controller
+  }
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function buildPublicUrl(key: string): string {
-  // Tigris endpoint pattern: https://<bucket>.<endpoint>/<key>
-  const endpoint = process.env.AWS_ENDPOINT_URL_S3 ?? "";
+  // Tigris public files: https://<bucket>.t3.tigrisfiles.io/<key>
   const bucket = S3_BUCKET_NAME;
-  const base = endpoint.replace("https://", `https://${bucket}.`);
-  return `${base}/${key}`;
+  return `https://${bucket}.t3.tigrisfiles.io/${key}`;
 }

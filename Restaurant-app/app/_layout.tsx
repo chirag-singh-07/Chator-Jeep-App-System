@@ -19,10 +19,15 @@ export default function RootLayout() {
     if (!navigationState?.key) return;
 
     const inAuthGroup = segments[0] === "(auth)";
+    const isPublicAuthPage = segments[1] === "login" || segments[1] === "register";
     
-    if (!isAuthenticated && !inAuthGroup) {
-      router.replace("/(auth)/login");
+    if (!isAuthenticated) {
+      // If not authenticated and not on login/register, go to login
+      if (!inAuthGroup || !isPublicAuthPage) {
+        router.replace("/(auth)/login");
+      }
     } else if (isAuthenticated && inAuthGroup) {
+      // If authenticated but still in auth group, redirect based on status
       if (user?.status === "REQUESTED" || user?.status === "PENDING") {
         router.replace("/(auth)/pending");
       } else if (user?.status === "REJECTED") {
