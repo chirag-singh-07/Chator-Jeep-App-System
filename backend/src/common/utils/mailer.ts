@@ -12,7 +12,7 @@ export const sendEmail = async (
 ) => {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Chatori Jeep <onboarding@resend.dev>', // You should update this to your verified domain in production
+      from: 'Chatori Jeep <noreply@chatorijeep.com>', // Updated to verified domain
       to: [to],
       subject: subject,
       text: text,
