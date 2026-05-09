@@ -12,7 +12,7 @@ export const sendEmail = async (
 ) => {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Chatori Jeep <noreply@chatorijeeb.com>', // Updated to verified domain
+      from: 'Chatori Jeep <noreply@chatorijeeb.com>',
       to: [to],
       subject: subject,
       text: text,
@@ -20,7 +20,7 @@ export const sendEmail = async (
     });
 
     if (error) {
-      logger.error(`[RESEND ERROR] Code: ${(error as any).statusCode} | Name: ${(error as any).name} | Message: ${error.message}`);
+      logger.error(`[RESEND ERROR] Code: ${(error as any).statusCode} | Name: ${(error as any).name} | Message: ${error.message}`, error);
       logger.error(`[RESEND FULL ERROR]`, JSON.stringify(error, null, 2));
       throw error;
     }
@@ -28,7 +28,8 @@ export const sendEmail = async (
     logger.info(`[EMAIL SENT] ✅ Resend ID: ${data?.id} | To: ${to} | Subject: ${subject}`);
     return true;
   } catch (error: any) {
-    logger.error(`[EMAIL FAILED] ❌ To: ${to} | Subject: ${subject}`);
+    logger.error(`[EMAIL FAILED] ❌ To: ${to} | Subject: ${subject}`, error);
+
     logger.error(`[EMAIL ERROR DETAIL]`, {
       message: error?.message,
       name: error?.name,

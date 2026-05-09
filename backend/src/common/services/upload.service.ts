@@ -8,6 +8,7 @@ import { randomUUID } from "crypto";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import sharp from "sharp";
 import { s3Client, S3_BUCKET_NAME } from "../../config/s3";
+import { env } from "../../config/env";
 
 // ─── Image Processing Profiles ────────────────────────────────────────────────
 // Each profile defines target dimensions and quality to optimize storage & perf.
