@@ -38,13 +38,16 @@ interface MenuState {
   restaurants: Restaurant[];
   categories: Category[];
   banners: Banner[];
-  selectedRestaurant: Restaurant | null;
+  selectedRestaurant: any | null;
+  menu: any[];
   popularItems: any[];
+  reviews: any[];
   isLoading: boolean;
   error: string | null;
   fetchHomeData: (lat?: number, lng?: number) => Promise<void>;
   fetchRestaurants: (params?: any) => Promise<void>;
   fetchRestaurantDetail: (id: string) => Promise<void>;
+  fetchReviews: (restaurantId: string) => Promise<void>;
 }
 
 export const useMenuStore = create<MenuState>((set, get) => ({
@@ -54,8 +57,18 @@ export const useMenuStore = create<MenuState>((set, get) => ({
   selectedRestaurant: null,
   menu: [],
   popularItems: [],
+  reviews: [],
   isLoading: false,
   error: null,
+
+  fetchReviews: async (restaurantId) => {
+    try {
+      const res = await api.get(`/reviews/restaurant/${restaurantId}`);
+      set({ reviews: res.data.data || [] });
+    } catch (err) {
+      console.warn("Failed to fetch reviews", err);
+    }
+  },
 
   fetchHomeData: async (lat, lng) => {
     set({ isLoading: true, error: null });

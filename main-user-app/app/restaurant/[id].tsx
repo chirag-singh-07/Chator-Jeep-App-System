@@ -50,7 +50,7 @@ const Skeleton = ({ width: w, height: h, borderRadius = 8, style = {} }: any) =>
 export default function RestaurantDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { selectedRestaurant: res, menu, isLoading, fetchRestaurantDetail } = useMenuStore();
+  const { selectedRestaurant: res, menu, reviews, isLoading, fetchRestaurantDetail, fetchReviews } = useMenuStore();
   const { addItem, updateQuantity, items, totalAmount, totalItems } = useCartStore();
   
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -61,7 +61,10 @@ export default function RestaurantDetailScreen() {
   });
 
   useEffect(() => {
-    if (id) fetchRestaurantDetail(id as string);
+    if (id) {
+      fetchRestaurantDetail(id as string);
+      fetchReviews(id as string);
+    }
   }, [id]);
 
   const categories = useMemo(() => {
@@ -237,6 +240,41 @@ export default function RestaurantDetailScreen() {
                 </View>
               </View>
             ))}
+          </View>
+
+          {/* Customer Reviews Section */}
+          <View style={styles.reviewSection}>
+            <View style={styles.sectionHeader}>
+               <Text style={styles.sectionTitle}>Customer Reviews</Text>
+               <TouchableOpacity>
+                  <Text style={styles.seeAllText}>See all ({reviews.length})</Text>
+               </TouchableOpacity>
+            </View>
+            
+            {reviews.length > 0 ? (
+              reviews.slice(0, 3).map((item, i) => (
+                <View key={i} style={styles.reviewCard}>
+                  <View style={styles.reviewHeader}>
+                    <View style={styles.reviewUser}>
+                       <View style={styles.userIconCircle}>
+                          <Ionicons name="person" size={14} color="#AAA" />
+                       </View>
+                       <Text style={styles.reviewUserName}>{item.userId?.name || "Guest"}</Text>
+                    </View>
+                    <View style={styles.reviewRating}>
+                       {[1,2,3,4,5].map(s => (
+                         <Ionicons key={s} name="star" size={10} color={s <= item.rating ? "#ebaf00" : "#EEE"} />
+                       ))}
+                    </View>
+                  </View>
+                  <Text style={styles.reviewComment}>{item.comment}</Text>
+                </View>
+              ))
+            ) : (
+              <View style={styles.noReviews}>
+                 <Text style={styles.noReviewsText}>No reviews yet. Be the first to review!</Text>
+              </View>
+            )}
           </View>
         </View>
       </Animated.ScrollView>
@@ -519,4 +557,76 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     fontSize: 16,
   },
+  reviewSection: {
+    paddingHorizontal: 20,
+    paddingBottom: 100,
+    marginTop: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: Colors.light.text,
+  },
+  seeAllText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: Colors.light.primary,
+  },
+  reviewCard: {
+    backgroundColor: '#F9FAFB',
+    padding: 15,
+    borderRadius: 20,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  reviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  reviewUser: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  userIconCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#EEE',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reviewUserName: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#1A1A1A',
+  },
+  reviewRating: {
+    flexDirection: 'row',
+    gap: 2,
+  },
+  reviewComment: {
+    fontSize: 13,
+    color: '#666',
+    lineHeight: 18,
+    fontWeight: '500',
+  },
+  noReviews: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  noReviewsText: {
+    color: '#AAA',
+    fontSize: 14,
+    fontWeight: '600',
+  }
 });

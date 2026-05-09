@@ -13,6 +13,7 @@ import walletRoutes from "../modules/wallet/wallet.routes";
 import couponRoutes from "../modules/coupon/coupon.routes";
 import systemRoutes from "../modules/system/system.routes";
 import bannerRoutes from "../modules/banner/banner.routes";
+import reviewRoutes from "../modules/review/review.routes";
 
 const router = Router();
 
@@ -30,5 +31,6 @@ router.use("/wallet", walletRoutes);
 router.use("/coupons", couponRoutes);
 router.use("/system", systemRoutes);
 router.use("/banners", bannerRoutes);
+router.use("/reviews", reviewRoutes);
 
 export default router;

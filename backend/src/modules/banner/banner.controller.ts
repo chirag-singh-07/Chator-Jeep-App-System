@@ -32,7 +32,7 @@ export const createBanner = async (req: Request, res: Response) => {
 
 export const updateBanner = async (req: Request, res: Response) => {
   try {
-    const banner = await service.updateBanner(req.params.id, req.body);
+    const banner = await service.updateBanner(req.params.id as string, req.body);
     res.json({ success: true, data: banner });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
@@ -41,7 +41,7 @@ export const updateBanner = async (req: Request, res: Response) => {
 
 export const deleteBanner = async (req: Request, res: Response) => {
   try {
-    await service.deleteBanner(req.params.id);
+    await service.deleteBanner(req.params.id as string);
     res.json({ success: true, message: 'Banner deleted successfully' });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });

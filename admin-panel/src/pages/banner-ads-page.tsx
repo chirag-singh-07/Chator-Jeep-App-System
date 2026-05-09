@@ -23,7 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectItem } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useBannerStore, type BannerRecord } from "@/stores/useBannerStore";
 
@@ -86,10 +86,10 @@ export function BannerAdsPage() {
 
     try {
       if (editingBanner) {
-        await updateBanner(editingBanner._id, formData);
+        await updateBanner(editingBanner._id, formData as Partial<BannerRecord>);
         toast.success("Banner updated successfully.");
       } else {
-        await createBanner(formData);
+        await createBanner(formData as Partial<BannerRecord>);
         toast.success("Banner created successfully.");
       }
       setIsDialogOpen(false);
@@ -267,16 +267,14 @@ export function BannerAdsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="type" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Action Link Type</Label>
-                <Select value={formData.linkType} onValueChange={(v: any) => setFormData({ ...formData, linkType: v })}>
-                  <SelectTrigger className="rounded-xl h-11 border-secondary/20">
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    <SelectItem value="OFFER">General Offer</SelectItem>
-                    <SelectItem value="RESTAURANT">Restaurant Link</SelectItem>
-                    <SelectItem value="CATEGORY">Category Link</SelectItem>
-                    <SelectItem value="EXTERNAL">External URL</SelectItem>
-                  </SelectContent>
+                <Select 
+                  value={formData.linkType} 
+                  onValueChange={(v: any) => setFormData({ ...formData, linkType: v })}
+                >
+                  <SelectItem value="OFFER">General Offer</SelectItem>
+                  <SelectItem value="RESTAURANT">Restaurant Link</SelectItem>
+                  <SelectItem value="CATEGORY">Category Link</SelectItem>
+                  <SelectItem value="EXTERNAL">External URL</SelectItem>
                 </Select>
               </div>
               <div className="grid gap-2">

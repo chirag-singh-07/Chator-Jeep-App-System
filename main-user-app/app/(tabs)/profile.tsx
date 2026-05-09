@@ -5,7 +5,9 @@ import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useWalletStore } from '@/store/useWalletStore';
 import * as Haptics from 'expo-haptics';
+import { useEffect } from 'react';
 import { getAvatarUrl } from '@/lib/utils';
 
 export default function ProfileScreen() {
@@ -31,8 +33,14 @@ export default function ProfileScreen() {
     );
   };
 
+  const { balance, fetchBalance } = useWalletStore();
+
+  useEffect(() => {
+    fetchBalance();
+  }, []);
+
   const ProfileItem = ({ icon, title, subtitle, onPress, color = Colors.light.text }: { icon: string, title: string, subtitle?: string, onPress?: () => void, color?: string }) => (
-    <TouchableOpacity style={styles.item} onPress={onPress}>
+    <TouchableOpacity activeOpacity={0.7} style={styles.item} onPress={onPress}>
       <View style={[styles.iconCircle, { backgroundColor: color + '10' }]}>
         <Ionicons name={icon as any} size={22} color={color} />
       </View>
@@ -54,7 +62,7 @@ export default function ProfileScreen() {
                 source={{ uri: getAvatarUrl(user?.email || 'user') }} 
                 style={styles.avatar} 
               />
-              <TouchableOpacity style={styles.editBadge}>
+              <TouchableOpacity style={styles.editBadge} onPress={() => router.push('/edit-profile')}>
                  <Ionicons name="camera" size={16} color="#FFF" />
               </TouchableOpacity>
            </Animated.View>
@@ -67,10 +75,10 @@ export default function ProfileScreen() {
                  <Text style={styles.statLab}>Orders</Text>
               </View>
               <View style={styles.statDivider} />
-              <View style={styles.statBox}>
-                 <Text style={styles.statVal}>₹0</Text>
-                 <Text style={styles.statLab}>Spent</Text>
-              </View>
+              <TouchableOpacity style={styles.statBox} onPress={() => router.push('/wallet')}>
+                 <Text style={styles.statVal}>₹{balance}</Text>
+                 <Text style={styles.statLab}>Wallet</Text>
+              </TouchableOpacity>
               <View style={styles.statDivider} />
               <View style={styles.statBox}>
                  <Text style={styles.statVal}>100</Text>
@@ -86,6 +94,14 @@ export default function ProfileScreen() {
               icon="person-outline" 
               title="Personal Information" 
               subtitle="Name, Email, Phone number" 
+              onPress={() => router.push('/edit-profile')}
+           />
+           <ProfileItem 
+              icon="wallet-outline" 
+              title="Chatori Wallet" 
+              subtitle="Check balance & history" 
+              onPress={() => router.push('/wallet')}
+              color="#2E7D32"
            />
            <ProfileItem 
               icon="location-outline" 
@@ -94,15 +110,11 @@ export default function ProfileScreen() {
               onPress={() => router.push('/address-picker')}
            />
            <ProfileItem 
-              icon="card-outline" 
-              title="Payment Methods" 
-              subtitle="Visa **4242, GPay" 
-           />
-           <ProfileItem 
-              icon="heart-outline" 
-              title="Favorite Restaurants" 
-              subtitle="0 saved places" 
-              onPress={() => {}}
+              icon="gift-outline" 
+              title="Refer & Earn" 
+              subtitle="Invite friends & get ₹100" 
+              onPress={() => router.push('/referral')}
+              color="#FF6B00"
            />
         </View>
 
@@ -112,17 +124,14 @@ export default function ProfileScreen() {
            <ProfileItem 
               icon="notifications-outline" 
               title="Notifications" 
-              subtitle="Push alerts, Email, SMS" 
-           />
-           <ProfileItem 
-              icon="shield-checkmark-outline" 
-              title="Privacy & Security" 
-              subtitle="Passwords, App lock" 
+              subtitle="History and settings" 
+              onPress={() => router.push('/notifications')}
            />
            <ProfileItem 
               icon="help-circle-outline" 
               title="Help & Support" 
               subtitle="FAQs, Contact us" 
+              onPress={() => router.push('/support')}
            />
         </View>
 

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import api from '@/lib/api-client';
+import { apiClient as api } from '@/lib/api-client';
 
 export interface BannerRecord {
   _id: string;

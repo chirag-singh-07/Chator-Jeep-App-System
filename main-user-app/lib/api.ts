@@ -1,6 +1,7 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import { router } from "expo-router";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000/api/v1";
 
@@ -42,9 +43,16 @@ api.interceptors.response.use(
       );
     }
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // Check if the request is marked as silent (e.g. background tasks)
+      if (originalRequest.headers['x-silent']) {
+        return Promise.reject(error);
+      }
+
       originalRequest._retry = true;
       try {
         const refreshToken = await SecureStore.getItemAsync("refreshToken");
+        if (!refreshToken) throw new Error("No refresh token");
+
         const response = await axios.post(`${API_URL}/auth/refresh`, { refreshToken });
         const { accessToken, refreshToken: newRefreshToken } = response.data;
         
@@ -55,8 +63,9 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (err) {
         // Refresh token expired or invalid
-        await SecureStore.deleteItemAsync("accessToken");
-        await SecureStore.deleteItemAsync("refreshToken");
+        await useAuthStore.getState().logout();
+        
+        // Only redirect if not already in auth group to avoid loops
         router.replace("/(auth)/login");
       }
     }

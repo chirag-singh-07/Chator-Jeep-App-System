@@ -20,7 +20,7 @@ export type DataColumn<T> = {
   className?: string;
 };
 
-type DataTableProps<T extends { id: string }> = {
+type DataTableProps<T extends { id?: string; _id?: string }> = {
   title: string;
   description?: string;
   columns: DataColumn<T>[];
@@ -34,7 +34,7 @@ type DataTableProps<T extends { id: string }> = {
   className?: string;
 };
 
-export function DataTable<T extends { id: string }>({
+export function DataTable<T extends { id?: string; _id?: string }>({
   title,
   description,
   columns,
@@ -78,7 +78,7 @@ export function DataTable<T extends { id: string }>({
               </TableHeader>
               <TableBody>
                 {pageRows.map((row) => (
-                  <TableRow key={row.id}>
+                  <TableRow key={row.id || row._id}>
                     {columns.map((column, columnIndex) => {
                       const cell = (
                         <TableCell key={column.key}>

@@ -25,7 +25,9 @@ export const useNotifications = () => {
       const token = await messaging().getToken();
       if (token) {
         console.log("FCM Token:", token);
-        await api.patch("/notifications/fcm-token", { fcmToken: token });
+        await api.patch("/notifications/fcm-token", { fcmToken: token }, {
+          headers: { 'x-silent': 'true' }
+        });
       }
     } catch (error) {
       console.log("Error getting FCM token:", error);

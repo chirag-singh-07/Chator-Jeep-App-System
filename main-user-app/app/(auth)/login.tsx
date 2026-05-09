@@ -28,19 +28,16 @@ import { useAuthStore } from '@/store/useAuthStore';
 const { width, height } = Dimensions.get('window');
 
 export default function LoginScreen() {
-  const [loginMethod, setLoginMethod] = useState<'PASSWORD' | 'OTP'>('PASSWORD');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [otp, setOtp] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
   const router = useRouter();
 
   const handleLogin = async () => {
-    if (!email || (loginMethod === 'PASSWORD' && !password) || (loginMethod === 'OTP' && !otp)) {
+    if (!email || !password) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Alert.alert("Error", `Please enter ${loginMethod === 'PASSWORD' ? 'email and password' : 'email and OTP'}`);
+      Alert.alert("Error", "Please enter your email and password");
       return;
     }
     
@@ -48,38 +45,21 @@ export default function LoginScreen() {
       setLoading(true);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       
-      let response;
-      if (loginMethod === 'PASSWORD') {
-        response = await api.post('/auth/login', { email, password });
-      } else {
-        response = await api.post('/auth/login-otp', { email, otp });
-      }
+      const response = await api.post('/auth/login', { email, password });
 
       const { user, accessToken, refreshToken } = response.data;
       await useAuthStore.getState().setAuth(user, { accessToken, refreshToken });
       
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace('/(tabs)');
+      
+      // If we can go back (e.g. from a forced login), go back. Otherwise go to tabs.
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace('/(tabs)');
+      }
     } catch (error: any) {
       Alert.alert("Login Failed", error.response?.data?.message || "Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const requestLoginOtp = async () => {
-    if (!email) {
-      Alert.alert("Email Required", "Please enter your email to receive an OTP.");
-      return;
-    }
-    try {
-      setLoading(true);
-      await api.post('/auth/request-otp', { email, type: 'login' });
-      setOtpSent(true);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert("OTP Sent", "A 6-digit code has been sent to your email.");
-    } catch (error: any) {
-      Alert.alert("Error", error.response?.data?.message || "Failed to send OTP.");
     } finally {
       setLoading(false);
     }
@@ -128,22 +108,6 @@ export default function LoginScreen() {
               entering={FadeInDown.delay(600).duration(800)}
               style={styles.formSection}
             >
-              {/* Login Method Toggle */}
-              <View style={styles.methodToggle}>
-                <TouchableOpacity 
-                  style={[styles.methodBtn, loginMethod === 'PASSWORD' && styles.activeMethod]}
-                  onPress={() => setLoginMethod('PASSWORD')}
-                >
-                  <Text style={[styles.methodText, loginMethod === 'PASSWORD' && styles.activeMethodText]}>Password</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={[styles.methodBtn, loginMethod === 'OTP' && styles.activeMethod]}
-                  onPress={() => setLoginMethod('OTP')}
-                >
-                  <Text style={[styles.methodText, loginMethod === 'OTP' && styles.activeMethodText]}>OTP Login</Text>
-                </TouchableOpacity>
-              </View>
-
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Email Address</Text>
                 <View style={styles.inputContainer}>
@@ -160,80 +124,49 @@ export default function LoginScreen() {
                 </View>
               </View>
 
-              {loginMethod === 'PASSWORD' ? (
-                <View style={styles.inputGroup}>
-                  <View style={styles.labelRow}>
-                    <Text style={styles.label}>Password</Text>
-                    <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')}>
-                      <Text style={styles.forgotText}>Forgot?</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <View style={styles.inputContainer}>
-                    <Ionicons name="lock-closed-outline" size={20} color={Colors.light.textMuted} style={styles.inputIcon} />
-                    <TextInput
-                      style={[styles.input, { flex: 1 }]}
-                      placeholder="Your secure password"
-                      placeholderTextColor="#A0A0A0"
-                      value={password}
-                      onChangeText={setPassword}
-                      secureTextEntry={!showPassword}
-                    />
-                    <TouchableOpacity 
-                      onPress={() => {
-                          setShowPassword(!showPassword);
-                          Haptics.selectionAsync();
-                      }}
-                      style={styles.eyeBtn}
-                    >
-                      <Ionicons 
-                        name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                        size={20} 
-                        color={Colors.light.textMuted} 
-                      />
-                    </TouchableOpacity>
-                  </View>
+              <View style={styles.inputGroup}>
+                <View style={styles.labelRow}>
+                  <Text style={styles.label}>Password</Text>
+                  <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')}>
+                    <Text style={styles.forgotText}>Forgot?</Text>
+                  </TouchableOpacity>
                 </View>
-              ) : (
-                <View style={styles.inputGroup}>
-                  <View style={styles.labelRow}>
-                    <Text style={styles.label}>OTP Code</Text>
-                    {otpSent && (
-                      <TouchableOpacity onPress={requestLoginOtp}>
-                        <Text style={styles.forgotText}>Resend?</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                  <View style={styles.inputContainer}>
-                    <Ionicons name="shield-checkmark-outline" size={20} color={Colors.light.textMuted} style={styles.inputIcon} />
-                    <TextInput
-                      style={[styles.input, { letterSpacing: otp ? 8 : 0 }]}
-                      placeholder={otpSent ? "ENTER OTP" : "REQUEST CODE"}
-                      placeholderTextColor="#A0A0A0"
-                      value={otp}
-                      onChangeText={setOtp}
-                      keyboardType="number-pad"
-                      maxLength={6}
-                      editable={otpSent}
+                <View style={styles.inputContainer}>
+                  <Ionicons name="lock-closed-outline" size={20} color={Colors.light.textMuted} style={styles.inputIcon} />
+                  <TextInput
+                    style={[styles.input, { flex: 1 }]}
+                    placeholder="Your secure password"
+                    placeholderTextColor="#A0A0A0"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                  />
+                  <TouchableOpacity 
+                    onPress={() => {
+                        setShowPassword(!showPassword);
+                        Haptics.selectionAsync();
+                    }}
+                    style={styles.eyeBtn}
+                  >
+                    <Ionicons 
+                      name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                      size={20} 
+                      color={Colors.light.textMuted} 
                     />
-                    {!otpSent && (
-                      <TouchableOpacity onPress={requestLoginOtp} disabled={loading}>
-                        <Text style={styles.forgotText}>GET OTP</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
+                  </TouchableOpacity>
                 </View>
-              )}
+              </View>
 
               <TouchableOpacity 
                 activeOpacity={0.8}
                 style={[styles.loginBtn, loading && { opacity: 0.7 }]} 
                 onPress={handleLogin}
-                disabled={loading || (loginMethod === 'OTP' && !otpSent)}
+                disabled={loading}
               >
                 {loading ? (
                   <ActivityIndicator color="#1A1A1A" />
                 ) : (
-                  <Text style={styles.loginBtnText}>{loginMethod === 'OTP' && !otpSent ? 'WAITING FOR OTP' : 'LOGIN'}</Text>
+                  <Text style={styles.loginBtnText}>LOGIN</Text>
                 )}
               </TouchableOpacity>
 
