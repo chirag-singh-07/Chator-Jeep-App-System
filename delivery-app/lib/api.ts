@@ -21,6 +21,7 @@ export const getSocketUrl = () => API_URL.replace(/\/api\/v1$/, "");
 
 export const apiClient = axios.create({
   baseURL: API_URL,
+  timeout: 20000, // 20s – enough time for a Render cold-start wake-up
   headers: {
     "Content-Type": "application/json",
   },
@@ -33,8 +34,9 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    // LOG: Request details
-    console.log(`🚀 [API Request] ${config.method?.toUpperCase()} ${config.url}`, config.params || "", config.data || "");
+    // LOG: Full URL + payload
+    const fullUrl = `${config.baseURL}${config.url}`;
+    console.log(`🚀 [API Request] ${config.method?.toUpperCase()} ${fullUrl}`, config.data || "");
     
     return config;
   },
@@ -52,11 +54,23 @@ apiClient.interceptors.response.use(
   },
   async (error) => {
     const status = error.response?.status;
-    
+    const config = error.config;
+
+    // Auto-retry once on network errors (Render cold-start wake-up)
+    const isNetworkError = !status && (error.code === "ECONNABORTED" || error.message === "Network Error");
+    const hasNotRetried = !config?._retried;
+
+    if (isNetworkError && hasNotRetried && config) {
+      config._retried = true;
+      console.warn(`🔄 [API Retry] Server may be waking up. Retrying in 3s: ${config.url}`);
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      return apiClient(config);
+    }
+
     // LOG: Error details
     console.warn(
-      `⚠️ [API Error] ${status || "Network/Timeout"} ${error.config?.url}`, 
-      error.response?.data || error.message
+      `⚠️ [API Error] ${status || "Network/Timeout"} ${config?.url}`,
+      { message: error.message, code: error.code, data: error.response?.data }
     );
 
     if (status === 401) {

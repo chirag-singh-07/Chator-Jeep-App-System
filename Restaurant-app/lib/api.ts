@@ -19,6 +19,7 @@ console.log("🌐 [API Config] Base URL initialized as:", API_URL);
 
 export const apiClient = axios.create({
   baseURL: API_URL,
+  timeout: 20000, // 20s – covers Render free-tier cold-start wake-up
   headers: {
     "Content-Type": "application/json",
   },
@@ -55,15 +56,24 @@ apiClient.interceptors.response.use(
   },
   async (error) => {
     const status = error.response?.status;
-    
-    // LOG: Error details
+    const config = error.config;
+
+    // Auto-retry ONCE on network errors (Render cold-start wake-up)
+    const isNetworkError = !status && (error.code === "ECONNABORTED" || error.message === "Network Error");
+    if (isNetworkError && !config?._retried && config) {
+      config._retried = true;
+      console.warn(`🔄 [API Retry] Server waking up. Retrying in 3s: ${config.url}`);
+      await new Promise((r) => setTimeout(r, 3000));
+      return apiClient(config);
+    }
+
     console.warn(
-      `⚠️ [API Error] ${status || "Network/Timeout"} ${error.config?.url}`, 
+      `⚠️ [API Error] ${status || "Network/Timeout"} ${config?.url}`, 
       {
         message: error.message,
         data: error.response?.data,
         code: error.code,
-        baseURL: error.config?.baseURL
+        baseURL: config?.baseURL
       }
     );
 

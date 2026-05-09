@@ -41,17 +41,37 @@ export const sendOtp = async (email: string, type: "register" | "forgot_password
 
   const text = `Your Chatori Jeep OTP for ${type.replace("_", " ")} is: ${otpCode}. It expires in 10 minutes.`;
   
+  let emailSent = false;
+  let emailError: any = null;
+
   try {
     await sendEmail(normalizedEmail, subject, text, html);
-  } catch (emailError) {
-    // Log the error but don't crash the request
-    console.error(`[OTP SERVICE] Failed to send email to ${normalizedEmail}:`, emailError);
+    emailSent = true;
+  } catch (err: any) {
+    emailError = err;
+    console.error(`[OTP SERVICE] ❌ Failed to send email to ${normalizedEmail}:`, {
+      message: err?.message,
+      name: err?.name,
+      statusCode: err?.statusCode,
+      details: JSON.stringify(err),
+    });
   }
-  
+
+  // In production: if email failed, surface the error so the user knows
+  if (!emailSent && process.env.NODE_ENV === 'production') {
+    throw new AppError(
+      `Email sending failed. Please try again or contact support. (${emailError?.message || 'Resend error'})`,
+      503
+    );
+  }
+
   return { 
     success: true, 
-    message: "OTP sent successfully",
-    ...(process.env.NODE_ENV !== 'production' && { otp: otpCode }) // Return OTP in dev for easy testing
+    message: emailSent ? "OTP sent successfully" : "OTP generated (email failed in dev mode)",
+    // Always return OTP in non-production so testing is never blocked
+    ...(process.env.NODE_ENV !== 'production' && { otp: otpCode }),
+    // Return OTP even in prod if email failed (only for dev debugging — remove before real launch)
+    ...(!emailSent && { otp: otpCode, emailFailed: true }),
   };
 };
 

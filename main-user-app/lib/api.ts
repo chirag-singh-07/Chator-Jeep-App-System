@@ -7,7 +7,7 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000/api/v1
 
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 10000,
+  timeout: 20000, // 20s – covers Render free-tier cold-start wake-up time
 });
 
 api.interceptors.request.use(async (config) => {
@@ -16,8 +16,9 @@ api.interceptors.request.use(async (config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   
-  // LOG: Request details
-  console.log(`🚀 [API Request] ${config.method?.toUpperCase()} ${config.url}`, config.params || "", config.data || "");
+  // LOG: Full URL + payload
+  const fullUrl = `${config.baseURL}${config.url}`;
+  console.log(`🚀 [API Request] ${config.method?.toUpperCase()} ${fullUrl}`, config.data || "");
   
   return config;
 }, (error) => {
@@ -35,11 +36,20 @@ api.interceptors.response.use(
     const originalRequest = error.config;
     const status = error.response?.status;
 
-    // LOG: Warn instead of Error to avoid red screen for handled cases
+    // Auto-retry ONCE on network errors (Render cold-start)
+    const isNetworkError = !status && (error.code === "ECONNABORTED" || error.message === "Network Error");
+    if (isNetworkError && !originalRequest._retried) {
+      originalRequest._retried = true;
+      console.warn(`🔄 [API Retry] Server waking up. Retrying in 3s: ${originalRequest.url}`);
+      await new Promise((r) => setTimeout(r, 3000));
+      return api(originalRequest);
+    }
+
+    // LOG: Warn for non-401 errors
     if (status !== 401) {
       console.warn(
-        `⚠️ [API Error] ${status || "Network/Timeout"} ${error.config?.url}`, 
-        error.response?.data || error.message
+        `⚠️ [API Error] ${status || "Network/Timeout"} ${originalRequest?.url}`,
+        { message: error.message, code: error.code, data: error.response?.data }
       );
     }
     if (error.response?.status === 401 && !originalRequest._retry) {
