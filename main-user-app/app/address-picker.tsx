@@ -45,7 +45,7 @@ export default function AddressPickerScreen() {
   const [label, setLabel] = useState('Home'); // Home, Work, Other
   
   const router = useRouter();
-  const { setCurrentAddress, addAddress, savedAddresses, setDefaultAddress } = useLocationStore();
+  const { setCurrentAddress, addAddress, savedAddresses, setDefaultAddress, removeAddress } = useLocationStore();
 
   const handleSearch = (text: string) => {
     setSearch(text);
@@ -74,18 +74,20 @@ export default function AddressPickerScreen() {
       return;
     }
 
+    const id = Math.random().toString(36).substr(2, 9);
     const newAddr = {
+      id,
       flat,
       area,
       label,
       type: label,
-      coordinates: tempAddress.coordinates,
-      city: tempAddress.city || '',
+      coordinates: tempAddress?.coordinates || { latitude: 28.6139, longitude: 77.2090 },
+      city: tempAddress?.city || '',
     };
 
     addAddress(newAddr);
     // Also set as current
-    setCurrentAddress({ ...newAddr, id: Math.random().toString() });
+    setCurrentAddress(newAddr);
     
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setShowForm(false);
@@ -95,13 +97,36 @@ export default function AddressPickerScreen() {
   const useCurrentLocation = async () => {
     try {
       setLoading(true);
+      
+      // Check if location services are enabled
+      const enabled = await Location.hasServicesEnabledAsync();
+      if (!enabled) {
+        alert('Location services are disabled. Please enable them in settings.');
+        return;
+      }
+
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         alert('Permission to access location was denied');
         return;
       }
 
-      let location = await Location.getCurrentPositionAsync({});
+      // Try to get current position with timeout and fallback
+      let location;
+      try {
+        location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+      } catch (err) {
+        // Fallback to last known position if current fails
+        location = await Location.getLastKnownPositionAsync();
+      }
+
+      if (!location) {
+        alert('Could not fetch your location. Please try searching for your area.');
+        return;
+      }
+
       let reverseGeocode = await Location.reverseGeocodeAsync({
         latitude: location.coords.latitude,
         longitude: location.coords.longitude
@@ -111,7 +136,14 @@ export default function AddressPickerScreen() {
         const addr = reverseGeocode[0];
         handleSelect({
           name: addr.name || 'Current Location',
-          address: `${addr.street || ''}, ${addr.city || ''}, ${addr.region || ''}`,
+          address: `${addr.name || ''} ${addr.street || ''}, ${addr.city || ''}, ${addr.region || ''}`,
+          coordinates: { latitude: location.coords.latitude, longitude: location.coords.longitude }
+        });
+      } else {
+        // Just use coordinates if reverse geocode fails
+        handleSelect({
+          name: 'Current Location',
+          address: 'Selected via GPS',
           coordinates: { latitude: location.coords.latitude, longitude: location.coords.longitude }
         });
       }
@@ -166,28 +198,37 @@ export default function AddressPickerScreen() {
               <View style={styles.savedSection}>
                 <Text style={styles.sectionLabel}>SAVED ADDRESSES</Text>
                 {savedAddresses.map((addr, index) => (
-                  <TouchableOpacity 
-                    key={addr.id} 
-                    style={styles.savedItem}
-                    onPress={() => {
-                      setCurrentAddress(addr);
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      router.back();
-                    }}
-                  >
-                    <View style={styles.savedIcon}>
-                      <Ionicons 
-                        name={addr.label === 'Home' ? 'home' : addr.label === 'Work' ? 'briefcase' : 'location'} 
-                        size={20} 
-                        color="#666" 
-                      />
-                    </View>
-                    <View style={{marginLeft: 15, flex: 1}}>
-                      <Text style={styles.savedLabel}>{addr.label}</Text>
-                      <Text style={styles.savedAddr} numberOfLines={1}>{addr.flat}, {addr.area}</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={16} color="#CCC" />
-                  </TouchableOpacity>
+                  <View key={addr.id} style={styles.savedItemContainer}>
+                    <TouchableOpacity 
+                      style={styles.savedItem}
+                      onPress={() => {
+                        setCurrentAddress(addr);
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        router.back();
+                      }}
+                    >
+                      <View style={styles.savedIcon}>
+                        <Ionicons 
+                          name={addr.label === 'Home' ? 'home' : addr.label === 'Work' ? 'briefcase' : 'location'} 
+                          size={20} 
+                          color="#666" 
+                        />
+                      </View>
+                      <View style={{marginLeft: 15, flex: 1}}>
+                        <Text style={styles.savedLabel}>{addr.label}</Text>
+                        <Text style={styles.savedAddr} numberOfLines={1}>{addr.flat}, {addr.area}</Text>
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.deleteBtn}
+                      onPress={() => {
+                        removeAddress(addr.id);
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                      }}
+                    >
+                      <Ionicons name="trash-outline" size={18} color="#FF4444" />
+                    </TouchableOpacity>
+                  </View>
                 ))}
               </View>
             )}
@@ -330,10 +371,12 @@ const styles = StyleSheet.create({
   currentLocSub: { fontSize: 12, color: '#999', marginTop: 2, fontWeight: '500' },
   savedSection: { paddingHorizontal: 20, marginTop: 10 },
   sectionLabel: { fontSize: 12, fontWeight: '900', color: '#999', letterSpacing: 1, marginBottom: 15 },
-  savedItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 25 },
+  savedItemContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 25 },
+  savedItem: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   savedIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F9FAFB', alignItems: 'center', justifyContent: 'center' },
   savedLabel: { fontSize: 16, fontWeight: '900', color: Colors.light.text },
   savedAddr: { fontSize: 13, color: '#999', marginTop: 2, fontWeight: '500' },
+  deleteBtn: { padding: 10 },
   list: { paddingHorizontal: 20 },
   resultItem: { flexDirection: 'row', paddingVertical: 18, borderBottomWidth: 1, borderBottomColor: '#F9FAFB', alignItems: 'center' },
   resultIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F9FAFB', alignItems: 'center', justifyContent: 'center' },

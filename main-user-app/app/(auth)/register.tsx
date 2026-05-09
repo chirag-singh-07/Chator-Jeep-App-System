@@ -26,6 +26,7 @@ import Animated, {
 
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useLocationStore } from '@/store/useLocationStore';
 
 const { width, height } = Dimensions.get('window');
 
@@ -56,7 +57,7 @@ export default function RegisterScreen() {
       setStep(2);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } else if (step === 2) {
-      if (!formData.homeAddress || !formData.locationName) {
+      if (!formData.homeAddress && !formData.locationName) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         Alert.alert("Location Required", "Please provide your delivery address.");
         return;
@@ -91,15 +92,35 @@ export default function RegisterScreen() {
       setLoading(true);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       
+      // Check if location services are enabled
+      const enabled = await Location.hasServicesEnabledAsync();
+      if (!enabled) {
+        Alert.alert('Location Services Disabled', 'Please enable location services in your settings.');
+        return;
+      }
+
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('Permission Denied', 'Allow location access to fetch your current address.');
         return;
       }
 
-      let location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
+      // Try to get current position with timeout and fallback
+      let location;
+      try {
+        location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+          // @ts-ignore - Some versions support timeout
+          timeout: 10000, 
+        });
+      } catch (err) {
+        // Fallback to last known position if current fails
+        location = await Location.getLastKnownPositionAsync();
+      }
+
+      if (!location) {
+        throw new Error("Could not determine location");
+      }
 
       const { latitude, longitude } = location.coords;
       
@@ -146,6 +167,24 @@ export default function RegisterScreen() {
       });
       
       const { user, accessToken, refreshToken } = response.data;
+
+      // Save address to location store
+      if (formData.coordinates) {
+        const addrData = {
+          flat: formData.homeAddress,
+          area: formData.locationName,
+          coordinates: formData.coordinates,
+          type: 'Home',
+          label: 'Home'
+        };
+        useLocationStore.getState().addAddress(addrData);
+        // Set as current address for the app
+        useLocationStore.getState().setCurrentAddress({
+          ...addrData,
+          id: Math.random().toString(36).substring(7)
+        });
+      }
+
       await useAuthStore.getState().setAuth(user, { accessToken, refreshToken });
       
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -294,11 +333,12 @@ export default function RegisterScreen() {
                     <View style={[styles.inputContainer, styles.textArea, !formData.locationName && { borderColor: '#FFEBEB' }]}>
                       <TextInput
                         style={[styles.input, { textAlignVertical: 'top', paddingTop: 12 }]}
-                        placeholder="Click the button above to fetch..."
+                        placeholder="Fetching your location..."
                         multiline
                         numberOfLines={3}
                         value={formData.locationName}
-                        editable={false}
+                        onChangeText={(v) => setFormData({...formData, locationName: v})}
+                        editable={true}
                       />
                     </View>
                   </View>

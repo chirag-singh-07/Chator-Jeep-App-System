@@ -34,7 +34,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { useMenuStore } from "@/store/useMenuStore";
 import { useLocationStore } from "@/store/useLocationStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import * as Haptics from "expo-haptics";
+import { getAvatarUrl } from "@/lib/utils";
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
 const { width, height } = Dimensions.get("window");
@@ -67,28 +69,14 @@ const Skeleton = ({
   );
 };
 
-const BANNERS = [
-  {
-    id: "1",
-    title: "Flat 50% OFF",
-    sub: "On your first order",
-    color: "#FDBE15", // Matched with primary yellow
-    icon: "gift",
-  },
-  {
-    id: "2",
-    title: "Free Delivery",
-    sub: "For orders above ₹199",
-    color: "#2D75F0",
-    icon: "bicycle",
-  },
-];
+// Dynamic banners will be fetched from useMenuStore
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { restaurants, categories, popularItems, isLoading, fetchHomeData } = useMenuStore();
+  const { restaurants, categories, popularItems, banners, isLoading, fetchHomeData } = useMenuStore();
   const { currentAddress, savedAddresses, setCurrentAddress } =
     useLocationStore();
+  const { user } = useAuthStore();
   const [refreshing, setRefreshing] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [activeFilter, setActiveFilter] = useState("Nearby");
@@ -108,6 +96,15 @@ export default function HomeScreen() {
     await loadData();
     setRefreshing(false);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const handleBannerPress = (banner: any) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (banner.linkType === 'RESTAURANT' && banner.linkId) {
+      router.push(`/restaurant/${banner.linkId}`);
+    } else if (banner.linkType === 'CATEGORY' && banner.linkId) {
+      router.push({ pathname: '/(tabs)/search', params: { categoryId: banner.linkId } });
+    }
   };
 
   const handleAddressSelect = (addr: any) => {
@@ -207,7 +204,7 @@ export default function HomeScreen() {
           onPress={() => router.push("/(tabs)/profile")}
         >
           <Image
-            source={{ uri: "https://i.pravatar.cc/100?u=me" }}
+            source={{ uri: getAvatarUrl(user?.email || 'user') }}
             style={styles.profileImg}
           />
         </TouchableOpacity>
@@ -224,6 +221,36 @@ export default function HomeScreen() {
           />
         }
       >
+        {/* Banner Carousel */}
+        {banners.length > 0 && (
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            contentContainerStyle={styles.bannerList}
+            snapToInterval={width - 65}
+            decelerationRate="fast"
+          >
+            {banners.map((banner, index) => (
+              <Animated.View key={banner._id} entering={FadeInRight.delay(index * 100)}>
+                <TouchableOpacity 
+                  activeOpacity={0.9} 
+                  style={styles.bannerCard}
+                  onPress={() => handleBannerPress(banner)}
+                >
+                  <Image source={{ uri: banner.imageUrl }} style={styles.bannerImage} />
+                  <View style={styles.bannerOverlay}>
+                    <Text style={styles.bannerTitle}>{banner.title}</Text>
+                    {banner.subtitle && <Text style={styles.bannerSub}>{banner.subtitle}</Text>}
+                    <View style={styles.bannerBtn}>
+                      <Text style={styles.bannerBtnText}>ORDER NOW</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              </Animated.View>
+            ))}
+          </ScrollView>
+        )}
+
         {/* Search Bar */}
         <TouchableOpacity
           activeOpacity={0.9}
@@ -573,49 +600,54 @@ const styles = StyleSheet.create({
   bannerList: {
     paddingLeft: 20,
     paddingRight: 10,
-    marginBottom: 30,
+    marginBottom: 20,
+    marginTop: 5,
   },
   bannerCard: {
     width: width - 80,
     height: 160,
     borderRadius: 25,
     marginRight: 15,
-    padding: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    overflow: "hidden",
+    backgroundColor: '#F3F4F6',
+    overflow: 'hidden',
   },
-  bannerText: {
-    flex: 1,
-    zIndex: 2,
+  bannerImage: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+  },
+  bannerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.25)',
+    padding: 20,
+    justifyContent: 'center',
   },
   bannerTitle: {
     color: "#FFF",
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "900",
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   bannerSub: {
-    color: "rgba(255,255,255,0.8)",
+    color: "rgba(255,255,255,0.9)",
     fontSize: 14,
     fontWeight: "600",
     marginTop: 4,
   },
   bannerBtn: {
-    backgroundColor: "#FFF",
+    backgroundColor: Colors.light.primary,
     paddingHorizontal: 15,
     paddingVertical: 8,
-    borderRadius: 12,
+    borderRadius: 10,
     marginTop: 15,
     alignSelf: "flex-start",
   },
   bannerBtnText: {
     fontSize: 11,
     fontWeight: "900",
-  },
-  bannerIcon: {
-    position: "absolute",
-    right: -10,
-    bottom: -10,
+    color: '#1A1A1A',
   },
   sectionHeader: {
     flexDirection: "row",

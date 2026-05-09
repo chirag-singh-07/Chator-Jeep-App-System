@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
   Switch,
+  TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
@@ -41,10 +42,14 @@ export default function CheckoutScreen() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('COD');
   const [useWalletPartial, setUseWalletPartial] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [discount, setDiscount] = useState(0);
+  const [isApplyingPromo, setIsApplyingPromo] = useState(false);
 
   const DELIVERY_FEE = 30;
   const TAXES = Math.round(totalAmount * 0.05);
-  const grandTotal = totalAmount + DELIVERY_FEE + TAXES;
+  const subTotal = totalAmount + DELIVERY_FEE + TAXES;
+  const grandTotal = Math.max(0, subTotal - discount);
 
   const walletDeductable = Math.min(balance, grandTotal);
   const remainingAfterWallet = grandTotal - walletDeductable;
@@ -90,6 +95,45 @@ export default function CheckoutScreen() {
       console.log('Razorpay Error:', error);
       throw new Error(error.description || 'Payment failed or cancelled');
     }
+  };
+
+  const handleApplyPromo = () => {
+    if (!promoCode) return;
+    
+    setIsApplyingPromo(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    // Mock promo code logic
+    setTimeout(() => {
+      const code = promoCode.toUpperCase();
+      let appliedDiscount = 0;
+      let message = '';
+
+      if (code === 'CHATORI100') {
+        appliedDiscount = 100;
+        message = 'Rs. 100 discount applied!';
+      } else if (code === 'SAVE50') {
+        appliedDiscount = 50;
+        message = 'Rs. 50 discount applied!';
+      } else if (code === 'WELCOME') {
+        appliedDiscount = Math.round(totalAmount * 0.2); // 20% off
+        message = '20% welcome discount applied!';
+      } else {
+        message = 'Invalid promo code';
+        appliedDiscount = 0;
+      }
+
+      if (appliedDiscount > 0) {
+        setDiscount(appliedDiscount);
+        Alert.alert('Success', message);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } else {
+        setDiscount(0);
+        Alert.alert('Error', message);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      }
+      setIsApplyingPromo(false);
+    }, 1000);
   };
 
   const handlePlaceOrder = async () => {
@@ -297,6 +341,31 @@ export default function CheckoutScreen() {
               </View>
             )}
 
+            {/* Promo Code Section */}
+            <View style={styles.promoSection}>
+              <Text style={styles.promoLabel}>Have a promo code?</Text>
+              <View style={styles.promoInputRow}>
+                <TextInput
+                  style={styles.promoInput}
+                  placeholder="Enter code (e.g. CHATORI100)"
+                  value={promoCode}
+                  onChangeText={setPromoCode}
+                  autoCapitalize="characters"
+                />
+                <TouchableOpacity 
+                  style={[styles.applyBtn, !promoCode && styles.applyBtnDisabled]} 
+                  onPress={handleApplyPromo}
+                  disabled={!promoCode || isApplyingPromo}
+                >
+                  {isApplyingPromo ? (
+                    <ActivityIndicator size="small" color="#FFF" />
+                  ) : (
+                    <Text style={styles.applyBtnText}>APPLY</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+
             <View style={styles.summaryCard}>
               <Text style={styles.summaryTitle}>Order Summary</Text>
               {items.map((item: any, index: number) => (
@@ -316,6 +385,12 @@ export default function CheckoutScreen() {
                 <Text style={styles.summaryLabel}>Taxes (5%)</Text>
                 <Text style={styles.summaryValue}>Rs.{TAXES}</Text>
               </View>
+              {discount > 0 && (
+                <View style={styles.summaryRow}>
+                  <Text style={[styles.summaryLabel, { color: '#22C55E' }]}>Promo Discount</Text>
+                  <Text style={[styles.summaryValue, { color: '#22C55E' }]}>-Rs.{discount}</Text>
+                </View>
+              )}
               {(useWalletPartial || paymentMethod === 'WALLET') && walletDeductable > 0 && (
                 <View style={styles.summaryRow}>
                   <Text style={[styles.summaryLabel, { color: '#22C55E' }]}>Wallet Discount</Text>
@@ -422,4 +497,11 @@ const styles = StyleSheet.create({
   placeOrderText: { color: '#FFF', fontSize: 16, fontWeight: '900' },
   secureBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0FDF4', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, gap: 3 },
   secureText: { fontSize: 8, fontWeight: '900', color: '#166534' },
+  promoSection: { backgroundColor: '#FFF', borderRadius: 24, padding: 20, marginBottom: 20 },
+  promoLabel: { fontSize: 14, fontWeight: '800', color: '#111', marginBottom: 12 },
+  promoInputRow: { flexDirection: 'row', gap: 10 },
+  promoInput: { flex: 1, backgroundColor: '#F9FAFB', borderRadius: 12, paddingHorizontal: 15, height: 50, borderWidth: 1, borderColor: '#F3F4F6', fontSize: 14, fontWeight: '600', color: '#111' },
+  applyBtn: { backgroundColor: Colors.light.primary, borderRadius: 12, paddingHorizontal: 20, height: 50, alignItems: 'center', justifyContent: 'center' },
+  applyBtnDisabled: { opacity: 0.5 },
+  applyBtnText: { color: '#1A1A1A', fontSize: 13, fontWeight: '900' },
 });

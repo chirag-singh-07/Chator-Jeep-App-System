@@ -33,9 +33,13 @@ export const useLocationStore = create<LocationState>()(
       currentAddress: null,
       savedAddresses: [],
       setCurrentAddress: (address) => set({ currentAddress: address }),
-      addAddress: (address) => set((state) => ({
-        savedAddresses: [...state.savedAddresses, { ...address, id: Math.random().toString(36).substr(2, 9) }]
-      })),
+      addAddress: (address) => {
+        const id = (address as any).id || Math.random().toString(36).substr(2, 9);
+        set((state) => ({
+          savedAddresses: [...state.savedAddresses, { ...address, id }]
+        }));
+        return id;
+      },
       removeAddress: (id) => set((state) => ({
         savedAddresses: state.savedAddresses.filter((a) => a.id !== id)
       })),

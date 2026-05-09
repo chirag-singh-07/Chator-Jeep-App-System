@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useAuthStore } from '@/store/useAuthStore';
 import * as Haptics from 'expo-haptics';
+import { getAvatarUrl } from '@/lib/utils';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -50,7 +51,7 @@ export default function ProfileScreen() {
         <View style={styles.header}>
            <Animated.View entering={FadeInUp} style={styles.avatarContainer}>
               <Image 
-                source={{ uri: `https://i.pravatar.cc/150?u=${user?.email}` }} 
+                source={{ uri: getAvatarUrl(user?.email || 'user') }} 
                 style={styles.avatar} 
               />
               <TouchableOpacity style={styles.editBadge}>
@@ -90,6 +91,7 @@ export default function ProfileScreen() {
               icon="location-outline" 
               title="Saved Addresses" 
               subtitle="Home, Office, Other" 
+              onPress={() => router.push('/address-picker')}
            />
            <ProfileItem 
               icon="card-outline" 

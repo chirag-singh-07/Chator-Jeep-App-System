@@ -25,9 +25,19 @@ export interface Category {
   image?: string;
 }
 
+export interface Banner {
+  _id: string;
+  title: string;
+  subtitle?: string;
+  imageUrl: string;
+  linkType: string;
+  linkId?: string;
+}
+
 interface MenuState {
   restaurants: Restaurant[];
   categories: Category[];
+  banners: Banner[];
   selectedRestaurant: Restaurant | null;
   popularItems: any[];
   isLoading: boolean;
@@ -37,9 +47,10 @@ interface MenuState {
   fetchRestaurantDetail: (id: string) => Promise<void>;
 }
 
-export const useMenuStore = create<MenuState>((set) => ({
+export const useMenuStore = create<MenuState>((set, get) => ({
   restaurants: [],
   categories: [],
+  banners: [],
   selectedRestaurant: null,
   menu: [],
   popularItems: [],
@@ -61,6 +72,16 @@ export const useMenuStore = create<MenuState>((set) => ({
         popularItems: resPopular.data.data || [],
         isLoading: false,
       });
+
+      // Fetch banners separately to avoid failing the whole request if banners endpoint doesn't exist yet
+      try {
+        const resBanners = await api.get("/banners");
+        set({ banners: resBanners.data.data || [] });
+      } catch (err) {
+        console.log("Banners endpoint not available yet or failed:", err);
+        set({ banners: [] });
+      }
+
     } catch (err: any) {
       set({ error: err.message, isLoading: false });
     }

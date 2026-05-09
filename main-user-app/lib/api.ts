@@ -31,13 +31,16 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
-    // LOG: Error details
-    console.error(
-      `❌ [API Error] ${error.response?.status || "Network/Timeout"} ${error.config?.url}`, 
-      error.response?.data || error.message
-    );
-
     const originalRequest = error.config;
+    const status = error.response?.status;
+
+    // LOG: Warn instead of Error to avoid red screen for handled cases
+    if (status !== 401) {
+      console.warn(
+        `⚠️ [API Error] ${status || "Network/Timeout"} ${error.config?.url}`, 
+        error.response?.data || error.message
+      );
+    }
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {

@@ -13,6 +13,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInDown, FadeInRight } from 'react-native-reanimated';
+import { getAvatarUrl } from '@/lib/utils';
 
 const { width, height } = Dimensions.get('window');
 
@@ -66,7 +67,7 @@ export default function OrderTrackingScreen() {
            
            <View style={styles.deliveryInfo}>
               <Image 
-                source={{ uri: 'https://i.pravatar.cc/150?u=delivery' }} 
+                source={{ uri: getAvatarUrl('delivery-partner-rahul') }} 
                 style={styles.driverAvatar} 
               />
               <View style={{flex: 1, marginLeft: 15}}>
