@@ -43,7 +43,11 @@ export const sendOtp = async (email: string, type: "register" | "forgot_password
   
   await sendEmail(normalizedEmail, subject, text, html);
   
-  return { success: true, message: "OTP sent successfully" };
+  return { 
+    success: true, 
+    message: "OTP sent successfully",
+    ...(process.env.NODE_ENV !== 'production' && { otp: otpCode }) // Return OTP in dev for easy testing
+  };
 };
 
 export const verifyOtp = async (email: string, otp: string, type: "register" | "forgot_password" | "login") => {

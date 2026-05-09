@@ -35,6 +35,11 @@ export const sendEmail = async (
       return true;
     }
 
-    throw error;
+    if (process.env.NODE_ENV === 'production') {
+      throw error;
+    }
+    
+    logger.warn(`[EMAIL ERROR BYPASS] Email failed but continuing in ${process.env.NODE_ENV} mode.`);
+    return true;
   }
 };

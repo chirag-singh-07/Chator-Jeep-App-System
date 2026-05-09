@@ -38,7 +38,10 @@ export default function ForgotPasswordScreen() {
     }
     try {
       setLoading(true);
-      await api.post('/auth/request-otp', { email, type: 'forgot_password' });
+      const response = await api.post('/auth/request-otp', { email, type: 'forgot_password' });
+      if (response.data.otp) {
+        setOtp(response.data.otp);
+      }
       setStep(2);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error: any) {

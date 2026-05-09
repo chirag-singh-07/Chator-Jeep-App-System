@@ -71,6 +71,10 @@ export default function RegisterScreen() {
         });
         
         if (response.data.success) {
+          if (response.data.otp) {
+            setOtp(response.data.otp);
+            console.log("DEV: OTP pre-filled from response:", response.data.otp);
+          }
           setStep(3);
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         }
