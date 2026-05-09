@@ -1,0 +1,33 @@
+Project : Food System
+
+
+1. Fix the Phone Number Validation in All Apps
+2. Add the Rozapay in Payment Gateway
+3. Fix the Order tracking system in Delivery App
+4. Add the Review and Rating system for User App
+5. Fix the Role Error on Delivery App when logged in as user and coming on restaurant/delivery login Screen
+6. Add the Push Notification in All Apps
+7. Add the Chat/Messaging System in All Apps
+
+Testing : - 
+
+1. Test the Order System that All the apps are getting the order in flow 
+
+Flow of order : - 
+User -> Restaurant App -> Delivery App -> User App (Order Completed with OTP Verification )
+
+2. Test the Location Open on phone google Maps from the delivery app
+3. Test the Payment System that All the apps are getting the payment in flow 
+
+
+Flow of payment : - 
+User -> Payment Gateway -> Restaurant App -> Delivery App -> User App (Payment Completed )
+
+
+
+Project : Video Player ( PlayVia )
+
+1. Fix the Email Domain issus in backend [EMAIL_ADDRESS] not verifying
+2. Fix the Video Processing Time issue for Video longer than 5 minutes
+3. Add the Review System in video details page
+4. Fix the Backend Error when upload video from mobile app
