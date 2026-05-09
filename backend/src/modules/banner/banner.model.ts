@@ -1,4 +1,4 @@
-import { Schema, model, Document } from 'mongoose';
+import mongoose, { Schema, model, Document } from 'mongoose';
 
 export interface IBanner extends Document {
   title: string;
@@ -20,4 +20,4 @@ const bannerSchema = new Schema<IBanner>({
   priority: { type: Number, default: 0 },
 }, { timestamps: true });
 
-export const BannerModel = model<IBanner>('Banner', bannerSchema);
+export const BannerModel = mongoose.models.Banner || model<IBanner>('Banner', bannerSchema);

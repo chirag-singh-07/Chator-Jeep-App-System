@@ -22,4 +22,4 @@ const ReviewSchema: Schema = new Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.model<IReview>("Review", ReviewSchema);
+export default mongoose.models.Review || mongoose.model<IReview>("Review", ReviewSchema);
