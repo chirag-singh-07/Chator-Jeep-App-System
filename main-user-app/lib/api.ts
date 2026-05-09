@@ -14,12 +14,29 @@ api.interceptors.request.use(async (config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  
+  // LOG: Request details
+  console.log(`🚀 [API Request] ${config.method?.toUpperCase()} ${config.url}`, config.params || "", config.data || "");
+  
   return config;
+}, (error) => {
+  console.error("❌ [API Request Config Error]", error);
+  return Promise.reject(error);
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // LOG: Success details
+    console.log(`✅ [API Response] ${response.status} ${response.config.url}`, response.data);
+    return response;
+  },
   async (error) => {
+    // LOG: Error details
+    console.error(
+      `❌ [API Error] ${error.response?.status || "Network/Timeout"} ${error.config?.url}`, 
+      error.response?.data || error.message
+    );
+
     const originalRequest = error.config;
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
