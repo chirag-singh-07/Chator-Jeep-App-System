@@ -179,6 +179,9 @@ export function BannerAdsPage() {
     }
   ];
 
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
   return (
     <div className="flex flex-col gap-6 p-1">
       <div className="flex items-center justify-between">
@@ -216,6 +219,9 @@ export function BannerAdsPage() {
           description="High-priority banners are shown first in the user app carousel."
           columns={columns}
           rows={filteredBanners}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
           emptyTitle="No Campaigns Found"
           emptyDescription="Start your first advertising campaign by creating a home screen banner."
           className="border-0 shadow-none bg-transparent"
