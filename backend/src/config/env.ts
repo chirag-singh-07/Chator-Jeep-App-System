@@ -22,6 +22,7 @@ const envSchema = z.object({
   AWS_REGION: z.string().default("auto"),
   AWS_ENDPOINT_URL_S3: z.string().url(),
   AWS_BUCKET_NAME: z.string().default("chatori-jeep-media"),
+  AWS_PUBLIC_DOMAIN: z.string().optional(),
   BACKEND_URL: z.string().url().optional(),
   PHONEPE_BASE_URL: z.string().url().optional(),
   PHONEPE_CLIENT_ID: z.string().optional(),

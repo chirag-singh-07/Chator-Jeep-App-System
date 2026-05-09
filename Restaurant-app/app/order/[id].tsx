@@ -74,6 +74,14 @@ export default function OrderDetailsScreen() {
           <Text style={[styles.statusValue, { color: Colors.light.primary }]}>
             {order.status.toUpperCase().replace('_', ' ')}
           </Text>
+          {order._id.startsWith('mock_') && (
+            <View style={styles.testOrderBadge}>
+              <Ionicons name="information-circle" size={16} color="#E65100" />
+              <Text style={styles.testOrderText}>
+                This is a test order system to check that it is working or not.
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Customer Information */}
@@ -377,5 +385,23 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  testOrderBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF3E0',
+    padding: 12,
+    borderRadius: 12,
+    marginTop: 15,
+    borderWidth: 1,
+    borderColor: '#FFE0B2',
+    gap: 8,
+  },
+  testOrderText: {
+    fontSize: 12,
+    color: '#E65100',
+    fontWeight: 'bold',
+    flex: 1,
+    lineHeight: 18,
   }
 });

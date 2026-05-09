@@ -190,7 +190,8 @@ export async function listAllFiles(): Promise<Array<{ key: string; url: string; 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function buildPublicUrl(key: string): string {
-  // Tigris public files: https://<bucket>.t3.tigrisfiles.io/<key>
+  // Priority: Custom public domain > Tigris standard domain
   const bucket = S3_BUCKET_NAME;
-  return `https://${bucket}.t3.tigrisfiles.io/${key}`;
+  const domain = env.AWS_PUBLIC_DOMAIN || `${bucket}.t3.tigrisfiles.io`;
+  return `https://${domain}/${key}`;
 }

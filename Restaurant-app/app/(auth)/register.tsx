@@ -226,10 +226,35 @@ export default function RegisterScreen() {
         );
       } catch (error: any) {
         setUploadStatus({ message: "", isUploading: false });
-        Alert.alert(
-          "REGISTRATION ERROR",
-          error?.message || "We could not submit your details right now.",
-        );
+
+        const rawMsg: string = error?.message || "";
+        const lowerMsg = rawMsg.toLowerCase();
+
+        // Map backend messages → user-friendly title + description
+        let title = "REGISTRATION ERROR";
+        let description = "We could not submit your details. Please try again.";
+
+        if (lowerMsg.includes("email already registered") || lowerMsg.includes("already registered")) {
+          title = "EMAIL ALREADY IN USE";
+          description = "This email is already registered with us.\n\nPlease use a different email, or go back to the login screen if this is your account.";
+        } else if (lowerMsg.includes("network") || lowerMsg.includes("timeout") || lowerMsg.includes("econnrefused")) {
+          title = "CONNECTION FAILED";
+          description = "We couldn't reach our servers. Please check your internet connection and try again.";
+        } else if (lowerMsg.includes("phone")) {
+          title = "PHONE NUMBER ERROR";
+          description = "The phone number you entered is invalid or already in use. Please check and try again.";
+        } else if (lowerMsg.includes("password")) {
+          title = "PASSWORD ERROR";
+          description = rawMsg;
+        } else if (lowerMsg.includes("upload") || lowerMsg.includes("image") || lowerMsg.includes("file")) {
+          title = "UPLOAD FAILED";
+          description = "Your account was created but we couldn't upload your documents. Please try uploading them again from your profile.";
+        } else if (rawMsg.length > 0) {
+          // Use the backend's message directly if it's meaningful
+          description = rawMsg;
+        }
+
+        Alert.alert(title, description, [{ text: "OK", style: "default" }]);
       }
     }
   };

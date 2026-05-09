@@ -22,6 +22,7 @@ export function MediaPage() {
       const images = res.data.filter((file: any) => 
         /\.(webp|jpg|jpeg|png|gif)$/i.test(file.key)
       );
+      console.log("🚀 [Admin Media] Fetched assets:", images);
       setMedia(images);
     } catch (error) {
       toast.error("Failed to fetch cloud assets");
@@ -105,7 +106,13 @@ export function MediaPage() {
              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {media.map((item, i) => (
                   <div key={i} className="group relative aspect-square rounded-2xl bg-muted overflow-hidden border border-muted-foreground/10 hover:border-primary/40 transition-all shadow-sm hover:shadow-xl">
-                    <img src={item.url} alt={item.key} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    <img 
+                      src={item.url} 
+                      alt={item.key} 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                      onLoad={() => console.log("✅ Image loaded:", item.url)}
+                      onError={() => console.error("❌ Image failed:", item.url)}
+                    />
                     
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
                        <Button size="icon" variant="destructive" className="h-10 w-10 rounded-full" onClick={() => handleDelete(item.key)}>

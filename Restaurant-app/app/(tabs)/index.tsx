@@ -53,17 +53,24 @@ export default function KitchenDashboard() {
   const [categories, setCategories] = useState<DashboardCategory[]>([]);
   const [menuItems, setMenuItems] = useState<DashboardMenuItem[]>([]);
 
+  const [restaurantInfo, setRestaurantInfo] = useState<any>(null);
+
   const refreshDashboard = async () => {
     fetchOrders();
     try {
-      const [walletRes, categoriesRes, menuRes] = await Promise.all([
+      const [walletRes, categoriesRes, menuRes, restRes] = await Promise.all([
         apiClient.get("/wallet/stats"),
         apiClient.get("/categories"),
         apiClient.get("/restaurants/me/menu"),
+        apiClient.get("/restaurants/me/status"),
       ]);
       setWalletBalance(walletRes.data.data.balance);
       setCategories(categoriesRes.data.data || []);
       setMenuItems(menuRes.data.data || []);
+      setRestaurantInfo(restRes.data.data);
+      if (restRes.data.data) {
+        setIsOpen(restRes.data.data.isOpen);
+      }
     } catch (e) {}
   };
 
@@ -151,7 +158,7 @@ export default function KitchenDashboard() {
           <View>
             <Text style={styles.welcomeText}>Restaurant Home</Text>
             <Text style={styles.kitchenName}>
-              {user?.name || "Your Kitchen"}
+              {restaurantInfo?.name || user?.name || "Your Kitchen"}
             </Text>
           </View>
           <View style={styles.switchBox}>

@@ -56,7 +56,8 @@ export const useAuthStore = create<AuthState>()(
           });
         } catch (error: any) {
           set({ isLoading: false });
-          throw error.response?.data?.message || 'Login failed';
+          const msg = error.response?.data?.message || error.message || 'Login failed. Please check your credentials.';
+          throw new Error(msg);
         }
       },
 
@@ -82,7 +83,8 @@ export const useAuthStore = create<AuthState>()(
           });
         } catch (error: any) {
           set({ isLoading: false });
-          throw error.response?.data?.message || error.message || 'Registration failed due to network settings.';
+          const msg = error.response?.data?.message || error.message || 'Registration failed due to network settings.';
+          throw new Error(msg);
         }
       },
 

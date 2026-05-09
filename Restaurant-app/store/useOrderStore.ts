@@ -46,6 +46,10 @@ export const useOrderStore = create<OrderState>((set, get) => ({
 
   acceptOrder: async (orderId, _timeToPrep = 15) => {
     try {
+      if (orderId.startsWith('mock_')) {
+        set({ incomingOrder: null });
+        return;
+      }
       // Backend uses PATCH /orders/:orderId/status with UPPERCASE status
       await apiClient.patch(`/orders/${orderId}/status`, { status: 'ACCEPTED' });
       set({ incomingOrder: null });
@@ -59,6 +63,10 @@ export const useOrderStore = create<OrderState>((set, get) => ({
 
   rejectOrder: async (orderId, _reason = 'Kitchen full') => {
     try {
+      if (orderId.startsWith('mock_')) {
+        set({ incomingOrder: null });
+        return;
+      }
       // Backend uses CANCELLED for rejection
       await apiClient.patch(`/orders/${orderId}/status`, { status: 'CANCELLED' });
       set({ incomingOrder: null });

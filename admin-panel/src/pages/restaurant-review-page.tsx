@@ -178,6 +178,15 @@ export function RestaurantReviewPage() {
     );
   }
 
+  console.log("🧐 [Admin Review] Loading restaurant media:", {
+    id: restaurant._id,
+    logo: restaurant.logoUrls,
+    banner: restaurant.bannerUrls,
+    aadhar: restaurant.aadharCard,
+    pan: restaurant.panCard,
+    livePhoto: restaurant.livePhoto
+  });
+
   const StatusBadge = () => {
     const config: Record<string, { label: string; icon: any; color: string }> =
       {
