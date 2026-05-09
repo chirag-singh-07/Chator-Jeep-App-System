@@ -98,24 +98,9 @@ const restaurantSchema = new Schema<IRestaurant>(
     bannerUrls: { type: Schema.Types.Mixed },
 
     // ── Uploaded Documents ────────────────────────────────────────────────────
-    aadharCard: {
-      label: { type: String, default: "Aadhar Card" },
-      key: { type: String },
-      url: { type: String },
-      verifiedAt: { type: Date },
-    },
-    panCard: {
-      label: { type: String, default: "PAN Card" },
-      key: { type: String },
-      url: { type: String },
-      verifiedAt: { type: Date },
-    },
-    livePhoto: {
-      label: { type: String, default: "Live Photo" },
-      key: { type: String },
-      url: { type: String },
-      verifiedAt: { type: Date },
-    },
+    aadharCard: { type: Schema.Types.Mixed },
+    panCard: { type: Schema.Types.Mixed },
+    livePhoto: { type: Schema.Types.Mixed },
     documents: [
       {
         label: { type: String, required: true },

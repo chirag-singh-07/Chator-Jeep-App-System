@@ -7,11 +7,13 @@ import {
   TouchableOpacity, 
   Dimensions, 
   SafeAreaView,
-  StatusBar
+  StatusBar,
+  ImageBackground
 } from 'react-native';
 import { router } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 const { width, height } = Dimensions.get('window');
 
@@ -58,14 +60,13 @@ export default function OnboardingScreen() {
       const offset = nextSlideIndex * width;
       flatListRef?.current?.scrollToOffset({ offset });
       setCurrentSlideIndex(nextSlideIndex);
-    } else {
-      router.replace('/(auth)/login');
     }
   };
 
   const Footer = () => {
     return (
       <View style={styles.footer}>
+        {/* Indicators */}
         <View style={styles.indicatorContainer}>
           {SLIDES.map((_, index) => (
             <View
@@ -81,28 +82,36 @@ export default function OnboardingScreen() {
           ))}
         </View>
 
-        <View style={{ marginBottom: 20 }}>
+        {/* Buttons */}
+        <View style={styles.buttonContainer}>
           {currentSlideIndex === SLIDES.length - 1 ? (
-            <TouchableOpacity 
-              style={styles.btn}
-              onPress={() => router.replace('/(auth)/login')}
-            >
-              <Text style={styles.btnText}>PARTNER WITH US</Text>
-            </TouchableOpacity>
+            <Animated.View entering={FadeInUp} style={styles.finalButtons}>
+              <TouchableOpacity 
+                style={styles.primaryBtn}
+                onPress={() => router.replace('/(auth)/register')}
+              >
+                <Text style={styles.primaryBtnText}>GET STARTED / REGISTER</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.secondaryBtn}
+                onPress={() => router.replace('/(auth)/login')}
+              >
+                <Text style={styles.secondaryBtnText}>ALREADY A PARTNER? LOGIN</Text>
+              </TouchableOpacity>
+            </Animated.View>
           ) : (
-            <View style={{ flexDirection: 'row' }}>
+            <View style={styles.rowButtons}>
               <TouchableOpacity
                 onPress={() => router.replace('/(auth)/login')}
-                style={[
-                  styles.btn,
-                  { backgroundColor: 'transparent', borderWidth: 1, borderColor: Colors.light.primary },
-                ]}
+                style={styles.skipBtn}
               >
-                <Text style={[styles.btnText, { color: Colors.light.primary }]}>SKIP</Text>
+                <Text style={styles.skipBtnText}>SKIP</Text>
               </TouchableOpacity>
-              <View style={{ width: 15 }} />
-              <TouchableOpacity style={styles.btn} onPress={goToNextSlide}>
-                <Text style={styles.btnText}>NEXT</Text>
+              
+              <TouchableOpacity style={styles.nextBtn} onPress={goToNextSlide}>
+                <Text style={styles.nextBtnText}>NEXT</Text>
+                <Ionicons name="arrow-forward" size={18} color={Colors.light.black} />
               </TouchableOpacity>
             </View>
           )}
@@ -113,24 +122,25 @@ export default function OnboardingScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" />
       <FlatList
         ref={flatListRef}
         onMomentumScrollEnd={updateCurrentSlideIndex}
         pagingEnabled
         data={SLIDES}
-        contentContainerStyle={{ height: height * 0.75 }}
         horizontal
         showsHorizontalScrollIndicator={false}
         renderItem={({ item }) => (
           <View style={styles.slide}>
-            <View style={styles.iconContainer}>
-               <Ionicons name={item.icon as any} size={100} color={Colors.light.primary} />
-            </View>
-            <View style={{ paddingHorizontal: 40, alignItems: 'center' }}>
+            <Animated.View entering={FadeInUp.duration(1000)}>
+              <View style={styles.iconContainer}>
+                <Ionicons name={item.icon as any} size={100} color={Colors.light.primary} />
+              </View>
+            </Animated.View>
+            <Animated.View entering={FadeInDown.delay(200)} style={styles.textContainer}>
               <Text style={styles.title}>{item.title}</Text>
               <Text style={styles.description}>{item.description}</Text>
-            </View>
+            </Animated.View>
           </View>
         )}
       />
@@ -142,66 +152,134 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: '#000', // Black background for premium feel
   },
   slide: {
     width,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: 50,
+    paddingBottom: 100,
   },
   iconContainer: {
-    height: 220,
-    width: 220,
+    height: 200,
+    width: 200,
     borderRadius: 60,
-    backgroundColor: '#FFF5F5',
+    backgroundColor: '#1A1A1A',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 50,
-    transform: [{ rotate: '45deg' }], // Stylized rotated square
+    marginBottom: 60,
+    transform: [{ rotate: '45deg' }],
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  textContainer: {
+    paddingHorizontal: 40,
+    alignItems: 'center',
   },
   title: {
-    color: Colors.light.text,
-    fontSize: 28,
-    fontWeight: 'bold',
+    color: '#FFF',
+    fontSize: 32,
+    fontWeight: '900',
     textAlign: 'center',
     marginBottom: 15,
+    letterSpacing: -1,
   },
   description: {
-    color: Colors.light.textMuted,
+    color: '#AAA',
     fontSize: 16,
     textAlign: 'center',
     lineHeight: 24,
+    fontWeight: '500',
   },
   footer: {
-    height: height * 0.25,
+    height: height * 0.3,
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 30,
+    paddingBottom: 40,
   },
   indicatorContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 20,
+    marginTop: 10,
   },
   indicator: {
     height: 6,
     width: 10,
-    backgroundColor: '#E0E0E0',
-    marginHorizontal: 3,
+    backgroundColor: '#333',
+    marginHorizontal: 4,
     borderRadius: 3,
   },
-  btn: {
-    flex: 1,
-    height: 55,
+  buttonContainer: {
+    width: '100%',
+  },
+  rowButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 15,
+  },
+  finalButtons: {
+    gap: 15,
+  },
+  primaryBtn: {
+    height: 65,
     borderRadius: 20,
     backgroundColor: Colors.light.primary,
     justifyContent: 'center',
     alignItems: 'center',
+    width: '100%',
+    shadowColor: Colors.light.primary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
   },
-  btnText: {
-    fontWeight: 'bold',
+  primaryBtnText: {
+    fontWeight: '900',
+    fontSize: 16,
+    color: '#000',
+    letterSpacing: 1,
+  },
+  secondaryBtn: {
+    height: 60,
+    borderRadius: 20,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    borderWidth: 1.5,
+    borderColor: '#333',
+  },
+  secondaryBtnText: {
+    fontWeight: '800',
     fontSize: 14,
-    color: Colors.light.white,
+    color: '#FFF',
     letterSpacing: 0.5,
+  },
+  nextBtn: {
+    flex: 1.5,
+    height: 60,
+    borderRadius: 20,
+    backgroundColor: Colors.light.primary,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+  },
+  nextBtnText: {
+    fontWeight: '900',
+    fontSize: 15,
+    color: '#000',
+  },
+  skipBtn: {
+    flex: 1,
+    height: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  skipBtnText: {
+    fontWeight: '700',
+    fontSize: 15,
+    color: '#666',
   },
 });

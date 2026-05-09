@@ -5,9 +5,7 @@ import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useWalletStore } from '@/store/useWalletStore';
 import * as Haptics from 'expo-haptics';
-import { useEffect } from 'react';
 import { getAvatarUrl } from '@/lib/utils';
 
 export default function ProfileScreen() {
@@ -32,12 +30,6 @@ export default function ProfileScreen() {
       ]
     );
   };
-
-  const { balance, fetchBalance } = useWalletStore();
-
-  useEffect(() => {
-    fetchBalance();
-  }, []);
 
   const ProfileItem = ({ icon, title, subtitle, onPress, color = Colors.light.text }: { icon: string, title: string, subtitle?: string, onPress?: () => void, color?: string }) => (
     <TouchableOpacity activeOpacity={0.7} style={styles.item} onPress={onPress}>
@@ -75,10 +67,10 @@ export default function ProfileScreen() {
                  <Text style={styles.statLab}>Orders</Text>
               </View>
               <View style={styles.statDivider} />
-              <TouchableOpacity style={styles.statBox} onPress={() => router.push('/wallet')}>
-                 <Text style={styles.statVal}>₹{balance}</Text>
-                 <Text style={styles.statLab}>Wallet</Text>
-              </TouchableOpacity>
+              <View style={styles.statBox}>
+                 <Text style={styles.statVal}>₹0</Text>
+                 <Text style={styles.statLab}>Spent</Text>
+              </View>
               <View style={styles.statDivider} />
               <View style={styles.statBox}>
                  <Text style={styles.statVal}>100</Text>
@@ -95,13 +87,6 @@ export default function ProfileScreen() {
               title="Personal Information" 
               subtitle="Name, Email, Phone number" 
               onPress={() => router.push('/edit-profile')}
-           />
-           <ProfileItem 
-              icon="wallet-outline" 
-              title="Chatori Wallet" 
-              subtitle="Check balance & history" 
-              onPress={() => router.push('/wallet')}
-              color="#2E7D32"
            />
            <ProfileItem 
               icon="location-outline" 

@@ -22,6 +22,7 @@ import { useRouter } from "expo-router";
 import Animated, {
   FadeInRight,
   FadeInDown,
+  FadeInUp,
   FadeIn,
   FadeOut,
   SlideInUp,
@@ -169,45 +170,54 @@ export default function HomeScreen() {
 
       {/* Header with Location */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.locationContainer}
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            setShowLocationModal(true);
-          }}
-        >
-          <View style={styles.locIndicator}>
-            <Ionicons name="location" size={18} color={Colors.light.primary} />
-          </View>
-          <View style={{ marginLeft: 12 }}>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
-            >
-              <Text style={styles.locationLabel}>
-                {currentAddress?.type || "Select Location"}
-              </Text>
-              <Ionicons
-                name="chevron-down"
-                size={14}
-                color={Colors.light.text}
-              />
+        <View style={styles.headerLeft}>
+          <TouchableOpacity
+            style={styles.locationContainer}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              setShowLocationModal(true);
+            }}
+          >
+            <View style={styles.locIndicator}>
+              <Ionicons name="location" size={18} color={Colors.light.primary} />
             </View>
-            <Text style={styles.addressSubText} numberOfLines={1}>
-              {currentAddress
-                ? `${currentAddress.flat}, ${currentAddress.area}`
-                : "Tap to set location..."}
-            </Text>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.profileCircle}
-          onPress={() => router.push("/(tabs)/profile")}
-        >
-          <Image
-            source={{ uri: getAvatarUrl(user?.email || 'user') }}
-            style={styles.profileImg}
-          />
-        </TouchableOpacity>
+            <View style={{ marginLeft: 12 }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+              >
+                <Text style={styles.locationLabel}>
+                  {currentAddress?.type || "Select Location"}
+                </Text>
+                <Ionicons
+                  name="chevron-down"
+                  size={14}
+                  color={Colors.light.text}
+                />
+              </View>
+              <Text style={styles.addressSubText} numberOfLines={1}>
+                {currentAddress
+                  ? `${currentAddress.flat}, ${currentAddress.area}`
+                  : "Tap to set location..."}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.headerRight}>
+          <TouchableOpacity style={styles.headerIconBtn} onPress={() => router.push('/notifications')}>
+            <Ionicons name="notifications-outline" size={24} color={Colors.light.text} />
+            <View style={styles.notifDot} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.profileCircle}
+            onPress={() => router.push("/(tabs)/profile")}
+          >
+            <Image
+              source={{ uri: getAvatarUrl(user?.email || 'user') }}
+              style={styles.profileImg}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
@@ -221,19 +231,24 @@ export default function HomeScreen() {
           />
         }
       >
+        {/* Welcome Section */}
+        <View style={styles.welcomeSection}>
+          <Text style={styles.welcomeText}>Hello, {user?.name?.split(' ')[0] || 'Chatori'}! 👋</Text>
+          <Text style={styles.welcomeSubText}>What would you like to eat today?</Text>
+        </View>
         {/* Banner Carousel */}
         {banners.length > 0 && (
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false} 
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.bannerList}
             snapToInterval={width - 65}
             decelerationRate="fast"
           >
             {banners.map((banner, index) => (
               <Animated.View key={banner._id} entering={FadeInRight.delay(index * 100)}>
-                <TouchableOpacity 
-                  activeOpacity={0.9} 
+                <TouchableOpacity
+                  activeOpacity={0.9}
                   style={styles.bannerCard}
                   onPress={() => handleBannerPress(banner)}
                 >
@@ -250,6 +265,23 @@ export default function HomeScreen() {
             ))}
           </ScrollView>
         )}
+
+        {/* Quick Actions Grid */}
+        {/* <View style={styles.quickGrid}>
+           {[
+             { label: 'Fastest', icon: 'flash', color: '#FF6B00' },
+             { label: 'Gourmet', icon: 'restaurant', color: '#A855F7' },
+             { label: 'Healthy', icon: 'leaf', color: '#22C55E' },
+             { label: 'Offers', icon: 'pricetag', color: '#3B82F6' },
+           ].map((item, idx) => (
+             <TouchableOpacity key={idx} style={styles.quickItem}>
+                <View style={[styles.quickIconCircle, { backgroundColor: item.color + '10' }]}>
+                   <Ionicons name={item.icon as any} size={22} color={item.color} />
+                </View>
+                <Text style={styles.quickLabel}>{item.label}</Text>
+             </TouchableOpacity>
+           ))}
+        </View> */}
 
         {/* Search Bar */}
         <TouchableOpacity
@@ -272,14 +304,14 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         {/* Filter Chips */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filterList}
         >
           {["Nearby", "Rating 4.0+", "Fast Delivery", "Pure Veg", "Offers"].map((filter) => (
-            <TouchableOpacity 
-              key={filter} 
+            <TouchableOpacity
+              key={filter}
               style={[styles.filterChip, activeFilter === filter && styles.activeFilterChip]}
               onPress={() => {
                 setActiveFilter(filter);
@@ -324,8 +356,8 @@ export default function HomeScreen() {
               >
                 <Image source={{ uri: item.imageUrl || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400" }} style={styles.foodImage} />
                 <View style={styles.foodBadge}>
-                   <Ionicons name="star" size={10} color="#1A1A1A" />
-                   <Text style={styles.foodBadgeText}>BESTSELLER</Text>
+                  <Ionicons name="star" size={10} color="#1A1A1A" />
+                  <Text style={styles.foodBadgeText}>BESTSELLER</Text>
                 </View>
                 <View style={styles.foodInfo}>
                   <Text style={styles.foodName} numberOfLines={1}>{item.name}</Text>
@@ -398,6 +430,50 @@ export default function HomeScreen() {
             )}
           />
         )}
+
+        {/* Refer & Earn Promotional Card */}
+        <Animated.View entering={FadeInUp.delay(500)} style={styles.promoSectionContainer}>
+          <TouchableOpacity
+            style={styles.referCard}
+            onPress={() => router.push('/referral')}
+            activeOpacity={0.9}
+          >
+            <View style={styles.referContent}>
+              <Text style={styles.referTitle}>Refer & Earn ₹100</Text>
+              <Text style={styles.referDesc}>Invite your friends to Chatori Jeep and get credits on their first order!</Text>
+              <View style={styles.referBtn}>
+                <Text style={styles.referBtnText}>INVITE NOW</Text>
+              </View>
+            </View>
+            <Image
+              source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2168/2168001.png' }}
+              style={styles.referImage}
+            />
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Featured Selection (Horizontal) */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Featured for You</Text>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingLeft: 20, marginBottom: 30 }}>
+          {restaurants.slice(0, 5).map((res, index) => (
+            <TouchableOpacity
+              key={res._id + '_feat'}
+              style={styles.featuredCard}
+              onPress={() => router.push(`/restaurant/${res._id}`)}
+            >
+              <Image source={{ uri: res.bannerUrls?.original || "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800" }} style={styles.featuredImg} />
+              <View style={styles.featuredOverlay}>
+                <View style={styles.featuredBadge}>
+                  <Text style={styles.featuredBadgeText}>TOP RATED</Text>
+                </View>
+                <Text style={styles.featuredName}>{res.name}</Text>
+                <Text style={styles.featuredMeta}>{res.rating || '4.5'} • 20 mins</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
         {/* Restaurants List */}
         <View style={styles.sectionHeader}>
@@ -528,6 +604,102 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 15,
+  },
+  headerLeft: {
+    flex: 1,
+  },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  headerIconBtn: {
+    width: 45,
+    height: 45,
+    borderRadius: 16,
+    backgroundColor: '#F9FAFB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#F3F4F6',
+  },
+  notifDot: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EF4444',
+    borderWidth: 1.5,
+    borderColor: '#FFF',
+  },
+  welcomeSection: {
+    paddingHorizontal: 25,
+    paddingVertical: 10,
+    marginBottom: 5,
+  },
+  welcomeText: {
+    fontSize: 24,
+    fontWeight: "900",
+    color: Colors.light.text,
+  },
+  welcomeSubText: {
+    fontSize: 14,
+    color: Colors.light.textMuted,
+    fontWeight: "600",
+    marginTop: 2,
+  },
+  promoSectionContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 30,
+  },
+  referCard: {
+    backgroundColor: '#F0FDF4',
+    borderRadius: 25,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#DCFCE7',
+    overflow: 'hidden',
+  },
+  referContent: {
+    flex: 1,
+    zIndex: 2,
+  },
+  referTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#166534',
+  },
+  referDesc: {
+    fontSize: 12,
+    color: '#15803D',
+    marginTop: 5,
+    lineHeight: 18,
+    fontWeight: '600',
+  },
+  referBtn: {
+    backgroundColor: '#166534',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 10,
+    marginTop: 15,
+    alignSelf: 'flex-start',
+  },
+  referBtnText: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: '900',
+  },
+  referImage: {
+    width: 100,
+    height: 100,
+    position: 'absolute',
+    right: -10,
+    bottom: -10,
+    opacity: 0.2,
   },
   locationContainer: {
     flexDirection: "row",
@@ -976,5 +1148,72 @@ const styles = StyleSheet.create({
     color: Colors.light.primary,
     fontSize: 16,
     fontWeight: "900",
+  },
+  quickGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 25,
+    marginBottom: 25,
+    marginTop: 10,
+  },
+  quickItem: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  quickIconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  quickLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#444',
+  },
+  featuredCard: {
+    width: 280,
+    height: 160,
+    borderRadius: 25,
+    marginRight: 15,
+    overflow: 'hidden',
+    backgroundColor: '#F3F4F6',
+  },
+  featuredImg: {
+    width: '100%',
+    height: '100%',
+  },
+  featuredOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    padding: 20,
+    justifyContent: 'flex-end',
+  },
+  featuredBadge: {
+    backgroundColor: Colors.light.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+  },
+  featuredBadgeText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#1A1A1A',
+  },
+  featuredName: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  featuredMeta: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 2,
   },
 });

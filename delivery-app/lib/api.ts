@@ -26,18 +26,40 @@ export const apiClient = axios.create({
   },
 });
 
-apiClient.interceptors.request.use(async (config) => {
-  const token = await AsyncStorage.getItem("delivery-token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+apiClient.interceptors.request.use(
+  async (config) => {
+    const token = await AsyncStorage.getItem("delivery-token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    // LOG: Request details
+    console.log(`🚀 [API Request] ${config.method?.toUpperCase()} ${config.url}`, config.params || "", config.data || "");
+    
+    return config;
+  },
+  (error) => {
+    console.error("❌ [API Request Config Error]", error);
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // LOG: Success details
+    console.log(`✅ [API Response] ${response.status} ${response.config.url}`, response.data);
+    return response;
+  },
   async (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    
+    // LOG: Error details
+    console.warn(
+      `⚠️ [API Error] ${status || "Network/Timeout"} ${error.config?.url}`, 
+      error.response?.data || error.message
+    );
+
+    if (status === 401) {
       await AsyncStorage.removeItem("delivery-token");
     }
     return Promise.reject(error);

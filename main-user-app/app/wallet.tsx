@@ -57,7 +57,7 @@ export default function WalletScreen() {
           <Animated.View entering={FadeInUp.delay(200)} style={styles.balanceCard}>
             <View style={styles.balanceInfo}>
               <Text style={styles.balanceLabel}>Total Balance</Text>
-              <Text style={styles.balanceAmount}>₹{balance.toLocaleString()}</Text>
+              <Text style={styles.balanceAmount}>₹{balance}</Text>
             </View>
             <View style={styles.cardFooter}>
               <TouchableOpacity style={styles.addMoneyBtn}>

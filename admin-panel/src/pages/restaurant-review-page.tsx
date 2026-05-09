@@ -159,6 +159,12 @@ export function RestaurantReviewPage() {
     }
   };
 
+  const getImgUrl = (obj: any, preference: 'full' | 'medium' | 'thumbnail' = 'medium') => {
+    if (!obj) return '';
+    if (typeof obj === 'string') return obj;
+    return obj[preference] || obj.medium || obj.full || obj.thumbnail || obj.url || '';
+  };
+
   if (loading || !restaurant) {
     return (
       <div className="space-y-6">
@@ -245,12 +251,9 @@ export function RestaurantReviewPage() {
         </div>
       </div>
 
-      <div className="rounded-3xl h-56 relative overflow-hidden border-2 border-white shadow-xl bg-muted group">
+    <div className="rounded-3xl h-56 relative overflow-hidden border-2 border-white shadow-xl bg-muted group">
         <img
-          src={
-            restaurant.bannerUrls?.medium ||
-            "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200"
-          }
+          src={getImgUrl(restaurant.bannerUrls, 'full') || "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200"}
           alt="Banner"
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
@@ -258,10 +261,7 @@ export function RestaurantReviewPage() {
         <div className="absolute bottom-6 left-6 flex items-center gap-4">
           <div className="h-20 w-20 rounded-2xl border-4 border-white overflow-hidden bg-white shadow-2xl">
             <img
-              src={
-                restaurant.logoUrls?.thumbnail ||
-                "https://via.placeholder.com/150"
-              }
+              src={getImgUrl(restaurant.logoUrls, 'thumbnail') || "https://via.placeholder.com/150"}
               alt="Logo"
               className="h-full w-full object-cover"
             />
@@ -347,7 +347,7 @@ export function RestaurantReviewPage() {
                     </p>
                     <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted mb-3">
                       <img
-                        src={restaurant.aadharCard.medium}
+                        src={getImgUrl(restaurant.aadharCard, 'medium')}
                         alt="Aadhar"
                         className="w-full h-full object-cover"
                       />
@@ -359,7 +359,7 @@ export function RestaurantReviewPage() {
                       asChild
                     >
                       <a
-                        href={restaurant.aadharCard.full}
+                        href={getImgUrl(restaurant.aadharCard, 'full')}
                         target="_blank"
                         rel="noreferrer"
                       >
@@ -375,7 +375,7 @@ export function RestaurantReviewPage() {
                     </p>
                     <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted mb-3">
                       <img
-                        src={restaurant.panCard.medium}
+                        src={getImgUrl(restaurant.panCard, 'medium')}
                         alt="PAN"
                         className="w-full h-full object-cover"
                       />
@@ -387,7 +387,7 @@ export function RestaurantReviewPage() {
                       asChild
                     >
                       <a
-                        href={restaurant.panCard.full}
+                        href={getImgUrl(restaurant.panCard, 'full')}
                         target="_blank"
                         rel="noreferrer"
                       >
@@ -411,7 +411,7 @@ export function RestaurantReviewPage() {
                   </div>
                   <div className="aspect-square w-48 mx-auto rounded-3xl overflow-hidden border-4 border-white shadow-lg mb-4">
                     <img
-                      src={restaurant.livePhoto.medium}
+                      src={getImgUrl(restaurant.livePhoto, 'medium')}
                       alt="Live Photo"
                       className="w-full h-full object-cover"
                     />

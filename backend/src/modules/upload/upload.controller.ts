@@ -168,13 +168,13 @@ export const uploadRestaurantLegalDocs = async (
 
     const [aadharUrls, panUrls, livePhotoUrls, uploadedOtherDocs] = await Promise.all([
       aadharFile
-        ? (console.log("UPLOAD: Processing Aadhar..."), processAndUpload(aadharFile.buffer, "restaurants/legal-docs", ["thumbnail", "medium"]))
+        ? (console.log("UPLOAD: Processing Aadhar..."), processAndUpload(aadharFile.buffer, "restaurants/legal-docs", ["thumbnail", "medium", "full"]))
         : null,
       panFile
-        ? (console.log("UPLOAD: Processing PAN..."), processAndUpload(panFile.buffer, "restaurants/legal-docs", ["thumbnail", "medium"]))
+        ? (console.log("UPLOAD: Processing PAN..."), processAndUpload(panFile.buffer, "restaurants/legal-docs", ["thumbnail", "medium", "full"]))
         : null,
       livePhotoFile
-        ? (console.log("UPLOAD: Processing Live Photo..."), processAndUpload(livePhotoFile.buffer, "restaurants/legal-docs", ["thumbnail", "medium"]))
+        ? (console.log("UPLOAD: Processing Live Photo..."), processAndUpload(livePhotoFile.buffer, "restaurants/legal-docs", ["thumbnail", "medium", "full"]))
         : null,
       Promise.all(
         otherDocs.map((file) => {

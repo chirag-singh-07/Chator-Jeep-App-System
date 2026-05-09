@@ -15,6 +15,7 @@ const getBaseUrl = () => {
 };
 
 export const API_URL = getBaseUrl();
+console.log("🌐 [API Config] Base URL initialized as:", API_URL);
 
 export const apiClient = axios.create({
   baseURL: API_URL,
@@ -33,17 +34,40 @@ apiClient.interceptors.request.use(
     } catch (e) {
       console.error("Error reading token from storage", e);
     }
+    
+    // LOG: Request details
+    const fullUrl = `${config.baseURL}${config.url}`;
+    console.log(`🚀 [API Request] ${config.method?.toUpperCase()} ${fullUrl}`, config.params || "", config.data || "");
+    
     return config;
   },
   (error) => {
+    console.error("❌ [API Request Config Error]", error);
     return Promise.reject(error);
   },
 );
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // LOG: Success details
+    console.log(`✅ [API Response] ${response.status} ${response.config.url}`, response.data);
+    return response;
+  },
   async (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    
+    // LOG: Error details
+    console.warn(
+      `⚠️ [API Error] ${status || "Network/Timeout"} ${error.config?.url}`, 
+      {
+        message: error.message,
+        data: error.response?.data,
+        code: error.code,
+        baseURL: error.config?.baseURL
+      }
+    );
+
+    if (status === 401) {
       await AsyncStorage.removeItem("token");
       try {
         const { useAuthStore } = require('../store/useAuthStore');
