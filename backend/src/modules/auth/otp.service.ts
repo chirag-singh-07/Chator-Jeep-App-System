@@ -41,7 +41,12 @@ export const sendOtp = async (email: string, type: "register" | "forgot_password
 
   const text = `Your Chatori Jeep OTP for ${type.replace("_", " ")} is: ${otpCode}. It expires in 10 minutes.`;
   
-  await sendEmail(normalizedEmail, subject, text, html);
+  try {
+    await sendEmail(normalizedEmail, subject, text, html);
+  } catch (emailError) {
+    // Log the error but don't crash the request
+    console.error(`[OTP SERVICE] Failed to send email to ${normalizedEmail}:`, emailError);
+  }
   
   return { 
     success: true, 
