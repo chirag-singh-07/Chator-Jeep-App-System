@@ -12,6 +12,12 @@ router.get(
   controller.getSystemLogs,
 );
 router.get(
+  "/overview",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  controller.getOverviewStats,
+);
+router.get(
   "/settings",
   authMiddleware,
   roleMiddleware(["ADMIN"]),

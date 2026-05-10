@@ -11,6 +11,14 @@ export const getSettings = asyncHandler(
   }
 );
 
+export const getOverviewStats = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const range = (req.query.range as string) || "1m";
+    const stats = await service.getOverviewStats(range);
+    res.status(200).json({ success: true, data: stats });
+  }
+);
+
 export const updateSetting = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const { key, value, description } = req.body;

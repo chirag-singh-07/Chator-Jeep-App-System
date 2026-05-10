@@ -15,6 +15,8 @@ type DeliveryState = {
   selectedOrder: DeliveryOrder | null;
   partnerProfile: DeliveryPartnerProfile | null;
   initialProfileFetched: boolean;
+  profileFetchError: string | null;
+  profileFetchErrorStatus: number | null;
   activeRequest: any | null;
   isLoading: boolean;
   fetchDashboard: () => Promise<void>;
@@ -51,6 +53,8 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
   selectedOrder: null,
   partnerProfile: null,
   initialProfileFetched: false,
+  profileFetchError: null,
+  profileFetchErrorStatus: null,
   activeRequest: null,
   isLoading: false,
 
@@ -58,9 +62,25 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
     set({ isLoading: true });
     try {
       const response = await apiClient.get("/delivery/profile");
-      set({ partnerProfile: response.data, isLoading: false, initialProfileFetched: true });
-    } catch (error) {
-      set({ partnerProfile: null, isLoading: false, initialProfileFetched: true });
+      set({
+        partnerProfile: response.data,
+        isLoading: false,
+        initialProfileFetched: true,
+        profileFetchError: null,
+        profileFetchErrorStatus: null,
+      });
+    } catch (error: any) {
+      const status = error?.response?.status ?? null;
+      set({
+        partnerProfile: null,
+        isLoading: false,
+        initialProfileFetched: true,
+        profileFetchError:
+          error?.response?.data?.message ||
+          error?.message ||
+          "Unable to load your delivery profile.",
+        profileFetchErrorStatus: status,
+      });
     }
   },
 
@@ -68,15 +88,22 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
     set({ isLoading: true });
     try {
       const response = await apiClient.post("/delivery/register", data);
-      const { accessToken, partner } = response.data;
+      const accessToken = response.data?.accessToken;
+      const partner = response.data?.partner ?? response.data;
       
       // Update the auth token with the new role
       if (accessToken) {
         await AsyncStorage.setItem("delivery-token", accessToken);
-        useAuthStore.setState({ token: accessToken });
+        useAuthStore.setState({ token: accessToken, isAuthenticated: true });
       }
 
-      set({ partnerProfile: partner, isLoading: false });
+      set({
+        partnerProfile: partner,
+        initialProfileFetched: true,
+        profileFetchError: null,
+        profileFetchErrorStatus: null,
+        isLoading: false,
+      });
     } catch (error: any) {
       set({ isLoading: false });
       throw new Error(error?.response?.data?.message || "Registration failed");

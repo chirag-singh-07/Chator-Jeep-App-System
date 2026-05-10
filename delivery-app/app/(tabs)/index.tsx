@@ -34,6 +34,8 @@ export default function DashboardScreen() {
   const {
     dashboard,
     partnerProfile,
+    profileFetchError,
+    profileFetchErrorStatus,
     activeRequest,
     isLoading,
     initialProfileFetched,
@@ -51,16 +53,51 @@ export default function DashboardScreen() {
   }, [fetchProfile, fetchDashboard]);
 
   useEffect(() => {
-    if (initialProfileFetched && !partnerProfile) {
+    if (
+      initialProfileFetched &&
+      !partnerProfile &&
+      profileFetchErrorStatus === 404
+    ) {
       router.replace("/(auth)/register");
     }
-  }, [initialProfileFetched, partnerProfile]);
+  }, [initialProfileFetched, partnerProfile, profileFetchErrorStatus]);
 
   if (isLoading && !partnerProfile) {
     return (
       <ScreenContainer withSafeArea>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.light.primary} />
+        </View>
+      </ScreenContainer>
+    );
+  }
+
+  if (
+    initialProfileFetched &&
+    !partnerProfile &&
+    profileFetchErrorStatus !== 404
+  ) {
+    return (
+      <ScreenContainer withSafeArea>
+        <View style={styles.errorState}>
+          <Ionicons
+            name="cloud-offline-outline"
+            size={54}
+            color={Colors.light.primary}
+          />
+          <Text style={styles.errorTitle}>Could not load your rider profile</Text>
+          <Text style={styles.errorSubtitle}>
+            {profileFetchError ||
+              "Please check your connection and try again."}
+          </Text>
+          <PrimaryButton
+            label="Try Again"
+            onPress={() => {
+              void fetchProfile();
+              void fetchDashboard();
+            }}
+            style={styles.retryButton}
+          />
         </View>
       </ScreenContainer>
     );
@@ -241,6 +278,30 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  errorState: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: Spacing.xl,
+  },
+  errorTitle: {
+    color: Colors.light.text,
+    fontSize: 22,
+    fontWeight: "900",
+    textAlign: "center",
+    marginTop: Spacing.lg,
+  },
+  errorSubtitle: {
+    color: Colors.light.textDim,
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: "center",
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.xl,
+  },
+  retryButton: {
+    minWidth: 180,
   },
   content: {
     paddingHorizontal: Spacing.md,

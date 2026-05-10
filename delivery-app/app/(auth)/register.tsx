@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -28,6 +28,8 @@ export default function RegisterScreen() {
   const router = useRouter();
   const authRegister = useAuthStore((state) => state.register);
   const requestOtp = useAuthStore((state) => state.requestOtp);
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const deliveryRegister = useDeliveryStore((state) => state.register);
   
   const [step, setStep] = useState(1);
@@ -48,11 +50,30 @@ export default function RegisterScreen() {
     },
   });
 
-  const isStep1Valid = form.name.trim().length > 2 && 
-                      form.email.includes("@") && 
-                      form.password.length >= 8 && 
-                      /^\d{10}$/.test(form.phone) &&
-                      form.otp.length === 6;
+  const isCompletingProfile = isAuthenticated && Boolean(user);
+
+  useEffect(() => {
+    if (!isCompletingProfile || !user) {
+      return;
+    }
+
+    setForm((current) => ({
+      ...current,
+      name: current.name || user.name || "",
+      email: current.email || user.email || "",
+      phone: current.phone || user.phone || "",
+    }));
+  }, [isCompletingProfile, user]);
+
+  const isStep1Valid = isCompletingProfile
+    ? form.name.trim().length > 2 &&
+      form.email.includes("@") &&
+      /^\d{10}$/.test(form.phone)
+    : form.name.trim().length > 2 &&
+      form.email.includes("@") &&
+      form.password.length >= 8 &&
+      /^\d{10}$/.test(form.phone) &&
+      form.otp.length === 6;
 
   const isStep2Valid = !!form.vehicleType;
   const isStep3Valid = !!(form.bankDetails.bankName && form.bankDetails.accountNumber && form.bankDetails.ifscCode);
@@ -89,13 +110,15 @@ export default function RegisterScreen() {
     setLoading(true);
     try {
       // Step 1: Register User Account with OTP
-      await authRegister({
-        name: form.name,
-        email: form.email,
-        password: form.password,
-        phone: form.phone,
-        otp: form.otp,
-      });
+      if (!isCompletingProfile) {
+        await authRegister({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          phone: form.phone,
+          otp: form.otp,
+        });
+      }
 
       // Step 2: Register Delivery Partner Details
       await deliveryRegister({
@@ -103,7 +126,12 @@ export default function RegisterScreen() {
         phoneNumber: form.phone,
         email: form.email,
         vehicleType: form.vehicleType,
-        bankDetails: form.bankDetails,
+        bankDetails: {
+          accountHolderName: form.name.trim(),
+          bankName: form.bankDetails.bankName.trim(),
+          accountNumber: form.bankDetails.accountNumber.trim(),
+          ifscCode: form.bankDetails.ifscCode.trim().toUpperCase(),
+        },
         profilePhoto: "https://i.pravatar.cc/300",
         drivingLicense: "PENDING",
       });
@@ -123,7 +151,11 @@ export default function RegisterScreen() {
         return (
           <Animated.View key="step1" entering={FadeInRight} exiting={FadeOutLeft} style={styles.stepContainer}>
             <Text style={styles.stepTitle}>Account Details</Text>
-            <Text style={styles.stepSubtitle}>Start with your basic information and verify your email.</Text>
+            <Text style={styles.stepSubtitle}>
+              {isCompletingProfile
+                ? "Confirm your basic information to finish your rider profile."
+                : "Start with your basic information and verify your email."}
+            </Text>
             
             <ThemedInput
               label="Full Name"
@@ -133,37 +165,51 @@ export default function RegisterScreen() {
               onChangeText={(text) => setForm({ ...form, name: text })}
             />
             
-            <View style={styles.otpInputGroup}>
-              <View style={{ flex: 1 }}>
-                <ThemedInput
-                  label="Email Address"
-                  placeholder="john@example.com"
-                  icon="mail-outline"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  value={form.email}
-                  onChangeText={(text) => setForm({ ...form, email: text })}
-                  containerStyle={{ marginBottom: 0 }}
-                />
-              </View>
-              <TouchableOpacity 
-                style={[styles.otpBtn, otpSent && styles.otpBtnSent]} 
-                onPress={handleSendOtp}
-                disabled={loading}
-              >
-                <Text style={styles.otpBtnText}>{otpSent ? "Resend" : "Get OTP"}</Text>
-              </TouchableOpacity>
-            </View>
+            {isCompletingProfile ? (
+              <ThemedInput
+                label="Email Address"
+                placeholder="john@example.com"
+                icon="mail-outline"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={form.email}
+                onChangeText={(text) => setForm({ ...form, email: text })}
+              />
+            ) : (
+              <>
+                <View style={styles.otpInputGroup}>
+                  <View style={{ flex: 1 }}>
+                    <ThemedInput
+                      label="Email Address"
+                      placeholder="john@example.com"
+                      icon="mail-outline"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      value={form.email}
+                      onChangeText={(text) => setForm({ ...form, email: text })}
+                      containerStyle={{ marginBottom: 0 }}
+                    />
+                  </View>
+                  <TouchableOpacity 
+                    style={[styles.otpBtn, otpSent && styles.otpBtnSent]} 
+                    onPress={handleSendOtp}
+                    disabled={loading}
+                  >
+                    <Text style={styles.otpBtnText}>{otpSent ? "Resend" : "Get OTP"}</Text>
+                  </TouchableOpacity>
+                </View>
 
-            <ThemedInput
-              label="Verification Code (OTP)"
-              placeholder="Enter 6-digit code"
-              icon="shield-checkmark-outline"
-              keyboardType="numeric"
-              maxLength={6}
-              value={form.otp}
-              onChangeText={(text) => setForm({ ...form, otp: text })}
-            />
+                <ThemedInput
+                  label="Verification Code (OTP)"
+                  placeholder="Enter 6-digit code"
+                  icon="shield-checkmark-outline"
+                  keyboardType="numeric"
+                  maxLength={6}
+                  value={form.otp}
+                  onChangeText={(text) => setForm({ ...form, otp: text })}
+                />
+              </>
+            )}
 
             <ThemedInput
               label="Phone Number"
@@ -173,14 +219,16 @@ export default function RegisterScreen() {
               value={form.phone}
               onChangeText={(text) => setForm({ ...form, phone: text })}
             />
-            <ThemedInput
-              label="Password"
-              placeholder="At least 8 characters"
-              icon="lock-closed-outline"
-              secureTextEntry
-              value={form.password}
-              onChangeText={(text) => setForm({ ...form, password: text })}
-            />
+            {!isCompletingProfile && (
+              <ThemedInput
+                label="Password"
+                placeholder="At least 8 characters"
+                icon="lock-closed-outline"
+                secureTextEntry
+                value={form.password}
+                onChangeText={(text) => setForm({ ...form, password: text })}
+              />
+            )}
 
             <View style={styles.loginLinkContainer}>
               <Text style={styles.loginLinkText}>Already have an account?</Text>
