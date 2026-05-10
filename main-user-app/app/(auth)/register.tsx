@@ -54,6 +54,11 @@ export default function RegisterScreen() {
         Alert.alert("Missing Information", "Please fill all fields to continue.");
         return;
       }
+      if (!/^\d{10}$/.test(formData.phone)) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        Alert.alert("Invalid Phone", "Please enter a valid 10-digit phone number.");
+        return;
+      }
       setStep(2);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } else if (step === 2) {

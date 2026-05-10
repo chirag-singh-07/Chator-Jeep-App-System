@@ -142,6 +142,13 @@ export default function RegisterScreen() {
         );
         return;
       }
+      if (!/^\d{10}$/.test(phone)) {
+        Alert.alert(
+          "VALIDATION ERROR",
+          "Please enter a valid 10-digit phone number.",
+        );
+        return;
+      }
     } else if (currentStep === 2) {
       if (!logo || !banner) {
         Alert.alert(

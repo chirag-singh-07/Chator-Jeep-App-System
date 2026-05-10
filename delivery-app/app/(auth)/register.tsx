@@ -51,7 +51,7 @@ export default function RegisterScreen() {
   const isStep1Valid = form.name.trim().length > 2 && 
                       form.email.includes("@") && 
                       form.password.length >= 8 && 
-                      form.phone.length >= 10 &&
+                      /^\d{10}$/.test(form.phone) &&
                       form.otp.length === 6;
 
   const isStep2Valid = !!form.vehicleType;
