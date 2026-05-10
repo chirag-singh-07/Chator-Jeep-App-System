@@ -8,11 +8,14 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useLiveLocationSync } from "@/hooks/useLiveLocationSync";
 
 import { useNotifications } from "@/hooks/useNotifications";
+import { AppLoadingScreen } from "@/components/AppLoadingScreen";
+import { useState } from "react";
 
 export default function RootLayout() {
   const segments = useSegments();
   const navigationState = useRootNavigationState();
   const { isAuthenticated, hasHydrated } = useAuthStore();
+  const [isReady, setIsReady] = useState(false);
 
   useLiveLocationSync();
   useNotifications();
@@ -53,20 +56,8 @@ export default function RootLayout() {
               />
             </Stack>
 
-            {!hasHydrated && (
-              <View
-                style={[
-                  StyleSheet.absoluteFill,
-                  {
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: "#000000",
-                    zIndex: 999,
-                  },
-                ]}
-              >
-                <ActivityIndicator color="#D4AF37" size="large" />
-              </View>
+            {(!hasHydrated || !isReady) && (
+              <AppLoadingScreen onFinish={() => setIsReady(true)} />
             )}
           </View>
         </SocketProvider>

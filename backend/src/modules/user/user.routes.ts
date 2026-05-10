@@ -41,4 +41,12 @@ router.get(
   controller.adminGetUser
 );
 
+/** DELETE /api/v1/users/admin/:id — Delete user */
+router.delete(
+  "/admin/:id",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  controller.adminDeleteUser
+);
+
 export default router;

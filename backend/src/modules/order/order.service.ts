@@ -335,6 +335,24 @@ export const listRestaurantOrders = async (ownerId: string) => {
   return repo.listOrdersByRestaurant(restaurant._id.toString());
 };
 
+export const adminListOrders = async (query: { status?: string; page?: string; limit?: string }) => {
+  const status = query.status;
+  const page = parseInt(query.page ?? "1");
+  const limit = parseInt(query.limit ?? "20");
+  
+  const { orders, total } = await repo.adminListOrders(status, page, limit);
+  
+  return {
+    orders,
+    pagination: {
+      page,
+      limit,
+      total,
+      pages: Math.ceil(total / limit),
+    },
+  };
+};
+
 export const cancelOrder = async (userId: string, orderId: string, reason?: string) => {
   const order = await repo.getOrderById(orderId);
   if (!order) throw new AppError("Order not found", 404);

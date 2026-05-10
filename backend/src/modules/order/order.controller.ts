@@ -26,6 +26,11 @@ export const listRestaurantOrders = asyncHandler(async (req: AuthenticatedReques
   res.status(200).json({ success: true, data: orders });
 });
 
+export const adminListOrders = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const result = await service.adminListOrders(req.query as any);
+  res.status(200).json({ success: true, ...result });
+});
+
 export const updateStatus = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const order = await service.updateOrderStatus(req.user!, req.params.orderId as string, req.body.status);
   res.status(200).json({ success: true, data: order });

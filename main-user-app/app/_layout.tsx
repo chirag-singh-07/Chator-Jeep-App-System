@@ -4,6 +4,8 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { SocketProvider } from "@/context/SocketContext";
 import { useNotifications } from "@/hooks/useNotifications";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { AppLoadingScreen } from "@/components/AppLoadingScreen";
+import { useState } from "react";
 
 function AuthGate() {
   const { isAuthenticated, hasHydrated } = useAuthStore();
@@ -13,9 +15,14 @@ function AuthGate() {
   // Initialize notifications
   useNotifications();
 
+  const [isReady, setIsReady] = useState(false);
+
   useEffect(() => {
     if (!hasHydrated) return;
-
+    
+    // Once hydrated, wait for the loading screen animation to finish
+    // However, the routing can run immediately or we can defer it.
+    // Let's just run routing, but keep showing loading screen on top
     const inAuthGroup = segments.some(s => s === "(auth)");
     const inOnboardingGroup = segments.some(s => s === "(onboarding)");
 
@@ -33,6 +40,9 @@ function AuthGate() {
   return (
     <SocketProvider>
        <Stack screenOptions={{ headerShown: false }} />
+       {(!hasHydrated || !isReady) && (
+         <AppLoadingScreen onFinish={() => setIsReady(true)} />
+       )}
     </SocketProvider>
   );
 }

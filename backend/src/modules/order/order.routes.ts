@@ -41,6 +41,14 @@ router.get(
   controller.listRestaurantOrders
 );
 
+/** GET /api/v1/orders/admin/all — All orders for admin panel */
+router.get(
+  "/admin/all",
+  authMiddleware,
+  roleMiddleware([ROLES.ADMIN]),
+  controller.adminListOrders
+);
+
 /** PATCH /api/v1/orders/:orderId/status — Update order status */
 router.patch(
   "/:orderId/status",

@@ -49,6 +49,9 @@ export const updateUserStatus = (
 ): Promise<IUser | null> =>
   User.findByIdAndUpdate(userId, { status }, { new: true }).exec();
 
+export const deleteUserById = (userId: string) =>
+  User.findByIdAndDelete(userId).exec();
+
 // ─── Creation (for auth and admin) ──────────────────────────────────────────
 export const createUser = (payload: Partial<IUser>): Promise<IUser> =>
   User.create(payload);

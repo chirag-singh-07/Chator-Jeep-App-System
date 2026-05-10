@@ -21,18 +21,10 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { allOrders } from "@/data/dashboard-data";
 import { formatCurrency } from "@/lib/format";
-import type { OrderRow, OrdersSubView, OrderStatus } from "@/types/dashboard";
+import { useOrdersStore } from "@/stores/useOrdersStore";
 
-const pageSize = 6;
-const subViewToStatus: Record<Exclude<OrdersSubView, "all">, OrderStatus> = {
-  completed: "Completed",
-  unassigned: "Unassigned",
-  "out-for-delivery": "Out for Delivery",
-  preparing: "Preparing",
-  cancelled: "Cancelled"
-};
+const pageSize = 20;
 
 type ColumnKey = "id" | "customer" | "kitchen" | "status" | "amount" | "date" | "actions";
 
@@ -48,53 +40,27 @@ const columnDefaults: Record<ColumnKey, boolean> = {
 
 export function OrdersPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState("today");
-  const [page, setPage] = useState(1);
   const [columns, setColumns] = useState<Record<ColumnKey, boolean>>(columnDefaults);
-  const [loading, setLoading] = useState(true);
-
-  const activeTab = (searchParams.get("status") as OrdersSubView | null) ?? "all";
+  
+  const { orders, loading, filters, setFilters, fetchOrders } = useOrdersStore();
+  const activeTab = searchParams.get("status") ?? "all";
 
   useEffect(() => {
-    const timeout = setTimeout(() => setLoading(false), 450);
-    return () => clearTimeout(timeout);
-  }, [activeTab, statusFilter, dateFilter]);
+    setFilters({ status: activeTab, page: 1 });
+  }, [activeTab, setSearchParams, setFilters]);
 
-  const filteredOrders = useMemo(() => {
-    let rows = [...allOrders];
-
-    if (activeTab !== "all") {
-      rows = rows.filter((row) => row.status === subViewToStatus[activeTab as Exclude<OrdersSubView, "all">]);
-    }
-    if (statusFilter !== "all") {
-      rows = rows.filter((row) => row.status === statusFilter);
-    }
-    if (dateFilter === "today") {
-      rows = rows.filter((row) => row.date.startsWith("2026-04-19"));
-    }
-    if (query.trim()) {
-      const value = query.toLowerCase();
-      rows = rows.filter(
-        (row) =>
-          row.id.toLowerCase().includes(value) ||
-          row.customerName.toLowerCase().includes(value) ||
-          row.kitchenName.toLowerCase().includes(value)
-      );
-    }
-
-    return rows;
-  }, [activeTab, statusFilter, dateFilter, query]);
+  useEffect(() => {
+    fetchOrders();
+  }, [filters.status, filters.page, filters.search, fetchOrders]);
 
   const columnsConfig = useMemo(() => {
-    const allColumns: Array<{ key: ColumnKey; column: DataColumn<OrderRow> }> = [
-      { key: "id", column: { key: "id", label: "Order ID", render: (row) => row.id } },
-      { key: "customer", column: { key: "customer", label: "Customer", render: (row) => row.customerName } },
-      { key: "kitchen", column: { key: "kitchen", label: "Kitchen", render: (row) => row.kitchenName } },
+    const allColumns: Array<{ key: ColumnKey; column: DataColumn<any> }> = [
+      { key: "id", column: { key: "_id", label: "Order ID", render: (row) => row._id } },
+      { key: "customer", column: { key: "customer", label: "Customer", render: (row) => row.userId?.name || "N/A" } },
+      { key: "kitchen", column: { key: "kitchen", label: "Kitchen", render: (row) => row.restaurantId?.name || "N/A" } },
       { key: "status", column: { key: "status", label: "Status", render: (row) => <StatusBadge value={row.status} /> } },
-      { key: "amount", column: { key: "amount", label: "Amount", render: (row) => formatCurrency(row.amount) } },
-      { key: "date", column: { key: "date", label: "Date", render: (row) => row.date } },
+      { key: "amount", column: { key: "amount", label: "Amount", render: (row) => formatCurrency(row.totalAmount) } },
+      { key: "date", column: { key: "date", label: "Date", render: (row) => new Date(row.createdAt).toLocaleDateString("en-IN") } },
       {
         key: "actions",
         column: {
@@ -102,7 +68,7 @@ export function OrdersPage() {
           label: "Actions",
           render: (row) => (
             <Button variant="outline" size="sm" asChild>
-              <Link to={`/orders/${row.id}`}>View Details</Link>
+              <Link to={`/orders/${row._id}`}>View Details</Link>
             </Button>
           )
         }
@@ -114,7 +80,7 @@ export function OrdersPage() {
 
   const exportCsv = () => {
     const headers = ["Order ID", "Customer", "Kitchen", "Status", "Amount", "Date"];
-    const rows = filteredOrders.map((row) => [row.id, row.customerName, row.kitchenName, row.status, row.amount, row.date]);
+    const rows = orders.map((row) => [row._id, row.userId?.name, row.restaurantId?.name, row.status, row.totalAmount, new Date(row.createdAt).toLocaleDateString("en-IN")]);
     const content = [headers, ...rows].map((line) => line.join(",")).join("\n");
     const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -131,31 +97,24 @@ export function OrdersPage() {
     toast.success("Print dialog opened.");
   };
 
-  if (loading) {
-    return (
-      <div className="flex flex-col gap-4">
-        <Skeleton className="h-14 rounded-2xl" />
-        <Skeleton className="h-[420px] rounded-2xl" />
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-4">
       <Tabs
         value={activeTab}
         onValueChange={(value) => {
-          setPage(1);
-          setSearchParams(value === "all" ? {} : { status: value });
+          setSearchParams(value === "all" ? {} : { status: value }, { replace: true });
         }}
       >
         <TabsList className="h-auto flex-wrap">
           <TabsTrigger value="all">All Orders</TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
-          <TabsTrigger value="unassigned">Unassigned</TabsTrigger>
-          <TabsTrigger value="preparing">Preparing</TabsTrigger>
-          <TabsTrigger value="out-for-delivery">Out for Delivery</TabsTrigger>
-          <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
+          <TabsTrigger value="COMPLETED">Completed</TabsTrigger>
+          <TabsTrigger value="PENDING">Pending</TabsTrigger>
+          <TabsTrigger value="ACCEPTED">Accepted</TabsTrigger>
+          <TabsTrigger value="PREPARING">Preparing</TabsTrigger>
+          <TabsTrigger value="READY">Ready</TabsTrigger>
+          <TabsTrigger value="PICKED_UP">Picked Up</TabsTrigger>
+          <TabsTrigger value="ARRIVED">Arrived</TabsTrigger>
+          <TabsTrigger value="CANCELLED">Cancelled</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -163,28 +122,24 @@ export function OrdersPage() {
         <Input
           placeholder="Search by order id, customer, kitchen..."
           className="w-full md:max-w-sm"
-          value={query}
+          value={filters.search}
           onChange={(event) => {
-            setPage(1);
-            setQuery(event.target.value);
+            setFilters({ search: event.target.value, page: 1 });
           }}
         />
         <div className="w-full md:w-44">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={filters.status} onValueChange={(val) => {
+            setSearchParams(val === "all" ? {} : { status: val }, { replace: true });
+          }}>
             <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="Completed">Completed</SelectItem>
-            <SelectItem value="Unassigned">Unassigned</SelectItem>
-            <SelectItem value="Preparing">Preparing</SelectItem>
-            <SelectItem value="Out for Delivery">Out for Delivery</SelectItem>
-            <SelectItem value="Cancelled">Cancelled</SelectItem>
-          </Select>
-        </div>
-        <div className="w-full md:w-44">
-          <Select value={dateFilter} onValueChange={setDateFilter}>
-            <SelectItem value="today">Today</SelectItem>
-            <SelectItem value="7d">Last 7 Days</SelectItem>
-            <SelectItem value="30d">Last 30 Days</SelectItem>
-            <SelectItem value="all">Lifetime</SelectItem>
+            <SelectItem value="PENDING">Pending</SelectItem>
+            <SelectItem value="ACCEPTED">Accepted</SelectItem>
+            <SelectItem value="PREPARING">Preparing</SelectItem>
+            <SelectItem value="READY">Ready</SelectItem>
+            <SelectItem value="PICKED_UP">Picked Up</SelectItem>
+            <SelectItem value="ARRIVED">Arrived</SelectItem>
+            <SelectItem value="COMPLETED">Completed</SelectItem>
+            <SelectItem value="CANCELLED">Cancelled</SelectItem>
           </Select>
         </div>
         <div className="ml-auto flex flex-wrap gap-2">
@@ -232,18 +187,25 @@ export function OrdersPage() {
         </div>
       </FilterBar>
 
-      <DataTable
-        title="Orders List"
-        description="Operational order queue with search, visibility controls, and printable export actions."
-        columns={columnsConfig}
-        rows={filteredOrders}
-        page={page}
-        pageSize={pageSize}
-        onPageChange={setPage}
-        emptyTitle="No orders found"
-        emptyDescription="Try adjusting the status or date filters to widen the result set."
-        rowHref={(row) => `/orders/${row.id}`}
-      />
+      {loading && orders.length === 0 ? (
+        <div className="flex flex-col gap-4">
+          <Skeleton className="h-14 rounded-2xl" />
+          <Skeleton className="h-[420px] rounded-2xl" />
+        </div>
+      ) : (
+        <DataTable
+          title="Orders List"
+          description="Operational order queue with search, visibility controls, and printable export actions."
+          columns={columnsConfig}
+          rows={orders}
+          page={filters.page}
+          pageSize={pageSize}
+          onPageChange={(page) => setFilters({ page })}
+          emptyTitle="No orders found"
+          emptyDescription="Try adjusting the status or date filters to widen the result set."
+          rowHref={(row) => `/orders/${row._id}`}
+        />
+      )}
     </div>
   );
 }

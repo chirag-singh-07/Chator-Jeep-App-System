@@ -19,8 +19,23 @@ export const adminService = {
     return response.data;
   },
 
+  deleteUser: async (id: string) => {
+    const response = await apiClient.delete(`/users/admin/${id}`);
+    return response.data;
+  },
+
   createAdmin: async (data: any) => {
     const response = await apiClient.post("/users/admin/create", data);
+    return response.data;
+  },
+
+  getOrders: async (params: { status?: string; page?: number; search?: string }) => {
+    const response = await apiClient.get("/orders/admin/all", { 
+      params: {
+        ...params,
+        status: params.status === "all" ? undefined : params.status
+      } 
+    });
     return response.data;
   },
 

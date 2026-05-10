@@ -11,6 +11,10 @@ env-files
 node_modules
 dist
 dist-ssr
+
+android
+ios
+
 *.local
 .env
 

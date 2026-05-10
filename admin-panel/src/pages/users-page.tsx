@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Search, RotateCcw } from "lucide-react";
+import { Plus, Search, RotateCcw, Trash2 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { DataTable, type DataColumn } from "@/components/admin/data-table";
 import { FilterBar } from "@/components/admin/filter-bar";
@@ -23,7 +23,8 @@ export function UsersPage() {
     loading, 
     filters, 
     setFilters, 
-    fetchUsers 
+    fetchUsers,
+    deleteUser
   } = useUsersStore();
 
   const activeTab = (searchParams.get("role") as UsersSubView | null) ?? "all";
@@ -72,9 +73,23 @@ export function UsersPage() {
       key: "action",
       label: "Ops",
       render: (row) => (
-        <Button variant="ghost" size="sm" asChild className="hover:bg-primary/10 hover:text-primary rounded-xl">
-          <Link to={`/users/${row._id}`}>View Profile</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" asChild className="hover:bg-primary/10 hover:text-primary rounded-xl">
+            <Link to={`/users/${row._id}`}>View</Link>
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="hover:bg-destructive/10 hover:text-destructive rounded-xl text-muted-foreground"
+            onClick={() => {
+              if (window.confirm("Are you sure you want to delete this user?")) {
+                deleteUser(row._id);
+              }
+            }}
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        </div>
       )
     }
   ];

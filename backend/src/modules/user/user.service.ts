@@ -1,5 +1,5 @@
 import { AppError } from "../../common/errors/app-error";
-import { findUserById, listUsers, createUser, findUserByEmail } from "./user.repository";
+import { findUserById, listUsers, createUser, findUserByEmail, deleteUserById } from "./user.repository";
 import { Role, ROLES } from "../../common/constants";
 import { hashPassword } from "../../common/utils/hash";
 
@@ -42,6 +42,15 @@ export const adminGetUser = async (userId: string) => {
     throw new AppError("User not found", 404);
   }
   return user;
+};
+
+export const adminDeleteUser = async (userId: string) => {
+  const user = await findUserById(userId);
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+  await deleteUserById(userId);
+  return { message: "User deleted successfully" };
 };
 
 export const adminCreateUser = async (payload: any, role: Role) => {

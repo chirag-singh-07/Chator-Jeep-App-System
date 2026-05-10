@@ -5,11 +5,14 @@ import { SocketProvider } from "@/components/SocketProvider";
 import { useNotifications } from "@/hooks/useNotifications";
 import { StatusBar } from "expo-status-bar";
 import { AlertOverlay } from "@/components/AlertOverlay";
+import { AppLoadingScreen } from "@/components/AppLoadingScreen";
+import { useState } from "react";
 
 export default function RootLayout() {
   const { isAuthenticated, user } = useAuthStore();
   const segments = useSegments();
   const navigationState = useRootNavigationState();
+  const [isReady, setIsReady] = useState(false);
 
   // Initialize Notifications
   useNotifications();
@@ -53,6 +56,7 @@ export default function RootLayout() {
         <Stack.Screen name="order/[id]" />
       </Stack>
       <AlertOverlay />
+      {!isReady && <AppLoadingScreen onFinish={() => setIsReady(true)} />}
     </SocketProvider>
   );
 }

@@ -24,6 +24,31 @@ export const listOrdersByRestaurant = (restaurantId: string): Promise<IOrder[]> 
     .lean()
     .exec() as any;
 
+export const adminListOrders = async (
+  status?: string,
+  page = 1,
+  limit = 20
+): Promise<{ orders: IOrder[]; total: number }> => {
+  const filter: any = {};
+  if (status && status !== "all") {
+    filter.status = status;
+  }
+
+  const [orders, total] = await Promise.all([
+    Order.find(filter)
+      .populate("restaurantId", "name")
+      .populate("userId", "name phone email")
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean()
+      .exec(),
+    Order.countDocuments(filter).exec(),
+  ]);
+
+  return { orders: orders as any[], total };
+};
+
 export const updateOrder = (orderId: string, payload: Partial<IOrder>): Promise<IOrder | null> =>
   Order.findByIdAndUpdate(orderId, payload, { new: true })
     .populate("restaurantId", "name logoUrls")

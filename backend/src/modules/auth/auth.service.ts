@@ -22,6 +22,7 @@ export const register = async (input: {
   password: string;
   phone?: string;
   otp: string;
+  role?: string;
 }) => {
   const normalizedEmail = input.email.trim().toLowerCase();
   
@@ -38,7 +39,8 @@ export const register = async (input: {
     name: input.name,
     email: normalizedEmail,
     password,
-    phone: input.phone
+    phone: input.phone,
+    ...(input.role && { role: input.role as any })
   });
 
   const payload = { userId: user._id.toString(), role: user.role };
