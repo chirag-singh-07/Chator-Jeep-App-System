@@ -7,12 +7,14 @@ export const createOrder = (payload: Partial<IOrder>): Promise<IOrder> =>
 export const getOrderById = (orderId: string): Promise<IOrder | null> =>
   Order.findById(orderId)
     .populate("restaurantId", "name phone address logoUrls")
+    .populate("deliveryId", "fullName phoneNumber email profilePhoto vehicleType vehicleFuelType bikeNumber status")
     .lean()
     .exec() as any;
 
 export const listOrdersByUser = (userId: string): Promise<IOrder[]> =>
   Order.find({ userId: new Types.ObjectId(userId) })
     .populate("restaurantId", "name logoUrls")
+    .populate("deliveryId", "fullName phoneNumber profilePhoto vehicleType status")
     .sort({ createdAt: -1 })
     .lean()
     .exec() as any;
@@ -52,5 +54,6 @@ export const adminListOrders = async (
 export const updateOrder = (orderId: string, payload: Partial<IOrder>): Promise<IOrder | null> =>
   Order.findByIdAndUpdate(orderId, payload, { new: true })
     .populate("restaurantId", "name logoUrls")
+    .populate("deliveryId", "fullName phoneNumber profilePhoto vehicleType status")
     .lean()
     .exec() as any;

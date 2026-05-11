@@ -408,7 +408,7 @@ export const listMyOrders = (userId: string) => repo.listOrdersByUser(userId);
 export const getOrderDetail = async (userId: string, orderId: string) => {
   const order = await Order.findById(orderId)
     .populate("restaurantId", "name phone address logoUrls")
-    .populate("deliveryId", "rider status")
+    .populate("deliveryId", "fullName phoneNumber email profilePhoto vehicleType vehicleFuelType bikeNumber status currentLocation lastLocationUpdatedAt")
     .select("+deliveryOtp")
     .exec();
 
