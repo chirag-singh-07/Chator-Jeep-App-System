@@ -8,13 +8,33 @@ export type DeliveryPartnerProfile = {
   email: string;
   profilePhoto?: string;
   vehicleType: "Bike" | "Cycle" | "Car";
+  vehicleFuelType?: "Petrol" | "EV";
+  bikeNumber?: string;
   drivingLicense?: string;
+  documents?: {
+    aadhaarNumber?: string;
+    aadhaarPhoto?: string;
+    drivingLicenseNumber?: string;
+    drivingLicensePhoto?: string;
+    livePhoto?: string;
+  };
+  address?: {
+    buildingName?: string;
+    streetName?: string;
+    landmark?: string;
+    area?: string;
+    state?: string;
+    city?: string;
+  };
+  payoutMethod?: "UPI" | "BANK_ACCOUNT";
+  upiId?: string;
   bankDetails: {
     accountHolderName: string;
-    accountNumber: string;
-    ifscCode: string;
-    bankName: string;
+    accountNumber?: string;
+    ifscCode?: string;
+    bankName?: string;
   };
+  termsAccepted?: boolean;
   status: PartnerStatus;
   isOnline: boolean;
   currentOrderId?: string | null;

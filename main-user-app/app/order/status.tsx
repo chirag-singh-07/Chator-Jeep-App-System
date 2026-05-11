@@ -10,8 +10,9 @@ const { width } = Dimensions.get('window');
 
 export default function OrderStatusScreen() {
   const router = useRouter();
-  const { status, orderId } = useLocalSearchParams();
+  const { status, orderId, reason } = useLocalSearchParams();
   const isSuccess = status === 'success';
+  const failureReason = Array.isArray(reason) ? reason[0] : reason;
 
   useEffect(() => {
     if (isSuccess) {
@@ -46,7 +47,7 @@ export default function OrderStatusScreen() {
           <Text style={styles.subTitle}>
             {isSuccess 
               ? 'Your delicious food is being prepared and will be with you shortly.' 
-              : 'Something went wrong while placing your order. Please try again or contact support.'}
+              : failureReason || 'Payment failed or was cancelled. No order was created.'}
           </Text>
         </Animated.View>
 

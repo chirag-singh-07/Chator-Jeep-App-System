@@ -30,6 +30,7 @@ export type UploadFolder =
   | "restaurants/logos"
   | "restaurants/banners"
   | "restaurants/legal-docs"
+  | "delivery/documents"
   | "menu-items"
   | "users/avatars"
   | "categories";

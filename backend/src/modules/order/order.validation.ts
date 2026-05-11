@@ -20,6 +20,21 @@ export const createOrderSchema = z.object({
   }),
 });
 
+export const onlineCheckoutPaymentSchema = createOrderSchema.extend({
+  body: createOrderSchema.shape.body.extend({
+    paymentMethod: z.literal("ONLINE").optional(),
+  }),
+});
+
+export const verifyOnlineCheckoutPaymentSchema = z.object({
+  body: createOrderSchema.shape.body.extend({
+    paymentMethod: z.literal("ONLINE").optional(),
+    razorpayOrderId: z.string().min(3),
+    razorpayPaymentId: z.string().min(3),
+    razorpaySignature: z.string().min(10),
+  }),
+});
+
 export const updateOrderStatusSchema = z.object({
   params: z.object({ orderId: z.string().min(12) }),
   body: z.object({

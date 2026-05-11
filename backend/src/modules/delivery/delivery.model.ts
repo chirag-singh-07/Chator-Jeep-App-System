@@ -2,6 +2,8 @@ import { Schema, model, Document, Types } from "mongoose";
 
 export type PartnerStatus = "pending" | "approved" | "rejected" | "blocked";
 export type VehicleType = "Bike" | "Cycle" | "Car";
+export type VehicleFuelType = "Petrol" | "EV";
+export type PayoutMethod = "UPI" | "BANK_ACCOUNT";
 
 export interface IDeliveryPartner extends Document {
   userId: Types.ObjectId;
@@ -14,13 +16,33 @@ export interface IDeliveryPartner extends Document {
   email: string;
   profilePhoto?: string;
   vehicleType: VehicleType;
+  vehicleFuelType?: VehicleFuelType;
+  bikeNumber?: string;
   drivingLicense?: string;
+  documents?: {
+    aadhaarNumber: string;
+    aadhaarPhoto: string;
+    drivingLicenseNumber: string;
+    drivingLicensePhoto: string;
+    livePhoto: string;
+  };
+  address?: {
+    buildingName: string;
+    streetName: string;
+    landmark?: string;
+    area: string;
+    state: string;
+    city: string;
+  };
+  payoutMethod?: PayoutMethod;
+  upiId?: string;
   bankDetails: {
     accountHolderName: string;
-    accountNumber: string;
-    ifscCode: string;
-    bankName: string;
+    accountNumber?: string;
+    ifscCode?: string;
+    bankName?: string;
   };
+  termsAccepted?: boolean;
   status: PartnerStatus;
   isOnline: boolean;
   isAvailable: boolean;
@@ -52,13 +74,33 @@ const deliveryPartnerSchema = new Schema<IDeliveryPartner>(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     profilePhoto: { type: String },
     vehicleType: { type: String, enum: ["Bike", "Cycle", "Car"], required: true },
+    vehicleFuelType: { type: String, enum: ["Petrol", "EV"] },
+    bikeNumber: { type: String, uppercase: true, trim: true },
     drivingLicense: { type: String },
+    documents: {
+      aadhaarNumber: { type: String, trim: true, select: false },
+      aadhaarPhoto: { type: String, trim: true },
+      drivingLicenseNumber: { type: String, trim: true, uppercase: true },
+      drivingLicensePhoto: { type: String, trim: true },
+      livePhoto: { type: String, trim: true },
+    },
+    address: {
+      buildingName: { type: String, trim: true },
+      streetName: { type: String, trim: true },
+      landmark: { type: String, trim: true },
+      area: { type: String, trim: true },
+      state: { type: String, trim: true },
+      city: { type: String, trim: true },
+    },
+    payoutMethod: { type: String, enum: ["UPI", "BANK_ACCOUNT"], default: "BANK_ACCOUNT" },
+    upiId: { type: String, trim: true },
     bankDetails: {
       accountHolderName: { type: String, required: true },
-      accountNumber: { type: String, required: true },
-      ifscCode: { type: String, required: true },
-      bankName: { type: String, required: true },
+      accountNumber: { type: String },
+      ifscCode: { type: String, uppercase: true },
+      bankName: { type: String },
     },
+    termsAccepted: { type: Boolean, default: false },
     status: { type: String, enum: ["pending", "approved", "rejected", "blocked"], default: "pending", index: true },
     isOnline: { type: Boolean, default: false, index: true },
     isAvailable: { type: Boolean, default: false, index: true },

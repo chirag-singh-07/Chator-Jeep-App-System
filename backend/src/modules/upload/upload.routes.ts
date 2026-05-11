@@ -10,6 +10,7 @@ import {
   uploadMultipleImages,
   uploadRestaurantBrand,
   uploadRestaurantLegalDocs,
+  uploadDeliveryDocs,
   uploadAvatar,
   getPresignedUploadUrl,
   deleteImages,
@@ -71,6 +72,20 @@ router.post(
     { name: "otherDocs", maxCount: 5 },
   ]),
   uploadRestaurantLegalDocs
+);
+
+/**
+ * POST /api/v1/uploads/delivery-docs
+ * Upload delivery partner Aadhaar, driving license, and live photo.
+ */
+router.post(
+  "/delivery-docs",
+  uploadFields([
+    { name: "aadhaarPhoto", maxCount: 1 },
+    { name: "drivingLicensePhoto", maxCount: 1 },
+    { name: "livePhoto", maxCount: 1 },
+  ]),
+  uploadDeliveryDocs
 );
 
 /**

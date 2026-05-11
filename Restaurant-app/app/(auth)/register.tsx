@@ -43,6 +43,7 @@ export default function RegisterScreen() {
   // Step 1: Account
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   // Step 2: Kitchen Details
   const [kitchenName, setKitchenName] = useState("");
@@ -292,14 +293,29 @@ export default function RegisterScreen() {
             </View>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>PASSWORD</Text>
+              <View style={styles.passwordInputRow}>
               <TextInput
-                style={styles.input}
+                style={styles.passwordInput}
                 placeholder="••••••••"
                 placeholderTextColor="#666"
                 value={password}
                 onChangeText={setPassword}
-                secureTextEntry
+                secureTextEntry={!showPassword}
               />
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    showPassword ? "Hide password" : "Show password"
+                  }
+                  onPress={() => setShowPassword((current) => !current)}
+                >
+                  <Ionicons
+                    name={showPassword ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color="#666"
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         );
@@ -737,6 +753,23 @@ const styles = StyleSheet.create({
     color: "#FFF",
     borderWidth: 1,
     borderColor: "#1A1A1A",
+  },
+  passwordInputRow: {
+    backgroundColor: "#0A0A0A",
+    height: 55,
+    borderRadius: 15,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderWidth: 1,
+    borderColor: "#1A1A1A",
+  },
+  passwordInput: {
+    flex: 1,
+    height: "100%",
+    fontSize: 15,
+    color: "#FFF",
   },
   row: { flexDirection: "row" },
   pickerTrigger: {

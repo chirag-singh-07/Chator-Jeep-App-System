@@ -20,6 +20,7 @@ export default function LoginScreen() {
   const { login, isLoading } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isDisabled = useMemo(
@@ -84,7 +85,12 @@ export default function LoginScreen() {
                 icon="lock-closed-outline"
                 value={password}
                 onChangeText={setPassword}
-                secureTextEntry
+                secureTextEntry={!showPassword}
+                rightIcon={showPassword ? "eye-off-outline" : "eye-outline"}
+                rightIconAccessibilityLabel={
+                  showPassword ? "Hide password" : "Show password"
+                }
+                onRightIconPress={() => setShowPassword((current) => !current)}
               />
 
               {error && (
