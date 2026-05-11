@@ -6,6 +6,8 @@
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
+    "android:stable": "cd android && set GRADLE_USER_HOME=..\\..\\.gradle-user-home&& gradlew.bat app:installDebug -x lint -x test --no-daemon -PreactNativeDevServerPort=8081 \"-PreactNativeArchitectures=x86_64,arm64-v8a\"",
+    "android:assemble": "cd android && set GRADLE_USER_HOME=..\\..\\.gradle-user-home&& gradlew.bat app:assembleDebug -x lint -x test --no-daemon -PreactNativeDevServerPort=8081 \"-PreactNativeArchitectures=x86_64,arm64-v8a\"",
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint"

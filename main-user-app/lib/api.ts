@@ -2,12 +2,34 @@ import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import { router } from "expo-router";
 import { useAuthStore } from "@/store/useAuthStore";
+import { Platform } from "react-native";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000/api/v1";
+const PRODUCTION_API_URL = "https://chator-jeep-app-api.onrender.com/api/v1";
+
+const normalizeApiUrl = (url: string) => {
+  const cleaned = url.trim().replace(/^["']|["']$/g, "").replace(/\/+$/, "");
+  return cleaned.endsWith("/api/v1") ? cleaned : `${cleaned}/api/v1`;
+};
+
+const getLocalApiUrl = () =>
+  Platform.select({
+    android: "http://10.0.2.2:5000/api/v1",
+    ios: "http://localhost:5000/api/v1",
+    default: "http://localhost:5000/api/v1",
+  })!;
+
+export const API_URL = normalizeApiUrl(
+  process.env.EXPO_PUBLIC_API_URL || PRODUCTION_API_URL,
+);
+
+export const SOCKET_URL = API_URL.replace(/\/api\/v1$/, "");
+
+export const LOCAL_API_URL = getLocalApiUrl();
 
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 20000, // 20s – covers Render free-tier cold-start wake-up time
+  timeout: 60000,
+  adapter: "fetch",
 });
 
 api.interceptors.request.use(async (config) => {
@@ -40,8 +62,8 @@ api.interceptors.response.use(
     const isNetworkError = !status && (error.code === "ECONNABORTED" || error.message === "Network Error");
     if (isNetworkError && !originalRequest._retried) {
       originalRequest._retried = true;
-      console.warn(`🔄 [API Retry] Server waking up. Retrying in 3s: ${originalRequest.url}`);
-      await new Promise((r) => setTimeout(r, 3000));
+      console.warn(`🔄 [API Retry] Server waking up. Retrying in 8s: ${originalRequest.url}`);
+      await new Promise((r) => setTimeout(r, 8000));
       return api(originalRequest);
     }
 
@@ -49,7 +71,12 @@ api.interceptors.response.use(
     if (status !== 401) {
       console.warn(
         `⚠️ [API Error] ${status || "Network/Timeout"} ${originalRequest?.url}`,
-        { message: error.message, code: error.code, data: error.response?.data }
+        {
+          baseURL: originalRequest?.baseURL,
+          message: error.message,
+          code: error.code,
+          data: error.response?.data,
+        },
       );
     }
     if (error.response?.status === 401 && !originalRequest._retry) {

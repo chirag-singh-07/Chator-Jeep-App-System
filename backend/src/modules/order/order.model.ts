@@ -45,7 +45,7 @@ const orderSchema = new Schema<IOrder>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     restaurantId: { type: Schema.Types.ObjectId, ref: "Restaurant", required: true, index: true },
-    deliveryId: { type: Schema.Types.ObjectId, ref: "Delivery", default: null, index: true },
+    deliveryId: { type: Schema.Types.ObjectId, ref: "DeliveryPartner", default: null, index: true },
     items: [
       {
         menuItemId: { type: Schema.Types.ObjectId, ref: "MenuItem", required: true },

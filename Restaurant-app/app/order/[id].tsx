@@ -90,9 +90,9 @@ export default function OrderDetailsScreen() {
             <Ionicons name="person" size={20} color={Colors.light.primary} />
             <Text style={styles.sectionTitle}>Customer Details</Text>
           </View>
-          <Text style={styles.infoText}><Text style={styles.boldText}>Name:</Text> {order.customerData.name}</Text>
-          <Text style={styles.infoText}><Text style={styles.boldText}>Phone:</Text> {order.customerData.phone}</Text>
-          <Text style={styles.infoText}><Text style={styles.boldText}>Delivery Address:</Text> {order.customerData.address}</Text>
+          <Text style={styles.infoText}><Text style={styles.boldText}>Name:</Text> {order.customerData?.name || 'N/A'}</Text>
+          <Text style={styles.infoText}><Text style={styles.boldText}>Phone:</Text> {order.customerData?.phone || 'N/A'}</Text>
+          <Text style={styles.infoText}><Text style={styles.boldText}>Delivery Address:</Text> {order.customerData?.address || 'N/A'}</Text>
           
           <TouchableOpacity style={styles.actionBtn}>
              <Ionicons name="call" size={16} color="black" />

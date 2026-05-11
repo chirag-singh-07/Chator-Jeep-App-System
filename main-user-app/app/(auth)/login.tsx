@@ -59,7 +59,12 @@ export default function LoginScreen() {
         router.replace('/(tabs)');
       }
     } catch (error: any) {
-      Alert.alert("Login Failed", error.response?.data?.message || "Something went wrong. Please try again.");
+      Alert.alert(
+        "Login Failed",
+        error.response?.data?.message ||
+          error.message ||
+          "Something went wrong. Please try again.",
+      );
     } finally {
       setLoading(false);
     }

@@ -9,10 +9,12 @@ lerna-debug.log*
 
 env-files
 node_modules
+.gradle-user-home/
 dist
 dist-ssr
 
 android
+
 ios
 
 *.local

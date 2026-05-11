@@ -11,6 +11,7 @@ export interface Address {
   line1?: string;    // fallback for line1
   city?: string;     // city name
   address?: string;  // full string if available
+  pincode?: string;
   coordinates: {
     latitude: number;
     longitude: number;
@@ -22,7 +23,7 @@ interface LocationState {
   currentAddress: Address | null;
   savedAddresses: Address[];
   setCurrentAddress: (address: Address) => void;
-  addAddress: (address: Omit<Address, "id">) => void;
+  addAddress: (address: Address) => void;
   removeAddress: (id: string) => void;
   setDefaultAddress: (id: string) => void;
 }
@@ -34,11 +35,10 @@ export const useLocationStore = create<LocationState>()(
       savedAddresses: [],
       setCurrentAddress: (address) => set({ currentAddress: address }),
       addAddress: (address) => {
-        const id = (address as any).id || Math.random().toString(36).substr(2, 9);
+        const id = address.id || Math.random().toString(36).substr(2, 9);
         set((state) => ({
           savedAddresses: [...state.savedAddresses, { ...address, id }]
         }));
-        return id;
       },
       removeAddress: (id) => set((state) => ({
         savedAddresses: state.savedAddresses.filter((a) => a.id !== id)

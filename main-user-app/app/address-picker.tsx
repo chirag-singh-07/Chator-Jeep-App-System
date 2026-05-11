@@ -42,10 +42,12 @@ export default function AddressPickerScreen() {
   // Form fields
   const [flat, setFlat] = useState('');
   const [area, setArea] = useState('');
+  const [city, setCity] = useState('');
+  const [pincode, setPincode] = useState('');
   const [label, setLabel] = useState('Home'); // Home, Work, Other
   
   const router = useRouter();
-  const { setCurrentAddress, addAddress, savedAddresses, setDefaultAddress, removeAddress } = useLocationStore();
+  const { setCurrentAddress, addAddress, savedAddresses, removeAddress } = useLocationStore();
 
   const handleSearch = (text: string) => {
     setSearch(text);
@@ -64,31 +66,48 @@ export default function AddressPickerScreen() {
   const handleSelect = (item: any) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setTempAddress(item);
-    setArea(item.address);
+    setFlat(item.name || item.street || 'Current Location');
+    setArea(item.address || `${item.street || ''}${item.city ? `, ${item.city}` : ''}`.trim());
+    setCity(item.city || '');
+    setPincode(item.postalCode || '');
+    setLabel('Home');
+    setShowForm(true);
+  };
+
+  const openManualForm = () => {
+    setTempAddress(null);
+    setFlat('');
+    setArea('');
+    setCity('');
+    setPincode('');
+    setLabel('Home');
     setShowForm(true);
   };
 
   const saveAddress = () => {
-    if (!flat || !area) {
+    if (!flat.trim() || !area.trim()) {
       alert('Please enter flat/house no and area');
       return;
     }
 
     const id = Math.random().toString(36).substr(2, 9);
+    const fullAddress = `${flat.trim()}, ${area.trim()}${city.trim() ? `, ${city.trim()}` : ''}${pincode.trim() ? ` - ${pincode.trim()}` : ''}`;
     const newAddr = {
       id,
-      flat,
-      area,
+      flat: flat.trim(),
+      area: area.trim(),
+      city: city.trim() || tempAddress?.city || '',
+      pincode: pincode.trim(),
       label,
       type: label,
-      coordinates: tempAddress?.coordinates || { latitude: 28.6139, longitude: 77.2090 },
-      city: tempAddress?.city || '',
+      line1: `${flat.trim()}, ${area.trim()}`,
+      address: fullAddress,
+      coordinates: tempAddress?.coordinates || { latitude: 0, longitude: 0 },
     };
 
-    addAddress(newAddr);
-    // Also set as current
-    setCurrentAddress(newAddr);
-    
+    addAddress(newAddr as any);
+    setCurrentAddress(newAddr as any);
+
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setShowForm(false);
     router.back();
@@ -194,6 +213,23 @@ export default function AddressPickerScreen() {
               <ActivityIndicator animating={loading} size="small" color={Colors.light.primary} />
             </TouchableOpacity>
 
+            <TouchableOpacity style={styles.manualBtn} onPress={openManualForm}>
+              <View style={styles.manualBtnIcon}>
+                <Ionicons name="create-outline" size={20} color={Colors.light.primary} />
+              </View>
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={styles.manualBtnText}>Enter address manually</Text>
+                <Text style={styles.manualBtnSubText}>Add flat, street, city and pin code</Text>
+              </View>
+            </TouchableOpacity>
+
+            {savedAddresses.length === 0 && (
+              <View style={styles.emptyHintBox}>
+                <Text style={styles.emptyHintTitle}>No saved addresses yet</Text>
+                <Text style={styles.emptyHintText}>Save your address here so checkout is faster next time.</Text>
+              </View>
+            )}
+
             {savedAddresses.length > 0 && (
               <View style={styles.savedSection}>
                 <Text style={styles.sectionLabel}>SAVED ADDRESSES</Text>
@@ -298,6 +334,23 @@ export default function AddressPickerScreen() {
                  onChangeText={setArea}
                />
 
+               <Text style={styles.inputLabel}>CITY</Text>
+               <TextInput
+                 style={styles.formInput}
+                 placeholder="E.g. New Delhi"
+                 value={city}
+                 onChangeText={setCity}
+               />
+
+               <Text style={styles.inputLabel}>PIN CODE</Text>
+               <TextInput
+                 style={styles.formInput}
+                 placeholder="E.g. 110001"
+                 value={pincode}
+                 onChangeText={setPincode}
+                 keyboardType="numeric"
+               />
+
                <Text style={styles.inputLabel}>SAVE AS</Text>
                <View style={styles.labelRow}>
                   {['Home', 'Work', 'Other'].map(l => (
@@ -391,6 +444,35 @@ const styles = StyleSheet.create({
   modalTitle: { fontSize: 18, fontWeight: '900', color: Colors.light.text },
   inputLabel: { fontSize: 11, fontWeight: '900', color: '#999', letterSpacing: 1, marginBottom: 10, marginTop: 20 },
   formInput: { backgroundColor: '#F9FAFB', borderRadius: 15, padding: 15, fontSize: 15, fontWeight: '600', color: '#000', borderWidth: 1, borderColor: '#F3F4F6' },
+  manualBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    padding: 18,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+  manualBtnIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    backgroundColor: '#F9FAFB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  manualBtnText: { fontSize: 16, fontWeight: '900', color: Colors.light.text },
+  manualBtnSubText: { fontSize: 13, color: '#777', marginTop: 4, fontWeight: '600' },
+  emptyHintBox: { backgroundColor: '#FEFBF5', borderRadius: 20, padding: 18, marginHorizontal: 20, marginBottom: 20, borderWidth: 1, borderColor: '#F7E9C8' },
+  emptyHintTitle: { fontSize: 15, fontWeight: '900', color: '#333', marginBottom: 6 },
+  emptyHintText: { fontSize: 13, color: '#666', lineHeight: 20 },
   labelRow: { flexDirection: 'row', gap: 12, marginTop: 10 },
   labelBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 15, backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#F3F4F6' },
   activeLabelBtn: { backgroundColor: Colors.light.primary, borderColor: Colors.light.primary },

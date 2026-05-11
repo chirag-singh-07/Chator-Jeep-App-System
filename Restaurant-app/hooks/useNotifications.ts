@@ -35,6 +35,10 @@ export const useNotifications = () => {
       });
 
       const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+        // Don't show alert for order notifications - handled by custom AlertOverlay
+        if (remoteMessage.data?.type === 'new_order') {
+          return;
+        }
         Alert.alert(
           remoteMessage.notification?.title || "Restaurant Update",
           remoteMessage.notification?.body || ""

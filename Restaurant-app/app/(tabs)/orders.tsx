@@ -67,7 +67,7 @@ export default function OrdersScreen() {
 
       <View style={styles.customerRow}>
         <Ionicons name="person-circle" size={16} color="#666" />
-        <Text style={styles.customerName}>{item.customerData.name}</Text>
+        <Text style={styles.customerName}>{item.customerData?.name || 'Customer'}</Text>
       </View>
 
       <View style={styles.itemsBox}>

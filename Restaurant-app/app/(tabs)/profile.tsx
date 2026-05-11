@@ -111,7 +111,7 @@ export default function ProfileScreen() {
                 setIncomingOrder({
                   _id: 'mock_123',
                   orderNumber: 'TEST-999',
-                  customerData: { name: 'Demo Customer', phone: '9999999999' },
+                  customerData: { name: 'Demo Customer', phone: '9999999999', address: 'Test Address' },
                   items: [{ name: 'Smoky Paneer Burger', quantity: 1, price: 150 }],
                   totalAmount: 150,
                   status: 'PENDING',

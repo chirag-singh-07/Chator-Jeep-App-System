@@ -73,17 +73,33 @@ export const useMenuStore = create<MenuState>((set, get) => ({
   fetchHomeData: async (lat, lng) => {
     set({ isLoading: true, error: null });
     try {
-      const [resCategories, resRestaurants, resPopular] = await Promise.all([
+      const [categoriesResult, restaurantsResult, popularResult] =
+        await Promise.allSettled([
         api.get("/categories"),
         api.get("/restaurants", { params: { lat, lng, limit: 10 } }),
         api.get("/restaurants/menu/popular"),
       ]);
 
+      const resCategories =
+        categoriesResult.status === "fulfilled" ? categoriesResult.value : null;
+      const resRestaurants =
+        restaurantsResult.status === "fulfilled"
+          ? restaurantsResult.value
+          : null;
+      const resPopular =
+        popularResult.status === "fulfilled" ? popularResult.value : null;
+      const firstError = [categoriesResult, restaurantsResult, popularResult]
+        .find((result) => result.status === "rejected");
+
       set({
-        categories: resCategories.data.data || [],
-        restaurants: resRestaurants.data.restaurants || [],
-        popularItems: resPopular.data.data || [],
+        categories: resCategories?.data.data || [],
+        restaurants: resRestaurants?.data.restaurants || [],
+        popularItems: resPopular?.data.data || [],
         isLoading: false,
+        error:
+          firstError && !resCategories && !resRestaurants && !resPopular
+            ? "Unable to connect to the server."
+            : null,
       });
 
       // Fetch banners separately to avoid failing the whole request if banners endpoint doesn't exist yet

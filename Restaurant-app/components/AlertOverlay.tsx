@@ -24,20 +24,41 @@ export const AlertOverlay = () => {
 
   useEffect(() => {
     if (incomingOrder) {
-      if (player) {
-         player.loop = true;
-         player.play();
+      try {
+        if (player && !player.playing) {
+          player.loop = true;
+          player.play();
+        }
+      } catch (e) {
+        console.warn('Audio playback error:', e);
       }
-      Vibration.vibrate([0, 1000, 1000], true);
+      try {
+        Vibration.vibrate([0, 500, 200, 500], true);
+      } catch (e) {
+        console.warn('Vibration error:', e);
+      }
     } else {
-      if (player) {
-         player.pause();
+      try {
+        if (player && player.playing) {
+          player.pause();
+          player.loop = false;
+        }
+      } catch (e) {
+        console.warn('Audio pause error:', e);
       }
-      Vibration.cancel();
+      try {
+        Vibration.cancel();
+      } catch (e) {
+        console.warn('Vibration cancel error:', e);
+      }
     }
 
     return () => {
-      Vibration.cancel();
+      try {
+        Vibration.cancel();
+      } catch (e) {
+        console.warn('Cleanup vibration error:', e);
+      }
     };
   }, [incomingOrder, player]);
 
@@ -46,7 +67,10 @@ export const AlertOverlay = () => {
   const handleAccept = async () => {
     try {
       await acceptOrder(incomingOrder._id, 20);
-      router.push(`/order/${incomingOrder._id}`);
+      // Small delay to ensure order is in store
+      setTimeout(() => {
+        router.push(`/order/${incomingOrder._id}`);
+      }, 500);
     } catch (e) {
       Alert.alert("Failed", "Could not accept order. Please check your connection.");
     }
@@ -75,12 +99,16 @@ export const AlertOverlay = () => {
           <Text style={styles.totalAmount}>₹{incomingOrder.totalAmount}</Text>
 
           <View style={styles.itemBox}>
-            {incomingOrder.items?.map((item, idx) => (
-              <View key={idx} style={styles.itemRow}>
-                <Text style={styles.itemQty}>{item.quantity}x</Text>
-                <Text style={styles.itemText}>{item.name}</Text>
-              </View>
-            ))}
+            {incomingOrder.items && incomingOrder.items.length > 0 ? (
+              incomingOrder.items.map((item, idx) => (
+                <View key={idx} style={styles.itemRow}>
+                  <Text style={styles.itemQty}>{item.quantity}x</Text>
+                  <Text style={styles.itemText}>{item.name}</Text>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.itemText}>No items</Text>
+            )}
           </View>
 
           <View style={styles.buttonRow}>

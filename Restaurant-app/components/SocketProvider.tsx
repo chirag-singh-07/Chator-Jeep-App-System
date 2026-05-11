@@ -34,7 +34,22 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       socketRef.current.on("new_order", (data) => {
-        setIncomingOrder(data.order);
+        // Transform backend order to match Order interface
+        const order = data.order || data;
+        const transformedOrder = {
+          _id: order._id,
+          orderNumber: order.orderNumber || order._id.slice(-6).toUpperCase(),
+          customerData: {
+            name: order.customerName || 'Customer',
+            phone: order.customerPhone || 'N/A',
+            address: order.deliveryAddress || 'N/A'
+          },
+          items: order.items || [],
+          totalAmount: order.totalAmount || 0,
+          status: order.status || 'PENDING',
+          createdAt: order.createdAt || new Date().toISOString()
+        };
+        setIncomingOrder(transformedOrder);
       });
 
       socketRef.current.on("notification", (data) => {

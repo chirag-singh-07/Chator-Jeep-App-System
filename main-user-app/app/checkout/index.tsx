@@ -30,14 +30,26 @@ type PaymentMethod = 'COD' | 'ONLINE';
 export default function CheckoutScreen() {
   const router = useRouter();
   const { items, totalAmount, restaurantId, clearCart } = useCartStore();
-  const { savedAddresses } = useLocationStore();
+  const { savedAddresses, currentAddress } = useLocationStore();
   const { placeOrder, isLoading } = useOrderStore();
 
   const [step, setStep] = useState(1);
-  const [selectedAddress, setSelectedAddress] = useState<any>(savedAddresses[0] || null);
+  const [selectedAddress, setSelectedAddress] = useState<any>(savedAddresses[0] || currentAddress || null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('COD');
   const [isProcessing, setIsProcessing] = useState(false);
   const [promoCode, setPromoCode] = useState('');
+
+  useEffect(() => {
+    const defaultAddress = currentAddress || savedAddresses[0] || null;
+    if (!selectedAddress || (currentAddress && selectedAddress?.id !== currentAddress.id)) {
+      if (defaultAddress) {
+        setSelectedAddress(defaultAddress);
+      }
+    }
+  }, [savedAddresses, currentAddress]);
+
+  const addressList = savedAddresses.length > 0 ? savedAddresses : currentAddress ? [currentAddress] : [];
+
   const [discount, setDiscount] = useState(0);
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
 
@@ -183,27 +195,41 @@ export default function CheckoutScreen() {
         {step === 1 ? (
           <Animated.View entering={FadeInRight} style={styles.stepContent}>
             <Text style={styles.sectionTitle}>Delivery Address</Text>
-            {savedAddresses.length > 0 ? (
-              savedAddresses.map((addr: any, index: number) => (
-                <TouchableOpacity
-                  key={index}
-                  style={[styles.addressCard, selectedAddress?.label === addr.label && styles.selectedCard]}
-                  onPress={() => setSelectedAddress(addr)}
-                >
-                  <View style={styles.addressIcon}>
-                    <Ionicons
-                      name={(addr.label || addr.type) === 'Home' ? 'home' : 'location'}
-                      size={20}
-                      color={(selectedAddress?.label || selectedAddress?.type) === (addr.label || addr.type) ? Colors.light.primary : '#999'}
-                    />
-                  </View>
-                  <View style={{ flex: 1, marginLeft: 15 }}>
-                    <Text style={styles.addressType}>{addr.label || addr.type}</Text>
-                    <Text style={styles.addressText}>{addr.line1 || addr.flat}</Text>
-                  </View>
+            {addressList.length > 0 ? (
+              <>
+                {addressList.map((addr: any, index: number) => (
+                  <TouchableOpacity
+                    key={addr.id || index}
+                    style={[styles.addressCard, selectedAddress?.id === addr.id && styles.selectedCard]}
+                    onPress={() => setSelectedAddress(addr)}
+                  >
+                    <View style={styles.addressIcon}>
+                      <Ionicons
+                        name={(addr.label || addr.type) === 'Home' ? 'home' : 'location'}
+                        size={20}
+                        color={(selectedAddress?.id === addr.id) ? Colors.light.primary : '#999'}
+                      />
+                    </View>
+                    <View style={{ flex: 1, marginLeft: 15 }}>
+                      <Text style={styles.addressType}>{addr.label || addr.type}</Text>
+                      <Text style={styles.addressText}>{addr.line1 || `${addr.flat}, ${addr.area}`}</Text>
+                      {addr.city ? <Text style={styles.addressText}>{addr.city}</Text> : null}
+                    </View>
+                  </TouchableOpacity>
+                ))}
+                <TouchableOpacity style={[styles.addAddressBtn, { marginTop: 10 }]} onPress={() => router.push('/address-picker')}>
+                  <Text style={styles.addAddressBtnText}>Add New Address</Text>
                 </TouchableOpacity>
-              ))
-            ) : null}
+              </>
+            ) : (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyTitle}>No delivery address found</Text>
+                <Text style={styles.emptyText}>Please add an address before placing your order.</Text>
+                <TouchableOpacity style={styles.addAddressBtn} onPress={() => router.push('/address-picker')}>
+                  <Text style={styles.addAddressBtnText}>Add New Address</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </Animated.View>
         ) : (
           <Animated.View entering={FadeInRight} style={styles.stepContent}>
@@ -290,9 +316,17 @@ const styles = StyleSheet.create({
   summaryDivider: { height: 1, backgroundColor: '#F3F4F6', marginVertical: 10 },
   grandTotalLabel: { fontSize: 16, fontWeight: '900' },
   grandTotalValue: { fontSize: 20, fontWeight: '900', color: Colors.light.primary },
+  emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 40 },
+  emptyTitle: { fontSize: 18, fontWeight: '900', marginBottom: 10 },
+  emptyText: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20, paddingHorizontal: 20 },
+  addAddressBtn: { backgroundColor: Colors.light.primary, paddingVertical: 15, borderRadius: 20, paddingHorizontal: 25, alignItems: 'center', justifyContent: 'center', marginTop: 10 },
+  addAddressBtnText: { color: Colors.light.black, fontSize: 15, fontWeight: '900' },
+  emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 40 },
+  emptyTitle: { fontSize: 18, fontWeight: '900', marginBottom: 10 },
+  emptyText: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20, paddingHorizontal: 20 },
   footer: { padding: 20, backgroundColor: '#FFF' },
   nextBtn: { backgroundColor: Colors.light.primary, height: 58, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  nextBtnText: { color: '#FFF', fontSize: 16, fontWeight: '900' },
+  nextBtnText: { color: Colors.light.black, fontSize: 16, fontWeight: '900' },
   placeOrderBtn: { backgroundColor: '#22C55E', height: 58, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   placeOrderText: { color: '#FFF', fontSize: 16, fontWeight: '900' },
 });

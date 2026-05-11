@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { useAuthStore } from "../store/useAuthStore";
-import { env } from "../constants/env";
+import { SOCKET_URL } from "../lib/api";
 
 interface SocketContextType {
   socket: Socket | null;
@@ -29,7 +29,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return;
     }
 
-    const newSocket = io(process.env.EXPO_PUBLIC_API_URL || "http://localhost:5000", {
+    const newSocket = io(SOCKET_URL, {
       transports: ["websocket"],
       query: { userId: user.id },
     });
