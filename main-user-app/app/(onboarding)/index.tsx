@@ -27,21 +27,21 @@ const SLIDES = [
     id: '1',
     title: 'Discover Gourmet',
     description: 'Explore the best local kitchens and premium restaurants curated just for you.',
-    image: require('@/assets/images/onboarding_food_discover.png'),
+    image: require('@/assets/images/onboarding_food_discover.jpg'),
     color: '#FFFDF5'
   },
   {
     id: '2',
     title: 'Swift Delivery',
     description: 'Get your favorites delivered at lightning speed by our dedicated fleet.',
-    image: require('@/assets/images/onboarding_delivery_speed.png'),
+    image: require('@/assets/images/onboarding_delivery_speed.jpg'),
     color: '#FFFDF5'
   },
   {
     id: '3',
     title: 'Real-time Tracking',
     description: 'Watch your meal travel on the map with hyper-accurate live updates.',
-    image: require('@/assets/images/onboarding_tracking.png'),
+    image: require('@/assets/images/onboarding_tracking.jpg'),
     color: '#FFFDF5'
   },
 ];
