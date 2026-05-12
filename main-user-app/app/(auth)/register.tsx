@@ -29,6 +29,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useLocationStore } from '@/store/useLocationStore';
 
 const { width, height } = Dimensions.get('window');
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const indianPhoneRegex = /^[6-9]\d{9}$/;
 
 export default function RegisterScreen() {
@@ -55,9 +56,24 @@ export default function RegisterScreen() {
         Alert.alert("Missing Information", "Please fill all fields to continue.");
         return;
       }
+      if (formData.name.trim().length < 2 || formData.name.trim().length > 60) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        Alert.alert("Invalid Name", "Name must be between 2 and 60 characters.");
+        return;
+      }
+      if (!emailRegex.test(formData.email.trim())) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        Alert.alert("Invalid Email", "Please enter a valid email address.");
+        return;
+      }
       if (!indianPhoneRegex.test(formData.phone.trim())) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         Alert.alert("Invalid Phone", "Please enter a valid Indian 10-digit phone number starting with 6, 7, 8, or 9.");
+        return;
+      }
+      if (formData.password.length < 8 || formData.password.length > 64) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        Alert.alert("Invalid Password", "Password must be between 8 and 64 characters.");
         return;
       }
       setStep(2);
@@ -68,12 +84,17 @@ export default function RegisterScreen() {
         Alert.alert("Location Required", "Please provide your delivery address.");
         return;
       }
+      if (formData.homeAddress && formData.homeAddress.trim().length < 8) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        Alert.alert("Address Too Short", "Please enter a more complete home address.");
+        return;
+      }
       
       try {
         setLoading(true);
         // Request OTP from backend
         const response = await api.post('/auth/request-otp', {
-          email: formData.email,
+          email: formData.email.trim(),
           type: 'register'
         });
         
@@ -169,14 +190,16 @@ export default function RegisterScreen() {
       
       const response = await api.post('/auth/register', {
         ...formData,
-        otp
+        otp: otp.trim()
       });
       
       const { user, accessToken, refreshToken } = response.data;
 
       // Save address to location store
       if (formData.coordinates) {
+        const addressId = Math.random().toString(36).substring(7);
         const addrData = {
+          id: addressId,
           flat: formData.homeAddress,
           area: formData.locationName,
           coordinates: formData.coordinates,
@@ -185,10 +208,7 @@ export default function RegisterScreen() {
         };
         useLocationStore.getState().addAddress(addrData);
         // Set as current address for the app
-        useLocationStore.getState().setCurrentAddress({
-          ...addrData,
-          id: Math.random().toString(36).substring(7)
-        });
+        useLocationStore.getState().setCurrentAddress(addrData);
       }
 
       await useAuthStore.getState().setAuth(user, { accessToken, refreshToken });
@@ -250,7 +270,8 @@ export default function RegisterScreen() {
                         style={styles.input}
                         placeholder="e.g. John Doe"
                         value={formData.name}
-                        onChangeText={(v) => setFormData({...formData, name: v})}
+                        onChangeText={(v) => setFormData({...formData, name: v.slice(0, 60)})}
+                        maxLength={60}
                       />
                     </View>
                   </View>
@@ -265,7 +286,8 @@ export default function RegisterScreen() {
                         keyboardType="email-address"
                         autoCapitalize="none"
                         value={formData.email}
-                        onChangeText={(v) => setFormData({...formData, email: v})}
+                        onChangeText={(v) => setFormData({...formData, email: v.trim()})}
+                        maxLength={120}
                       />
                     </View>
                   </View>
@@ -295,6 +317,7 @@ export default function RegisterScreen() {
                         secureTextEntry={!showPassword}
                         value={formData.password}
                         onChangeText={(v) => setFormData({...formData, password: v})}
+                        maxLength={64}
                       />
                       <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                         <Ionicons 
@@ -344,7 +367,8 @@ export default function RegisterScreen() {
                         multiline
                         numberOfLines={3}
                         value={formData.locationName}
-                        onChangeText={(v) => setFormData({...formData, locationName: v})}
+                        onChangeText={(v) => setFormData({...formData, locationName: v.slice(0, 220)})}
+                        maxLength={220}
                         editable={true}
                       />
                     </View>
@@ -359,7 +383,8 @@ export default function RegisterScreen() {
                         multiline
                         numberOfLines={3}
                         value={formData.homeAddress}
-                        onChangeText={(v) => setFormData({...formData, homeAddress: v})}
+                        onChangeText={(v) => setFormData({...formData, homeAddress: v.slice(0, 220)})}
+                        maxLength={220}
                       />
                     </View>
                   </View>
@@ -405,7 +430,7 @@ export default function RegisterScreen() {
                         keyboardType="number-pad"
                         maxLength={6}
                         value={otp}
-                        onChangeText={setOtp}
+                        onChangeText={(value) => setOtp(value.replace(/\D/g, ""))}
                       />
                     </View>
                   </View>

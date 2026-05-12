@@ -21,7 +21,12 @@ import { Colors, Spacing, Radius, Shadows } from "../../constants/Colors";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { ThemedInput } from "@/components/ThemedInput";
 import { PrimaryButton } from "@/components/PrimaryButton";
-import { INDIA_DATA } from "@/constants/CityData";
+import {
+  getCities,
+  getDistricts,
+  getPincodes,
+  getStates,
+} from "@/constants/india-pincode";
 import { apiClient } from "@/lib/api";
 import Animated, {
   FadeInRight,
@@ -58,7 +63,9 @@ export default function RegisterScreen() {
   const [otpSent, setOtpSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showStatePicker, setShowStatePicker] = useState(false);
+  const [showDistrictPicker, setShowDistrictPicker] = useState(false);
   const [showCityPicker, setShowCityPicker] = useState(false);
+  const [showPincodePicker, setShowPincodePicker] = useState(false);
   const [documentPhotos, setDocumentPhotos] = useState<{
     aadhaarPhoto: ImagePicker.ImagePickerAsset | null;
     panPhoto: ImagePicker.ImagePickerAsset | null;
@@ -95,7 +102,9 @@ export default function RegisterScreen() {
       landmark: "",
       area: "",
       state: "",
+      district: "",
       city: "",
+      pincode: "",
     },
     payoutMethod: "UPI" as PayoutMethod,
     upiId: "",
@@ -109,10 +118,14 @@ export default function RegisterScreen() {
   });
 
   const isCompletingProfile = isAuthenticated && Boolean(user);
-  const selectedState = INDIA_DATA.find(
-    (item) => item.state === form.address.state,
+  const states = getStates();
+  const districts = getDistricts(form.address.state);
+  const cities = getCities(form.address.state, form.address.district);
+  const pincodes = getPincodes(
+    form.address.state,
+    form.address.district,
+    form.address.city,
   );
-  const cities = selectedState?.cities ?? [];
 
   useEffect(() => {
     if (!isCompletingProfile || !user) {
@@ -159,7 +172,9 @@ export default function RegisterScreen() {
       form.address.streetName.trim().length >= 2 &&
       form.address.area.trim().length >= 2 &&
       form.address.state.trim().length > 0 &&
-      form.address.city.trim().length > 0;
+      form.address.district.trim().length > 0 &&
+      form.address.city.trim().length > 0 &&
+      /^\d{6}$/.test(form.address.pincode.trim());
 
     const bank =
       form.bankDetails.accountHolderName.trim().length >= 3 &&
@@ -305,7 +320,7 @@ export default function RegisterScreen() {
     const messages: Record<number, string> = {
       1: "Enter a valid name, email, Indian phone number, OTP/password, and vehicle number.",
       2: "Add Aadhaar, PAN, driving license, vehicle RC, insurance, profile selfie, and live photo.",
-      3: "Complete building, street, area, state, and city in the address section.",
+      3: "Complete building, street, area, state, district, city, and PIN code in the address section.",
       4: "Add a valid UPI ID or bank details and accept the terms and conditions.",
     };
 
@@ -395,7 +410,9 @@ export default function RegisterScreen() {
           landmark: form.address.landmark.trim(),
           area: form.address.area.trim(),
           state: form.address.state,
+          district: form.address.district,
           city: form.address.city,
+          pincode: form.address.pincode,
         },
         payoutMethod: form.payoutMethod,
         upiId: form.payoutMethod === "UPI" ? form.upiId.trim() : undefined,
@@ -470,7 +487,7 @@ export default function RegisterScreen() {
             <Text style={styles.stepTitle}>Personal & Vehicle</Text>
             <Text style={styles.stepSubtitle}>Enter your account details and the bike you will use for deliveries.</Text>
 
-            <ThemedInput label="Full Name" placeholder="Rahul Sharma" icon="person-outline" value={form.name} onChangeText={(text) => setForm({ ...form, name: text })} />
+            <ThemedInput label="Full Name" placeholder="Rahul Sharma" icon="person-outline" value={form.name} maxLength={60} onChangeText={(text) => setForm({ ...form, name: text.replace(/[^a-zA-Z\s.'-]/g, "").slice(0, 60) })} />
 
             {isCompletingProfile ? (
               <ThemedInput label="Email Address" placeholder="rahul@example.com" icon="mail-outline" keyboardType="email-address" autoCapitalize="none" value={form.email} onChangeText={(text) => setForm({ ...form, email: text })} />
@@ -478,7 +495,7 @@ export default function RegisterScreen() {
               <>
                 <View style={styles.otpInputGroup}>
                   <View style={{ flex: 1 }}>
-                    <ThemedInput label="Email Address" placeholder="rahul@example.com" icon="mail-outline" keyboardType="email-address" autoCapitalize="none" value={form.email} onChangeText={(text) => setForm({ ...form, email: text })} containerStyle={{ marginBottom: 0 }} />
+                    <ThemedInput label="Email Address" placeholder="rahul@example.com" icon="mail-outline" keyboardType="email-address" autoCapitalize="none" value={form.email} maxLength={120} onChangeText={(text) => setForm({ ...form, email: text.trim() })} containerStyle={{ marginBottom: 0 }} />
                   </View>
                   <TouchableOpacity style={[styles.otpBtn, otpSent && styles.otpBtnSent]} onPress={handleSendOtp} disabled={loading}>
                     <Text style={styles.otpBtnText}>{otpSent ? "Resend" : "Get OTP"}</Text>
@@ -497,6 +514,7 @@ export default function RegisterScreen() {
                 secureTextEntry={!showPassword}
                 value={form.password}
                 onChangeText={(text) => setForm({ ...form, password: text })}
+                maxLength={64}
                 rightIcon={showPassword ? "eye-off-outline" : "eye-outline"}
                 rightIconAccessibilityLabel={showPassword ? "Hide password" : "Show password"}
                 onRightIconPress={() => setShowPassword((current) => !current)}
@@ -517,7 +535,7 @@ export default function RegisterScreen() {
               )}
             </View>
 
-            <ThemedInput label="Bike Number" placeholder="GJ01AB1234" icon="barcode-outline" autoCapitalize="characters" value={form.bikeNumber} onChangeText={(text) => setForm({ ...form, bikeNumber: text.toUpperCase() })} />
+            <ThemedInput label="Bike Number" placeholder="GJ01AB1234" icon="barcode-outline" autoCapitalize="characters" maxLength={10} value={form.bikeNumber} onChangeText={(text) => setForm({ ...form, bikeNumber: normalizeVehicleNumber(text).slice(0, 10) })} />
 
             <View style={styles.loginLinkContainer}>
               <Text style={styles.loginLinkText}>Already have an account?</Text>
@@ -534,9 +552,9 @@ export default function RegisterScreen() {
             <Text style={styles.stepSubtitle}>Add identity, tax, vehicle, payout, and live photo verification details.</Text>
             <ThemedInput label="Aadhaar Number" placeholder="12 digit Aadhaar number" icon="id-card-outline" keyboardType="numeric" maxLength={12} value={form.aadhaarNumber} onChangeText={(text) => setForm({ ...form, aadhaarNumber: text.replace(/\D/g, "") })} />
             {renderPhotoTile("Aadhaar Card Photo", "Choose from gallery", documentPhotos.aadhaarPhoto, () => pickDocumentPhoto("aadhaarPhoto"), "image-outline")}
-            <ThemedInput label="PAN Number" placeholder="ABCDE1234F" icon="card-outline" autoCapitalize="characters" maxLength={10} value={form.panNumber} onChangeText={(text) => setForm({ ...form, panNumber: text.toUpperCase() })} />
+            <ThemedInput label="PAN Number" placeholder="ABCDE1234F" icon="card-outline" autoCapitalize="characters" maxLength={10} value={form.panNumber} onChangeText={(text) => setForm({ ...form, panNumber: text.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 10) })} />
             {renderPhotoTile("PAN Card Photo", "Choose from gallery", documentPhotos.panPhoto, () => pickDocumentPhoto("panPhoto"), "image-outline")}
-            <ThemedInput label="Driving License Number" placeholder="GJ0120231234567" icon="card-outline" autoCapitalize="characters" value={form.drivingLicenseNumber} onChangeText={(text) => setForm({ ...form, drivingLicenseNumber: text.toUpperCase() })} />
+            <ThemedInput label="Driving License Number" placeholder="GJ0120231234567" icon="card-outline" autoCapitalize="characters" maxLength={16} value={form.drivingLicenseNumber} onChangeText={(text) => setForm({ ...form, drivingLicenseNumber: text.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 16) })} />
             {renderPhotoTile("Driving License Photo", "Choose from gallery", documentPhotos.drivingLicensePhoto, () => pickDocumentPhoto("drivingLicensePhoto"), "image-outline")}
             {renderPhotoTile("Vehicle RC", `${form.fuelType} ${form.vehicleType} registration`, documentPhotos.vehicleRcPhoto, () => pickDocumentPhoto("vehicleRcPhoto"), "document-text-outline")}
             {renderPhotoTile("Bike Insurance", "Valid insurance document", documentPhotos.bikeInsurancePhoto, () => pickDocumentPhoto("bikeInsurancePhoto"), "shield-checkmark-outline")}
@@ -549,10 +567,10 @@ export default function RegisterScreen() {
           <Animated.View key="step3" entering={FadeInRight} exiting={FadeOutLeft} style={styles.stepContainer}>
             <Text style={styles.stepTitle}>Address Info</Text>
             <Text style={styles.stepSubtitle}>Use your current residential address for verification.</Text>
-            <ThemedInput label="Building Name" placeholder="Shree Heights" icon="business-outline" value={form.address.buildingName} onChangeText={(text) => setForm({ ...form, address: { ...form.address, buildingName: text } })} />
-            <ThemedInput label="Street Name" placeholder="Station Road" icon="map-outline" value={form.address.streetName} onChangeText={(text) => setForm({ ...form, address: { ...form.address, streetName: text } })} />
-            <ThemedInput label="Landmark" placeholder="Near city mall" icon="flag-outline" value={form.address.landmark} onChangeText={(text) => setForm({ ...form, address: { ...form.address, landmark: text } })} />
-            <ThemedInput label="Area" placeholder="Navrangpura" icon="location-outline" value={form.address.area} onChangeText={(text) => setForm({ ...form, address: { ...form.address, area: text } })} />
+            <ThemedInput label="Building Name" placeholder="Shree Heights" icon="business-outline" value={form.address.buildingName} maxLength={80} onChangeText={(text) => setForm({ ...form, address: { ...form.address, buildingName: text.slice(0, 80) } })} />
+            <ThemedInput label="Street Name" placeholder="Station Road" icon="map-outline" value={form.address.streetName} maxLength={90} onChangeText={(text) => setForm({ ...form, address: { ...form.address, streetName: text.slice(0, 90) } })} />
+            <ThemedInput label="Landmark" placeholder="Near city mall" icon="flag-outline" value={form.address.landmark} maxLength={80} onChangeText={(text) => setForm({ ...form, address: { ...form.address, landmark: text.slice(0, 80) } })} />
+            <ThemedInput label="Area" placeholder="Navrangpura" icon="location-outline" value={form.address.area} maxLength={80} onChangeText={(text) => setForm({ ...form, address: { ...form.address, area: text.slice(0, 80) } })} />
 
             <View style={styles.selectRow}>
               <View style={styles.selectGroup}>
@@ -564,18 +582,59 @@ export default function RegisterScreen() {
                   <Ionicons name="chevron-down" size={18} color={Colors.light.primary} />
                 </TouchableOpacity>
               </View>
+            </View>
 
+            <View style={styles.selectRow}>
               <View style={styles.selectGroup}>
-                <Text style={styles.groupLabel}>City</Text>
+                <Text style={styles.groupLabel}>District</Text>
                 <TouchableOpacity
                   style={[styles.pickerTrigger, !form.address.state && styles.pickerDisabled]}
-                  onPress={() => form.address.state && setShowCityPicker(true)}
+                  onPress={() => form.address.state && setShowDistrictPicker(true)}
                 >
-                  <Text style={[styles.pickerText, !form.address.city && styles.pickerPlaceholder]}>
-                    {form.address.city || "Select City"}
+                  <Text style={[styles.pickerText, !form.address.district && styles.pickerPlaceholder]}>
+                    {form.address.district || "Select District"}
                   </Text>
                   <Ionicons name="chevron-down" size={18} color={Colors.light.primary} />
                 </TouchableOpacity>
+              </View>
+              <View style={styles.selectGroup}>
+                <Text style={styles.groupLabel}>City</Text>
+                <TouchableOpacity
+                  style={[styles.pickerTrigger, !form.address.district && styles.pickerDisabled]}
+                  onPress={() => form.address.district && setShowCityPicker(true)}
+                >
+                  <Text style={[styles.pickerText, !form.address.city && styles.pickerPlaceholder]}>
+                    {form.address.city || "Select City/Post Office"}
+                  </Text>
+                  <Ionicons name="chevron-down" size={18} color={Colors.light.primary} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.selectRow}>
+              <View style={styles.selectGroup}>
+                <Text style={styles.groupLabel}>PIN Code</Text>
+                {pincodes.length ? (
+                  <TouchableOpacity
+                    style={[styles.pickerTrigger, !form.address.city && styles.pickerDisabled]}
+                    onPress={() => form.address.city && setShowPincodePicker(true)}
+                  >
+                    <Text style={[styles.pickerText, !form.address.pincode && styles.pickerPlaceholder]}>
+                      {form.address.pincode || "Select PIN Code"}
+                    </Text>
+                    <Ionicons name="chevron-down" size={18} color={Colors.light.primary} />
+                  </TouchableOpacity>
+                ) : (
+                  <ThemedInput
+                    label=""
+                    placeholder="6 digit PIN code"
+                    icon="navigate-outline"
+                    keyboardType="numeric"
+                    maxLength={6}
+                    value={form.address.pincode}
+                    onChangeText={(text) => setForm({ ...form, address: { ...form.address, pincode: text.replace(/\D/g, "") } })}
+                  />
+                )}
               </View>
             </View>
 
@@ -584,21 +643,64 @@ export default function RegisterScreen() {
                 <View style={styles.modalContent}>
                   <Text style={styles.modalTitle}>Select State</Text>
                   <FlatList
-                    data={INDIA_DATA}
-                    keyExtractor={(item) => item.state}
+                    data={states}
+                    keyExtractor={(item) => item}
                     renderItem={({ item }) => (
                       <TouchableOpacity
                         style={styles.modalItem}
                         onPress={() => {
-                          setForm({ ...form, address: { ...form.address, state: item.state, city: "" } });
+                          setForm({
+                            ...form,
+                            address: {
+                              ...form.address,
+                              state: item,
+                              district: "",
+                              city: "",
+                              pincode: "",
+                            },
+                          });
                           setShowStatePicker(false);
                         }}
                       >
-                        <Text style={styles.modalItemText}>{item.state}</Text>
+                        <Text style={styles.modalItemText}>{item}</Text>
                       </TouchableOpacity>
                     )}
                   />
                   <TouchableOpacity style={styles.modalClose} onPress={() => setShowStatePicker(false)}>
+                    <Text style={styles.modalCloseText}>Close</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+
+            <Modal visible={showDistrictPicker} transparent animationType="slide">
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                  <Text style={styles.modalTitle}>Select District</Text>
+                  <FlatList
+                    data={districts}
+                    keyExtractor={(item) => item}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={styles.modalItem}
+                        onPress={() => {
+                          setForm({
+                            ...form,
+                            address: {
+                              ...form.address,
+                              district: item,
+                              city: "",
+                              pincode: "",
+                            },
+                          });
+                          setShowDistrictPicker(false);
+                        }}
+                      >
+                        <Text style={styles.modalItemText}>{item}</Text>
+                      </TouchableOpacity>
+                    )}
+                  />
+                  <TouchableOpacity style={styles.modalClose} onPress={() => setShowDistrictPicker(false)}>
                     <Text style={styles.modalCloseText}>Close</Text>
                   </TouchableOpacity>
                 </View>
@@ -616,7 +718,15 @@ export default function RegisterScreen() {
                       <TouchableOpacity
                         style={styles.modalItem}
                         onPress={() => {
-                          setForm({ ...form, address: { ...form.address, city: item } });
+                          const nextPincodes = getPincodes(form.address.state, form.address.district, item);
+                          setForm({
+                            ...form,
+                            address: {
+                              ...form.address,
+                              city: item,
+                              pincode: nextPincodes[0] || "",
+                            },
+                          });
                           setShowCityPicker(false);
                         }}
                       >
@@ -625,6 +735,32 @@ export default function RegisterScreen() {
                     )}
                   />
                   <TouchableOpacity style={styles.modalClose} onPress={() => setShowCityPicker(false)}>
+                    <Text style={styles.modalCloseText}>Close</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+
+            <Modal visible={showPincodePicker} transparent animationType="slide">
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                  <Text style={styles.modalTitle}>Select PIN Code</Text>
+                  <FlatList
+                    data={pincodes}
+                    keyExtractor={(item) => item}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={styles.modalItem}
+                        onPress={() => {
+                          setForm({ ...form, address: { ...form.address, pincode: item } });
+                          setShowPincodePicker(false);
+                        }}
+                      >
+                        <Text style={styles.modalItemText}>{item}</Text>
+                      </TouchableOpacity>
+                    )}
+                  />
+                  <TouchableOpacity style={styles.modalClose} onPress={() => setShowPincodePicker(false)}>
                     <Text style={styles.modalCloseText}>Close</Text>
                   </TouchableOpacity>
                 </View>
@@ -643,13 +779,13 @@ export default function RegisterScreen() {
             </View>
 
             {form.payoutMethod === "UPI" ? (
-              <ThemedInput label="UPI ID" placeholder="name@upi" icon="wallet-outline" autoCapitalize="none" value={form.upiId} onChangeText={(text) => setForm({ ...form, upiId: text })} />
+              <ThemedInput label="UPI ID" placeholder="name@upi" icon="wallet-outline" autoCapitalize="none" maxLength={80} value={form.upiId} onChangeText={(text) => setForm({ ...form, upiId: text.trim().slice(0, 80) })} />
             ) : (
               <>
-                <ThemedInput label="Account Holder Name" placeholder="Rahul Sharma" icon="person-outline" value={form.bankDetails.accountHolderName} onChangeText={(text) => setForm({ ...form, bankDetails: { ...form.bankDetails, accountHolderName: text } })} />
-                <ThemedInput label="Bank Name" placeholder="HDFC Bank" icon="business-outline" value={form.bankDetails.bankName} onChangeText={(text) => setForm({ ...form, bankDetails: { ...form.bankDetails, bankName: text } })} />
-                <ThemedInput label="Account Number" placeholder="Your bank account number" icon="card-outline" keyboardType="numeric" value={form.bankDetails.accountNumber} onChangeText={(text) => setForm({ ...form, bankDetails: { ...form.bankDetails, accountNumber: text.replace(/\D/g, "") } })} />
-                <ThemedInput label="IFSC Code" placeholder="HDFC0001234" icon="code-outline" autoCapitalize="characters" value={form.bankDetails.ifscCode} onChangeText={(text) => setForm({ ...form, bankDetails: { ...form.bankDetails, ifscCode: text.toUpperCase() } })} />
+                <ThemedInput label="Account Holder Name" placeholder="Rahul Sharma" icon="person-outline" maxLength={80} value={form.bankDetails.accountHolderName} onChangeText={(text) => setForm({ ...form, bankDetails: { ...form.bankDetails, accountHolderName: text.replace(/[^a-zA-Z\s.'-]/g, "").slice(0, 80) } })} />
+                <ThemedInput label="Bank Name" placeholder="HDFC Bank" icon="business-outline" maxLength={60} value={form.bankDetails.bankName} onChangeText={(text) => setForm({ ...form, bankDetails: { ...form.bankDetails, bankName: text.replace(/[^a-zA-Z\s.'-]/g, "").slice(0, 60) } })} />
+                <ThemedInput label="Account Number" placeholder="Your bank account number" icon="card-outline" keyboardType="numeric" maxLength={18} value={form.bankDetails.accountNumber} onChangeText={(text) => setForm({ ...form, bankDetails: { ...form.bankDetails, accountNumber: text.replace(/\D/g, "").slice(0, 18) } })} />
+                <ThemedInput label="IFSC Code" placeholder="HDFC0001234" icon="code-outline" autoCapitalize="characters" maxLength={11} value={form.bankDetails.ifscCode} onChangeText={(text) => setForm({ ...form, bankDetails: { ...form.bankDetails, ifscCode: text.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 11) } })} />
               </>
             )}
 

@@ -1,5 +1,4 @@
 // BIG INDIA STATES + CITIES DATASET
-
 export const INDIA_DATA = [
     {
         state: "Andhra Pradesh",

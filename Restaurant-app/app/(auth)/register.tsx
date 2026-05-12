@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -23,21 +23,38 @@ import { apiClient } from "@/lib/api";
 
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "react-native";
-import { INDIA_DATA } from "@/constants/CityData";
+import {
+  getCities,
+  getDistricts,
+  getPincodes,
+  getStates,
+} from "@/constants/india-pincode";
 
 const { width, height } = Dimensions.get("window");
 
 const STEPS = ["Account", "Kitchen", "Brand", "Location", "Legal", "Menu"];
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const indianPhoneRegex = /^[6-9]\d{9}$/;
+const fssaiRegex = /^\d{14}$/;
+const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+const accountNumberRegex = /^\d{9,18}$/;
 
 type OnboardingMenuItem = {
   id: string;
   name: string;
   price: string;
   category: string;
+  subcategory: string;
   shortDescription: string;
   isVeg: boolean;
   image: any | null;
+};
+
+type MenuCategory = {
+  _id: string;
+  name: string;
+  subcategories?: string[];
 };
 
 const createMenuDraft = (): OnboardingMenuItem => ({
@@ -45,6 +62,7 @@ const createMenuDraft = (): OnboardingMenuItem => ({
   name: "",
   price: "",
   category: "",
+  subcategory: "",
   shortDescription: "",
   isVeg: true,
   image: null,
@@ -81,11 +99,16 @@ export default function RegisterScreen() {
   const [landmark, setLandmark] = useState("");
   const [fullAddress, setFullAddress] = useState("");
   const [state, setState] = useState("");
+  const [district, setDistrict] = useState("");
   const [city, setCity] = useState("");
   const [pinCode, setPinCode] = useState("");
 
   const [showStateModal, setShowStateModal] = useState(false);
+  const [showDistrictModal, setShowDistrictModal] = useState(false);
   const [showCityModal, setShowCityModal] = useState(false);
+  const [showPincodeModal, setShowPincodeModal] = useState(false);
+  const [categoryPickerItemId, setCategoryPickerItemId] = useState<string | null>(null);
+  const [subcategoryPickerItemId, setSubcategoryPickerItemId] = useState<string | null>(null);
 
   // Step 5: Legal
   const [aadhar, setAadhar] = useState<any>(null);
@@ -106,6 +129,24 @@ export default function RegisterScreen() {
   const [menuDrafts, setMenuDrafts] = useState<OnboardingMenuItem[]>([
     createMenuDraft(),
   ]);
+  const [menuCategories, setMenuCategories] = useState<MenuCategory[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setCategoriesLoading(true);
+      try {
+        const response = await apiClient.get("/categories?active=true");
+        setMenuCategories(response.data.data || []);
+      } catch (error) {
+        console.warn("Failed to fetch menu categories", error);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    void fetchCategories();
+  }, []);
 
   const pickImage = async (type: "logo" | "banner") => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -174,16 +215,19 @@ export default function RegisterScreen() {
     }
   };
 
-  const selectedStateData = INDIA_DATA.find((d) => d.state === state) as
-    | { state: string; cities: string[]; pincodes?: string[] }
-    | undefined;
-
   const isPinCodeValidForSelectedState = () => {
     const normalizedPin = pinCode.trim();
     if (!/^\d{6}$/.test(normalizedPin)) return false;
-    if (!selectedStateData?.pincodes?.length) return true;
-    return selectedStateData.pincodes.includes(normalizedPin);
+    const availablePincodes = getPincodes(state, district, city);
+    if (!availablePincodes.length) return true;
+    return availablePincodes.includes(normalizedPin);
   };
+
+  const selectedMenuCategory = (categoryId: string) =>
+    menuCategories.find((category) => category._id === categoryId || category.name === categoryId);
+
+  const getMenuCategoryName = (categoryId: string) =>
+    selectedMenuCategory(categoryId)?.name || categoryId || "Select category";
 
   const updateMenuDraft = (
     id: string,
@@ -211,9 +255,16 @@ export default function RegisterScreen() {
         name: item.name.trim(),
         price: item.price.trim(),
         category: item.category.trim(),
+        subcategory: item.subcategory.trim(),
         shortDescription: item.shortDescription.trim(),
       }))
       .filter((item) => item.name || item.price || item.category);
+
+  const sanitizePrice = (value: string) => {
+    const normalized = value.replace(/[^0-9.]/g, "");
+    const [whole, decimal = ""] = normalized.split(".");
+    return decimal ? `${whole.slice(0, 5)}.${decimal.slice(0, 2)}` : whole.slice(0, 5);
+  };
 
   const uploadMenuImage = async (image: any) => {
     if (!image?.uri) return {};
@@ -245,10 +296,14 @@ export default function RegisterScreen() {
         );
         return;
       }
-      if (password.length < 6) {
+      if (!emailRegex.test(email.trim())) {
+        Alert.alert("VALIDATION ERROR", "Please enter a valid business email address.");
+        return;
+      }
+      if (password.length < 8 || password.length > 64) {
         Alert.alert(
           "VALIDATION ERROR",
-          "Password must be at least 6 characters long.",
+          "Password must be between 8 and 64 characters long.",
         );
         return;
       }
@@ -258,6 +313,10 @@ export default function RegisterScreen() {
           "VALIDATION ERROR",
           "Restaurant name and phone number are required.",
         );
+        return;
+      }
+      if (kitchenName.trim().length < 3 || kitchenName.trim().length > 80) {
+        Alert.alert("VALIDATION ERROR", "Restaurant name must be between 3 and 80 characters.");
         return;
       }
       if (!indianPhoneRegex.test(phone.trim())) {
@@ -276,25 +335,36 @@ export default function RegisterScreen() {
         return;
       }
     } else if (currentStep === 3) {
-      if (!street || !fullAddress || !state || !city || !pinCode) {
+      if (!street || !fullAddress || !state || !district || !city || !pinCode) {
         Alert.alert(
           "VALIDATION ERROR",
           "Please fill all required address fields.",
         );
         return;
       }
-      if (!selectedStateData?.cities.includes(city)) {
+      if (street.trim().length < 3 || fullAddress.trim().length < 8) {
+        Alert.alert("VALIDATION ERROR", "Street/building and full address need more detail.");
+        return;
+      }
+      if (!getDistricts(state).includes(district)) {
         Alert.alert(
           "VALIDATION ERROR",
-          "Please select a city that belongs to the selected state.",
+          "Please select a district that belongs to the selected state.",
+        );
+        return;
+      }
+      if (!getCities(state, district).includes(city)) {
+        Alert.alert(
+          "VALIDATION ERROR",
+          "Please select a city/post office that belongs to the selected district.",
         );
         return;
       }
       if (!isPinCodeValidForSelectedState()) {
         Alert.alert(
           "VALIDATION ERROR",
-          selectedStateData?.pincodes?.length
-            ? "This PIN code does not match the selected state in the India city data."
+          getPincodes(state, district, city).length
+            ? "This PIN code does not match the selected city/post office."
             : "PIN code must be exactly 6 digits.",
         );
         return;
@@ -326,16 +396,43 @@ export default function RegisterScreen() {
         );
         return;
       }
+      if (!fssaiRegex.test(fssaiLicense.trim())) {
+        Alert.alert("VALIDATION ERROR", "FSSAI license number must be exactly 14 digits.");
+        return;
+      }
+      if (gstNumber.trim() && !gstRegex.test(gstNumber.trim().toUpperCase())) {
+        Alert.alert("VALIDATION ERROR", "Please enter a valid 15-character GST number.");
+        return;
+      }
+      if (bankAccountHolder.trim().length < 3 || bankAccountHolder.trim().length > 80) {
+        Alert.alert("VALIDATION ERROR", "Account holder name must be between 3 and 80 characters.");
+        return;
+      }
+      if (!accountNumberRegex.test(bankAccountNumber.trim())) {
+        Alert.alert("VALIDATION ERROR", "Bank account number must be 9 to 18 digits.");
+        return;
+      }
+      if (!ifscRegex.test(bankIfsc.trim().toUpperCase())) {
+        Alert.alert("VALIDATION ERROR", "Please enter a valid IFSC code, for example HDFC0001234.");
+        return;
+      }
+      if (bankName.trim().length < 3 || bankName.trim().length > 60) {
+        Alert.alert("VALIDATION ERROR", "Bank name must be between 3 and 60 characters.");
+        return;
+      }
     } else if (currentStep === 5) {
       const validMenuDrafts = getValidMenuDrafts();
       const hasInvalidItem = validMenuDrafts.some(
         (item) =>
-          !item.name ||
+          item.name.length < 2 ||
+          item.name.length > 80 ||
           !item.price ||
           !item.category ||
           !item.image?.uri ||
           Number.isNaN(Number(item.price)) ||
-          Number(item.price) <= 0,
+          Number(item.price) <= 0 ||
+          Number(item.price) > 99999 ||
+          item.shortDescription.length > 160,
       );
 
       if (validMenuDrafts.length === 0 || hasInvalidItem) {
@@ -352,7 +449,7 @@ export default function RegisterScreen() {
     } else {
       try {
         setUploadStatus({ message: "CREATING ACCOUNT...", isUploading: true });
-        const finalAddress = `${street}, ${landmark ? landmark + ", " : ""}${fullAddress}, ${city}, ${state} - ${pinCode}`;
+        const finalAddress = `${street}, ${landmark ? landmark + ", " : ""}${fullAddress}, ${city}, ${district}, ${state} - ${pinCode}`;
 
         await register({
           email,
@@ -424,6 +521,7 @@ export default function RegisterScreen() {
             name: item.name,
             price: Number(item.price),
             category: item.category,
+            subcategory: item.subcategory || undefined,
             shortDescription: item.shortDescription || undefined,
             description: item.shortDescription || undefined,
             imageUrl:
@@ -507,9 +605,10 @@ export default function RegisterScreen() {
                 placeholder="ops@chatorjeep.com"
                 placeholderTextColor="#666"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(value) => setEmail(value.trim())}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                maxLength={120}
               />
             </View>
             <View style={styles.inputGroup}>
@@ -522,6 +621,7 @@ export default function RegisterScreen() {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
+                maxLength={64}
               />
                 <TouchableOpacity
                   accessibilityRole="button"
@@ -550,7 +650,8 @@ export default function RegisterScreen() {
                 style={styles.input}
                 placeholder="E.g. GOLDEN GRILL"
                 value={kitchenName}
-                onChangeText={setKitchenName}
+                onChangeText={(value) => setKitchenName(value.slice(0, 80))}
+                maxLength={80}
               />
             </View>
             <View style={styles.inputGroup}>
@@ -615,8 +716,10 @@ export default function RegisterScreen() {
           </View>
         );
       case 3:
-        const availableCities =
-          INDIA_DATA.find((d) => d.state === state)?.cities || [];
+        const availableStates = getStates();
+        const availableDistricts = getDistricts(state);
+        const availableCities = getCities(state, district);
+        const availablePincodes = getPincodes(state, district, city);
         return (
           <View style={styles.stepContent}>
             <Text style={styles.stepTitle}>LOGISTICS NODE</Text>
@@ -631,7 +734,8 @@ export default function RegisterScreen() {
                 placeholder="Flat 402, Sunshine Heights"
                 placeholderTextColor="#444"
                 value={street}
-                onChangeText={setStreet}
+                onChangeText={(value) => setStreet(value.slice(0, 90))}
+                maxLength={90}
               />
             </View>
 
@@ -642,7 +746,8 @@ export default function RegisterScreen() {
                 placeholder="Near City Mall"
                 placeholderTextColor="#444"
                 value={landmark}
-                onChangeText={setLandmark}
+                onChangeText={(value) => setLandmark(value.slice(0, 80))}
+                maxLength={80}
               />
             </View>
 
@@ -654,7 +759,8 @@ export default function RegisterScreen() {
                 placeholder="Sector 4, Main Road..."
                 placeholderTextColor="#444"
                 value={fullAddress}
-                onChangeText={setFullAddress}
+                onChangeText={(value) => setFullAddress(value.slice(0, 220))}
+                maxLength={220}
               />
             </View>
 
@@ -677,15 +783,34 @@ export default function RegisterScreen() {
                   />
                 </TouchableOpacity>
               </View>
+            </View>
+
+            <View style={styles.row}>
+              <View style={[styles.inputGroup, { flex: 1, marginRight: 10 }]}>
+                <Text style={styles.label}>DISTRICT</Text>
+                <TouchableOpacity
+                  style={[styles.pickerTrigger, !state && { opacity: 0.5 }]}
+                  onPress={() => (state ? setShowDistrictModal(true) : null)}
+                >
+                  <Text style={[styles.pickerText, !district && { color: "#666" }]}>
+                    {district || "Select District"}
+                  </Text>
+                  <Ionicons
+                    name="chevron-down"
+                    size={16}
+                    color={Colors.light.primary}
+                  />
+                </TouchableOpacity>
+              </View>
 
               <View style={[styles.inputGroup, { flex: 1 }]}>
                 <Text style={styles.label}>CITY</Text>
                 <TouchableOpacity
-                  style={[styles.pickerTrigger, !state && { opacity: 0.5 }]}
-                  onPress={() => (state ? setShowCityModal(true) : null)}
+                  style={[styles.pickerTrigger, !district && { opacity: 0.5 }]}
+                  onPress={() => (district ? setShowCityModal(true) : null)}
                 >
                   <Text style={[styles.pickerText, !city && { color: "#666" }]}>
-                    {city || "Select City"}
+                    {city || "Select City/Post Office"}
                   </Text>
                   <Ionicons
                     name="chevron-down"
@@ -698,15 +823,31 @@ export default function RegisterScreen() {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>PIN CODE</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="400001"
-                placeholderTextColor="#444"
-                value={pinCode}
-                onChangeText={(value) => setPinCode(value.replace(/\D/g, ""))}
-                keyboardType="numeric"
-                maxLength={6}
-              />
+              {availablePincodes.length ? (
+                <TouchableOpacity
+                  style={styles.pickerTrigger}
+                  onPress={() => setShowPincodeModal(true)}
+                >
+                  <Text style={[styles.pickerText, !pinCode && { color: "#666" }]}>
+                    {pinCode || "Select PIN code"}
+                  </Text>
+                  <Ionicons
+                    name="chevron-down"
+                    size={16}
+                    color={Colors.light.primary}
+                  />
+                </TouchableOpacity>
+              ) : (
+                <TextInput
+                  style={styles.input}
+                  placeholder="400001"
+                  placeholderTextColor="#444"
+                  value={pinCode}
+                  onChangeText={(value) => setPinCode(value.replace(/\D/g, ""))}
+                  keyboardType="numeric"
+                  maxLength={6}
+                />
+              )}
               {pinCode.length === 6 && !isPinCodeValidForSelectedState() && (
                 <Text style={styles.errorText}>
                   PIN code does not match the selected state data.
@@ -720,24 +861,57 @@ export default function RegisterScreen() {
                 <View style={styles.modalContent}>
                   <Text style={styles.modalTitle}>SELECT STATE</Text>
                   <FlatList
-                    data={INDIA_DATA}
+                    data={availableStates}
+                    keyExtractor={(item) => item}
                     renderItem={({ item }) => (
                       <TouchableOpacity
                         style={styles.modalItem}
                         onPress={() => {
-                          setState(item.state);
-                          setCity(""); // Reset city when state changes
+                          setState(item);
+                          setDistrict("");
+                          setCity("");
                           setPinCode("");
                           setShowStateModal(false);
                         }}
                       >
-                        <Text style={styles.modalItemText}>{item.state}</Text>
+                        <Text style={styles.modalItemText}>{item}</Text>
                       </TouchableOpacity>
                     )}
                   />
                   <TouchableOpacity
                     style={styles.modalClose}
                     onPress={() => setShowStateModal(false)}
+                  >
+                    <Text style={styles.modalCloseText}>CLOSE</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+
+            <Modal visible={showDistrictModal} transparent animationType="slide">
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                  <Text style={styles.modalTitle}>SELECT DISTRICT</Text>
+                  <FlatList
+                    data={availableDistricts}
+                    keyExtractor={(item) => item}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={styles.modalItem}
+                        onPress={() => {
+                          setDistrict(item);
+                          setCity("");
+                          setPinCode("");
+                          setShowDistrictModal(false);
+                        }}
+                      >
+                        <Text style={styles.modalItemText}>{item}</Text>
+                      </TouchableOpacity>
+                    )}
+                  />
+                  <TouchableOpacity
+                    style={styles.modalClose}
+                    onPress={() => setShowDistrictModal(false)}
                   >
                     <Text style={styles.modalCloseText}>CLOSE</Text>
                   </TouchableOpacity>
@@ -752,11 +926,14 @@ export default function RegisterScreen() {
                   <Text style={styles.modalTitle}>SELECT CITY</Text>
                   <FlatList
                     data={availableCities}
+                    keyExtractor={(item) => item}
                     renderItem={({ item }) => (
                       <TouchableOpacity
                         style={styles.modalItem}
                         onPress={() => {
                           setCity(item);
+                          const nextPincodes = getPincodes(state, district, item);
+                          setPinCode(nextPincodes[0] || "");
                           setShowCityModal(false);
                         }}
                       >
@@ -767,6 +944,35 @@ export default function RegisterScreen() {
                   <TouchableOpacity
                     style={styles.modalClose}
                     onPress={() => setShowCityModal(false)}
+                  >
+                    <Text style={styles.modalCloseText}>CLOSE</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+
+            <Modal visible={showPincodeModal} transparent animationType="slide">
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                  <Text style={styles.modalTitle}>SELECT PIN CODE</Text>
+                  <FlatList
+                    data={availablePincodes}
+                    keyExtractor={(item) => item}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={styles.modalItem}
+                        onPress={() => {
+                          setPinCode(item);
+                          setShowPincodeModal(false);
+                        }}
+                      >
+                        <Text style={styles.modalItemText}>{item}</Text>
+                      </TouchableOpacity>
+                    )}
+                  />
+                  <TouchableOpacity
+                    style={styles.modalClose}
+                    onPress={() => setShowPincodeModal(false)}
                   >
                     <Text style={styles.modalCloseText}>CLOSE</Text>
                   </TouchableOpacity>
@@ -828,7 +1034,9 @@ export default function RegisterScreen() {
               placeholder="FSSAI License Number"
               placeholderTextColor="#666"
               value={fssaiLicense}
-              onChangeText={setFssaiLicense}
+              keyboardType="number-pad"
+              maxLength={14}
+              onChangeText={(value) => setFssaiLicense(value.replace(/\D/g, ""))}
             />
             <View style={[styles.docGrid, { marginTop: 15 }]}>
               <TouchableOpacity
@@ -877,7 +1085,9 @@ export default function RegisterScreen() {
               placeholder="GST Number (if applicable)"
               placeholderTextColor="#666"
               value={gstNumber}
-              onChangeText={setGstNumber}
+              autoCapitalize="characters"
+              maxLength={15}
+              onChangeText={(value) => setGstNumber(value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase())}
             />
 
             <Text style={styles.legalSectionTitle}>BANK ACCOUNT DETAILS</Text>
@@ -886,7 +1096,8 @@ export default function RegisterScreen() {
               placeholder="Account Holder Name"
               placeholderTextColor="#666"
               value={bankAccountHolder}
-              onChangeText={setBankAccountHolder}
+              maxLength={80}
+              onChangeText={(value) => setBankAccountHolder(value.replace(/[^a-zA-Z\s.'-]/g, "").slice(0, 80))}
             />
             <TextInput
               style={[styles.input, { marginTop: 12 }]}
@@ -894,6 +1105,7 @@ export default function RegisterScreen() {
               placeholderTextColor="#666"
               value={bankAccountNumber}
               keyboardType="number-pad"
+              maxLength={18}
               onChangeText={(value) => setBankAccountNumber(value.replace(/\D/g, ""))}
             />
             <View style={[styles.row, { marginTop: 12 }]}>
@@ -903,14 +1115,16 @@ export default function RegisterScreen() {
                 placeholderTextColor="#666"
                 value={bankIfsc}
                 autoCapitalize="characters"
-                onChangeText={(value) => setBankIfsc(value.toUpperCase())}
+                maxLength={11}
+                onChangeText={(value) => setBankIfsc(value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase())}
               />
               <TextInput
                 style={[styles.input, { flex: 1 }]}
                 placeholder="Bank Name"
                 placeholderTextColor="#666"
                 value={bankName}
-                onChangeText={setBankName}
+                maxLength={60}
+                onChangeText={(value) => setBankName(value.replace(/[^a-zA-Z\s.'-]/g, "").slice(0, 60))}
               />
             </View>
 
@@ -982,17 +1196,35 @@ export default function RegisterScreen() {
       case 5:
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>STARTER MENU</Text>
+            <View style={styles.menuHero}>
+              <View>
+                <Text style={styles.stepTitle}>STARTER MENU</Text>
+                <Text style={styles.stepSub}>
+                  Add at least one food item before your restaurant goes to admin verification.
+                </Text>
+              </View>
+              <View style={styles.menuCountBadge}>
+                <Text style={styles.menuCountNumber}>{menuDrafts.length}</Text>
+                <Text style={styles.menuCountLabel}>items</Text>
+              </View>
+            </View>
             <Text style={styles.stepSub}>
-              Add at least one food item before your restaurant goes to admin verification.
+              {categoriesLoading
+                ? "Loading food categories..."
+                : `${menuCategories.length || 0} backend categories available`}
             </Text>
 
             {menuDrafts.map((item, index) => (
               <View key={item.id} style={styles.menuDraftCard}>
                 <View style={styles.menuDraftHeader}>
-                  <Text style={styles.menuDraftTitle}>FOOD ITEM {index + 1}</Text>
+                  <View>
+                    <Text style={styles.menuDraftTitle}>FOOD ITEM {index + 1}</Text>
+                    <Text style={styles.menuDraftMeta}>
+                      {item.name.trim() || "New dish"} • {getMenuCategoryName(item.category)}
+                    </Text>
+                  </View>
                   {menuDrafts.length > 1 && (
-                    <TouchableOpacity onPress={() => removeMenuDraft(item.id)}>
+                    <TouchableOpacity style={styles.deleteMenuButton} onPress={() => removeMenuDraft(item.id)}>
                       <Ionicons name="trash-outline" size={20} color="#EF4444" />
                     </TouchableOpacity>
                   )}
@@ -1011,60 +1243,89 @@ export default function RegisterScreen() {
                     <View style={styles.menuImagePlaceholder}>
                       <Ionicons
                         name="image-outline"
-                        size={28}
+                        size={34}
                         color={Colors.light.primary}
                       />
                       <Text style={styles.menuImageText}>ADD FOOD IMAGE</Text>
+                      <Text style={styles.menuImageHint}>Clear, bright dish photo works best</Text>
                     </View>
                   )}
                 </TouchableOpacity>
 
+                <Text style={styles.label}>DISH NAME</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Dish name"
+                  placeholder="Paneer Butter Masala"
                   placeholderTextColor="#666"
                   value={item.name}
-                  onChangeText={(value) => updateMenuDraft(item.id, { name: value })}
+                  maxLength={80}
+                  onChangeText={(value) => updateMenuDraft(item.id, { name: value.slice(0, 80) })}
                 />
 
                 <View style={styles.row}>
                   <View style={[styles.inputGroup, { flex: 1, marginRight: 10, marginTop: 14 }]}>
+                    <Text style={styles.label}>PRICE</Text>
                     <TextInput
                       style={styles.input}
-                      placeholder="Price"
+                      placeholder="199"
                       placeholderTextColor="#666"
                       value={item.price}
-                      keyboardType="numeric"
+                      keyboardType="decimal-pad"
                       onChangeText={(value) =>
                         updateMenuDraft(item.id, {
-                          price: value.replace(/[^0-9.]/g, ""),
+                          price: sanitizePrice(value),
                         })
                       }
                     />
                   </View>
                   <View style={[styles.inputGroup, { flex: 1, marginTop: 14 }]}>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Category"
-                      placeholderTextColor="#666"
-                      value={item.category}
-                      onChangeText={(value) =>
-                        updateMenuDraft(item.id, { category: value })
-                      }
-                    />
+                    <Text style={styles.label}>CATEGORY</Text>
+                    <TouchableOpacity
+                      style={styles.menuPickerTrigger}
+                      onPress={() => setCategoryPickerItemId(item.id)}
+                    >
+                      <Text
+                        style={[styles.menuPickerText, !item.category && { color: "#666" }]}
+                        numberOfLines={1}
+                      >
+                        {getMenuCategoryName(item.category)}
+                      </Text>
+                      <Ionicons name="chevron-down" size={16} color={Colors.light.primary} />
+                    </TouchableOpacity>
                   </View>
                 </View>
 
+                {selectedMenuCategory(item.category)?.subcategories?.length ? (
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>SUBCATEGORY</Text>
+                    <TouchableOpacity
+                      style={styles.menuPickerTrigger}
+                      onPress={() => setSubcategoryPickerItemId(item.id)}
+                    >
+                      <Text
+                        style={[styles.menuPickerText, !item.subcategory && { color: "#666" }]}
+                        numberOfLines={1}
+                      >
+                        {item.subcategory || "Select subcategory"}
+                      </Text>
+                      <Ionicons name="chevron-down" size={16} color={Colors.light.primary} />
+                    </TouchableOpacity>
+                  </View>
+                ) : null}
+
+                <Text style={styles.label}>SHORT DESCRIPTION</Text>
                 <TextInput
                   style={[styles.input, styles.menuDescriptionInput]}
-                  placeholder="Short description"
+                  placeholder="Creamy, rich, and perfect with naan."
                   placeholderTextColor="#666"
                   value={item.shortDescription}
                   multiline
+                  maxLength={160}
                   onChangeText={(value) =>
-                    updateMenuDraft(item.id, { shortDescription: value })
+                    updateMenuDraft(item.id, { shortDescription: value.slice(0, 160) })
                   }
                 />
+                <Text style={styles.characterHint}>{item.shortDescription.length}/160</Text>
 
                 <View style={styles.foodTypeRow}>
                   <TouchableOpacity
@@ -1107,6 +1368,80 @@ export default function RegisterScreen() {
               <Ionicons name="add-circle-outline" size={20} color={Colors.light.primary} />
               <Text style={styles.addMenuButtonText}>ADD ANOTHER FOOD ITEM</Text>
             </TouchableOpacity>
+
+            <Modal visible={Boolean(categoryPickerItemId)} transparent animationType="slide">
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                  <Text style={styles.modalTitle}>SELECT CATEGORY</Text>
+                  <FlatList
+                    data={menuCategories}
+                    keyExtractor={(category) => category._id}
+                    ListEmptyComponent={
+                      <Text style={styles.emptyPickerText}>
+                        No categories found. Please seed categories from backend.
+                      </Text>
+                    }
+                    renderItem={({ item: category }) => (
+                      <TouchableOpacity
+                        style={styles.modalItem}
+                        onPress={() => {
+                          if (categoryPickerItemId) {
+                            updateMenuDraft(categoryPickerItemId, {
+                              category: category._id,
+                              subcategory: category.subcategories?.[0] || "",
+                            });
+                          }
+                          setCategoryPickerItemId(null);
+                        }}
+                      >
+                        <Text style={styles.modalItemText}>{category.name}</Text>
+                      </TouchableOpacity>
+                    )}
+                  />
+                  <TouchableOpacity
+                    style={styles.modalClose}
+                    onPress={() => setCategoryPickerItemId(null)}
+                  >
+                    <Text style={styles.modalCloseText}>CLOSE</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+
+            <Modal visible={Boolean(subcategoryPickerItemId)} transparent animationType="slide">
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                  <Text style={styles.modalTitle}>SELECT SUBCATEGORY</Text>
+                  <FlatList
+                    data={
+                      selectedMenuCategory(
+                        menuDrafts.find((draft) => draft.id === subcategoryPickerItemId)?.category || "",
+                      )?.subcategories || []
+                    }
+                    keyExtractor={(subcategory) => subcategory}
+                    renderItem={({ item: subcategory }) => (
+                      <TouchableOpacity
+                        style={styles.modalItem}
+                        onPress={() => {
+                          if (subcategoryPickerItemId) {
+                            updateMenuDraft(subcategoryPickerItemId, { subcategory });
+                          }
+                          setSubcategoryPickerItemId(null);
+                        }}
+                      >
+                        <Text style={styles.modalItemText}>{subcategory}</Text>
+                      </TouchableOpacity>
+                    )}
+                  />
+                  <TouchableOpacity
+                    style={styles.modalClose}
+                    onPress={() => setSubcategoryPickerItemId(null)}
+                  >
+                    <Text style={styles.modalCloseText}>CLOSE</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
           </View>
         );
       default:
@@ -1147,6 +1482,16 @@ export default function RegisterScreen() {
         </ScrollView>
 
         <View style={styles.footer}>
+          {currentStep > 0 && (
+            <TouchableOpacity
+              style={styles.secondaryBtn}
+              onPress={prevStep}
+              disabled={isLoading || uploadStatus.isUploading}
+            >
+              <Ionicons name="arrow-back" size={18} color="#FFF" />
+              <Text style={styles.secondaryBtnText}>BACK TO EDIT DETAILS</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             style={[
               styles.mainBtn,
@@ -1381,6 +1726,20 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     letterSpacing: 1.4,
   },
+  menuDraftMeta: {
+    color: "#888",
+    fontSize: 12,
+    fontWeight: "700",
+    marginTop: 5,
+  },
+  deleteMenuButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 13,
+    backgroundColor: "rgba(239,68,68,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   menuImagePicker: {
     height: 150,
     borderRadius: 18,
@@ -1407,6 +1766,62 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "900",
     letterSpacing: 1,
+  },
+  menuImageHint: {
+    color: "#777",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  menuHero: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 16,
+  },
+  menuCountBadge: {
+    minWidth: 62,
+    borderRadius: 18,
+    backgroundColor: "#111",
+    borderWidth: 1,
+    borderColor: "#222",
+    alignItems: "center",
+    paddingVertical: 10,
+  },
+  menuCountNumber: {
+    color: Colors.light.primary,
+    fontSize: 22,
+    fontWeight: "900",
+  },
+  menuCountLabel: {
+    color: "#888",
+    fontSize: 10,
+    fontWeight: "900",
+    textTransform: "uppercase",
+  },
+  menuPickerTrigger: {
+    backgroundColor: "#0A0A0A",
+    height: 55,
+    borderRadius: 15,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "#1A1A1A",
+    gap: 10,
+  },
+  menuPickerText: {
+    flex: 1,
+    color: "#FFF",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  characterHint: {
+    color: "#666",
+    fontSize: 11,
+    fontWeight: "700",
+    textAlign: "right",
+    marginTop: 6,
   },
   menuDescriptionInput: {
     minHeight: 82,
@@ -1459,6 +1874,24 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   footer: { padding: 25, paddingBottom: 35 },
+  secondaryBtn: {
+    minHeight: 48,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#222",
+    backgroundColor: "#0A0A0A",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginBottom: 12,
+  },
+  secondaryBtnText: {
+    color: "#FFF",
+    fontSize: 12,
+    fontWeight: "900",
+    letterSpacing: 1,
+  },
   mainBtn: {
     backgroundColor: Colors.light.primary,
     height: 60,
@@ -1522,6 +1955,13 @@ const styles = StyleSheet.create({
     borderBottomColor: "#111",
   },
   modalItemText: { color: "#FFF", fontSize: 16, fontWeight: "600" },
+  emptyPickerText: {
+    color: "#888",
+    fontSize: 14,
+    fontWeight: "700",
+    textAlign: "center",
+    paddingVertical: 24,
+  },
   modalClose: {
     marginTop: 20,
     padding: 15,

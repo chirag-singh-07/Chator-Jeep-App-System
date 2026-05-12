@@ -38,7 +38,9 @@ export interface IDeliveryPartner extends Document {
     landmark?: string;
     area: string;
     state: string;
+    district?: string;
     city: string;
+    pincode?: string;
   };
   payoutMethod?: PayoutMethod;
   upiId?: string;
@@ -102,7 +104,9 @@ const deliveryPartnerSchema = new Schema<IDeliveryPartner>(
       landmark: { type: String, trim: true },
       area: { type: String, trim: true },
       state: { type: String, trim: true },
+      district: { type: String, trim: true },
       city: { type: String, trim: true },
+      pincode: { type: String, trim: true },
     },
     payoutMethod: { type: String, enum: ["UPI", "BANK_ACCOUNT"], default: "BANK_ACCOUNT" },
     upiId: { type: String, trim: true },

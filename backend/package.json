@@ -11,6 +11,7 @@
     "test": "vitest run",
     "seed:categories": "ts-node-dev --transpile-only --no-notify src/scripts/seed-categories.ts",
     "seed:restaurants": "ts-node-dev --transpile-only --no-notify src/scripts/seed-restaurants.ts",
+    "generate:india-data": "ts-node-dev --transpile-only --no-notify scripts/generate-india-data.ts",
     "create:admin": "ts-node-dev --transpile-only --no-notify src/scripts/create-admin.ts",
     "verify:admin": "ts-node-dev --transpile-only --no-notify src/scripts/verify-admin.ts",
     "rename:admin-email": "ts-node-dev --transpile-only --no-notify src/scripts/rename-admin-email.ts"
@@ -53,9 +54,10 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/morgan": "^1.9.9",
     "@types/multer": "^2.1.0",
-    "@types/node": "^22.7.4",
+    "@types/node": "^22.19.19",
     "@types/nodemailer": "^8.0.0",
     "@types/uuid": "^10.0.0",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.6.2",
     "vitest": "^2.1.1"
