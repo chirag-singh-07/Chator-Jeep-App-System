@@ -1135,7 +1135,6 @@ export const INDIA_DATA = [
             "Narcondam Island", "Neil Kendra", "Sitapur Neil", "Lakshmanpur", "Bharatpur Neil"
         ]
     },
-
     {
         state: "Dadra and Nagar Haveli and Daman and Diu",
         cities: [
@@ -1164,7 +1163,6 @@ export const INDIA_DATA = [
             "Diu Town", "Moti Daman Lighthouse Area", "Sea Face Road Daman", "Bhimpore Beach"
         ]
     },
-
     {
         state: "Lakshadweep",
         cities: [
