@@ -24,6 +24,11 @@ type AuthState = {
   markHydrated: () => void;
 };
 
+const getApiErrorMessage = (error: any, fallback: string) =>
+  error?.response?.data?.message ||
+  error?.message ||
+  fallback;
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -85,7 +90,7 @@ export const useAuthStore = create<AuthState>()(
           });
         } catch (error: any) {
           set({ isLoading: false });
-          throw new Error(error?.response?.data?.message || error?.message || "Login failed");
+          throw new Error(getApiErrorMessage(error, "Login failed"));
         }
       },
 

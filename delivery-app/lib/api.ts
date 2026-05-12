@@ -73,7 +73,8 @@ apiClient.interceptors.response.use(
       { message: error.message, code: error.code, data: error.response?.data }
     );
 
-    if (status === 401) {
+    const isLoginRequest = config?.url?.includes("/auth/login");
+    if (status === 401 && !isLoginRequest) {
       await AsyncStorage.removeItem("delivery-token");
     }
     return Promise.reject(error);

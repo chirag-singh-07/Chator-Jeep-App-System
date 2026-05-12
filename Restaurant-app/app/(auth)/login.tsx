@@ -15,6 +15,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "@/store/useAuthStore";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const getLoginErrorMessage = (error: unknown) => {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === "string") return error;
+  return "Invalid email or password. Please check your details and try again.";
+};
+
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,7 +34,7 @@ export default function LoginScreen() {
     }
 
     try {
-      await login(email, password);
+      await login(email.trim(), password);
       const user = useAuthStore.getState().user;
 
       if (user?.status === "REQUESTED" || user?.status === "PENDING") {
@@ -39,7 +45,7 @@ export default function LoginScreen() {
         router.replace("/(tabs)");
       }
     } catch (error: any) {
-      Alert.alert("Login Failed", error);
+      Alert.alert("Login Failed", getLoginErrorMessage(error));
     }
   };
 

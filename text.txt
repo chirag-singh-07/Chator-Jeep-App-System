@@ -3,9 +3,9 @@ for test restaurant
 User: owner.burger@gmail.com (or owner.pizza@gmail.com / owner.sushi@gmail.com)
 Password: password123
 
+.\android\gradlew.bat --stop
 
-set GRADLE_USER_HOME=D:\Food-system\.gradle-user-home
-npx expo run:android
+$env:GRADLE_USER_HOME="D:\Food-system\.gradle-user-home"
+$env:RNFB_SUPPRESS_NEW_ARCHITECTURE_WARNING="1"
 
-adb reverse tcp:8081 tcp:8081
-npx expo start --dev-client --port 8081
+npx.cmd expo run:android --port 8082

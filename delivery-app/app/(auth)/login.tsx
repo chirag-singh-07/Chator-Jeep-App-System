@@ -16,6 +16,12 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
+const getLoginErrorMessage = (error: unknown) => {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === "string") return error;
+  return "Invalid email or password. Please check your details and try again.";
+};
+
 export default function LoginScreen() {
   const { login, isLoading } = useAuthStore();
   const [email, setEmail] = useState("");
@@ -34,7 +40,7 @@ export default function LoginScreen() {
       await login(email.trim(), password);
       router.replace("/(tabs)");
     } catch (err: any) {
-      setError(err?.message ?? "Unable to sign in right now.");
+      setError(getLoginErrorMessage(err));
     }
   };
 

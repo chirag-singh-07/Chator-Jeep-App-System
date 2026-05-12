@@ -77,7 +77,8 @@ apiClient.interceptors.response.use(
       }
     );
 
-    if (status === 401) {
+    const isLoginRequest = config?.url?.includes("/restaurants/login");
+    if (status === 401 && !isLoginRequest) {
       await AsyncStorage.removeItem("token");
       try {
         const { useAuthStore } = require('../store/useAuthStore');

@@ -57,10 +57,12 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     const status = error.response?.status;
+    const requestUrl = originalRequest?.url || "";
+    const isLoginRequest = requestUrl.includes("/auth/login");
 
     // Auto-retry ONCE on network errors (Render cold-start)
     const isNetworkError = !status && (error.code === "ECONNABORTED" || error.message === "Network Error");
-    if (isNetworkError && !originalRequest._retried) {
+    if (isNetworkError && originalRequest && !originalRequest._retried) {
       originalRequest._retried = true;
       console.warn(`🔄 [API Retry] Server waking up. Retrying in 8s: ${originalRequest.url}`);
       await new Promise((r) => setTimeout(r, 8000));
@@ -79,7 +81,7 @@ api.interceptors.response.use(
         },
       );
     }
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isLoginRequest) {
       const headers = originalRequest.headers || {};
       const isSilentRequest =
         headers["x-silent"] === "true" ||

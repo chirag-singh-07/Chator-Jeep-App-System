@@ -27,6 +27,11 @@ import { useAuthStore } from '@/store/useAuthStore';
 
 const { width, height } = Dimensions.get('window');
 
+const getLoginErrorMessage = (error: any) =>
+  error?.response?.data?.message ||
+  error?.message ||
+  "Invalid email or password. Please check your details and try again.";
+
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -45,7 +50,7 @@ export default function LoginScreen() {
       setLoading(true);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post('/auth/login', { email: email.trim(), password });
 
       const { user, accessToken, refreshToken } = response.data;
       await useAuthStore.getState().setAuth(user, { accessToken, refreshToken });
@@ -61,9 +66,7 @@ export default function LoginScreen() {
     } catch (error: any) {
       Alert.alert(
         "Login Failed",
-        error.response?.data?.message ||
-          error.message ||
-          "Something went wrong. Please try again.",
+        getLoginErrorMessage(error),
       );
     } finally {
       setLoading(false);

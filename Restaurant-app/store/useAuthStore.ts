@@ -26,6 +26,11 @@ interface AuthState {
   uploadLegalDocs: (aadhar: any, pan: any, livePhoto: any, otherDocs: Array<{ label: string; file: any }>) => Promise<void>;
 }
 
+const getApiErrorMessage = (error: any, fallback: string) =>
+  error?.response?.data?.message ||
+  error?.message ||
+  fallback;
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -56,7 +61,7 @@ export const useAuthStore = create<AuthState>()(
           });
         } catch (error: any) {
           set({ isLoading: false });
-          const msg = error.response?.data?.message || error.message || 'Login failed. Please check your credentials.';
+          const msg = getApiErrorMessage(error, 'Login failed. Please check your credentials.');
           throw new Error(msg);
         }
       },

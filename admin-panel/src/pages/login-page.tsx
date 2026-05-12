@@ -19,6 +19,11 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { apiClient } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
+const getLoginErrorMessage = (err: any) =>
+  err?.response?.data?.message ||
+  err?.message ||
+  "Invalid email or password. Please check your details and try again.";
+
 export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,7 +51,7 @@ export function LoginPage() {
       navigate("/overview");
     } catch (err: any) {
       console.error("Login Error:", err);
-      setError(err.response?.data?.message || err.message || "Failed to authenticate");
+      setError(getLoginErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
