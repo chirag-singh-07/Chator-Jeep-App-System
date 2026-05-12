@@ -40,7 +40,7 @@ router.get(
   ctrl.listMyMenu
 );
 
-/** POST /api/v1/restaurants/me/menu - Add menu item (ACTIVE only) */
+/** POST /api/v1/restaurants/me/menu - Add menu item during onboarding or after activation */
 router.post(
   "/me/menu",
   authMiddleware,

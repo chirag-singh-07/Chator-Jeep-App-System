@@ -150,6 +150,7 @@ export const adminListMenuItems = async (query: {
   limit?: string;
   search?: string;
   category?: string;
+  restaurantId?: string;
 }) => {
   const page = parseInt(query.page ?? "1");
   const limit = parseInt(query.limit ?? "20");
@@ -161,6 +162,9 @@ export const adminListMenuItems = async (query: {
   }
   if (query.category && query.category !== "all") {
     filter.category = query.category;
+  }
+  if (query.restaurantId) {
+    filter.restaurantId = query.restaurantId;
   }
 
   const [items, total] = await Promise.all([
@@ -186,6 +190,11 @@ export const adminGetRestaurant = async (id: string) => {
 };
 
 export const adminApproveRestaurant = async (id: string, adminUserId: string) => {
+  const menuCount = await MenuItem.countDocuments({ restaurantId: id });
+  if (menuCount === 0) {
+    throw new AppError("Restaurant must submit at least one menu item before approval", 400);
+  }
+
   const restaurant = await approveRestaurant(id, adminUserId);
   if (!restaurant) throw new AppError("Restaurant not found", 404);
   return restaurant;
@@ -272,8 +281,11 @@ export const addMenuItem = async (userId: string, body: any) => {
   const restaurant = await findRestaurantByOwner(userId);
   if (!restaurant) throw new AppError("Restaurant not found", 404);
   
-  if (restaurant.status !== RESTAURANT_STATUS.ACTIVE) {
-    throw new AppError(`Restaurant must be ACTIVE to manage menu. Current status: ${restaurant.status}`, 403);
+  if (
+    restaurant.status !== RESTAURANT_STATUS.REQUESTED &&
+    restaurant.status !== RESTAURANT_STATUS.ACTIVE
+  ) {
+    throw new AppError(`Restaurant cannot manage menu while status is ${restaurant.status}`, 403);
   }
   
   return MenuItem.create({ restaurantId: restaurant._id, ...body });

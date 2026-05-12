@@ -163,6 +163,14 @@ export const uploadRestaurantLegalDocs = async (
     const panFile = filesMap["panCard"]?.[0];
     const livePhotoFile = filesMap["livePhoto"]?.[0];
     const otherDocs = filesMap["otherDocs"] ?? [];
+    const otherDocLabels = (() => {
+      try {
+        const parsed = JSON.parse((req.body.otherDocLabels as string) || "[]");
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    })();
 
     console.log(`UPLOAD: Received files - Aadhar: ${!!aadharFile}, PAN: ${!!panFile}, LivePhoto: ${!!livePhotoFile}, Others: ${otherDocs.length}`);
 
@@ -177,9 +185,13 @@ export const uploadRestaurantLegalDocs = async (
         ? (console.log("UPLOAD: Processing Live Photo..."), processAndUpload(livePhotoFile.buffer, "restaurants/legal-docs", ["thumbnail", "medium", "full"]))
         : null,
       Promise.all(
-        otherDocs.map((file) => {
+        otherDocs.map(async (file, index) => {
           console.log(`UPLOAD: Processing other doc: ${file.originalname}`);
-          return uploadRawFile(file.buffer, "restaurants/legal-docs", file.originalname, file.mimetype);
+          const uploaded = await uploadRawFile(file.buffer, "restaurants/legal-docs", file.originalname, file.mimetype);
+          return {
+            label: otherDocLabels[index] || file.originalname || "Supplemental Document",
+            ...uploaded,
+          };
         })
       ),
     ]);
