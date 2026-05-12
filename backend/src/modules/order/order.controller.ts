@@ -48,6 +48,16 @@ export const initiatePayment = asyncHandler(async (req: AuthenticatedRequest, re
   res.status(200).json({ success: true, data: result });
 });
 
+export const initiateCheckoutPayment = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const result = await service.initiateRazorpayCheckout(req.user!.userId, req.body);
+  res.status(200).json({ success: true, data: result });
+});
+
+export const verifyCheckoutPayment = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const result = await service.verifyPaymentAndCreateOrder(req.user!.userId, req.body);
+  res.status(201).json({ success: true, data: result });
+});
+
 export const getPaymentStatus = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const result = await service.getPhonePePaymentStatus(req.user!.userId, req.params.orderId as string);
   res.status(200).json({ success: true, data: result });

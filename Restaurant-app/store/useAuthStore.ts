@@ -23,7 +23,7 @@ interface AuthState {
   logout: () => Promise<void>;
   updateUserStatus: (status: string) => void;
   uploadBranding: (logoJson: any, bannerJson: any) => Promise<void>;
-  uploadLegalDocs: (aadhar: any, pan: any, livePhoto: any, otherDocs: any[]) => Promise<void>;
+  uploadLegalDocs: (aadhar: any, pan: any, livePhoto: any, otherDocs: Array<{ label: string; file: any }>) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -44,7 +44,7 @@ export const useAuthStore = create<AuthState>()(
           set({ 
             token: accessToken, 
             user: { 
-              email, 
+              email,
               status: status, 
               restaurantId,
               id: '', 
@@ -66,9 +66,8 @@ export const useAuthStore = create<AuthState>()(
         try {
           const response = await apiClient.post(`/restaurants/register`, data);
           const { accessToken, status, restaurantId } = response.data.data;
-          
           await AsyncStorage.setItem("token", accessToken);
-          set({ 
+          set({
             token: accessToken,
             user: {
               email: data.email,
@@ -180,11 +179,15 @@ export const useAuthStore = create<AuthState>()(
             otherDocs.forEach((doc, index) => {
               // @ts-ignore
               formData.append('otherDocs', {
-                uri: doc.uri,
-                name: `doc-${index}.jpg`,
+                uri: doc.file.uri,
+                name: `${doc.label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${index}.jpg`,
                 type: 'image/jpeg',
               });
             });
+            formData.append(
+              'otherDocLabels',
+              JSON.stringify(otherDocs.map((doc) => doc.label))
+            );
           }
 
           // 1. Upload documents

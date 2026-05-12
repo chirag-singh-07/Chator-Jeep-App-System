@@ -9,7 +9,34 @@ export interface DeliveryPartner {
   fullName: string;
   phoneNumber: string;
   email: string;
+  profilePhoto?: string;
   vehicleType: string;
+  vehicleFuelType?: "Petrol" | "EV";
+  bikeNumber?: string;
+  drivingLicense?: string;
+  documents?: {
+    aadhaarPhoto?: string;
+    drivingLicenseNumber?: string;
+    drivingLicensePhoto?: string;
+    livePhoto?: string;
+  };
+  address?: {
+    buildingName?: string;
+    streetName?: string;
+    landmark?: string;
+    area?: string;
+    state?: string;
+    city?: string;
+  };
+  payoutMethod?: "UPI" | "BANK_ACCOUNT";
+  upiId?: string;
+  bankDetails?: {
+    accountHolderName?: string;
+    bankName?: string;
+    accountNumber?: string;
+    ifscCode?: string;
+  };
+  termsAccepted?: boolean;
   status: PartnerStatus;
   adminRemarks?: string;
   createdAt: string;

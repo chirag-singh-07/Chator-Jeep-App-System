@@ -14,6 +14,8 @@ import {
   Mail,
   CheckCircle,
   XCircle,
+  FileText,
+  CreditCard,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -56,6 +58,24 @@ export function DeliveryAgentsPage() {
       setPendingStatus(null);
     }
   };
+
+  const formatAddress = (partner: (typeof partners)[number]) =>
+    [
+      partner.address?.buildingName,
+      partner.address?.streetName,
+      partner.address?.landmark,
+      partner.address?.area,
+      partner.address?.city,
+      partner.address?.state,
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+  const documentLinks = (partner: (typeof partners)[number]) => [
+    { label: "Aadhaar", url: partner.documents?.aadhaarPhoto },
+    { label: "Driving License", url: partner.documents?.drivingLicensePhoto },
+    { label: "Live Photo", url: partner.documents?.livePhoto || partner.profilePhoto },
+  ];
 
   return (
     <div className="space-y-6">
@@ -139,7 +159,10 @@ export function DeliveryAgentsPage() {
                 <div className="flex items-center gap-3">
                   <div className="h-12 w-12 rounded-2xl bg-muted overflow-hidden">
                     <img
-                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${partner.fullName}`}
+                      src={
+                        partner.profilePhoto ||
+                        `https://api.dicebear.com/7.x/avataaars/svg?seed=${partner.fullName}`
+                      }
                       className="h-full w-full object-cover"
                       alt={partner.fullName}
                     />
@@ -220,7 +243,57 @@ export function DeliveryAgentsPage() {
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Bike className="h-4 w-4" />
-                <span>{partner.vehicleType}</span>
+                <span>
+                  {[
+                    partner.vehicleType,
+                    partner.vehicleFuelType,
+                    partner.bikeNumber,
+                  ]
+                    .filter(Boolean)
+                    .join(" • ")}
+                </span>
+              </div>
+              {formatAddress(partner) && (
+                <div className="flex items-start gap-3 text-sm text-muted-foreground">
+                  <MapPin className="h-4 w-4 mt-0.5" />
+                  <span>{formatAddress(partner)}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <CreditCard className="h-4 w-4" />
+                <span>
+                  {partner.payoutMethod === "UPI"
+                    ? `UPI: ${partner.upiId || "Not added"}`
+                    : `${partner.bankDetails?.bankName || "Bank"} • ${partner.bankDetails?.ifscCode || "IFSC pending"}`}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 pt-2">
+                {documentLinks(partner).map((doc) => (
+                  <a
+                    key={doc.label}
+                    href={doc.url || "#"}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={`rounded-xl border bg-muted/30 p-2 text-center text-xs font-bold transition ${
+                      doc.url
+                        ? "hover:bg-muted"
+                        : "pointer-events-none opacity-40"
+                    }`}
+                  >
+                    {doc.url ? (
+                      <img
+                        src={doc.url}
+                        alt={doc.label}
+                        className="mb-2 h-20 w-full rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="mb-2 flex h-20 items-center justify-center rounded-lg bg-muted">
+                        <FileText className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    )}
+                    {doc.label}
+                  </a>
+                ))}
               </div>
 
               {partner.adminRemarks && (

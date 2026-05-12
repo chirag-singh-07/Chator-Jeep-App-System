@@ -55,7 +55,7 @@ export const adminService = {
     return response.data;
   },
 
-  getMenuItems: async (params?: { page?: number; search?: string; category?: string }) => {
+  getMenuItems: async (params?: { page?: number; limit?: number; search?: string; category?: string; restaurantId?: string }) => {
     const response = await apiClient.get("/restaurants/admin/menu", { params });
     return response.data;
   },

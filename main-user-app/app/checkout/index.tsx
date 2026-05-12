@@ -58,7 +58,7 @@ export default function CheckoutScreen() {
   const subTotal = totalAmount + DELIVERY_FEE + TAXES;
   const grandTotal = Math.max(0, subTotal - discount);
 
-  const handleRazorpayPayment = async (orderId: string, razorpayData: any) => {
+  const handleRazorpayPayment = async (razorpayData: any) => {
     const options = {
       description: 'Food Order Payment',
       image: 'https://chatorijeep.com/logo.png',
@@ -77,15 +77,14 @@ export default function CheckoutScreen() {
 
     try {
       const data = await RazorpayCheckout.open(options);
-      await api.post(`/orders/${orderId}/payment/verify`, {
+      return {
         razorpayOrderId: razorpayData.razorpayOrderId,
         razorpayPaymentId: data.razorpay_payment_id,
         razorpaySignature: data.razorpay_signature,
-      });
-      return true;
+      };
     } catch (error: any) {
       console.log('Razorpay Error:', error);
-      throw new Error(error.description || 'Payment failed or cancelled');
+      throw new Error(error.description || error.reason || 'Payment failed or cancelled');
     }
   };
 
@@ -115,7 +114,6 @@ export default function CheckoutScreen() {
   };
 
   const handlePlaceOrder = async () => {
-    let createdOrderId: string | null = null;
     if (!selectedAddress) {
       Alert.alert('Error', 'Please select a delivery address');
       return;
@@ -139,14 +137,16 @@ export default function CheckoutScreen() {
       };
 
       if (paymentMethod === 'ONLINE') {
-        const order = await placeOrder(baseOrderData);
-        const orderId = order._id || order.id;
-        createdOrderId = orderId;
-
-        const payRes = await api.post(`/orders/${orderId}/payment`);
+        const payRes = await api.post('/orders/payment/checkout', baseOrderData);
         const razorpayData = payRes.data.data;
+        const paymentResult = await handleRazorpayPayment(razorpayData);
 
-        await handleRazorpayPayment(orderId, razorpayData);
+        const createRes = await api.post('/orders/payment/verify-create', {
+          ...baseOrderData,
+          ...paymentResult,
+        });
+        const order = createRes.data.data;
+        const orderId = order._id || order.id;
 
         clearCart();
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -161,10 +161,9 @@ export default function CheckoutScreen() {
       router.push(`/order/status?status=success&orderId=${orderId}`);
     } catch (error: any) {
       const msg = error?.response?.data?.message || error?.message || 'Something went wrong';
-      if (createdOrderId && paymentMethod === 'ONLINE') {
-        clearCart();
-        Alert.alert('Payment Pending', 'Your order was created, but payment failed.');
-        router.push(`/order/status?status=success&orderId=${createdOrderId}`);
+      if (paymentMethod === 'ONLINE') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        router.push(`/order/status?status=failed&reason=${encodeURIComponent(msg)}`);
       } else {
         Alert.alert('Order Failed', msg);
       }
@@ -280,7 +279,7 @@ export default function CheckoutScreen() {
           </TouchableOpacity>
         ) : (
           <TouchableOpacity style={styles.placeOrderBtn} onPress={handlePlaceOrder} disabled={isProcessing}>
-            <Text style={styles.placeOrderText}>{isProcessing ? 'Processing...' : 'Place Order'}</Text>
+            <Text style={styles.placeOrderText}>{isProcessing ? 'Processing...' : paymentMethod === 'ONLINE' ? 'Pay & Place Order' : 'Place Order'}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -298,6 +297,7 @@ const styles = StyleSheet.create({
   stepDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#E5E7EB' },
   stepDotActive: { backgroundColor: Colors.light.primary },
   scroll: { padding: 20 },
+  stepContent: { flex: 1 },
   sectionTitle: { fontSize: 20, fontWeight: '900', marginBottom: 18 },
   addressCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', padding: 18, borderRadius: 20, marginBottom: 12, borderWidth: 1.5, borderColor: '#F3F4F6' },
   selectedCard: { borderColor: Colors.light.primary },
@@ -321,9 +321,6 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20, paddingHorizontal: 20 },
   addAddressBtn: { backgroundColor: Colors.light.primary, paddingVertical: 15, borderRadius: 20, paddingHorizontal: 25, alignItems: 'center', justifyContent: 'center', marginTop: 10 },
   addAddressBtnText: { color: Colors.light.black, fontSize: 15, fontWeight: '900' },
-  emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 40 },
-  emptyTitle: { fontSize: 18, fontWeight: '900', marginBottom: 10 },
-  emptyText: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20, paddingHorizontal: 20 },
   footer: { padding: 20, backgroundColor: '#FFF' },
   nextBtn: { backgroundColor: Colors.light.primary, height: 58, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   nextBtnText: { color: Colors.light.black, fontSize: 16, fontWeight: '900' },

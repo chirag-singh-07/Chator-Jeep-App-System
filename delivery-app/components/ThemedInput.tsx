@@ -6,7 +6,8 @@ import {
   Text, 
   TextInputProps, 
   StyleProp, 
-  ViewStyle 
+  ViewStyle,
+  TouchableOpacity,
 } from 'react-native';
 import { Colors, Spacing, Radius } from '../constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +16,9 @@ interface ThemedInputProps extends TextInputProps {
   label?: string;
   error?: string;
   icon?: keyof typeof Ionicons.glyphMap;
+  rightIcon?: keyof typeof Ionicons.glyphMap;
+  onRightIconPress?: () => void;
+  rightIconAccessibilityLabel?: string;
   containerStyle?: StyleProp<ViewStyle>;
 }
 
@@ -22,6 +26,9 @@ export function ThemedInput({
   label, 
   error, 
   icon, 
+  rightIcon,
+  onRightIconPress,
+  rightIconAccessibilityLabel,
   containerStyle, 
   style,
   ...props 
@@ -51,6 +58,20 @@ export function ThemedInput({
           onBlur={() => setIsFocused(false)}
           {...props}
         />
+        {rightIcon && (
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={rightIconAccessibilityLabel}
+            onPress={onRightIconPress}
+            style={styles.rightIconButton}
+          >
+            <Ionicons
+              name={rightIcon}
+              size={20}
+              color={isFocused ? Colors.light.primary : Colors.light.textDim}
+            />
+          </TouchableOpacity>
+        )}
       </View>
       {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
@@ -94,6 +115,12 @@ const styles = StyleSheet.create({
     color: Colors.light.text,
     fontSize: 16,
     height: '100%',
+  },
+  rightIconButton: {
+    height: '100%',
+    paddingLeft: Spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   errorText: {
     color: Colors.light.error,

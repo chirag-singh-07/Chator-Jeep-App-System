@@ -163,6 +163,14 @@ export const uploadRestaurantLegalDocs = async (
     const panFile = filesMap["panCard"]?.[0];
     const livePhotoFile = filesMap["livePhoto"]?.[0];
     const otherDocs = filesMap["otherDocs"] ?? [];
+    const otherDocLabels = (() => {
+      try {
+        const parsed = JSON.parse((req.body.otherDocLabels as string) || "[]");
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    })();
 
     console.log(`UPLOAD: Received files - Aadhar: ${!!aadharFile}, PAN: ${!!panFile}, LivePhoto: ${!!livePhotoFile}, Others: ${otherDocs.length}`);
 
@@ -177,9 +185,13 @@ export const uploadRestaurantLegalDocs = async (
         ? (console.log("UPLOAD: Processing Live Photo..."), processAndUpload(livePhotoFile.buffer, "restaurants/legal-docs", ["thumbnail", "medium", "full"]))
         : null,
       Promise.all(
-        otherDocs.map((file) => {
+        otherDocs.map(async (file, index) => {
           console.log(`UPLOAD: Processing other doc: ${file.originalname}`);
-          return uploadRawFile(file.buffer, "restaurants/legal-docs", file.originalname, file.mimetype);
+          const uploaded = await uploadRawFile(file.buffer, "restaurants/legal-docs", file.originalname, file.mimetype);
+          return {
+            label: otherDocLabels[index] || file.originalname || "Supplemental Document",
+            ...uploaded,
+          };
         })
       ),
     ]);
@@ -206,6 +218,52 @@ export const uploadRestaurantLegalDocs = async (
  * Upload a user / delivery agent avatar (square crop).
  * Body (form-data): file (field name "avatar")
  */
+/**
+ * Upload delivery partner onboarding documents.
+ * Fields: aadhaarPhoto, drivingLicensePhoto, livePhoto (single)
+ */
+export const uploadDeliveryDocs = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const filesMap = req.files as Record<string, Express.Multer.File[]> | undefined;
+    if (!filesMap) {
+      throw new AppError("No files received", 400);
+    }
+
+    const aadhaarFile = filesMap["aadhaarPhoto"]?.[0];
+    const drivingLicenseFile = filesMap["drivingLicensePhoto"]?.[0];
+    const livePhotoFile = filesMap["livePhoto"]?.[0];
+
+    if (!aadhaarFile || !drivingLicenseFile || !livePhotoFile) {
+      throw new AppError(
+        "Aadhaar photo, driving license photo, and live photo are required",
+        400,
+      );
+    }
+
+    const [aadhaarPhoto, drivingLicensePhoto, livePhoto] = await Promise.all([
+      processAndUpload(aadhaarFile.buffer, "delivery/documents", ["thumbnail", "medium", "full"]),
+      processAndUpload(drivingLicenseFile.buffer, "delivery/documents", ["thumbnail", "medium", "full"]),
+      processAndUpload(livePhotoFile.buffer, "delivery/documents", ["thumbnail", "medium", "full"]),
+    ]);
+
+    res.status(201).json({
+      success: true,
+      message: "Delivery documents uploaded",
+      data: {
+        aadhaarPhoto,
+        drivingLicensePhoto,
+        livePhoto,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const uploadAvatar = async (
   req: AuthenticatedRequest,
   res: Response,

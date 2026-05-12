@@ -35,6 +35,11 @@ export const createRazorpayOrder = async (
   return order;
 };
 
+export const fetchRazorpayOrder = async (razorpayOrderId: string) => {
+  const rzp = getRazorpay();
+  return rzp.orders.fetch(razorpayOrderId);
+};
+
 /** Verify Razorpay payment signature — MUST call on backend before marking PAID */
 export const verifyRazorpayPayment = (
   razorpayOrderId: string,

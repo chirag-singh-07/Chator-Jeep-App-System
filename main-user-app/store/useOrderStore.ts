@@ -51,10 +51,11 @@ export const useOrderStore = create<OrderState>((set, get) => ({
   fetchMyOrders: async () => {
     set({ isLoading: true });
     try {
-      const res = await api.get("/orders/my");
+      const res = await api.get("/orders/my", { headers: { "x-silent": "true" } });
       set({ orders: res.data.data || [], isLoading: false });
     } catch (err: any) {
-      set({ error: err.message, isLoading: false });
+      const msg = err.response?.data?.message || err.message;
+      set({ error: msg, isLoading: false });
     }
   },
 

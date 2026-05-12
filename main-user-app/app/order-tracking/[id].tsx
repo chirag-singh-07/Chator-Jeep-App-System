@@ -31,6 +31,19 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED: "#EF4444",
 };
 
+const getRestaurantLogo = (restaurant: any) =>
+  restaurant?.logoUrls?.thumbnail || restaurant?.logoUrls?.medium || restaurant?.logoUrls?.full;
+
+const getDeliveryPartner = (delivery: any) => {
+  if (!delivery) return null;
+  return {
+    name: delivery.fullName || delivery.rider?.name || "Delivery Partner",
+    phone: delivery.phoneNumber || delivery.rider?.phone || "",
+    photo: delivery.profilePhoto || delivery.rider?.profilePhoto || "",
+    vehicle: [delivery.vehicleType, delivery.vehicleFuelType, delivery.bikeNumber].filter(Boolean).join(" / "),
+  };
+};
+
 export default function OrderTrackingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -164,8 +177,11 @@ export default function OrderTrackingScreen() {
   if (!order) return null;
 
   const deliveryInfo = order.deliveryId;
-  const isPickedUp = ["PICKED_UP", "ARRIVED"].includes(order.status);
+  const partner = getDeliveryPartner(deliveryInfo);
+  const isPickedUp = ["PICKED_UP", "ARRIVED", "COMPLETED"].includes(order.status);
   const canCancel = ["PENDING", "ACCEPTED"].includes(order.status);
+  const restaurantLogo = getRestaurantLogo(order.restaurantId);
+  const otpDigits = String(order.deliveryOtp || "").split("");
 
   return (
     <View style={styles.container}>
@@ -201,11 +217,11 @@ export default function OrderTrackingScreen() {
         {isPickedUp && order.deliveryOtp && (
           <Animated.View entering={SlideInUp} style={styles.otpCard}>
             <View>
-              <Text style={styles.otpLabel}>🔐 Delivery OTP</Text>
-              <Text style={styles.otpSub}>Share with your delivery partner</Text>
+              <Text style={styles.otpLabel}>Delivery OTP</Text>
+              <Text style={styles.otpSub}>Share this only after your food arrives</Text>
             </View>
             <View style={styles.otpValueBox}>
-              {order.deliveryOtp.split("").map((d: string, i: number) => (
+              {otpDigits.map((d: string, i: number) => (
                 <View key={i} style={styles.otpDigit}>
                   <Text style={styles.otpDigitText}>{d}</Text>
                 </View>
@@ -215,24 +231,26 @@ export default function OrderTrackingScreen() {
         )}
 
         {/* ── Delivery Partner Card ────────────────────────────────────── */}
-        {deliveryInfo && (
+        {partner && (
           <Animated.View entering={FadeIn} style={styles.partnerCard}>
-            <Image
-              source={{ uri: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200" }}
-              style={styles.partnerImg}
-            />
+            {partner.photo ? (
+              <Image source={{ uri: partner.photo }} style={styles.partnerImg} />
+            ) : (
+              <View style={styles.partnerImgFallback}>
+                <Ionicons name="person" size={24} color="#64748B" />
+              </View>
+            )}
             <View style={{ flex: 1, marginLeft: 14 }}>
-              <Text style={styles.partnerName}>{deliveryInfo.rider?.name || "Delivery Partner"}</Text>
-              <Text style={styles.partnerSub}>Your Delivery Executive</Text>
-              {deliveryInfo.rider?.phone && (
-                <Text style={styles.partnerPhone}>{deliveryInfo.rider.phone}</Text>
-              )}
+              <Text style={styles.partnerKicker}>Delivery Partner</Text>
+              <Text style={styles.partnerName}>{partner.name}</Text>
+              <Text style={styles.partnerSub} numberOfLines={1}>{partner.vehicle || "Assigned to your order"}</Text>
+              {partner.phone ? <Text style={styles.partnerPhone}>{partner.phone}</Text> : null}
             </View>
-            {deliveryInfo.rider?.phone && (
-              <TouchableOpacity style={styles.callBtn} onPress={() => callRider(deliveryInfo.rider.phone)}>
+            {partner.phone ? (
+              <TouchableOpacity style={styles.callBtn} onPress={() => callRider(partner.phone)}>
                 <Ionicons name="call" size={20} color="#FFF" />
               </TouchableOpacity>
-            )}
+            ) : null}
           </Animated.View>
         )}
 
@@ -281,7 +299,13 @@ export default function OrderTrackingScreen() {
         {/* ── Restaurant Info ──────────────────────────────────────────── */}
         {order.restaurantId && (
           <View style={styles.restaurantCard}>
-            <Ionicons name="restaurant" size={20} color={Colors.light.primary} />
+            {restaurantLogo ? (
+              <Image source={{ uri: restaurantLogo }} style={styles.restaurantLogo} />
+            ) : (
+              <View style={styles.restaurantIconBox}>
+                <Ionicons name="restaurant" size={20} color={Colors.light.primary} />
+              </View>
+            )}
             <View style={{ flex: 1, marginLeft: 12 }}>
               <Text style={styles.restaurantName}>
                 {order.restaurantId.name || "Restaurant"}
@@ -306,12 +330,12 @@ export default function OrderTrackingScreen() {
           <View style={styles.divider} />
           <View style={styles.itemRow}>
             <Text style={styles.totalLabel}>Total Paid</Text>
-            <Text style={styles.totalValue}>₹{order.totalAmount}</Text>
+            <Text style={styles.totalValue}>Rs.{order.totalAmount}</Text>
           </View>
           {order.walletAmountUsed && order.walletAmountUsed > 0 ? (
             <View style={styles.itemRow}>
               <Text style={[styles.totalLabel, { color: '#22C55E', fontSize: 12 }]}>Wallet Used</Text>
-              <Text style={[styles.totalValue, { color: '#22C55E', fontSize: 12 }]}>−₹{order.walletAmountUsed}</Text>
+              <Text style={[styles.totalValue, { color: '#22C55E', fontSize: 12 }]}>-Rs.{order.walletAmountUsed}</Text>
             </View>
           ) : null}
           <View style={styles.itemRow}>
@@ -417,6 +441,8 @@ const styles = StyleSheet.create({
   otpDigitText: { color: "#FFF", fontSize: 22, fontWeight: "900" },
   partnerCard: { backgroundColor: "#FFF", borderRadius: 20, padding: 16, marginBottom: 16, flexDirection: "row", alignItems: "center", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 10, elevation: 3 },
   partnerImg: { width: 52, height: 52, borderRadius: 26 },
+  partnerImgFallback: { width: 52, height: 52, borderRadius: 26, backgroundColor: "#E2E8F0", alignItems: "center", justifyContent: "center" },
+  partnerKicker: { fontSize: 10, color: Colors.light.primary, fontWeight: "900", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 2 },
   partnerName: { fontSize: 15, fontWeight: "800", color: "#111" },
   partnerSub: { fontSize: 12, color: "#888", marginTop: 2 },
   partnerPhone: { fontSize: 12, color: Colors.light.primary, marginTop: 2, fontWeight: "700" },
@@ -434,6 +460,8 @@ const styles = StyleSheet.create({
   stepLabelActive: { color: "#111", fontWeight: "900" },
   stepDesc: { fontSize: 12, color: "#888", marginTop: 3, fontWeight: "500" },
   restaurantCard: { backgroundColor: "#FFF", borderRadius: 18, padding: 16, marginBottom: 14, flexDirection: "row", alignItems: "center", shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 2 },
+  restaurantLogo: { width: 42, height: 42, borderRadius: 14, backgroundColor: "#F3F4F6" },
+  restaurantIconBox: { width: 42, height: 42, borderRadius: 14, backgroundColor: "#FFF5F2", alignItems: "center", justifyContent: "center" },
   restaurantName: { fontSize: 14, fontWeight: "800", color: "#111" },
   restaurantAddr: { fontSize: 11, color: "#888", marginTop: 2 },
   summaryCard: { backgroundColor: "#FFF", borderRadius: 22, padding: 20, marginBottom: 16, shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 },

@@ -80,10 +80,11 @@ api.interceptors.response.use(
       );
     }
     if (error.response?.status === 401 && !originalRequest._retry) {
-      // Check if the request is marked as silent (e.g. background tasks)
-      if (originalRequest.headers['x-silent']) {
-        return Promise.reject(error);
-      }
+      const headers = originalRequest.headers || {};
+      const isSilentRequest =
+        headers["x-silent"] === "true" ||
+        headers["X-Silent"] === "true" ||
+        headers.get?.("x-silent") === "true";
 
       originalRequest._retry = true;
       try {
@@ -99,6 +100,10 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (err) {
+        if (isSilentRequest) {
+          return Promise.reject(error);
+        }
+
         // Refresh token expired or invalid
         await useAuthStore.getState().logout();
         

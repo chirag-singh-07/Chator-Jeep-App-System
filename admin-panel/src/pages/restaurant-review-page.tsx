@@ -17,9 +17,11 @@ import {
   Eye,
   Flag,
   BarChart3,
+  Utensils,
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useRestaurantStore } from "@/stores/useRestaurantStore";
+import { adminService } from "@/services/admin.service";
 
 // ─── Rejection Modal ──────────────────────────────────────────────────────────
 function RejectionModal({
@@ -96,6 +98,8 @@ export function RestaurantReviewPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [menuItems, setMenuItems] = useState<any[]>([]);
+  const [menuLoading, setMenuLoading] = useState(false);
 
   const {
     selectedRestaurant: restaurant,
@@ -111,6 +115,24 @@ export function RestaurantReviewPage() {
     if (id) {
       fetchRestaurantById(id);
     }
+  }, [id]);
+
+  useEffect(() => {
+    const fetchSubmittedMenu = async () => {
+      if (!id) return;
+      setMenuLoading(true);
+      try {
+        const response = await adminService.getMenuItems({ restaurantId: id, limit: 100 });
+        setMenuItems(response.items || []);
+      } catch (error) {
+        console.error("Failed to load submitted menu:", error);
+        setMenuItems([]);
+      } finally {
+        setMenuLoading(false);
+      }
+    };
+
+    fetchSubmittedMenu();
   }, [id]);
 
   const handleApprove = async () => {
@@ -322,6 +344,23 @@ export function RestaurantReviewPage() {
                   label: "FSSAI ID",
                   value: restaurant.fssaiLicense || "Pending submission",
                 },
+                {
+                  icon: Building2,
+                  label: "Bank Name",
+                  value: restaurant.bankDetails?.bankName || "Not provided",
+                },
+                {
+                  icon: FileText,
+                  label: "Bank Account",
+                  value: restaurant.bankDetails?.accountNumber
+                    ? `•••• ${String(restaurant.bankDetails.accountNumber).slice(-4)}`
+                    : "Not provided",
+                },
+                {
+                  icon: ShieldCheck,
+                  label: "IFSC Code",
+                  value: restaurant.bankDetails?.ifscCode || "Not provided",
+                },
               ].map(({ icon: Icon, label, value }) => (
                 <div
                   key={label}
@@ -490,6 +529,61 @@ export function RestaurantReviewPage() {
               </div>
             </div>
           </div>
+
+          <div className="rounded-3xl border bg-white/60 backdrop-blur-sm shadow-sm p-6">
+            <h2 className="font-black text-lg mb-2 flex items-center gap-2">
+              <Utensils className="h-5 w-5 text-primary" /> Submitted Menu
+            </h2>
+            <p className="text-xs text-muted-foreground mb-5">
+              These food items were added by the restaurant before verification.
+            </p>
+            {menuLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Skeleton className="h-28 rounded-2xl" />
+                <Skeleton className="h-28 rounded-2xl" />
+              </div>
+            ) : menuItems.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {menuItems.map((item) => (
+                  <div key={item._id} className="rounded-2xl border bg-white p-4">
+                    {item.imageUrl && (
+                      <img
+                        src={item.imageUrl}
+                        alt={item.name}
+                        className="mb-3 h-28 w-full rounded-xl object-cover bg-muted"
+                      />
+                    )}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-black text-sm truncate">{item.name}</p>
+                        <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">
+                          {item.shortDescription || item.description || "No description"}
+                        </p>
+                      </div>
+                      <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black ${item.isVeg ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
+                        {item.isVeg ? "VEG" : "NON-VEG"}
+                      </span>
+                    </div>
+                    <div className="mt-4 flex items-center justify-between text-xs">
+                      <span className="font-bold text-muted-foreground">
+                        {item.category || "Uncategorized"}
+                      </span>
+                      <span className="font-black text-primary">
+                        ₹{Math.round(item.discountPrice || item.price || 0).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 rounded-2xl border-2 border-dashed bg-muted/20">
+                <Utensils className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-30" />
+                <p className="text-sm text-muted-foreground font-bold">
+                  No menu items submitted yet. Approval is blocked until at least one item exists.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="space-y-6">
@@ -501,7 +595,7 @@ export function RestaurantReviewPage() {
 
             <div className="space-y-3">
               <button
-                disabled={loading || restaurant.status === "ACTIVE"}
+                disabled={loading || restaurant.status === "ACTIVE" || menuLoading || menuItems.length === 0}
                 onClick={handleApprove}
                 className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 transition-all text-left disabled:opacity-50 disabled:grayscale"
               >
@@ -513,7 +607,7 @@ export function RestaurantReviewPage() {
                     Approve & Activate
                   </p>
                   <p className="text-[10px] text-emerald-800/60 font-bold uppercase">
-                    Grant full platform access
+                    {menuItems.length === 0 ? "Menu item required first" : "Grant full platform access"}
                   </p>
                 </div>
               </button>

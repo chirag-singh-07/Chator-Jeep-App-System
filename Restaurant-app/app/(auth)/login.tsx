@@ -18,6 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const { login, isLoading } = useAuthStore();
 
   const handleLogin = async () => {
@@ -84,8 +85,21 @@ export default function LoginScreen() {
                   placeholderTextColor="#333"
                   value={password}
                   onChangeText={setPassword}
-                  secureTextEntry
+                  secureTextEntry={!showPassword}
                 />
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    showPassword ? "Hide password" : "Show password"
+                  }
+                  onPress={() => setShowPassword((current) => !current)}
+                >
+                  <Ionicons
+                    name={showPassword ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color="#666"
+                  />
+                </TouchableOpacity>
               </View>
             </View>
 

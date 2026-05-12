@@ -141,6 +141,8 @@ export default function KitchenDashboard() {
     });
   }, [categories, menuItems]);
 
+  const dashboardMenuItems = useMemo(() => menuItems.slice(0, 4), [menuItems]);
+
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <ScrollView
@@ -294,6 +296,53 @@ export default function KitchenDashboard() {
             </TouchableOpacity>
           ))}
         </ScrollView>
+
+        <View style={styles.feedHeader}>
+          <Text style={styles.feedTitle}>Menu Items</Text>
+          <TouchableOpacity onPress={() => router.push("/(tabs)/menu")}>
+            <Text style={styles.feedLink}>Manage Menu</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.menuPreviewList}>
+          {dashboardMenuItems.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="restaurant-outline" size={40} color="#333" />
+              <Text style={styles.emptyStateText}>
+                Add food items to start building your menu
+              </Text>
+            </View>
+          ) : (
+            dashboardMenuItems.map((item) => (
+              <TouchableOpacity
+                key={item._id}
+                style={styles.menuPreviewTile}
+                onPress={() => router.push("/(tabs)/menu")}
+              >
+                {item.imageUrl ? (
+                  <Image
+                    source={{ uri: item.imageUrl }}
+                    style={styles.menuPreviewImage}
+                    contentFit="cover"
+                  />
+                ) : (
+                  <View style={styles.menuPreviewImageFallback}>
+                    <Ionicons name="restaurant" size={18} color={Colors.light.primary} />
+                  </View>
+                )}
+                <View style={styles.menuPreviewInfo}>
+                  <Text style={styles.menuPreviewName} numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                  <Text style={styles.menuPreviewMeta} numberOfLines={1}>
+                    {item.category || "Menu"} - ₹
+                    {Math.round(item.discountPrice || item.price || 0)}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
+        </View>
 
         {/* Recent Feed */}
         <View style={styles.feedHeader}>
@@ -575,6 +624,48 @@ const styles = StyleSheet.create({
   feedList: {
     paddingHorizontal: 20,
     paddingBottom: 20,
+  },
+  menuPreviewList: {
+    paddingHorizontal: 20,
+    gap: 10,
+  },
+  menuPreviewTile: {
+    backgroundColor: "#0A0A0A",
+    borderRadius: 20,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#1A1A1A",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  menuPreviewImage: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: "#151515",
+  },
+  menuPreviewImageFallback: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: "#151515",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  menuPreviewInfo: {
+    flex: 1,
+  },
+  menuPreviewName: {
+    color: "#FFF",
+    fontSize: 15,
+    fontWeight: "900",
+  },
+  menuPreviewMeta: {
+    color: "#888",
+    fontSize: 12,
+    fontWeight: "700",
+    marginTop: 5,
   },
   emptyState: {
     alignItems: "center",

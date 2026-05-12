@@ -19,6 +19,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { Alert, ActivityIndicator } from "react-native";
 import { useAuthStore } from "@/store/useAuthStore";
+import { apiClient } from "@/lib/api";
 
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "react-native";
@@ -26,7 +27,27 @@ import { INDIA_DATA } from "@/constants/CityData";
 
 const { width, height } = Dimensions.get("window");
 
-const STEPS = ["Account", "Kitchen", "Brand", "Location", "Legal"];
+const STEPS = ["Account", "Kitchen", "Brand", "Location", "Legal", "Menu"];
+
+type OnboardingMenuItem = {
+  id: string;
+  name: string;
+  price: string;
+  category: string;
+  shortDescription: string;
+  isVeg: boolean;
+  image: any | null;
+};
+
+const createMenuDraft = (): OnboardingMenuItem => ({
+  id: `${Date.now()}-${Math.random()}`,
+  name: "",
+  price: "",
+  category: "",
+  shortDescription: "",
+  isVeg: true,
+  image: null,
+});
 
 export default function RegisterScreen() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -43,6 +64,7 @@ export default function RegisterScreen() {
   // Step 1: Account
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   // Step 2: Kitchen Details
   const [kitchenName, setKitchenName] = useState("");
@@ -68,6 +90,21 @@ export default function RegisterScreen() {
   const [aadhar, setAadhar] = useState<any>(null);
   const [pan, setPan] = useState<any>(null);
   const [livePhoto, setLivePhoto] = useState<any>(null);
+  const [fssaiLicense, setFssaiLicense] = useState("");
+  const [gstNumber, setGstNumber] = useState("");
+  const [fssaiDoc, setFssaiDoc] = useState<any>(null);
+  const [gstDoc, setGstDoc] = useState<any>(null);
+  const [addressProofDoc, setAddressProofDoc] = useState<any>(null);
+  const [premisesProofDoc, setPremisesProofDoc] = useState<any>(null);
+  const [bankAccountHolder, setBankAccountHolder] = useState("");
+  const [bankAccountNumber, setBankAccountNumber] = useState("");
+  const [bankIfsc, setBankIfsc] = useState("");
+  const [bankName, setBankName] = useState("");
+
+  // Step 6: Menu
+  const [menuDrafts, setMenuDrafts] = useState<OnboardingMenuItem[]>([
+    createMenuDraft(),
+  ]);
 
   const pickImage = async (type: "logo" | "banner") => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -83,7 +120,9 @@ export default function RegisterScreen() {
     }
   };
 
-  const pickDoc = async (type: "aadhar" | "pan") => {
+  const pickDoc = async (
+    type: "aadhar" | "pan" | "fssai" | "gst" | "addressProof" | "premisesProof",
+  ) => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsEditing: true,
@@ -92,7 +131,24 @@ export default function RegisterScreen() {
 
     if (!result.canceled) {
       if (type === "aadhar") setAadhar(result.assets[0]);
-      else setPan(result.assets[0]);
+      else if (type === "pan") setPan(result.assets[0]);
+      else if (type === "fssai") setFssaiDoc(result.assets[0]);
+      else if (type === "gst") setGstDoc(result.assets[0]);
+      else if (type === "addressProof") setAddressProofDoc(result.assets[0]);
+      else setPremisesProofDoc(result.assets[0]);
+    }
+  };
+
+  const pickMenuImage = async (id: string) => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.85,
+    });
+
+    if (!result.canceled) {
+      updateMenuDraft(id, { image: result.assets[0] });
     }
   };
 
@@ -115,6 +171,67 @@ export default function RegisterScreen() {
     if (!result.canceled) {
       setLivePhoto(result.assets[0]);
     }
+  };
+
+  const selectedStateData = INDIA_DATA.find((d) => d.state === state) as
+    | { state: string; cities: string[]; pincodes?: string[] }
+    | undefined;
+
+  const isPinCodeValidForSelectedState = () => {
+    const normalizedPin = pinCode.trim();
+    if (!/^\d{6}$/.test(normalizedPin)) return false;
+    if (!selectedStateData?.pincodes?.length) return true;
+    return selectedStateData.pincodes.includes(normalizedPin);
+  };
+
+  const updateMenuDraft = (
+    id: string,
+    updates: Partial<OnboardingMenuItem>,
+  ) => {
+    setMenuDrafts((current) =>
+      current.map((item) => (item.id === id ? { ...item, ...updates } : item)),
+    );
+  };
+
+  const addMenuDraft = () => {
+    setMenuDrafts((current) => [...current, createMenuDraft()]);
+  };
+
+  const removeMenuDraft = (id: string) => {
+    setMenuDrafts((current) =>
+      current.length === 1 ? current : current.filter((item) => item.id !== id),
+    );
+  };
+
+  const getValidMenuDrafts = () =>
+    menuDrafts
+      .map((item) => ({
+        ...item,
+        name: item.name.trim(),
+        price: item.price.trim(),
+        category: item.category.trim(),
+        shortDescription: item.shortDescription.trim(),
+      }))
+      .filter((item) => item.name || item.price || item.category);
+
+  const uploadMenuImage = async (image: any) => {
+    if (!image?.uri) return {};
+
+    const formData = new FormData();
+    // @ts-ignore React Native FormData accepts file-like objects.
+    formData.append("file", {
+      uri: image.uri,
+      name: "menu-item.jpg",
+      type: "image/jpeg",
+    });
+    formData.append("folder", "menu-items");
+    formData.append("profiles", "thumbnail,medium,full");
+
+    const response = await apiClient.post("/uploads/single", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    return response.data.data.urls || {};
   };
 
   const nextStep = async () => {
@@ -165,15 +282,65 @@ export default function RegisterScreen() {
         );
         return;
       }
-      if (pinCode.length !== 6) {
-        Alert.alert("VALIDATION ERROR", "PIN code must be exactly 6 digits.");
+      if (!selectedStateData?.cities.includes(city)) {
+        Alert.alert(
+          "VALIDATION ERROR",
+          "Please select a city that belongs to the selected state.",
+        );
+        return;
+      }
+      if (!isPinCodeValidForSelectedState()) {
+        Alert.alert(
+          "VALIDATION ERROR",
+          selectedStateData?.pincodes?.length
+            ? "This PIN code does not match the selected state in the India city data."
+            : "PIN code must be exactly 6 digits.",
+        );
         return;
       }
     } else if (currentStep === 4) {
-      if (!aadhar || !pan || !livePhoto) {
+      if (
+        !aadhar ||
+        !pan ||
+        !livePhoto ||
+        !fssaiLicense.trim() ||
+        !fssaiDoc ||
+        !addressProofDoc ||
+        !premisesProofDoc ||
+        !bankAccountHolder.trim() ||
+        !bankAccountNumber.trim() ||
+        !bankIfsc.trim() ||
+        !bankName.trim()
+      ) {
         Alert.alert(
           "VALIDATION ERROR",
-          "All legal documents and live photo are required.",
+          "Aadhar, PAN, live photo, FSSAI license, address proof, premises proof, and bank details are required.",
+        );
+        return;
+      }
+      if (gstNumber.trim() && !gstDoc) {
+        Alert.alert(
+          "VALIDATION ERROR",
+          "Please upload GST registration proof or clear the GST number if it is not applicable.",
+        );
+        return;
+      }
+    } else if (currentStep === 5) {
+      const validMenuDrafts = getValidMenuDrafts();
+      const hasInvalidItem = validMenuDrafts.some(
+        (item) =>
+          !item.name ||
+          !item.price ||
+          !item.category ||
+          !item.image?.uri ||
+          Number.isNaN(Number(item.price)) ||
+          Number(item.price) <= 0,
+      );
+
+      if (validMenuDrafts.length === 0 || hasInvalidItem) {
+        Alert.alert(
+          "VALIDATION ERROR",
+          "Add at least one food item with image, name, category, and a valid price before sending for verification.",
         );
         return;
       }
@@ -192,12 +359,19 @@ export default function RegisterScreen() {
           ownerName: kitchenName,
           restaurantName: kitchenName,
           phone,
+          fssaiLicense: fssaiLicense.trim(),
           cuisines: [foodType],
           address: {
             line1: finalAddress,
             city: city,
             state: state,
             pinCode: pinCode,
+          },
+          bankDetails: {
+            accountHolderName: bankAccountHolder.trim(),
+            accountNumber: bankAccountNumber.trim(),
+            ifscCode: bankIfsc.trim().toUpperCase(),
+            bankName: bankName.trim(),
           },
         });
 
@@ -214,7 +388,54 @@ export default function RegisterScreen() {
             message: "UPLOADING LEGAL DOCUMENTS...",
             isUploading: true,
           });
-          await uploadLegalDocs(aadhar, pan, livePhoto, []);
+          await uploadLegalDocs(
+            aadhar,
+            pan,
+            livePhoto,
+            [
+              { label: `FSSAI License (${fssaiLicense.trim()})`, file: fssaiDoc },
+              ...(gstDoc
+                ? [
+                    {
+                      label: gstNumber.trim()
+                        ? `GST Registration (${gstNumber.trim()})`
+                        : "GST Registration",
+                      file: gstDoc,
+                    },
+                  ]
+                : []),
+              { label: "Address Proof", file: addressProofDoc },
+              {
+                label: "Electricity Bill / Rent Agreement / Property Tax Receipt",
+                file: premisesProofDoc,
+              },
+            ],
+          );
+        }
+
+        setUploadStatus({
+          message: "ADDING MENU ITEMS...",
+          isUploading: true,
+        });
+        for (const item of getValidMenuDrafts()) {
+          const imageUrls = await uploadMenuImage(item.image);
+          await apiClient.post("/restaurants/me/menu", {
+            name: item.name,
+            price: Number(item.price),
+            category: item.category,
+            shortDescription: item.shortDescription || undefined,
+            description: item.shortDescription || undefined,
+            imageUrl:
+              (imageUrls as any).medium ||
+              (imageUrls as any).full ||
+              (imageUrls as any).thumbnail ||
+              undefined,
+            images: Object.keys(imageUrls).length ? imageUrls : undefined,
+            isVeg: item.isVeg,
+            isAvailable: true,
+            showInMenu: true,
+            availabilitySlots: ["Lunch", "Dinner"],
+          });
         }
 
         setUploadStatus({
@@ -292,14 +513,29 @@ export default function RegisterScreen() {
             </View>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>PASSWORD</Text>
+              <View style={styles.passwordInputRow}>
               <TextInput
-                style={styles.input}
+                style={styles.passwordInput}
                 placeholder="••••••••"
                 placeholderTextColor="#666"
                 value={password}
                 onChangeText={setPassword}
-                secureTextEntry
+                secureTextEntry={!showPassword}
               />
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    showPassword ? "Hide password" : "Show password"
+                  }
+                  onPress={() => setShowPassword((current) => !current)}
+                >
+                  <Ionicons
+                    name={showPassword ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color="#666"
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         );
@@ -465,10 +701,15 @@ export default function RegisterScreen() {
                 placeholder="400001"
                 placeholderTextColor="#444"
                 value={pinCode}
-                onChangeText={setPinCode}
+                onChangeText={(value) => setPinCode(value.replace(/\D/g, ""))}
                 keyboardType="numeric"
                 maxLength={6}
               />
+              {pinCode.length === 6 && !isPinCodeValidForSelectedState() && (
+                <Text style={styles.errorText}>
+                  PIN code does not match the selected state data.
+                </Text>
+              )}
             </View>
 
             {/* State Modal */}
@@ -484,6 +725,7 @@ export default function RegisterScreen() {
                         onPress={() => {
                           setState(item.state);
                           setCity(""); // Reset city when state changes
+                          setPinCode("");
                           setShowStateModal(false);
                         }}
                       >
@@ -577,6 +819,142 @@ export default function RegisterScreen() {
                 <Text style={styles.docLabel}>PAN</Text>
               </TouchableOpacity>
             </View>
+
+            <Text style={styles.legalSectionTitle}>FSSAI & GST</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="FSSAI License Number"
+              placeholderTextColor="#666"
+              value={fssaiLicense}
+              onChangeText={setFssaiLicense}
+            />
+            <View style={[styles.docGrid, { marginTop: 15 }]}>
+              <TouchableOpacity
+                style={styles.docItem}
+                onPress={() => pickDoc("fssai")}
+              >
+                {fssaiDoc ? (
+                  <Image
+                    source={{ uri: fssaiDoc.uri }}
+                    style={styles.previewImage}
+                  />
+                ) : (
+                  <View style={styles.docIcon}>
+                    <Ionicons
+                      name="shield-checkmark"
+                      size={24}
+                      color={Colors.light.primary}
+                    />
+                  </View>
+                )}
+                <Text style={styles.docLabel}>FSSAI LICENSE</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.docItem}
+                onPress={() => pickDoc("gst")}
+              >
+                {gstDoc ? (
+                  <Image
+                    source={{ uri: gstDoc.uri }}
+                    style={styles.previewImage}
+                  />
+                ) : (
+                  <View style={styles.docIcon}>
+                    <Ionicons
+                      name="receipt"
+                      size={24}
+                      color={Colors.light.primary}
+                    />
+                  </View>
+                )}
+                <Text style={styles.docLabel}>GST OPTIONAL</Text>
+              </TouchableOpacity>
+            </View>
+            <TextInput
+              style={[styles.input, { marginTop: 15 }]}
+              placeholder="GST Number (if applicable)"
+              placeholderTextColor="#666"
+              value={gstNumber}
+              onChangeText={setGstNumber}
+            />
+
+            <Text style={styles.legalSectionTitle}>BANK ACCOUNT DETAILS</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Account Holder Name"
+              placeholderTextColor="#666"
+              value={bankAccountHolder}
+              onChangeText={setBankAccountHolder}
+            />
+            <TextInput
+              style={[styles.input, { marginTop: 12 }]}
+              placeholder="Account Number"
+              placeholderTextColor="#666"
+              value={bankAccountNumber}
+              keyboardType="number-pad"
+              onChangeText={(value) => setBankAccountNumber(value.replace(/\D/g, ""))}
+            />
+            <View style={[styles.row, { marginTop: 12 }]}>
+              <TextInput
+                style={[styles.input, { flex: 1, marginRight: 10 }]}
+                placeholder="IFSC"
+                placeholderTextColor="#666"
+                value={bankIfsc}
+                autoCapitalize="characters"
+                onChangeText={(value) => setBankIfsc(value.toUpperCase())}
+              />
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                placeholder="Bank Name"
+                placeholderTextColor="#666"
+                value={bankName}
+                onChangeText={setBankName}
+              />
+            </View>
+
+            <Text style={styles.legalSectionTitle}>ADDRESS & PREMISES PROOF</Text>
+            <View style={styles.docGrid}>
+              <TouchableOpacity
+                style={styles.docItem}
+                onPress={() => pickDoc("addressProof")}
+              >
+                {addressProofDoc ? (
+                  <Image
+                    source={{ uri: addressProofDoc.uri }}
+                    style={styles.previewImage}
+                  />
+                ) : (
+                  <View style={styles.docIcon}>
+                    <Ionicons
+                      name="location"
+                      size={24}
+                      color={Colors.light.primary}
+                    />
+                  </View>
+                )}
+                <Text style={styles.docLabel}>ADDRESS PROOF</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.docItem}
+                onPress={() => pickDoc("premisesProof")}
+              >
+                {premisesProofDoc ? (
+                  <Image
+                    source={{ uri: premisesProofDoc.uri }}
+                    style={styles.previewImage}
+                  />
+                ) : (
+                  <View style={styles.docIcon}>
+                    <Ionicons
+                      name="business"
+                      size={24}
+                      color={Colors.light.primary}
+                    />
+                  </View>
+                )}
+                <Text style={styles.docLabel}>BILL / RENT / TAX</Text>
+              </TouchableOpacity>
+            </View>
             <TouchableOpacity
               style={styles.livePhotoBox}
               onPress={takeLivePhoto}
@@ -596,6 +974,136 @@ export default function RegisterScreen() {
                   <Text style={styles.livePhotoText}>CAPTURE LIVE PHOTO</Text>
                 </View>
               )}
+            </TouchableOpacity>
+          </View>
+        );
+      case 5:
+        return (
+          <View style={styles.stepContent}>
+            <Text style={styles.stepTitle}>STARTER MENU</Text>
+            <Text style={styles.stepSub}>
+              Add at least one food item before your restaurant goes to admin verification.
+            </Text>
+
+            {menuDrafts.map((item, index) => (
+              <View key={item.id} style={styles.menuDraftCard}>
+                <View style={styles.menuDraftHeader}>
+                  <Text style={styles.menuDraftTitle}>FOOD ITEM {index + 1}</Text>
+                  {menuDrafts.length > 1 && (
+                    <TouchableOpacity onPress={() => removeMenuDraft(item.id)}>
+                      <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                <TouchableOpacity
+                  style={styles.menuImagePicker}
+                  onPress={() => pickMenuImage(item.id)}
+                >
+                  {item.image?.uri ? (
+                    <Image
+                      source={{ uri: item.image.uri }}
+                      style={styles.menuImagePreview}
+                    />
+                  ) : (
+                    <View style={styles.menuImagePlaceholder}>
+                      <Ionicons
+                        name="image-outline"
+                        size={28}
+                        color={Colors.light.primary}
+                      />
+                      <Text style={styles.menuImageText}>ADD FOOD IMAGE</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+
+                <TextInput
+                  style={styles.input}
+                  placeholder="Dish name"
+                  placeholderTextColor="#666"
+                  value={item.name}
+                  onChangeText={(value) => updateMenuDraft(item.id, { name: value })}
+                />
+
+                <View style={styles.row}>
+                  <View style={[styles.inputGroup, { flex: 1, marginRight: 10, marginTop: 14 }]}>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Price"
+                      placeholderTextColor="#666"
+                      value={item.price}
+                      keyboardType="numeric"
+                      onChangeText={(value) =>
+                        updateMenuDraft(item.id, {
+                          price: value.replace(/[^0-9.]/g, ""),
+                        })
+                      }
+                    />
+                  </View>
+                  <View style={[styles.inputGroup, { flex: 1, marginTop: 14 }]}>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Category"
+                      placeholderTextColor="#666"
+                      value={item.category}
+                      onChangeText={(value) =>
+                        updateMenuDraft(item.id, { category: value })
+                      }
+                    />
+                  </View>
+                </View>
+
+                <TextInput
+                  style={[styles.input, styles.menuDescriptionInput]}
+                  placeholder="Short description"
+                  placeholderTextColor="#666"
+                  value={item.shortDescription}
+                  multiline
+                  onChangeText={(value) =>
+                    updateMenuDraft(item.id, { shortDescription: value })
+                  }
+                />
+
+                <View style={styles.foodTypeRow}>
+                  <TouchableOpacity
+                    style={[
+                      styles.foodTypeChip,
+                      item.isVeg && styles.foodTypeChipActive,
+                    ]}
+                    onPress={() => updateMenuDraft(item.id, { isVeg: true })}
+                  >
+                    <Text
+                      style={[
+                        styles.foodTypeChipText,
+                        item.isVeg && styles.foodTypeChipTextActive,
+                      ]}
+                    >
+                      VEG
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.foodTypeChip,
+                      !item.isVeg && styles.foodTypeChipActive,
+                    ]}
+                    onPress={() => updateMenuDraft(item.id, { isVeg: false })}
+                  >
+                    <Text
+                      style={[
+                        styles.foodTypeChipText,
+                        !item.isVeg && styles.foodTypeChipTextActive,
+                      ]}
+                    >
+                      NON-VEG
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+
+            <TouchableOpacity style={styles.addMenuButton} onPress={addMenuDraft}>
+              <Ionicons name="add-circle-outline" size={20} color={Colors.light.primary} />
+              <Text style={styles.addMenuButtonText}>ADD ANOTHER FOOD ITEM</Text>
             </TouchableOpacity>
           </View>
         );
@@ -738,6 +1246,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#1A1A1A",
   },
+  passwordInputRow: {
+    backgroundColor: "#0A0A0A",
+    height: 55,
+    borderRadius: 15,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderWidth: 1,
+    borderColor: "#1A1A1A",
+  },
+  passwordInput: {
+    flex: 1,
+    height: "100%",
+    fontSize: 15,
+    color: "#FFF",
+  },
   row: { flexDirection: "row" },
   pickerTrigger: {
     backgroundColor: "#0A0A0A",
@@ -802,6 +1327,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   docLabel: { fontSize: 9, fontWeight: "900", color: "#666" },
+  legalSectionTitle: {
+    fontSize: 11,
+    fontWeight: "900",
+    color: Colors.light.primary,
+    marginTop: 22,
+    marginBottom: 12,
+    letterSpacing: 1.4,
+  },
   livePhotoBox: {
     width: "100%",
     height: 180,
@@ -819,6 +1352,109 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     color: Colors.light.primary,
     marginTop: 10,
+  },
+  errorText: {
+    color: "#EF4444",
+    fontSize: 11,
+    fontWeight: "700",
+    marginTop: 8,
+  },
+  menuDraftCard: {
+    backgroundColor: "#0A0A0A",
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: "#1A1A1A",
+    padding: 16,
+    marginBottom: 16,
+  },
+  menuDraftHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 14,
+  },
+  menuDraftTitle: {
+    color: Colors.light.primary,
+    fontSize: 11,
+    fontWeight: "900",
+    letterSpacing: 1.4,
+  },
+  menuImagePicker: {
+    height: 150,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#222",
+    borderStyle: "dashed",
+    backgroundColor: "#111",
+    overflow: "hidden",
+    marginBottom: 14,
+  },
+  menuImagePreview: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 18,
+  },
+  menuImagePlaceholder: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  menuImageText: {
+    color: Colors.light.primary,
+    fontSize: 11,
+    fontWeight: "900",
+    letterSpacing: 1,
+  },
+  menuDescriptionInput: {
+    minHeight: 82,
+    paddingTop: 15,
+    textAlignVertical: "top",
+  },
+  foodTypeRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 14,
+  },
+  foodTypeChip: {
+    flex: 1,
+    height: 44,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#222",
+    backgroundColor: "#111",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  foodTypeChipActive: {
+    backgroundColor: Colors.light.primary,
+    borderColor: Colors.light.primary,
+  },
+  foodTypeChipText: {
+    color: "#777",
+    fontSize: 12,
+    fontWeight: "900",
+  },
+  foodTypeChipTextActive: {
+    color: "#000",
+  },
+  addMenuButton: {
+    minHeight: 54,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#222",
+    borderStyle: "dashed",
+    backgroundColor: "#0A0A0A",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  addMenuButtonText: {
+    color: Colors.light.primary,
+    fontSize: 12,
+    fontWeight: "900",
+    letterSpacing: 1,
   },
   footer: { padding: 25, paddingBottom: 35 },
   mainBtn: {

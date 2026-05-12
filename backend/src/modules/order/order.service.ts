@@ -9,7 +9,7 @@ import { notifyRidersForOrder } from "../delivery/delivery.service";
 import { NotificationService } from "../notification/notification.service";
 import { deductUserWallet, refundUserWallet } from "../wallet/user-wallet.service";
 import { buildPhonePeRedirectProxyUrl, createPhonePePayment, getPhonePeOrderStatus } from "../payment/phonepe.service";
-import { createRazorpayOrder, verifyRazorpayPayment } from "../payment/razorpay.service";
+import { createRazorpayOrder, fetchRazorpayOrder, verifyRazorpayPayment } from "../payment/razorpay.service";
 import { Order } from "./order.model";
 import { UserWalletTransaction } from "../wallet/user-wallet.model";
 import { addEarningsToRestaurant } from "../restaurant/restaurant.service";
@@ -56,6 +56,53 @@ export const createOrder = async (
     useWalletAmount?: number;
   }
 ) => {
+  const draft = await buildOrderDraft(userId, input);
+  const paymentMethod = input.paymentMethod || "COD";
+
+  let walletAmountUsed = 0;
+  if (paymentMethod === "WALLET" || paymentMethod === "PARTIAL_WALLET") {
+    const requestedDeduction = paymentMethod === "WALLET" ? draft.itemsTotal : input.useWalletAmount || 0;
+    walletAmountUsed = await deductUserWallet(userId, requestedDeduction, "pending");
+  }
+
+  const remainingAmount = Math.max(0, draft.itemsTotal - walletAmountUsed);
+
+  const initialPaymentStatus =
+    paymentMethod === "COD"
+      ? PAYMENT_STATUS.UNPAID
+      : paymentMethod === "WALLET" && walletAmountUsed >= draft.itemsTotal
+        ? PAYMENT_STATUS.PAID
+        : PAYMENT_STATUS.UNPAID;
+
+  const order = await repo.createOrder({
+    ...draft.payload,
+    paymentMethod,
+    walletAmountUsed,
+    paymentStatus: initialPaymentStatus,
+  } as any);
+
+  if (walletAmountUsed > 0) {
+    await UserWalletTransaction.updateOne(
+      { userId, referenceId: "pending", referenceType: "ORDER" },
+      { referenceId: order._id.toString() }
+    );
+  }
+
+  await notifyNewOrder(order._id.toString(), userId, input.restaurantId, draft.itemsTotal);
+
+  return { ...order.toObject(), remainingAmount };
+};
+
+type OrderInput = {
+  restaurantId: string;
+  items: Array<{ menuItemId: string; quantity: number }>;
+  deliveryAddress: string;
+  location: { type: "Point"; coordinates: [number, number] };
+  paymentMethod?: "COD" | "ONLINE" | "WALLET" | "PARTIAL_WALLET";
+  useWalletAmount?: number;
+};
+
+const buildOrderDraft = async (userId: string, input: OrderInput) => {
   const menuItems = (await listMenuByRestaurant(input.restaurantId)) as IMenuItem[];
   const menuMap = new Map<string, IMenuItem>(menuItems.map((item) => [item._id.toString(), item]));
 
@@ -83,52 +130,31 @@ export const createOrder = async (
   const platformFee = config.platformFixedFee;
 
   const itemsTotal = foodTotal + deliveryFee + platformFee;
-  const paymentMethod = input.paymentMethod || "COD";
 
-  let walletAmountUsed = 0;
-  if (paymentMethod === "WALLET" || paymentMethod === "PARTIAL_WALLET") {
-    const requestedDeduction = paymentMethod === "WALLET" ? itemsTotal : input.useWalletAmount || 0;
-    walletAmountUsed = await deductUserWallet(userId, requestedDeduction, "pending");
-  }
+  return {
+    itemsTotal,
+    payload: {
+      userId: new Types.ObjectId(userId),
+      restaurantId: new Types.ObjectId(input.restaurantId),
+      items: snapshotItems,
+      foodAmount: foodTotal,
+      deliveryFee,
+      commissionAmount,
+      platformFee,
+      totalAmount: itemsTotal,
+      deliveryAddress: input.deliveryAddress,
+      location: input.location,
+      status: ORDER_STATUS.PENDING,
+    },
+  };
+};
 
-  const remainingAmount = Math.max(0, itemsTotal - walletAmountUsed);
-
-  const initialPaymentStatus =
-    paymentMethod === "COD"
-      ? PAYMENT_STATUS.UNPAID
-      : paymentMethod === "WALLET" && walletAmountUsed >= itemsTotal
-        ? PAYMENT_STATUS.PAID
-        : PAYMENT_STATUS.UNPAID;
-
-  const order = await repo.createOrder({
-    userId: new Types.ObjectId(userId),
-    restaurantId: new Types.ObjectId(input.restaurantId),
-    items: snapshotItems,
-    foodAmount: foodTotal,
-    deliveryFee,
-    commissionAmount,
-    platformFee,
-    totalAmount: itemsTotal,
-    deliveryAddress: input.deliveryAddress,
-    location: input.location,
-    status: ORDER_STATUS.PENDING,
-    paymentMethod,
-    walletAmountUsed,
-    paymentStatus: initialPaymentStatus,
-  } as any);
-
-  if (walletAmountUsed > 0) {
-    await UserWalletTransaction.updateOne(
-      { userId, referenceId: "pending", referenceType: "ORDER" },
-      { referenceId: order._id.toString() }
-    );
-  }
-
+const notifyNewOrder = async (orderId: string, userId: string, restaurantId: string, itemsTotal: number) => {
   if (orderQueue) {
     try {
       await orderQueue.add(
         "auto-cancel",
-        { orderId: order._id.toString() },
+        { orderId },
         { delay: 5 * 60 * 1000, removeOnComplete: true }
       );
     } catch (error) {
@@ -140,17 +166,15 @@ export const createOrder = async (
     title: "Order Placed!",
     body: "Your order has been placed. Waiting for restaurant confirmation.",
     type: "ORDER_PLACED",
-    data: { orderId: order._id.toString() },
+    data: { orderId },
   });
 
-  void NotificationService.sendToRestaurant(input.restaurantId, {
+  void NotificationService.sendToRestaurant(restaurantId, {
     title: "New Order Received!",
     body: `New order worth Rs.${itemsTotal}. Please confirm.`,
     type: "ORDER_PLACED",
-    data: { orderId: order._id.toString() },
+    data: { orderId },
   });
-
-  return { ...order.toObject(), remainingAmount };
 };
 
 const notifyCustomerPaymentConfirmed = (userId: string, orderId: string, gatewayLabel: string) => {
@@ -285,6 +309,71 @@ export const initiateRazorpayPayment = async (userId: string, orderId: string) =
   };
 };
 
+export const initiateRazorpayCheckout = async (userId: string, input: OrderInput) => {
+  const draft = await buildOrderDraft(userId, { ...input, paymentMethod: "ONLINE" });
+  const rzpOrder = await createRazorpayOrder(
+    draft.itemsTotal,
+    "INR",
+    `cart_${Date.now()}`,
+    { userId, restaurantId: input.restaurantId },
+  );
+
+  return {
+    razorpayOrderId: rzpOrder.id,
+    amount: rzpOrder.amount,
+    amountRupees: draft.itemsTotal,
+    currency: rzpOrder.currency || "INR",
+    key: process.env.RAZORPAY_KEY_ID,
+    breakdown: {
+      foodAmount: draft.payload.foodAmount,
+      deliveryFee: draft.payload.deliveryFee,
+      platformFee: draft.payload.platformFee,
+      totalAmount: draft.itemsTotal,
+    },
+  };
+};
+
+export const verifyPaymentAndCreateOrder = async (
+  userId: string,
+  input: OrderInput & {
+    razorpayOrderId: string;
+    razorpayPaymentId: string;
+    razorpaySignature: string;
+  },
+) => {
+  const isValid = verifyRazorpayPayment(
+    input.razorpayOrderId,
+    input.razorpayPaymentId,
+    input.razorpaySignature,
+  );
+
+  if (!isValid) throw new AppError("Payment verification failed - invalid signature", 400);
+
+  const draft = await buildOrderDraft(userId, { ...input, paymentMethod: "ONLINE" });
+  const razorpayOrder = await fetchRazorpayOrder(input.razorpayOrderId);
+  const paidAmountPaise = Number(razorpayOrder.amount);
+  const expectedAmountPaise = Math.round(draft.itemsTotal * 100);
+
+  if (paidAmountPaise !== expectedAmountPaise) {
+    throw new AppError("Payment amount does not match the order total", 400);
+  }
+
+  const order = await repo.createOrder({
+    ...draft.payload,
+    paymentMethod: "ONLINE",
+    paymentStatus: PAYMENT_STATUS.PAID,
+    paymentGateway: "RAZORPAY",
+    razorpayOrderId: input.razorpayOrderId,
+    razorpayPaymentId: input.razorpayPaymentId,
+    walletAmountUsed: 0,
+  } as any);
+
+  await notifyNewOrder(order._id.toString(), userId, input.restaurantId, draft.itemsTotal);
+  notifyCustomerPaymentConfirmed(userId, order._id.toString(), "Razorpay");
+
+  return { ...order.toObject(), remainingAmount: 0 };
+};
+
 export const verifyAndConfirmPayment = async (
   userId: string,
   input: {
@@ -319,7 +408,7 @@ export const listMyOrders = (userId: string) => repo.listOrdersByUser(userId);
 export const getOrderDetail = async (userId: string, orderId: string) => {
   const order = await Order.findById(orderId)
     .populate("restaurantId", "name phone address logoUrls")
-    .populate("deliveryId", "rider status")
+    .populate("deliveryId", "fullName phoneNumber email profilePhoto vehicleType vehicleFuelType bikeNumber status currentLocation lastLocationUpdatedAt")
     .select("+deliveryOtp")
     .exec();
 

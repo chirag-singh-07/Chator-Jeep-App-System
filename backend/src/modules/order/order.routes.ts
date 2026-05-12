@@ -4,7 +4,12 @@ import { authMiddleware } from "../../common/middleware/auth.middleware";
 import { roleMiddleware } from "../../common/middleware/role.middleware";
 import { validate } from "../../common/middleware/validate.middleware";
 import * as controller from "./order.controller";
-import { createOrderSchema, updateOrderStatusSchema } from "./order.validation";
+import {
+  createOrderSchema,
+  onlineCheckoutPaymentSchema,
+  updateOrderStatusSchema,
+  verifyOnlineCheckoutPaymentSchema,
+} from "./order.validation";
 
 const router = Router();
 
@@ -17,6 +22,24 @@ router.post(
   roleMiddleware([ROLES.USER]),
   validate(createOrderSchema),
   controller.createOrder
+);
+
+/** POST /api/v1/orders/payment/checkout — Create Razorpay payment before order */
+router.post(
+  "/payment/checkout",
+  authMiddleware,
+  roleMiddleware([ROLES.USER]),
+  validate(onlineCheckoutPaymentSchema),
+  controller.initiateCheckoutPayment
+);
+
+/** POST /api/v1/orders/payment/verify-create — Verify payment, then create order */
+router.post(
+  "/payment/verify-create",
+  authMiddleware,
+  roleMiddleware([ROLES.USER]),
+  validate(verifyOnlineCheckoutPaymentSchema),
+  controller.verifyCheckoutPayment
 );
 
 /** GET /api/v1/orders/my — List my orders (alias: /me for legacy) */
