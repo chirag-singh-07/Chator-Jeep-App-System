@@ -51,7 +51,6 @@ export const registerForPushNotificationsAsync = async () => {
         allowAlert: true,
         allowBadge: true,
         allowSound: true,
-        allowAnnouncements: true,
         allowCriticalAlerts: true,
       },
     });

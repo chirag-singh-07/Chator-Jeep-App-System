@@ -380,6 +380,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 15,
   },
+  txRight: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
   txIconCircle: {
     width: 44,
     height: 44,
