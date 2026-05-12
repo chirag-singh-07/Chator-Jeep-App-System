@@ -22,8 +22,14 @@ export interface IDeliveryPartner extends Document {
   documents?: {
     aadhaarNumber: string;
     aadhaarPhoto: string;
+    panNumber?: string;
+    panPhoto?: string;
     drivingLicenseNumber: string;
     drivingLicensePhoto: string;
+    vehicleRcNumber?: string;
+    vehicleRcPhoto?: string;
+    bikeInsurancePhoto?: string;
+    profilePhoto?: string;
     livePhoto: string;
   };
   address?: {
@@ -80,8 +86,14 @@ const deliveryPartnerSchema = new Schema<IDeliveryPartner>(
     documents: {
       aadhaarNumber: { type: String, trim: true, select: false },
       aadhaarPhoto: { type: String, trim: true },
+      panNumber: { type: String, trim: true, uppercase: true },
+      panPhoto: { type: String, trim: true },
       drivingLicenseNumber: { type: String, trim: true, uppercase: true },
       drivingLicensePhoto: { type: String, trim: true },
+      vehicleRcNumber: { type: String, trim: true, uppercase: true },
+      vehicleRcPhoto: { type: String, trim: true },
+      bikeInsurancePhoto: { type: String, trim: true },
+      profilePhoto: { type: String, trim: true },
       livePhoto: { type: String, trim: true },
     },
     address: {

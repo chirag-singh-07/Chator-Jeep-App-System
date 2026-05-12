@@ -16,8 +16,14 @@ export interface DeliveryPartner {
   drivingLicense?: string;
   documents?: {
     aadhaarPhoto?: string;
+    panNumber?: string;
+    panPhoto?: string;
     drivingLicenseNumber?: string;
     drivingLicensePhoto?: string;
+    vehicleRcNumber?: string;
+    vehicleRcPhoto?: string;
+    bikeInsurancePhoto?: string;
+    profilePhoto?: string;
     livePhoto?: string;
   };
   address?: {

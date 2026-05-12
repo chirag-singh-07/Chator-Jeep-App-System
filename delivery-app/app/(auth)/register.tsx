@@ -37,6 +37,7 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phoneRegex = /^[6-9]\d{9}$/;
 const aadhaarRegex = /^\d{12}$/;
 const dlRegex = /^[A-Z]{2}\d{2}\s?\d{11}$/;
+const panRegex = /^[A-Z]{5}\d{4}[A-Z]$/;
 const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
 const vehicleNumberRegex = /^[A-Z]{2}\d{1,2}[A-Z]{1,3}\d{4}$/;
@@ -60,11 +61,19 @@ export default function RegisterScreen() {
   const [showCityPicker, setShowCityPicker] = useState(false);
   const [documentPhotos, setDocumentPhotos] = useState<{
     aadhaarPhoto: ImagePicker.ImagePickerAsset | null;
+    panPhoto: ImagePicker.ImagePickerAsset | null;
     drivingLicensePhoto: ImagePicker.ImagePickerAsset | null;
+    vehicleRcPhoto: ImagePicker.ImagePickerAsset | null;
+    bikeInsurancePhoto: ImagePicker.ImagePickerAsset | null;
+    profilePhoto: ImagePicker.ImagePickerAsset | null;
     livePhoto: ImagePicker.ImagePickerAsset | null;
   }>({
     aadhaarPhoto: null,
+    panPhoto: null,
     drivingLicensePhoto: null,
+    vehicleRcPhoto: null,
+    bikeInsurancePhoto: null,
+    profilePhoto: null,
     livePhoto: null,
   });
 
@@ -78,6 +87,7 @@ export default function RegisterScreen() {
     fuelType: "Petrol" as FuelType,
     bikeNumber: "",
     aadhaarNumber: "",
+    panNumber: "",
     drivingLicenseNumber: "",
     address: {
       buildingName: "",
@@ -134,9 +144,14 @@ export default function RegisterScreen() {
 
     const documents =
       aadhaarRegex.test(form.aadhaarNumber.trim()) &&
+      panRegex.test(form.panNumber.trim().toUpperCase()) &&
       dlRegex.test(form.drivingLicenseNumber.trim().toUpperCase()) &&
       Boolean(documentPhotos.aadhaarPhoto) &&
+      Boolean(documentPhotos.panPhoto) &&
       Boolean(documentPhotos.drivingLicensePhoto) &&
+      Boolean(documentPhotos.vehicleRcPhoto) &&
+      Boolean(documentPhotos.bikeInsurancePhoto) &&
+      Boolean(documentPhotos.profilePhoto) &&
       Boolean(documentPhotos.livePhoto);
 
     const address =
@@ -162,7 +177,13 @@ export default function RegisterScreen() {
   }, [documentPhotos, form, isCompletingProfile]);
 
   const pickDocumentPhoto = async (
-    key: "aadhaarPhoto" | "drivingLicensePhoto",
+    key:
+      | "aadhaarPhoto"
+      | "panPhoto"
+      | "drivingLicensePhoto"
+      | "vehicleRcPhoto"
+      | "bikeInsurancePhoto"
+      | "profilePhoto",
   ) => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
@@ -210,14 +231,34 @@ export default function RegisterScreen() {
   };
 
   const uploadDeliveryDocuments = async () => {
-    const { aadhaarPhoto, drivingLicensePhoto, livePhoto } = documentPhotos;
-    if (!aadhaarPhoto || !drivingLicensePhoto || !livePhoto) {
+    const {
+      aadhaarPhoto,
+      panPhoto,
+      drivingLicensePhoto,
+      vehicleRcPhoto,
+      bikeInsurancePhoto,
+      profilePhoto,
+      livePhoto,
+    } = documentPhotos;
+    if (
+      !aadhaarPhoto ||
+      !panPhoto ||
+      !drivingLicensePhoto ||
+      !vehicleRcPhoto ||
+      !bikeInsurancePhoto ||
+      !profilePhoto ||
+      !livePhoto
+    ) {
       throw new Error("All document photos are required.");
     }
 
     const formData = new FormData();
     appendImage(formData, "aadhaarPhoto", aadhaarPhoto);
+    appendImage(formData, "panPhoto", panPhoto);
     appendImage(formData, "drivingLicensePhoto", drivingLicensePhoto);
+    appendImage(formData, "vehicleRcPhoto", vehicleRcPhoto);
+    appendImage(formData, "bikeInsurancePhoto", bikeInsurancePhoto);
+    appendImage(formData, "profilePhoto", profilePhoto);
     appendImage(formData, "livePhoto", livePhoto);
 
     const response = await apiClient.post("/uploads/delivery-docs", formData, {
@@ -227,7 +268,11 @@ export default function RegisterScreen() {
 
     return response.data.data as {
       aadhaarPhoto: { medium?: string; full?: string; thumbnail?: string };
+      panPhoto: { medium?: string; full?: string; thumbnail?: string };
       drivingLicensePhoto: { medium?: string; full?: string; thumbnail?: string };
+      vehicleRcPhoto: { medium?: string; full?: string; thumbnail?: string };
+      bikeInsurancePhoto: { medium?: string; full?: string; thumbnail?: string };
+      profilePhoto: { medium?: string; full?: string; thumbnail?: string };
       livePhoto: { medium?: string; full?: string; thumbnail?: string };
     };
   };
@@ -259,7 +304,7 @@ export default function RegisterScreen() {
   const showStepError = () => {
     const messages: Record<number, string> = {
       1: "Enter a valid name, email, Indian phone number, OTP/password, and vehicle number.",
-      2: "Add a 12-digit Aadhaar number, valid DL number, and all required photo references.",
+      2: "Add Aadhaar, PAN, driving license, vehicle RC, insurance, profile selfie, and live photo.",
       3: "Complete building, street, area, state, and city in the address section.",
       4: "Add a valid UPI ID or bank details and accept the terms and conditions.",
     };
@@ -300,12 +345,17 @@ export default function RegisterScreen() {
       }
 
       const uploadedDocs = await uploadDeliveryDocuments();
+      const getUploadedUrl = (urls: { full?: string; medium?: string; thumbnail?: string }) =>
+        urls.full || urls.medium || urls.thumbnail || "";
       const aadhaarPhotoUrl =
-        uploadedDocs.aadhaarPhoto.full || uploadedDocs.aadhaarPhoto.medium || uploadedDocs.aadhaarPhoto.thumbnail || "";
+        getUploadedUrl(uploadedDocs.aadhaarPhoto);
+      const panPhotoUrl = getUploadedUrl(uploadedDocs.panPhoto);
       const drivingLicensePhotoUrl =
-        uploadedDocs.drivingLicensePhoto.full || uploadedDocs.drivingLicensePhoto.medium || uploadedDocs.drivingLicensePhoto.thumbnail || "";
-      const livePhotoUrl =
-        uploadedDocs.livePhoto.full || uploadedDocs.livePhoto.medium || uploadedDocs.livePhoto.thumbnail || "";
+        getUploadedUrl(uploadedDocs.drivingLicensePhoto);
+      const vehicleRcPhotoUrl = getUploadedUrl(uploadedDocs.vehicleRcPhoto);
+      const bikeInsurancePhotoUrl = getUploadedUrl(uploadedDocs.bikeInsurancePhoto);
+      const profilePhotoUrl = getUploadedUrl(uploadedDocs.profilePhoto);
+      const livePhotoUrl = getUploadedUrl(uploadedDocs.livePhoto);
 
       const bankDetails =
         form.payoutMethod === "BANK_ACCOUNT"
@@ -324,13 +374,19 @@ export default function RegisterScreen() {
         vehicleType: form.vehicleType,
         vehicleFuelType: form.fuelType,
         bikeNumber: normalizeVehicleNumber(form.bikeNumber),
-        profilePhoto: livePhotoUrl,
+        profilePhoto: profilePhotoUrl,
         drivingLicense: form.drivingLicenseNumber.trim().toUpperCase(),
         documents: {
           aadhaarNumber: form.aadhaarNumber.trim(),
           aadhaarPhoto: aadhaarPhotoUrl,
+          panNumber: form.panNumber.trim().toUpperCase(),
+          panPhoto: panPhotoUrl,
           drivingLicenseNumber: form.drivingLicenseNumber.trim().toUpperCase(),
           drivingLicensePhoto: drivingLicensePhotoUrl,
+          vehicleRcNumber: normalizeVehicleNumber(form.bikeNumber),
+          vehicleRcPhoto: vehicleRcPhotoUrl,
+          bikeInsurancePhoto: bikeInsurancePhotoUrl,
+          profilePhoto: profilePhotoUrl,
           livePhoto: livePhotoUrl,
         },
         address: {
@@ -475,12 +531,17 @@ export default function RegisterScreen() {
         return (
           <Animated.View key="step2" entering={FadeInRight} exiting={FadeOutLeft} style={styles.stepContainer}>
             <Text style={styles.stepTitle}>Documents</Text>
-            <Text style={styles.stepSubtitle}>Add your Aadhaar, driving license, and live photo verification details.</Text>
+            <Text style={styles.stepSubtitle}>Add identity, tax, vehicle, payout, and live photo verification details.</Text>
             <ThemedInput label="Aadhaar Number" placeholder="12 digit Aadhaar number" icon="id-card-outline" keyboardType="numeric" maxLength={12} value={form.aadhaarNumber} onChangeText={(text) => setForm({ ...form, aadhaarNumber: text.replace(/\D/g, "") })} />
             {renderPhotoTile("Aadhaar Card Photo", "Choose from gallery", documentPhotos.aadhaarPhoto, () => pickDocumentPhoto("aadhaarPhoto"), "image-outline")}
+            <ThemedInput label="PAN Number" placeholder="ABCDE1234F" icon="card-outline" autoCapitalize="characters" maxLength={10} value={form.panNumber} onChangeText={(text) => setForm({ ...form, panNumber: text.toUpperCase() })} />
+            {renderPhotoTile("PAN Card Photo", "Choose from gallery", documentPhotos.panPhoto, () => pickDocumentPhoto("panPhoto"), "image-outline")}
             <ThemedInput label="Driving License Number" placeholder="GJ0120231234567" icon="card-outline" autoCapitalize="characters" value={form.drivingLicenseNumber} onChangeText={(text) => setForm({ ...form, drivingLicenseNumber: text.toUpperCase() })} />
             {renderPhotoTile("Driving License Photo", "Choose from gallery", documentPhotos.drivingLicensePhoto, () => pickDocumentPhoto("drivingLicensePhoto"), "image-outline")}
-            {renderPhotoTile("One Live Photo", "Open camera", documentPhotos.livePhoto, captureLivePhoto, "camera-outline")}
+            {renderPhotoTile("Vehicle RC", `${form.fuelType} ${form.vehicleType} registration`, documentPhotos.vehicleRcPhoto, () => pickDocumentPhoto("vehicleRcPhoto"), "document-text-outline")}
+            {renderPhotoTile("Bike Insurance", "Valid insurance document", documentPhotos.bikeInsurancePhoto, () => pickDocumentPhoto("bikeInsurancePhoto"), "shield-checkmark-outline")}
+            {renderPhotoTile("Passport-size Photo / Selfie", "Choose from gallery", documentPhotos.profilePhoto, () => pickDocumentPhoto("profilePhoto"), "person-circle-outline")}
+            {renderPhotoTile("One Live Photo", "Open camera to match Aadhaar", documentPhotos.livePhoto, captureLivePhoto, "camera-outline")}
           </Animated.View>
         );
       case 3:

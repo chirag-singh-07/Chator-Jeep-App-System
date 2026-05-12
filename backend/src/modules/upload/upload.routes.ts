@@ -82,7 +82,11 @@ router.post(
   "/delivery-docs",
   uploadFields([
     { name: "aadhaarPhoto", maxCount: 1 },
+    { name: "panPhoto", maxCount: 1 },
     { name: "drivingLicensePhoto", maxCount: 1 },
+    { name: "vehicleRcPhoto", maxCount: 1 },
+    { name: "bikeInsurancePhoto", maxCount: 1 },
+    { name: "profilePhoto", maxCount: 1 },
     { name: "livePhoto", maxCount: 1 },
   ]),
   uploadDeliveryDocs

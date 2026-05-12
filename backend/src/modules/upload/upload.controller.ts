@@ -234,19 +234,43 @@ export const uploadDeliveryDocs = async (
     }
 
     const aadhaarFile = filesMap["aadhaarPhoto"]?.[0];
+    const panFile = filesMap["panPhoto"]?.[0];
     const drivingLicenseFile = filesMap["drivingLicensePhoto"]?.[0];
+    const vehicleRcFile = filesMap["vehicleRcPhoto"]?.[0];
+    const bikeInsuranceFile = filesMap["bikeInsurancePhoto"]?.[0];
+    const profilePhotoFile = filesMap["profilePhoto"]?.[0];
     const livePhotoFile = filesMap["livePhoto"]?.[0];
 
-    if (!aadhaarFile || !drivingLicenseFile || !livePhotoFile) {
+    if (
+      !aadhaarFile ||
+      !panFile ||
+      !drivingLicenseFile ||
+      !vehicleRcFile ||
+      !bikeInsuranceFile ||
+      !profilePhotoFile ||
+      !livePhotoFile
+    ) {
       throw new AppError(
-        "Aadhaar photo, driving license photo, and live photo are required",
+        "Aadhaar, PAN, driving license, vehicle RC, bike insurance, profile photo, and live photo are required",
         400,
       );
     }
 
-    const [aadhaarPhoto, drivingLicensePhoto, livePhoto] = await Promise.all([
+    const [
+      aadhaarPhoto,
+      panPhoto,
+      drivingLicensePhoto,
+      vehicleRcPhoto,
+      bikeInsurancePhoto,
+      profilePhoto,
+      livePhoto,
+    ] = await Promise.all([
       processAndUpload(aadhaarFile.buffer, "delivery/documents", ["thumbnail", "medium", "full"]),
+      processAndUpload(panFile.buffer, "delivery/documents", ["thumbnail", "medium", "full"]),
       processAndUpload(drivingLicenseFile.buffer, "delivery/documents", ["thumbnail", "medium", "full"]),
+      processAndUpload(vehicleRcFile.buffer, "delivery/documents", ["thumbnail", "medium", "full"]),
+      processAndUpload(bikeInsuranceFile.buffer, "delivery/documents", ["thumbnail", "medium", "full"]),
+      processAndUpload(profilePhotoFile.buffer, "delivery/documents", ["thumbnail", "medium", "full"]),
       processAndUpload(livePhotoFile.buffer, "delivery/documents", ["thumbnail", "medium", "full"]),
     ]);
 
@@ -255,7 +279,11 @@ export const uploadDeliveryDocs = async (
       message: "Delivery documents uploaded",
       data: {
         aadhaarPhoto,
+        panPhoto,
         drivingLicensePhoto,
+        vehicleRcPhoto,
+        bikeInsurancePhoto,
+        profilePhoto,
         livePhoto,
       },
     });

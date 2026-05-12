@@ -73,7 +73,11 @@ export function DeliveryAgentsPage() {
 
   const documentLinks = (partner: (typeof partners)[number]) => [
     { label: "Aadhaar", url: partner.documents?.aadhaarPhoto },
+    { label: "PAN", url: partner.documents?.panPhoto },
     { label: "Driving License", url: partner.documents?.drivingLicensePhoto },
+    { label: "Vehicle RC", url: partner.documents?.vehicleRcPhoto },
+    { label: "Bike Insurance", url: partner.documents?.bikeInsurancePhoto },
+    { label: "Profile Selfie", url: partner.documents?.profilePhoto || partner.profilePhoto },
     { label: "Live Photo", url: partner.documents?.livePhoto || partner.profilePhoto },
   ];
 
@@ -241,6 +245,12 @@ export function DeliveryAgentsPage() {
                 <Phone className="h-4 w-4" />
                 <span>{partner.phoneNumber}</span>
               </div>
+              {partner.documents?.panNumber && (
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <CreditCard className="h-4 w-4" />
+                  <span>PAN: {partner.documents.panNumber}</span>
+                </div>
+              )}
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Bike className="h-4 w-4" />
                 <span>
@@ -253,6 +263,12 @@ export function DeliveryAgentsPage() {
                     .join(" • ")}
                 </span>
               </div>
+              {partner.documents?.vehicleRcNumber && (
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <FileText className="h-4 w-4" />
+                  <span>RC: {partner.documents.vehicleRcNumber}</span>
+                </div>
+              )}
               {formatAddress(partner) && (
                 <div className="flex items-start gap-3 text-sm text-muted-foreground">
                   <MapPin className="h-4 w-4 mt-0.5" />
@@ -267,7 +283,7 @@ export function DeliveryAgentsPage() {
                     : `${partner.bankDetails?.bankName || "Bank"} • ${partner.bankDetails?.ifscCode || "IFSC pending"}`}
                 </span>
               </div>
-              <div className="grid grid-cols-3 gap-2 pt-2">
+              <div className="grid grid-cols-2 gap-2 pt-2">
                 {documentLinks(partner).map((doc) => (
                   <a
                     key={doc.label}

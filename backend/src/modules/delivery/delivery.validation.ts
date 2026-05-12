@@ -4,6 +4,7 @@ const vehicleNumberRegex = /^[A-Z]{2}\d{1,2}[A-Z]{1,3}\d{4}$/;
 const dlRegex = /^[A-Z]{2}\d{2}\s?\d{11}$/;
 const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
+const panRegex = /^[A-Z]{5}\d{4}[A-Z]$/;
 
 export const assignOrderSchema = z.object({
   params: z.object({ orderId: z.string().min(12) })
@@ -50,8 +51,14 @@ export const registerDeliverySchema = z
       documents: z.object({
         aadhaarNumber: z.string().trim().regex(/^\d{12}$/),
         aadhaarPhoto: z.string().trim().min(3),
+        panNumber: z.string().trim().toUpperCase().regex(panRegex),
+        panPhoto: z.string().trim().min(3),
         drivingLicenseNumber: z.string().trim().toUpperCase().regex(dlRegex),
         drivingLicensePhoto: z.string().trim().min(3),
+        vehicleRcNumber: z.string().trim().toUpperCase().regex(vehicleNumberRegex),
+        vehicleRcPhoto: z.string().trim().min(3),
+        bikeInsurancePhoto: z.string().trim().min(3),
+        profilePhoto: z.string().trim().min(3),
         livePhoto: z.string().trim().min(3),
       }),
       address: z.object({
