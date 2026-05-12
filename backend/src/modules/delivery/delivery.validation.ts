@@ -5,6 +5,7 @@ const dlRegex = /^[A-Z]{2}\d{2}\s?\d{11}$/;
 const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
 const panRegex = /^[A-Z]{5}\d{4}[A-Z]$/;
+const indianPhoneRegex = /^[6-9]\d{9}$/;
 
 export const assignOrderSchema = z.object({
   params: z.object({ orderId: z.string().min(12) })
@@ -41,7 +42,7 @@ export const registerDeliverySchema = z
   .object({
     body: z.object({
       fullName: z.string().trim().min(3),
-      phoneNumber: z.string().trim().regex(/^[6-9]\d{9}$/),
+      phoneNumber: z.string().trim().regex(indianPhoneRegex, "Please enter a valid Indian mobile number"),
       email: z.string().trim().email(),
       profilePhoto: z.string().trim().min(3),
       vehicleType: z.enum(["Bike", "Cycle", "Car"]),

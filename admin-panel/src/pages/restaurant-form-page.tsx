@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
+const indianPhoneRegex = /^[6-9]\d{9}$/;
+
 export function RestaurantFormPage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
@@ -28,12 +30,13 @@ export function RestaurantFormPage() {
     name: submitted && !name.trim() ? "Restaurant name is required." : "",
     owner: submitted && !owner.trim() ? "Owner name is required." : "",
     email: submitted && !email.trim() ? "Contact email is required." : "",
+    phone: submitted && phone && !indianPhoneRegex.test(phone) ? "Enter a valid Indian 10-digit mobile number." : "",
     location: submitted && !location.trim() ? "Location is required." : ""
   };
 
   const onSave = () => {
     setSubmitted(true);
-    if (errors.name || errors.owner || errors.email || errors.location || !name || !owner || !email || !location) {
+    if (errors.name || errors.owner || errors.email || errors.phone || errors.location || !name || !owner || !email || !location) {
       return;
     }
     toast.success("Restaurant request created.");
@@ -69,8 +72,13 @@ export function RestaurantFormPage() {
             <FormField label="Contact Email" error={errors.email}>
               <Input value={email} onChange={(event) => setEmail(event.target.value)} aria-invalid={Boolean(errors.email)} />
             </FormField>
-            <FormField label="Contact Phone">
-              <Input value={phone} onChange={(event) => setPhone(event.target.value)} />
+            <FormField label="Contact Phone" error={errors.phone}>
+              <Input
+                value={phone}
+                onChange={(event) => setPhone(event.target.value.replace(/\D/g, "").slice(0, 10))}
+                placeholder="10 digit mobile number"
+                aria-invalid={Boolean(errors.phone)}
+              />
             </FormField>
           </div>
 

@@ -21,6 +21,8 @@ import { deleteUploadedFiles } from "../../common/services/upload.service";
 import { deleteRestaurantById } from "./restaurant.repository";
 import { Order } from "../order/order.model";
 
+const indianPhoneRegex = /^[6-9]\d{9}$/;
+
 // ─── Register Restaurant ─────────────────────────────────────────────────────
 export const registerRestaurant = async (input: {
   ownerName: string;
@@ -42,6 +44,11 @@ export const registerRestaurant = async (input: {
   documents?: Array<{ label: string; key: string; url: string }>;
 }) => {
   const email = input.email.trim().toLowerCase();
+  const phone = input.phone.trim();
+
+  if (!indianPhoneRegex.test(phone)) {
+    throw new AppError("Please enter a valid Indian mobile number", 400);
+  }
 
   const existing = await findUserByEmail(email);
   if (existing) throw new AppError("Email already registered", 409);
@@ -52,7 +59,7 @@ export const registerRestaurant = async (input: {
     name: input.ownerName,
     email,
     password: hashed,
-    phone: input.phone,
+    phone,
     role: ROLES.KITCHEN as any, // We keep the enum internal as KITCHEN for now to avoid breaking other components
   });
 
@@ -62,7 +69,7 @@ export const registerRestaurant = async (input: {
     ownerName: input.ownerName,
     name: input.restaurantName,
     email,
-    phone: input.phone,
+    phone,
     fssaiLicense: input.fssaiLicense,
     address: input.address,
     cuisines: input.cuisines ?? [],

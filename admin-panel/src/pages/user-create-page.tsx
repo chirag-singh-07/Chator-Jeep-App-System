@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useUsersStore } from "@/stores/useUsersStore";
 
+const indianPhoneRegex = /^[6-9]\d{9}$/;
+
 export function UserCreatePage({ mode }: { mode: "admin" | "delivery" }) {
   const navigate = useNavigate();
   const [name, setName] = useState("");
@@ -31,6 +33,7 @@ export function UserCreatePage({ mode }: { mode: "admin" | "delivery" }) {
     if (!name.trim()) newErrors.name = "Name is required";
     if (!email.trim()) newErrors.email = "Email is required";
     if (!email.includes("@")) newErrors.email = "Invalid email format";
+    if (phone && !indianPhoneRegex.test(phone)) newErrors.phone = "Enter a valid Indian 10-digit mobile number";
     if (password.length < 6) newErrors.password = "Password must be at least 6 characters";
     if (password !== confirmPassword) newErrors.confirmPassword = "Passwords do not match";
     
@@ -92,12 +95,13 @@ export function UserCreatePage({ mode }: { mode: "admin" | "delivery" }) {
                 className="rounded-xl border-secondary/20 h-10"
               />
             </FormField>
-            <FormField label="Phone Number (Optional)">
+            <FormField label="Phone Number (Optional)" error={errors.phone}>
               <Input 
-                placeholder="+91 00000 00000"
+                placeholder="10 digit mobile number"
                 value={phone} 
-                onChange={(event) => setPhone(event.target.value)} 
+                onChange={(event) => setPhone(event.target.value.replace(/\D/g, "").slice(0, 10))} 
                 className="rounded-xl border-secondary/20 h-10"
+                aria-invalid={Boolean(errors.phone)}
               />
             </FormField>
           </div>

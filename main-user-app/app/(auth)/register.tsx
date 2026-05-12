@@ -29,6 +29,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useLocationStore } from '@/store/useLocationStore';
 
 const { width, height } = Dimensions.get('window');
+const indianPhoneRegex = /^[6-9]\d{9}$/;
 
 export default function RegisterScreen() {
   const [step, setStep] = useState(1);
@@ -54,9 +55,9 @@ export default function RegisterScreen() {
         Alert.alert("Missing Information", "Please fill all fields to continue.");
         return;
       }
-      if (!/^\d{10}$/.test(formData.phone)) {
+      if (!indianPhoneRegex.test(formData.phone.trim())) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-        Alert.alert("Invalid Phone", "Please enter a valid 10-digit phone number.");
+        Alert.alert("Invalid Phone", "Please enter a valid Indian 10-digit phone number starting with 6, 7, 8, or 9.");
         return;
       }
       setStep(2);
@@ -278,7 +279,8 @@ export default function RegisterScreen() {
                         placeholder="Required for order delivery"
                         keyboardType="phone-pad"
                         value={formData.phone}
-                        onChangeText={(v) => setFormData({...formData, phone: v})}
+                        onChangeText={(v) => setFormData({...formData, phone: v.replace(/\D/g, "")})}
+                        maxLength={10}
                       />
                     </View>
                   </View>

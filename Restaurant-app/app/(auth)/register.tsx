@@ -28,6 +28,7 @@ import { INDIA_DATA } from "@/constants/CityData";
 const { width, height } = Dimensions.get("window");
 
 const STEPS = ["Account", "Kitchen", "Brand", "Location", "Legal", "Menu"];
+const indianPhoneRegex = /^[6-9]\d{9}$/;
 
 type OnboardingMenuItem = {
   id: string;
@@ -259,10 +260,10 @@ export default function RegisterScreen() {
         );
         return;
       }
-      if (!/^\d{10}$/.test(phone)) {
+      if (!indianPhoneRegex.test(phone.trim())) {
         Alert.alert(
           "VALIDATION ERROR",
-          "Please enter a valid 10-digit phone number.",
+          "Please enter a valid Indian 10-digit phone number starting with 6, 7, 8, or 9.",
         );
         return;
       }
@@ -556,10 +557,11 @@ export default function RegisterScreen() {
               <Text style={styles.label}>PHONE NUMBER</Text>
               <TextInput
                 style={styles.input}
-                placeholder="+91 00000 00000"
+                placeholder="10 digit mobile number"
                 value={phone}
-                onChangeText={setPhone}
+                onChangeText={(value) => setPhone(value.replace(/\D/g, ""))}
                 keyboardType="phone-pad"
+                maxLength={10}
               />
             </View>
           </View>

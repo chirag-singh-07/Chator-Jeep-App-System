@@ -8,6 +8,8 @@ import {
 } from "../../common/utils/jwt";
 import { createUser, findUserByEmail, findUserById, updateRefreshToken } from "./auth.repository";
 
+const indianPhoneRegex = /^[6-9]\d{9}$/;
+
 const buildTokenResponse = (payload: AuthPayload) => {
   const accessToken = signAccessToken(payload);
   const refreshToken = signRefreshToken(payload);
@@ -25,6 +27,11 @@ export const register = async (input: {
   role?: string;
 }) => {
   const normalizedEmail = input.email.trim().toLowerCase();
+  const normalizedPhone = input.phone?.trim();
+
+  if (normalizedPhone && !indianPhoneRegex.test(normalizedPhone)) {
+    throw new AppError("Please enter a valid Indian mobile number", 400);
+  }
   
   // Verify OTP first
   await otpService.verifyOtp(normalizedEmail, input.otp, "register");
@@ -39,7 +46,7 @@ export const register = async (input: {
     name: input.name,
     email: normalizedEmail,
     password,
-    phone: input.phone,
+    phone: normalizedPhone,
     ...(input.role && { role: input.role as any })
   });
 

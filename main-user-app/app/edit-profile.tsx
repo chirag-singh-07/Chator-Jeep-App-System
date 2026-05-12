@@ -20,6 +20,8 @@ import { useAuthStore } from '@/store/useAuthStore';
 import * as Haptics from 'expo-haptics';
 import api from '@/lib/api';
 
+const indianPhoneRegex = /^[6-9]\d{9}$/;
+
 export default function EditProfileScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
@@ -32,6 +34,10 @@ export default function EditProfileScreen() {
   const handleUpdate = async () => {
     if (!name || !email) {
       Alert.alert("Error", "Name and Email are required.");
+      return;
+    }
+    if (phone && !indianPhoneRegex.test(phone.trim())) {
+      Alert.alert("Invalid Phone", "Please enter a valid Indian 10-digit phone number starting with 6, 7, 8, or 9.");
       return;
     }
 
@@ -114,9 +120,10 @@ export default function EditProfileScreen() {
                   <TextInput
                     style={styles.input}
                     value={phone}
-                    onChangeText={setPhone}
-                    placeholder="+91 0000000000"
+                    onChangeText={(value) => setPhone(value.replace(/\D/g, ""))}
+                    placeholder="10 digit mobile number"
                     keyboardType="phone-pad"
+                    maxLength={10}
                   />
                 </View>
               </View>
