@@ -1,11 +1,23 @@
 {
   "Uttar Pradesh": {
     "Allahabad": {
+      "Aladadpur": [
+        "229411"
+      ],
+      "Anapur": [
+        "229411"
+      ],
+      "Andhiyaari": [
+        "229413"
+      ],
       "Arahkala": [
         "221508"
       ],
       "Ashey Pur": [
         "221508"
+      ],
+      "Atrampur": [
+        "229412"
       ],
       "Atraura": [
         "221502"
@@ -15,6 +27,12 @@
       ],
       "Babhan Kuiyan": [
         "221507"
+      ],
+      "Bajha Mazra Lohia Nagar": [
+        "229412"
+      ],
+      "Balraj Nagar": [
+        "229412"
       ],
       "Bamaila": [
         "221503"
@@ -42,6 +60,9 @@
       ],
       "Bhopatpur": [
         "221503"
+      ],
+      "Biharia": [
+        "229413"
       ],
       "Bilari": [
         "221502"
@@ -130,6 +151,9 @@
       "Lakshagrih": [
         "221503"
       ],
+      "Lalgopal Ganj": [
+        "229413"
+      ],
       "Leelapur Kala": [
         "221505"
       ],
@@ -139,8 +163,17 @@
       "Mahajna": [
         "221502"
       ],
+      "Mansoorabad": [
+        "229411"
+      ],
+      "Masni Jagdishpur": [
+        "229412"
+      ],
       "Mawaiya Hindwani": [
         "221503"
+      ],
+      "Mendara": [
+        "229411"
       ],
       "Mendewa": [
         "221507"
@@ -148,17 +181,41 @@
       "Motiha": [
         "221508"
       ],
+      "Mubarakpur": [
+        "229412"
+      ],
       "Mugarshan": [
         "221505"
       ],
+      "Nindura": [
+        "229413"
+      ],
+      "Pachdeora": [
+        "229412"
+      ],
+      "Parewa Narainpur": [
+        "229413"
+      ],
+      "Piyari Urf Bijlipur": [
+        "229413"
+      ],
+      "Prem Misirpur Korali": [
+        "229411"
+      ],
       "Prithvipur": [
         "221503"
+      ],
+      "Pure Ghasi": [
+        "229411"
       ],
       "Pure Kanta": [
         "221502"
       ],
       "Ramaipur": [
         "221505"
+      ],
+      "Rampur Kotwa": [
+        "229413"
       ],
       "Sahson": [
         "221507"
@@ -169,8 +226,17 @@
       "Sarai Inayat": [
         "221505"
       ],
+      "Saraswatipur Urf Kaudhiyar": [
+        "229412"
+      ],
+      "Serawan": [
+        "229412"
+      ],
       "Shahipur": [
         "221503"
+      ],
+      "Shringverpur": [
+        "229411"
       ],
       "Sikikhurda": [
         "221508"
@@ -186,6 +252,9 @@
       ],
       "Tela": [
         "221502"
+      ],
+      "Ulda": [
+        "229412"
       ],
       "Umari": [
         "221507"
@@ -5294,6 +5363,871 @@
         "222180"
       ]
     },
+    "Lucknow": {
+      "32 Bn PAC": [
+        "226023"
+      ],
+      "A N L Colony": [
+        "226004"
+      ],
+      "A P Sabha": [
+        "226001"
+      ],
+      "Aashiana": [
+        "226012"
+      ],
+      "Adampur Janubi": [
+        "226303"
+      ],
+      "Adarsh Nagar (Lucknow)": [
+        "226005"
+      ],
+      "Ain": [
+        "226005",
+        "226401"
+      ],
+      "Aishbagh": [
+        "226004"
+      ],
+      "Akariakalan": [
+        "226203"
+      ],
+      "Alambagh": [
+        "226005"
+      ],
+      "Alamnagar": [
+        "226017"
+      ],
+      "Aliganj (Lucknow)": [
+        "226024"
+      ],
+      "Aliganj Extension": [
+        "226024"
+      ],
+      "Amaniganj": [
+        "226203"
+      ],
+      "Amausi": [
+        "226008"
+      ],
+      "Amausi Ad": [
+        "226009"
+      ],
+      "Amberganj": [
+        "226003"
+      ],
+      "Amethi": [
+        "226501"
+      ],
+      "Amethia Salempur": [
+        "226101"
+      ],
+      "Aminabad Park": [
+        "226018"
+      ],
+      "Amraigaon": [
+        "226028"
+      ],
+      "Anandnagar (Lucknow)": [
+        "226005"
+      ],
+      "Anaura Kalan": [
+        "226028"
+      ],
+      "Antagarhi": [
+        "226104"
+      ],
+      "Arjunganj": [
+        "226002"
+      ],
+      "Arjunpur": [
+        "226203"
+      ],
+      "Arya Nagar (Lucknow)": [
+        "226004"
+      ],
+      "Asti": [
+        "226201"
+      ],
+      "Atari": [
+        "226104"
+      ],
+      "Ateswa": [
+        "226203"
+      ],
+      "Aurawan": [
+        "226401"
+      ],
+      "Avas Vikas Colony (Lucknow)": [
+        "226017"
+      ],
+      "B R A University": [
+        "226025"
+      ],
+      "Badiyan": [
+        "226104"
+      ],
+      "Bahargaon": [
+        "226203"
+      ],
+      "Bahrauli": [
+        "226303"
+      ],
+      "Bahroo": [
+        "226101"
+      ],
+      "Bakkash": [
+        "226002"
+      ],
+      "Bakshi Ka Talab": [
+        "226201"
+      ],
+      "Balrampur Hospital": [
+        "226018"
+      ],
+      "Bani": [
+        "226401"
+      ],
+      "Banthra": [
+        "226401"
+      ],
+      "Baragaon": [
+        "226101"
+      ],
+      "Barauna": [
+        "226002"
+      ],
+      "Barawan Kalan": [
+        "226101"
+      ],
+      "Barha": [
+        "226005"
+      ],
+      "Barwalia": [
+        "226301"
+      ],
+      "Basha": [
+        "226026"
+      ],
+      "Batha Sabauli": [
+        "226021"
+      ],
+      "Baurumau": [
+        "226201"
+      ],
+      "Bazargaron": [
+        "226104"
+      ],
+      "Beerpur": [
+        "226104"
+      ],
+      "Begariamau": [
+        "226501"
+      ],
+      "Behta": [
+        "226026"
+      ],
+      "Benti": [
+        "226005",
+        "226401"
+      ],
+      "Bhadeswa": [
+        "226301"
+      ],
+      "Bhadrukh": [
+        "226002"
+      ],
+      "Bhadwana": [
+        "226102"
+      ],
+      "Bhagwantpur": [
+        "226104"
+      ],
+      "Bharwara": [
+        "226104"
+      ],
+      "Bhatgaon": [
+        "226005",
+        "226401"
+      ],
+      "Bhauli": [
+        "226201"
+      ],
+      "Bhilampur": [
+        "226301"
+      ],
+      "Bibipur": [
+        "226203"
+      ],
+      "Bijnaur": [
+        "226002"
+      ],
+      "Blunt Square": [
+        "226004"
+      ],
+      "C B Lines": [
+        "226002"
+      ],
+      "C E School": [
+        "226008"
+      ],
+      "C&w Work Shop": [
+        "226005"
+      ],
+      "Canal Colony": [
+        "226001"
+      ],
+      "Chakganjaria": [
+        "226002"
+      ],
+      "Chandganj": [
+        "226024"
+      ],
+      "Chandrawal": [
+        "226002"
+      ],
+      "Charbagh": [
+        "226004"
+      ],
+      "Chatauni": [
+        "226303"
+      ],
+      "Chaupatiyan": [
+        "226003"
+      ],
+      "Chinhat": [
+        "226028"
+      ],
+      "Cimap": [
+        "226015"
+      ],
+      "CPMG Campus": [
+        "226001"
+      ],
+      "D M Road": [
+        "226020"
+      ],
+      "D S Bazar": [
+        "226002"
+      ],
+      "Daliganj": [
+        "226020"
+      ],
+      "Darul Safa": [
+        "226001"
+      ],
+      "Daulatpur": [
+        "226103"
+      ],
+      "Dayalpur": [
+        "226302"
+      ],
+      "Deoti": [
+        "226301"
+      ],
+      "Dhendhemau": [
+        "226102"
+      ],
+      "Diguria": [
+        "226020"
+      ],
+      "Dilawarnagar": [
+        "226102"
+      ],
+      "Dilkusha": [
+        "226002"
+      ],
+      "Distt. Jail (Lucknow)": [
+        "226005"
+      ],
+      "Dona": [
+        "226101"
+      ],
+      "FFTC Indaurabagh": [
+        "226202"
+      ],
+      "Gahdon": [
+        "226104"
+      ],
+      "Ganesh Ganj (Lucknow)": [
+        "226018"
+      ],
+      "Garhi Chunauti": [
+        "226401"
+      ],
+      "Gaunda": [
+        "226103"
+      ],
+      "Ghaila": [
+        "226020"
+      ],
+      "Ghazipur (Lucknow)": [
+        "226016"
+      ],
+      "Gohramau": [
+        "226101"
+      ],
+      "Goila": [
+        "226028"
+      ],
+      "Gokhley Marg": [
+        "226001"
+      ],
+      "Golaganj": [
+        "226018"
+      ],
+      "Gomtinagar": [
+        "226010"
+      ],
+      "Gomtinagar Vistar": [
+        "226010"
+      ],
+      "Gopramau": [
+        "226104"
+      ],
+      "Gosainganj (Lucknow)": [
+        "226501"
+      ],
+      "Guramba": [
+        "226026"
+      ],
+      "Gurdwara": [
+        "226004"
+      ],
+      "H C Bench": [
+        "226001"
+      ],
+      "H E School": [
+        "226006"
+      ],
+      "Hal (Lucknow)": [
+        "226016"
+      ],
+      "Harauni": [
+        "226401"
+      ],
+      "Hasanpur Keoli": [
+        "226002"
+      ],
+      "Hasnain Market": [
+        "226003"
+      ],
+      "Hasnapur": [
+        "226501"
+      ],
+      "Husainabad": [
+        "226003"
+      ],
+      "Iim Mubarakpur": [
+        "226013"
+      ],
+      "IIT Dasauli": [
+        "226026"
+      ],
+      "Ind.Area Sarojininagar": [
+        "226008"
+      ],
+      "Indara": [
+        "226203"
+      ],
+      "Indira Nagar (Lucknow)": [
+        "226016"
+      ],
+      "Indiranagar Sec-14": [
+        "226016"
+      ],
+      "Indiranagar Sec-18": [
+        "226016"
+      ],
+      "Indiranagar Sec-21": [
+        "226016"
+      ],
+      "Industria Area Chinhat": [
+        "226019"
+      ],
+      "Industrial Area (Lucknow)": [
+        "226009"
+      ],
+      "Int Gaon": [
+        "226008"
+      ],
+      "Itaunja": [
+        "226203"
+      ],
+      "Jabrauli": [
+        "226301"
+      ],
+      "Jagdishpur": [
+        "226201"
+      ],
+      "Jaitikhera": [
+        "226301"
+      ],
+      "Jamkhanwa": [
+        "226203"
+      ],
+      "Jamolia": [
+        "226103"
+      ],
+      "Jankipuram": [
+        "226021"
+      ],
+      "Jankipuram Extension": [
+        "226031"
+      ],
+      "Jawahar Bhawan": [
+        "226001"
+      ],
+      "Jindaur": [
+        "226103"
+      ],
+      "Juggaur": [
+        "226028"
+      ],
+      "Kahla": [
+        "226102"
+      ],
+      "Kakori": [
+        "226101"
+      ],
+      "Kakrabad": [
+        "226102"
+      ],
+      "Kalli Pacchim": [
+        "226301"
+      ],
+      "Kalyanpur (Lucknow)": [
+        "226022"
+      ],
+      "Kamlabad Badauli": [
+        "226201"
+      ],
+      "Kankaha": [
+        "226301"
+      ],
+      "Karora": [
+        "226303"
+      ],
+      "Kasimpur Biruha": [
+        "226501"
+      ],
+      "Kasmandi Kalan": [
+        "226102"
+      ],
+      "Kasmandi Khurd": [
+        "226102"
+      ],
+      "Katauli": [
+        "226102"
+      ],
+      "Kathwara": [
+        "226201",
+        "226202"
+      ],
+      "Keoli": [
+        "226303"
+      ],
+      "Khalispur": [
+        "226101"
+      ],
+      "Khantari": [
+        "226203"
+      ],
+      "Kharika": [
+        "226002"
+      ],
+      "Kharsara": [
+        "226104"
+      ],
+      "Khushalganj": [
+        "226101"
+      ],
+      "Kotwa": [
+        "226201"
+      ],
+      "Kumharawan.": [
+        "226203"
+      ],
+      "Kusmaura": [
+        "226301"
+      ],
+      "L D A Colony": [
+        "226012"
+      ],
+      "Lalbagh (Lucknow)": [
+        "226001"
+      ],
+      "Laulai": [
+        "226010",
+        "226028"
+      ],
+      "Locomotive W Shop": [
+        "226005"
+      ],
+      "Lonikatra": [
+        "226020"
+      ],
+      "Lucknow": [
+        "226001"
+      ],
+      "Lucknow Chowk": [
+        "226003"
+      ],
+      "M N Colony": [
+        "226006"
+      ],
+      "Madiyaon": [
+        "226021"
+      ],
+      "Mahanagar": [
+        "226006"
+      ],
+      "Maharishi Vidya Mandir": [
+        "226020"
+      ],
+      "Mahigawan": [
+        "226203"
+      ],
+      "Mahmoodnagar": [
+        "226102"
+      ],
+      "Mahona": [
+        "226203"
+      ],
+      "Malesemau": [
+        "226010"
+      ],
+      "Malha": [
+        "226101"
+      ],
+      "Malhaur": [
+        "226028"
+      ],
+      "Malihabad": [
+        "226102"
+      ],
+      "Mall": [
+        "226104"
+      ],
+      "Manaknagar": [
+        "226011"
+      ],
+      "Manasnagar": [
+        "226023"
+      ],
+      "Mansoor Nagar": [
+        "226003"
+      ],
+      "Mastipur": [
+        "226302"
+      ],
+      "Mati": [
+        "226002"
+      ],
+      "Maunda": [
+        "226008"
+      ],
+      "Mawai Kalan": [
+        "226103"
+      ],
+      "Mawai Khurd": [
+        "226104"
+      ],
+      "Mawai Padiyana": [
+        "226008"
+      ],
+      "Medical College (Lucknow)": [
+        "226003"
+      ],
+      "Meeraknagar": [
+        "226302"
+      ],
+      "Mehmoodpur": [
+        "226501"
+      ],
+      "Military Hospital": [
+        "226002"
+      ],
+      "Mill Road": [
+        "226004"
+      ],
+      "Mohanlalganj": [
+        "226301"
+      ],
+      "Mohari Khurd": [
+        "226301"
+      ],
+      "Munnu Khera": [
+        "226104"
+      ],
+      "Nabipanah": [
+        "226104"
+      ],
+      "Nadan Mahal": [
+        "226003"
+      ],
+      "Nadwa": [
+        "226007"
+      ],
+      "Nagram": [
+        "226303"
+      ],
+      "Narain Nagar": [
+        "226016"
+      ],
+      "Narosa": [
+        "226203"
+      ],
+      "Naubasta": [
+        "226003"
+      ],
+      "Navinmandi": [
+        "226020"
+      ],
+      "Naya Gaon (Lucknow)": [
+        "226018"
+      ],
+      "Neewan": [
+        "226401"
+      ],
+      "New Ganeshganj": [
+        "226018"
+      ],
+      "New Hyderabad": [
+        "226007"
+      ],
+      "Nigohan": [
+        "226302"
+      ],
+      "Nilmatha": [
+        "226002"
+      ],
+      "Niralanagar": [
+        "226020"
+      ],
+      "Paharpur": [
+        "226203"
+      ],
+      "Pandariba": [
+        "226004"
+      ],
+      "Pateona": [
+        "226104"
+      ],
+      "Pawanpuri (Lucknow)": [
+        "226005"
+      ],
+      "Piparsand": [
+        "226008"
+      ],
+      "Purseni": [
+        "226301"
+      ],
+      "R A College": [
+        "226004"
+      ],
+      "R B Colony": [
+        "226018"
+      ],
+      "R G C Mill": [
+        "226017"
+      ],
+      "R P Line": [
+        "226007"
+      ],
+      "Raghunathpur": [
+        "226104"
+      ],
+      "Rahim Nagar Padiana": [
+        "226005"
+      ],
+      "Rahimabad": [
+        "226103"
+      ],
+      "Rahimnagar Padiyana": [
+        "226401"
+      ],
+      "Raitha": [
+        "226202"
+      ],
+      "Raja Bazar": [
+        "226003"
+      ],
+      "Rajajipuram": [
+        "226017"
+      ],
+      "Rajauli": [
+        "226026"
+      ],
+      "Rajendranagar (Lucknow)": [
+        "226004"
+      ],
+      "Ranipara": [
+        "226104"
+      ],
+      "Rasoolpur Saadat": [
+        "226028"
+      ],
+      "Rasoolpur Tikaniamau": [
+        "226501"
+      ],
+      "Rehman Khera": [
+        "226101"
+      ],
+      "Rusena": [
+        "226103"
+      ],
+      "Saadatganj (Lucknow)": [
+        "226003"
+      ],
+      "Sadrauna": [
+        "226008"
+      ],
+      "Sahijana": [
+        "226103"
+      ],
+      "Sairpur": [
+        "226201"
+      ],
+      "Salehnagar": [
+        "226104"
+      ],
+      "Salempur": [
+        "226501"
+      ],
+      "Samesi": [
+        "226303"
+      ],
+      "Sanatan Dharam Vidya Peeth": [
+        "226026"
+      ],
+      "Sant Market": [
+        "226006"
+      ],
+      "Sarai Damu": [
+        "226203"
+      ],
+      "Sarai Gudauli": [
+        "226301"
+      ],
+      "Sarai Mali Khan": [
+        "226003"
+      ],
+      "Saraura": [
+        "226201"
+      ],
+      "Sarfraj": [
+        "226003"
+      ],
+      "Sarojini Nagar": [
+        "226008"
+      ],
+      "Sarvoday Nagar": [
+        "226016"
+      ],
+      "Sathwara": [
+        "226501"
+      ],
+      "Sec-B Indira Nagar": [
+        "226016"
+      ],
+      "Sec-d Indiranagar": [
+        "226016"
+      ],
+      "Secretariat (Lucknow)": [
+        "226001"
+      ],
+      "Sgpgi": [
+        "226014"
+      ],
+      "Shia Lines": [
+        "226002"
+      ],
+      "Shivaji Marg (Lucknow)": [
+        "226018"
+      ],
+      "Singar Nagar": [
+        "226005"
+      ],
+      "Singhamau": [
+        "226203"
+      ],
+      "Singhrawa": [
+        "226102"
+      ],
+      "Sisendi": [
+        "226301"
+      ],
+      "Sujanpura": [
+        "226005"
+      ],
+      "Sunderbagh": [
+        "226018"
+      ],
+      "Sushant Golf City": [
+        "226030"
+      ],
+      "Suspen": [
+        "226103"
+      ],
+      "T. Tib": [
+        "226003"
+      ],
+      "Thakurganj": [
+        "226003"
+      ],
+      "Thari": [
+        "226104"
+      ],
+      "Thawar": [
+        "226104"
+      ],
+      "Tirwa": [
+        "226401"
+      ],
+      "Topkhana Bazar": [
+        "226002"
+      ],
+      "Triveni Nagar": [
+        "226020"
+      ],
+      "U P Governer Camp": [
+        "226027"
+      ],
+      "Umrawal": [
+        "226104"
+      ],
+      "Usarana": [
+        "226203"
+      ],
+      "Utrathia": [
+        "226002"
+      ],
+      "Utrawan": [
+        "226302"
+      ],
+      "Victoriaganj": [
+        "226003"
+      ],
+      "Vikas Nagar": [
+        "226022"
+      ],
+      "Vineet Khand": [
+        "226010"
+      ],
+      "Vishwas Khand": [
+        "226010"
+      ],
+      "Vrinda Van Colony": [
+        "226029"
+      ],
+      "Wazirganj (Lucknow)": [
+        "226018"
+      ],
+      "Yahiaganj": [
+        "226003"
+      ]
+    },
     "Mau": {
       "Ailakhaimilia": [
         "221706"
@@ -5443,9 +6377,2959 @@
         "221603"
       ]
     },
+    "Mirzapur": {
+      "Adalhat": [
+        "231302"
+      ],
+      "Adhwar": [
+        "231301"
+      ],
+      "Agarsand": [
+        "231305"
+      ],
+      "Ahraura": [
+        "231301"
+      ],
+      "Ahungi Kala": [
+        "231211"
+      ],
+      "Akodhi": [
+        "231307"
+      ],
+      "Amaha Mafi": [
+        "231211"
+      ],
+      "Amoi": [
+        "231307"
+      ],
+      "Babura": [
+        "231307"
+      ],
+      "Babura Kala": [
+        "231211"
+      ],
+      "Bagahan": [
+        "231306"
+      ],
+      "Bagahi": [
+        "231304"
+      ],
+      "Baghaura": [
+        "231210"
+      ],
+      "Bahuar": [
+        "231302"
+      ],
+      "Baidand": [
+        "231210"
+      ],
+      "Bajta": [
+        "231313"
+      ],
+      "Balliparwa": [
+        "231312"
+      ],
+      "Bangla Devaria": [
+        "231305"
+      ],
+      "Baraudha Belan": [
+        "231211"
+      ],
+      "Barbasa Gaharwar": [
+        "231211"
+      ],
+      "Bardiha Kala": [
+        "231211"
+      ],
+      "Barkachha": [
+        "231307"
+      ],
+      "Bedaur": [
+        "231211"
+      ],
+      "Belahara": [
+        "231309"
+      ],
+      "Bhaisod Balay Pahad": [
+        "231211"
+      ],
+      "Bharehata": [
+        "231304"
+      ],
+      "Bharpura": [
+        "231304"
+      ],
+      "Bhawanipur": [
+        "231304"
+      ],
+      "Bhudkuda": [
+        "231304"
+      ],
+      "Bhuelikhas": [
+        "231302"
+      ],
+      "Bihsada": [
+        "231303"
+      ],
+      "Bijaipur (Mirzapur)": [
+        "231303"
+      ],
+      "Bilra Patehara": [
+        "231211"
+      ],
+      "Biraura": [
+        "231303"
+      ],
+      "Birohi": [
+        "231303"
+      ],
+      "Chaturipur": [
+        "231302"
+      ],
+      "Chhatahan": [
+        "231307"
+      ],
+      "Chhota Mirzapur": [
+        "231305"
+      ],
+      "Chilh": [
+        "231312"
+      ],
+      "Chunar": [
+        "231304"
+      ],
+      "Chunar Cement Factory": [
+        "231311"
+      ],
+      "Chunar Fort": [
+        "231304"
+      ],
+      "Chunar Rly Station": [
+        "231304"
+      ],
+      "Chunar Tehsil": [
+        "231304"
+      ],
+      "Dadwan Pakseda": [
+        "231303"
+      ],
+      "Dargah Sharif": [
+        "231304"
+      ],
+      "Darhiram": [
+        "231304"
+      ],
+      "Derhauna": [
+        "231302"
+      ],
+      "Devaria": [
+        "231305"
+      ],
+      "Devpura": [
+        "231210"
+      ],
+      "Dewari": [
+        "231307"
+      ],
+      "Domanpur": [
+        "231306"
+      ],
+      "Domari": [
+        "231305"
+      ],
+      "Dramandganj": [
+        "231211"
+      ],
+      "Dubarkala": [
+        "231211"
+      ],
+      "Dugauli": [
+        "231313"
+      ],
+      "Ekali": [
+        "231301"
+      ],
+      "Ganesh Ganj (Mirzapur)": [
+        "231001"
+      ],
+      "Gangpur": [
+        "231304"
+      ],
+      "Gaura": [
+        "231313"
+      ],
+      "Ghanshyampur": [
+        "231302"
+      ],
+      "Ghatampur": [
+        "231301"
+      ],
+      "Gogaon": [
+        "231313"
+      ],
+      "Gothaura": [
+        "231302"
+      ],
+      "Hallia": [
+        "231211"
+      ],
+      "Hansipur": [
+        "231306"
+      ],
+      "Hardi Gulalpur": [
+        "231211"
+      ],
+      "Hargarh Bazar": [
+        "231313"
+      ],
+      "Hariharpur": [
+        "231305"
+      ],
+      "Hariharpur Bedauli": [
+        "231307"
+      ],
+      "Hinauta": [
+        "231210"
+      ],
+      "Hinauti": [
+        "231304"
+      ],
+      "Hussainpur": [
+        "231301"
+      ],
+      "Industrial Estate (Mirzapur)": [
+        "231001"
+      ],
+      "Jaipatti Kala": [
+        "231305"
+      ],
+      "Jalalpur Mafi": [
+        "231304"
+      ],
+      "Jamalpur": [
+        "231302"
+      ],
+      "Jamua (Mirzapur)": [
+        "231314"
+      ],
+      "Jamuhar": [
+        "231304"
+      ],
+      "Jamui": [
+        "231210"
+      ],
+      "Jigna RS": [
+        "231313"
+      ],
+      "Kakarad": [
+        "231309"
+      ],
+      "Kalna": [
+        "231303"
+      ],
+      "Kamalpur": [
+        "231305"
+      ],
+      "Kamasin": [
+        "231312"
+      ],
+      "Kandawa": [
+        "231304"
+      ],
+      "Kanhaipur": [
+        "231309"
+      ],
+      "Kanokhar": [
+        "231211"
+      ],
+      "Kathinai": [
+        "231304"
+      ],
+      "Khaira": [
+        "231313"
+      ],
+      "Khajuraul": [
+        "231305"
+      ],
+      "Khanjadipur": [
+        "231304"
+      ],
+      "Khanpur": [
+        "231306"
+      ],
+      "Kholua": [
+        "231312"
+      ],
+      "Kolna": [
+        "231304"
+      ],
+      "Kota Shiv Pratap Singh": [
+        "231211"
+      ],
+      "Kotwa": [
+        "231309"
+      ],
+      "Kubari Patehara": [
+        "231309"
+      ],
+      "Kushhan": [
+        "231303"
+      ],
+      "Kusumhi": [
+        "231304"
+      ],
+      "Lahangpur": [
+        "231211"
+      ],
+      "Lahaura": [
+        "231304"
+      ],
+      "Laldiggi": [
+        "231001"
+      ],
+      "Lalganj (Mirzapur)": [
+        "231211"
+      ],
+      "Lalpur Naudiha": [
+        "231210"
+      ],
+      "Magarahan": [
+        "231306"
+      ],
+      "Mahuari Kala": [
+        "231307"
+      ],
+      "Mahuwaria": [
+        "231307"
+      ],
+      "Manaur": [
+        "231302"
+      ],
+      "Marihan": [
+        "231210"
+      ],
+      "Matwar": [
+        "231211"
+      ],
+      "Media": [
+        "231304"
+      ],
+      "Mirzapur": [
+        "231001"
+      ],
+      "Mirzapur Chowk": [
+        "231001"
+      ],
+      "Mirzapur City": [
+        "231001"
+      ],
+      "Mirzapur Kutchery": [
+        "231001"
+      ],
+      "Mohanpur Bhavrakh": [
+        "231304"
+      ],
+      "Mowaiya": [
+        "231312"
+      ],
+      "Mujehara": [
+        "231312"
+      ],
+      "Musaffarganj": [
+        "231307"
+      ],
+      "Nadaulikaraundi": [
+        "231211"
+      ],
+      "Nadini": [
+        "231303"
+      ],
+      "Nakahara": [
+        "231307"
+      ],
+      "Nakati Mishrauli": [
+        "231304"
+      ],
+      "Narainpur (Mirzapur)": [
+        "231305"
+      ],
+      "Navgawan": [
+        "231211"
+      ],
+      "Nibi Gaharwar": [
+        "231303"
+      ],
+      "Nigatpur": [
+        "231314"
+      ],
+      "Pachegada": [
+        "231302"
+      ],
+      "Pachevara": [
+        "231305"
+      ],
+      "Padari": [
+        "231304"
+      ],
+      "Padaria Kala": [
+        "231309"
+      ],
+      "Pahadi": [
+        "231304"
+      ],
+      "Paidapur": [
+        "231307"
+      ],
+      "Patehara Khurd": [
+        "231210"
+      ],
+      "Patharaul": [
+        "231309"
+      ],
+      "Pathraura": [
+        "231302"
+      ],
+      "Patihata": [
+        "231304"
+      ],
+      "Patulki": [
+        "231211"
+      ],
+      "Pavari Kala": [
+        "231211"
+      ],
+      "Pidkhir": [
+        "231302"
+      ],
+      "Pipra": [
+        "231211"
+      ],
+      "Purusottam Pur": [
+        "231305"
+      ],
+      "Putlighar": [
+        "231312"
+      ],
+      "Raipur Pokhta": [
+        "231307"
+      ],
+      "Raipuria": [
+        "231304"
+      ],
+      "Rajapur": [
+        "231307"
+      ],
+      "Rajgarh": [
+        "231210"
+      ],
+      "Rajpur Amghat": [
+        "231307"
+      ],
+      "Ramgarh Kiriyat": [
+        "231306"
+      ],
+      "Rampur 38": [
+        "231210"
+      ],
+      "Rampur Atari": [
+        "231309"
+      ],
+      "Rehi": [
+        "231211"
+      ],
+      "Rudauli": [
+        "231304"
+      ],
+      "Rupaudha": [
+        "231305"
+      ],
+      "Samogara": [
+        "231307"
+      ],
+      "Sarson Gram": [
+        "231304"
+      ],
+      "Semara Baraho": [
+        "231210"
+      ],
+      "Shahpur": [
+        "231305"
+      ],
+      "Shakteshgarh": [
+        "231304"
+      ],
+      "Sher Pur": [
+        "231305"
+      ],
+      "Sherwa": [
+        "231302"
+      ],
+      "Sikhar": [
+        "231306"
+      ],
+      "Sindhora": [
+        "231304"
+      ],
+      "Sirsi": [
+        "231309"
+      ],
+      "Sri Niwas Dham": [
+        "231313"
+      ],
+      "Supantha": [
+        "231303"
+      ],
+      "Surahan": [
+        "231302"
+      ],
+      "Tendua Kala": [
+        "231304"
+      ],
+      "Thiresapur": [
+        "231304"
+      ],
+      "Tilaon": [
+        "231211"
+      ],
+      "Tilaulikala": [
+        "231210"
+      ],
+      "Tilthi": [
+        "231312"
+      ],
+      "Tita": [
+        "231211"
+      ],
+      "Usari Khamaria": [
+        "231211"
+      ],
+      "Vindhyachal": [
+        "231307"
+      ],
+      "Wellesly Ganj": [
+        "231001"
+      ]
+    },
     "Pratapgarh": {
+      "Abdul Wahidganj": [
+        "230141"
+      ],
+      "Adharganj": [
+        "230304"
+      ],
+      "Adlabad": [
+        "230141"
+      ],
+      "Afim Kothi": [
+        "230131"
+      ],
+      "Agai": [
+        "229410"
+      ],
+      "Ahiyapur": [
+        "230142"
+      ],
+      "Aimajatupur": [
+        "230204"
+      ],
+      "Aindha": [
+        "230204"
+      ],
+      "Ajgara": [
+        "230144"
+      ],
+      "Ajhara": [
+        "230132"
+      ],
+      "Alapur": [
+        "229408"
+      ],
+      "Amapur Berra": [
+        "230301"
+      ],
+      "Amargarh (Pratapgarh)": [
+        "230124"
+      ],
+      "Amawan": [
+        "230125",
+        "230132"
+      ],
+      "Ami": [
+        "230139"
+      ],
+      "Antari": [
+        "230301"
+      ],
+      "Antu": [
+        "230501"
+      ],
+      "Aspur Deosara": [
+        "230124"
+      ],
+      "Asrahi": [
+        "230132"
+      ],
+      "Atarsand": [
+        "230401"
+      ],
+      "Atheha": [
+        "230125"
+      ],
+      "Baba Ka Gaon": [
+        "230139"
+      ],
+      "Babaganj": [
+        "230143"
+      ],
+      "Babu Patti": [
+        "230304"
+      ],
+      "Babuganj": [
+        "230126"
+      ],
+      "Bachhuwa": [
+        "230402"
+      ],
+      "Badgawan": [
+        "230204"
+      ],
+      "Bahlolpur": [
+        "230131"
+      ],
+      "Bahuchara": [
+        "230137"
+      ],
+      "Bahuta": [
+        "230135"
+      ],
+      "Bainti": [
+        "230204"
+      ],
+      "Baishpur": [
+        "230402"
+      ],
+      "Bajha Bheet": [
+        "230202"
+      ],
+      "Bakol": [
+        "230141"
+      ],
+      "Balha": [
+        "230132"
+      ],
+      "Balikaranganj": [
+        "230402"
+      ],
+      "Bansi": [
+        "230304"
+      ],
+      "Bansiyara": [
+        "230204"
+      ],
+      "Barachha": [
+        "230403"
+      ],
+      "Barahupur": [
+        "230135"
+      ],
+      "Barai": [
+        "230204"
+      ],
+      "Barari": [
+        "230134"
+      ],
+      "Baron": [
+        "230129"
+      ],
+      "Bashirpur": [
+        "230127"
+      ],
+      "Basupur": [
+        "230401"
+      ],
+      "Baswahi": [
+        "230204"
+      ],
+      "Bedhan Gopalpur": [
+        "230204"
+      ],
+      "Belarampur": [
+        "230135"
+      ],
+      "Benimadho Nagar": [
+        "230139"
+      ],
+      "Beshar": [
+        "230135"
+      ],
+      "Bhadausi": [
+        "230502"
+      ],
+      "Bhadohi": [
+        "230131"
+      ],
+      "Bhadri": [
+        "230201"
+      ],
+      "Bhagwanpur": [
+        "230135"
+      ],
+      "Bhagwatganj": [
+        "230402"
+      ],
+      "Bhanaipur": [
+        "230124"
+      ],
+      "Bhangwa Ki Chungi": [
+        "230001"
+      ],
+      "Bhatni": [
+        "229410"
+      ],
+      "Bhawaniganj Kota": [
+        "230143"
+      ],
+      "Bhawanipur": [
+        "230501"
+      ],
+      "Bhikhapur Kanidih": [
+        "230128"
+      ],
+      "Bhikhnapur": [
+        "230404"
+      ],
+      "Bhojemau": [
+        "230301"
+      ],
+      "Bhuidaha": [
+        "230304"
+      ],
+      "Bhupiamau": [
+        "230131"
+      ],
+      "Bichhur": [
+        "230302"
+      ],
+      "Bihar": [
+        "230201"
+      ],
+      "Biharganj": [
+        "230502"
+      ],
+      "Bijahara": [
+        "230142"
+      ],
+      "Binaika": [
+        "230121"
+      ],
+      "Birapur": [
+        "230302"
+      ],
+      "Bisahiya": [
+        "230201"
+      ],
+      "Budhapur": [
+        "230201"
+      ],
+      "Chakwarh": [
+        "230129"
+      ],
+      "Chamrupur": [
+        "230144"
+      ],
+      "Charaiya": [
+        "230135"
+      ],
+      "Chhatarur": [
+        "230503"
+      ],
+      "Chhatauna": [
+        "230121"
+      ],
+      "Chitamanpur Patna": [
+        "230128"
+      ],
+      "Dahi": [
+        "230124"
+      ],
+      "Dakhwapur": [
+        "230143"
+      ],
+      "Dalippur (Pratapgarh)": [
+        "230127"
+      ],
+      "Dandupur Mufrid": [
+        "230127"
+      ],
+      "Darchhut": [
+        "230405"
+      ],
+      "Darra": [
+        "230139"
+      ],
+      "Dawapur": [
+        "230132"
+      ],
+      "Deeha": [
+        "230201"
+      ],
+      "Deogarh Kamasin": [
+        "230304"
+      ],
+      "Deokali": [
+        "230405"
+      ],
+      "Deori": [
+        "230125"
+      ],
+      "Derwa": [
+        "230128"
+      ],
+      "Dhadhuwa Gajan": [
+        "230136"
+      ],
+      "Dhandhar": [
+        "230135"
+      ],
+      "Dhangarh": [
+        "230141"
+      ],
+      "Dhansari": [
+        "230129"
+      ],
+      "Dhanuha": [
+        "230301"
+      ],
+      "Dharauli": [
+        "230405",
+        "230503"
+      ],
+      "Dhaurahra": [
+        "230124",
+        "230501"
+      ],
+      "Dhekahi": [
+        "230502"
+      ],
+      "Dherehana": [
+        "230002"
+      ],
+      "Dhindhui": [
+        "230138"
+      ],
+      "Dhingwas": [
+        "230128"
+      ],
+      "Diyawan": [
+        "230121"
+      ],
+      "Donai": [
+        "230134"
+      ],
+      "Dubeypur": [
+        "230501"
+      ],
+      "Dulhepur": [
+        "230144"
+      ],
+      "Durgaganj": [
+        "230304"
+      ],
+      "Dwarikapur": [
+        "230127"
+      ],
+      "Fatehpur": [
+        "230135"
+      ],
+      "Gadauri": [
+        "230134"
+      ],
+      "Gadhiyawan": [
+        "230124"
+      ],
+      "Gajariya": [
+        "230134"
+      ],
+      "Garapur": [
+        "230302"
+      ],
+      "Garhi Manikpur": [
+        "230202"
+      ],
+      "Garhi Samsabad": [
+        "230202"
+      ],
+      "Garwara": [
+        "230502"
+      ],
+      "Gaura Dand": [
+        "230503"
+      ],
+      "Gaura Mafi": [
+        "230121"
+      ],
+      "Gaura R S": [
+        "230301"
+      ],
+      "Gobari": [
+        "230502"
+      ],
+      "Gondey": [
+        "230403"
+      ],
+      "Gotani": [
+        "230202"
+      ],
+      "Gujwar": [
+        "230143"
+      ],
+      "Hainshi Parji": [
+        "230402"
+      ],
+      "Handaur": [
+        "230136"
+      ],
+      "Hanumanganj": [
+        "230403"
+      ],
+      "Harakhpur": [
+        "230402"
+      ],
+      "Harakhpur Kotwa": [
+        "230136"
+      ],
+      "Hariharganj": [
+        "230304"
+      ],
+      "Hathigawan": [
+        "230201"
+      ],
+      "Idilpur": [
+        "230132"
+      ],
+      "Ishanpur": [
+        "230142"
+      ],
+      "Itaura": [
+        "230204"
+      ],
+      "Jagapur": [
+        "230204"
+      ],
+      "Jagesharganj": [
+        "230502"
+      ],
+      "Jahanabad": [
+        "230201"
+      ],
+      "Jahnaipur": [
+        "230131"
+      ],
+      "Jalesharganj": [
+        "230132"
+      ],
+      "Jamethi": [
+        "230204"
+      ],
+      "Jamtali": [
+        "230302"
+      ],
+      "Jariyari": [
+        "230125"
+      ],
+      "Jasmarha": [
+        "230132"
+      ],
+      "Jawain": [
+        "229410"
+      ],
+      "Jethwara": [
+        "230129"
+      ],
+      "Jhingur": [
+        "230204"
+      ],
+      "Jhonkwara": [
+        "230202"
+      ],
+      "Jogipur": [
+        "230142"
+      ],
+      "Kabirpur": [
+        "230124"
+      ],
+      "Kadipur": [
+        "230127"
+      ],
+      "Kahla": [
+        "230301"
+      ],
+      "Kailidih": [
+        "230306"
+      ],
+      "Kaithola": [
+        "229410"
+      ],
+      "Kalakankar": [
+        "229408"
+      ],
+      "Kalyanpur": [
+        "230402"
+      ],
+      "Kamapatti": [
+        "230141"
+      ],
+      "Kamolibirbhanpur": [
+        "230129"
+      ],
+      "Kanawan": [
+        "230201"
+      ],
+      "Kandharpur": [
+        "230401"
+      ],
+      "Kanja Sarai Gulami": [
+        "230135"
+      ],
+      "Kanpa": [
+        "230403"
+      ],
+      "Kansapatti": [
+        "230135"
+      ],
+      "Kaprahi": [
+        "230132"
+      ],
+      "Karenti": [
+        "230204"
+      ],
+      "Kataiya": [
+        "230137"
+      ],
+      "Katari": [
+        "230401"
+      ],
+      "Katehati": [
+        "230503"
+      ],
+      "Katra Gulab Singh": [
+        "230402"
+      ],
+      "Katra Medniganj": [
+        "230131"
+      ],
+      "Khajuri": [
+        "230132",
+        "230503"
+      ],
+      "Khemipur": [
+        "230204"
+      ],
+      "Kilahanapur": [
+        "230201"
+      ],
+      "Kishunganj": [
+        "230503"
+      ],
+      "Kithawar": [
+        "230503"
+      ],
+      "Kohdaur": [
+        "230401"
+      ],
+      "Kolbajhan": [
+        "230503"
+      ],
+      "Kondrajit": [
+        "230129"
+      ],
+      "Korrahi": [
+        "230129"
+      ],
+      "Kotha Newarhiya": [
+        "230503"
+      ],
+      "Kotwa Shukulpur": [
+        "230136"
+      ],
+      "Kukuwar": [
+        "230135"
+      ],
+      "Kumbhapur": [
+        "230132"
+      ],
+      "Kumbhi Aima": [
+        "230125"
+      ],
+      "Kunda (Pratapgarh)": [
+        "230204"
+      ],
+      "Kushaha": [
+        "230128"
+      ],
+      "Kushfara": [
+        "230304"
+      ],
+      "Kushuwapur": [
+        "230141"
+      ],
+      "Kutulitya": [
+        "230129"
+      ],
+      "Labeda": [
+        "230138"
+      ],
+      "Lachchhipur": [
+        "230304"
+      ],
+      "Lakhapur": [
+        "230139"
+      ],
+      "Lakhipur Kapsa": [
+        "230138"
+      ],
+      "Lala Bazar": [
+        "229408"
+      ],
+      "Lalganj (Pratapgarh)": [
+        "230132"
+      ],
+      "Laroo": [
+        "230204"
+      ],
+      "Lat Tara": [
+        "230202"
+      ],
+      "Lauwar": [
+        "230134"
+      ],
+      "Lawana Bhawaniganj": [
+        "230141"
+      ],
+      "Laxmaneshwar Nath Dham": [
+        "230204"
+      ],
+      "Laxmanpur (Pratapgarh)": [
+        "230130"
+      ],
+      "Laxmikant Ganj": [
+        "230139"
+      ],
+      "M C Ganj": [
+        "230001"
+      ],
+      "Machheha Herdopatti": [
+        "230204"
+      ],
+      "Madhoganj (Pratapgarh)": [
+        "230403"
+      ],
+      "Madhupur": [
+        "230403"
+      ],
+      "Maghi": [
+        "230204"
+      ],
+      "Mahamdapur": [
+        "230502"
+      ],
+      "Maheshganj": [
+        "230128"
+      ],
+      "Mahmadpur Bhaon": [
+        "230201"
+      ],
+      "Mahrajganj": [
+        "230128"
+      ],
+      "Majhigawan": [
+        "230402"
+      ],
+      "Majhilgaon": [
+        "230204"
+      ],
+      "Malawan Chhajaipur": [
+        "230129"
+      ],
+      "Manapur": [
+        "230138"
+      ],
+      "Mandhata": [
+        "230402"
+      ],
+      "Mangapur": [
+        "230125"
+      ],
+      "Mangarh": [
+        "230204"
+      ],
+      "Manuhar": [
+        "230141"
+      ],
+      "Medhauli": [
+        "230304"
+      ],
+      "Mirzapur": [
+        "230304"
+      ],
+      "Misiddipur": [
+        "230302"
+      ],
+      "Mohaddinagar": [
+        "230201"
+      ],
+      "Mohanganj": [
+        "230002"
+      ],
+      "Molnapur": [
+        "230124"
+      ],
+      "Muraini": [
+        "230125"
+      ],
+      "Mustafabad": [
+        "230139"
+      ],
+      "Muzahi Bazar": [
+        "230135"
+      ],
+      "Nanauti": [
+        "230125"
+      ],
+      "Narainpur Kalan": [
+        "230306"
+      ],
+      "Narharpur": [
+        "230401"
+      ],
+      "Naubasta": [
+        "230129"
+      ],
+      "Naudera": [
+        "230306"
+      ],
+      "Newarhiya": [
+        "230141"
+      ],
+      "Newari": [
+        "230129"
+      ],
+      "Oraiyadeeh": [
+        "230134"
+      ],
+      "Paharpur": [
+        "230136"
+      ],
+      "Paltan Bazar": [
+        "230001"
+      ],
+      "Pandri Mustarka": [
+        "230135"
+      ],
+      "Pandwasi": [
+        "230144"
+      ],
+      "Panigo": [
+        "230204"
+      ],
+      "Para Hamidpur": [
+        "230501"
+      ],
+      "Paranipur": [
+        "230139"
+      ],
+      "Parasrampur": [
+        "230401"
+      ],
+      "Parhat Khas": [
+        "230124"
+      ],
+      "Parhwa Nasirpur": [
+        "230301"
+      ],
+      "Pariyawan": [
+        "229408"
+      ],
+      "Parsipur": [
+        "230201"
+      ],
+      "Patkhauli": [
+        "230135"
+      ],
+      "Patti (Pratapgarh)": [
+        "230135"
+      ],
+      "Pike Nagar": [
+        "230142"
+      ],
+      "Ping": [
+        "230141"
+      ],
+      "Pirthiganj Bazar": [
+        "230135"
+      ],
+      "Pratapgarh": [
+        "230001"
+      ],
+      "Pratapgarh City": [
+        "230002"
+      ],
+      "Pratappur Chergarh": [
+        "230143"
+      ],
+      "Premdhar Patti": [
+        "230127"
+      ],
+      "Prithviganj": [
+        "230304"
+      ],
+      "Prithviganj Bazar": [
+        "230133"
+      ],
+      "Pura Dhakwa Chauraha": [
+        "230121"
+      ],
+      "Puranpur Khajoor": [
+        "230144"
+      ],
+      "Pure Bhagwat": [
+        "230125"
+      ],
+      "Pure Deshav Rai": [
+        "230502"
+      ],
+      "Pure Dhana": [
+        "230134"
+      ],
+      "Pure Dhani": [
+        "230124"
+      ],
+      "Pure Gajai": [
+        "230128"
+      ],
+      "Pure Goshain": [
+        "230304"
+      ],
+      "Pure Guru": [
+        "230502"
+      ],
+      "Pure Madhosingh": [
+        "230502"
+      ],
+      "Pure Narsingh Bhan": [
+        "230131"
+      ],
+      "Pure Newal": [
+        "230503"
+      ],
+      "Pure Noti": [
+        "230126"
+      ],
+      "Pure Ojha": [
+        "230002"
+      ],
+      "Pure Roopdhar Kothiyahi": [
+        "230127"
+      ],
+      "Purmeisultanpur": [
+        "230143"
+      ],
+      "Purwara": [
+        "230132"
+      ],
+      "Radhauli": [
+        "230202"
+      ],
+      "Rahatikar": [
+        "230139"
+      ],
+      "Rahwain": [
+        "230204"
+      ],
+      "Raibi Rajanipur": [
+        "230502"
+      ],
+      "Raigarh": [
+        "230128"
+      ],
+      "Railway Colony (Pratapgarh)": [
+        "230001"
+      ],
+      "Rajapur": [
+        "230125"
+      ],
+      "Rajapur Bindhan": [
+        "230128"
+      ],
+      "Rajapur Rainiya": [
+        "230503"
+      ],
+      "Rajgarh": [
+        "230131"
+      ],
+      "Ram Nagar": [
+        "230128"
+      ],
+      "Ramapur": [
+        "230141"
+      ],
+      "Ramganj": [
+        "230139"
+      ],
       "Ramganj Bazar": [
         "222301"
+      ],
+      "Ramnagar": [
+        "230304"
+      ],
+      "Ramnagar Bhojpur": [
+        "230503"
+      ],
+      "Rampur Baoli": [
+        "230132"
+      ],
+      "Rampur Gauri": [
+        "230131"
+      ],
+      "Randvir": [
+        "230144"
+      ],
+      "Raniganj (Pratapgarh)": [
+        "230304"
+      ],
+      "Ranjitpur Chilbila": [
+        "230403"
+      ],
+      "Ranki": [
+        "230139"
+      ],
+      "Rehuwa Lalganj": [
+        "230139"
+      ],
+      "Rendi Garapur": [
+        "230135"
+      ],
+      "Rokaiyapur": [
+        "230141"
+      ],
+      "Sadaha": [
+        "230124"
+      ],
+      "Sadar Bazar": [
+        "230403"
+      ],
+      "Sagra (Pratapgarh)": [
+        "230136"
+      ],
+      "Sahabganj (Pratapgarh)": [
+        "230137"
+      ],
+      "Sahjani": [
+        "230202"
+      ],
+      "Saifabad": [
+        "230138"
+      ],
+      "Saihpur Ashiq": [
+        "230201"
+      ],
+      "Sakardaha": [
+        "230201"
+      ],
+      "Salhipur": [
+        "230403"
+      ],
+      "Samaspur": [
+        "230201"
+      ],
+      "Sandwa Chandika": [
+        "230503"
+      ],
+      "Sangipur": [
+        "230139"
+      ],
+      "Sangramgarh": [
+        "230141"
+      ],
+      "Sangrampur": [
+        "230501"
+      ],
+      "Sansarpur": [
+        "230304"
+      ],
+      "Sarai Anadeo": [
+        "230144"
+      ],
+      "Sarai Bhimsen": [
+        "230142",
+        "230402"
+      ],
+      "Sarai Chheolaha": [
+        "230135"
+      ],
+      "Sarai Ganai": [
+        "230403"
+      ],
+      "Sarai Indrawat": [
+        "230128"
+      ],
+      "Sarai Madhai": [
+        "230135"
+      ],
+      "Sarai Mahesh": [
+        "230135"
+      ],
+      "Sarai Murar Singh": [
+        "230402"
+      ],
+      "Sarai Nahar Rai": [
+        "230402"
+      ],
+      "Sarai Raja": [
+        "230404"
+      ],
+      "Sarai Rajai": [
+        "230401"
+      ],
+      "Sarai Shankar": [
+        "230401"
+      ],
+      "Sarkhelpur": [
+        "230134"
+      ],
+      "Sarsi": [
+        "230405"
+      ],
+      "Shahbari": [
+        "230503"
+      ],
+      "Shahpur": [
+        "230304"
+      ],
+      "Shayaad Yasinpur": [
+        "229408"
+      ],
+      "Shitlaganj": [
+        "230142"
+      ],
+      "Shivgarh Bindaganj": [
+        "230302"
+      ],
+      "Shivpur": [
+        "230401"
+      ],
+      "Silaundhi": [
+        "230301"
+      ],
+      "Sipah Maheri": [
+        "230304"
+      ],
+      "Siya": [
+        "230201"
+      ],
+      "Sonpura": [
+        "230121"
+      ],
+      "Station Road (Pratapgarh)": [
+        "230001"
+      ],
+      "Sujauli": [
+        "230204"
+      ],
+      "Sultanpur": [
+        "230301"
+      ],
+      "Surajgarh": [
+        "230401"
+      ],
+      "Surwa Mishirpur": [
+        "230306"
+      ],
+      "Suwansa": [
+        "230306"
+      ],
+      "Tajpur": [
+        "230204"
+      ],
+      "Tala": [
+        "230403"
+      ],
+      "Tejgarh": [
+        "230137"
+      ],
+      "Teonga": [
+        "230002"
+      ],
+      "Tikuri Dashrathpur": [
+        "230201"
+      ],
+      "Tiwaripur": [
+        "230202"
+      ],
+      "Udaipur": [
+        "230125"
+      ],
+      "Umari": [
+        "230501"
+      ],
+      "Umari Kotila": [
+        "230201"
+      ],
+      "Umrar": [
+        "230125"
+      ],
+      "Upadhyaypur": [
+        "230502"
+      ],
+      "Uri Ka Dih": [
+        "230402"
+      ],
+      "Utras": [
+        "230405"
+      ],
+      "Vishwanathganj": [
+        "230404"
+      ],
+      "Wari Kalan": [
+        "230405"
+      ]
+    },
+    "Raebareli": {
+      "25th PAC": [
+        "229001"
+      ],
+      "Achai": [
+        "229802"
+      ],
+      "Aharwabhawani": [
+        "229135"
+      ],
+      "Ahiyapur": [
+        "229316"
+      ],
+      "Ahuri": [
+        "229309"
+      ],
+      "Aihar": [
+        "229121"
+      ],
+      "Ajitpur": [
+        "229206"
+      ],
+      "Akauni": [
+        "229206"
+      ],
+      "Akbarpur Pharsi": [
+        "229126"
+      ],
+      "Akordhia": [
+        "229404"
+      ],
+      "Alampur": [
+        "229307"
+      ],
+      "Alawalpur": [
+        "229204"
+      ],
+      "Alipur": [
+        "229103"
+      ],
+      "Amawan": [
+        "229306"
+      ],
+      "Ambara Mathai": [
+        "229204"
+      ],
+      "Ambara Paschim": [
+        "229206"
+      ],
+      "Arkha": [
+        "229404"
+      ],
+      "Asahanjagatpur": [
+        "229301"
+      ],
+      "Ashanandpur": [
+        "229001"
+      ],
+      "Asharasidpur": [
+        "229129"
+      ],
+      "Ashrafpur": [
+        "229307"
+      ],
+      "Atarhar": [
+        "229210"
+      ],
+      "Ataura Bujurg": [
+        "229121"
+      ],
+      "Ataura Khurd": [
+        "229130"
+      ],
+      "Atawan": [
+        "229129"
+      ],
+      "Azmat Ulla Ganj": [
+        "229303"
+      ],
+      "Babanbujurg": [
+        "229306"
+      ],
+      "Babhanpur": [
+        "229305"
+      ],
+      "Babuganj": [
+        "229401"
+      ],
+      "Bachrawan": [
+        "229301"
+      ],
+      "Baghaula": [
+        "229128"
+      ],
+      "Bahadur Nagar": [
+        "229311"
+      ],
+      "Bahadurnagar": [
+        "229306"
+      ],
+      "Bahai": [
+        "229203"
+      ],
+      "Bahua": [
+        "229309"
+      ],
+      "Bainti": [
+        "229308"
+      ],
+      "Bairua": [
+        "229216"
+      ],
+      "Bakuliha": [
+        "229211"
+      ],
+      "Bala": [
+        "229123"
+      ],
+      "Balbhadrapur": [
+        "229207"
+      ],
+      "Banapar": [
+        "229204"
+      ],
+      "Banbharia": [
+        "229801"
+      ],
+      "Bannamau": [
+        "229206"
+      ],
+      "Bannawa": [
+        "229301"
+      ],
+      "Bara": [
+        "229129"
+      ],
+      "Bara Deeh": [
+        "229128"
+      ],
+      "Baragaon": [
+        "229404"
+      ],
+      "Barara Bujurg": [
+        "229207"
+      ],
+      "Baraundi": [
+        "229205"
+      ],
+      "Bardar": [
+        "229122"
+      ],
+      "Bargadaha": [
+        "229303"
+      ],
+      "Barha": [
+        "229208"
+      ],
+      "Barkhurdarpur": [
+        "229305"
+      ],
+      "Barkot": [
+        "229309"
+      ],
+      "Barraua": [
+        "229125"
+      ],
+      "Basantpur": [
+        "229802"
+      ],
+      "Bathuwakhas": [
+        "229001"
+      ],
+      "Bedaru": [
+        "229308"
+      ],
+      "Behta": [
+        "229201"
+      ],
+      "Bela Ghusisi": [
+        "229125"
+      ],
+      "Bela Khara": [
+        "229125"
+      ],
+      "Belahni": [
+        "229203"
+      ],
+      "Bemaura": [
+        "229201"
+      ],
+      "Beni Kama": [
+        "229402"
+      ],
+      "Beni Madhiganj": [
+        "229216"
+      ],
+      "Beoli": [
+        "229127"
+      ],
+      "Betaura": [
+        "229302"
+      ],
+      "Bhadokhar": [
+        "229405"
+      ],
+      "Bhadsana": [
+        "229306"
+      ],
+      "Bhairampur": [
+        "229301"
+      ],
+      "Bhaon": [
+        "229402"
+      ],
+      "Bharsana": [
+        "229204"
+      ],
+      "Bhawani Nagar": [
+        "229309"
+      ],
+      "Bhawanigarh": [
+        "229308"
+      ],
+      "Bhietrgaon": [
+        "229205"
+      ],
+      "Bhilampur": [
+        "229401"
+      ],
+      "Bhimganj": [
+        "229207"
+      ],
+      "Bhira Govindpur": [
+        "229125"
+      ],
+      "Bhojpur (Raebareli)": [
+        "229202"
+      ],
+      "Bhuemau": [
+        "229405"
+      ],
+      "Bhuwalpur": [
+        "229129"
+      ],
+      "Bichiya Wadi": [
+        "229401"
+      ],
+      "Bijemau": [
+        "229201"
+      ],
+      "Binnao": [
+        "229307"
+      ],
+      "Bishun Khera": [
+        "229206"
+      ],
+      "Bishundaspur": [
+        "229207"
+      ],
+      "Bithooli": [
+        "229202"
+      ],
+      "Burdhanpur": [
+        "229316"
+      ],
+      "Bus Station (Raebareli)": [
+        "229001"
+      ],
+      "Chahotar": [
+        "229202"
+      ],
+      "Chanda Tikar": [
+        "229203"
+      ],
+      "Chandapur": [
+        "229306"
+      ],
+      "Chatoh": [
+        "229307"
+      ],
+      "Chauhania": [
+        "229303"
+      ],
+      "Cheolaha": [
+        "229216"
+      ],
+      "Chetra Bujurg": [
+        "229309"
+      ],
+      "Chichauli": [
+        "229402"
+      ],
+      "Chilaula": [
+        "229203"
+      ],
+      "Chilauli": [
+        "229801"
+      ],
+      "Chiluli": [
+        "229309"
+      ],
+      "Churua": [
+        "229311"
+      ],
+      "Dahigawan": [
+        "229308"
+      ],
+      "Dalmau": [
+        "229203"
+      ],
+      "Dariba": [
+        "229001"
+      ],
+      "Darigapur": [
+        "229125"
+      ],
+      "Daulatpur": [
+        "229202",
+        "229404"
+      ],
+      "Deaur": [
+        "229001"
+      ],
+      "Deeh": [
+        "229310"
+      ],
+      "Deepemau": [
+        "229206"
+      ],
+      "Dehli": [
+        "229308"
+      ],
+      "Deogaon": [
+        "229211"
+      ],
+      "Deopur": [
+        "229212"
+      ],
+      "Dhanpulpur": [
+        "229212"
+      ],
+      "Dharai": [
+        "229127"
+      ],
+      "Dighaura": [
+        "229303"
+      ],
+      "Dohri": [
+        "229310"
+      ],
+      "Dostpur": [
+        "229311"
+      ],
+      "Drigpal Ganj": [
+        "229209"
+      ],
+      "Dudhwan": [
+        "229215"
+      ],
+      "Dukanaha": [
+        "229205"
+      ],
+      "Dusauti": [
+        "229306"
+      ],
+      "Fatehpur": [
+        "229309"
+      ],
+      "Fgtp Unchahar": [
+        "229406"
+      ],
+      "Fursatganj": [
+        "229302"
+      ],
+      "Gahrauli": [
+        "229202"
+      ],
+      "Gajpati Khera": [
+        "229212"
+      ],
+      "Ganga Ganj": [
+        "229303"
+      ],
+      "Gangaoli": [
+        "229404"
+      ],
+      "Gangehra": [
+        "229406"
+      ],
+      "Gardehri": [
+        "229309"
+      ],
+      "Garhi Majre Pokhanni": [
+        "229306"
+      ],
+      "Gaura (Raebareli)": [
+        "229204"
+      ],
+      "Gegason": [
+        "229216"
+      ],
+      "Ghurauna": [
+        "229123"
+      ],
+      "Ghurwara": [
+        "229125"
+      ],
+      "Gokula": [
+        "229309"
+      ],
+      "Gonda": [
+        "229204"
+      ],
+      "Gondwara": [
+        "229310"
+      ],
+      "Gopali Khera": [
+        "229216"
+      ],
+      "Gopalpur": [
+        "229124"
+      ],
+      "Gularhia Maj.Dhuta": [
+        "229401"
+      ],
+      "Gumawan": [
+        "229308"
+      ],
+      "Gurbuxganj": [
+        "229122"
+      ],
+      "Gurha": [
+        "229301"
+      ],
+      "Hallaur (Raebareli)": [
+        "229103"
+      ],
+      "Hamirmau": [
+        "229204"
+      ],
+      "Harbansganj": [
+        "229304"
+      ],
+      "Harchandpur (Raebareli)": [
+        "229303"
+      ],
+      "Hardaspur": [
+        "229316"
+      ],
+      "Hardoi": [
+        "229123"
+      ],
+      "Harpur Halla": [
+        "229402"
+      ],
+      "Hasnapur": [
+        "229121",
+        "229201"
+      ],
+      "Haswa": [
+        "229309"
+      ],
+      "Hathnasa": [
+        "229212"
+      ],
+      "Hazipur": [
+        "229130"
+      ],
+      "Hewtaha Nedia": [
+        "229402"
+      ],
+      "Ibrahimpur": [
+        "229212"
+      ],
+      "Ichauli": [
+        "229301"
+      ],
+      "Inhauna": [
+        "229801"
+      ],
+      "Ishwardaspur": [
+        "229401"
+      ],
+      "Isiya": [
+        "229301"
+      ],
+      "Ismailmau": [
+        "229204"
+      ],
+      "Itaurabujurg": [
+        "229401"
+      ],
+      "ITI (Raebareli)": [
+        "229010"
+      ],
+      "J.P.Natai": [
+        "229308"
+      ],
+      "Jagatpur": [
+        "229802"
+      ],
+      "Jagatpur (Raebareli)": [
+        "229402"
+      ],
+      "Jagdishpur": [
+        "229310"
+      ],
+      "Jai Nagra": [
+        "229309"
+      ],
+      "Jais": [
+        "229305"
+      ],
+      "Jais City": [
+        "229305"
+      ],
+      "Jalalpur Dhai": [
+        "229204"
+      ],
+      "Jamori": [
+        "229402"
+      ],
+      "Jamurawan": [
+        "229103"
+      ],
+      "Jamurwa": [
+        "229309"
+      ],
+      "Janai": [
+        "229306"
+      ],
+      "Jathua Tappa": [
+        "229001"
+      ],
+      "Jaudaha": [
+        "229124"
+      ],
+      "Jawahar Vihar": [
+        "229010"
+      ],
+      "Jhampur": [
+        "229215"
+      ],
+      "Jharaha": [
+        "229204"
+      ],
+      "Jijauli": [
+        "229801"
+      ],
+      "Jogapur": [
+        "229211"
+      ],
+      "Johwasarki": [
+        "229303"
+      ],
+      "Jyona": [
+        "229306"
+      ],
+      "K K Bajar": [
+        "229124"
+      ],
+      "Kahjurgaon": [
+        "229216"
+      ],
+      "Kaithagaon": [
+        "229801"
+      ],
+      "Kalyan Pur Bainti": [
+        "229207"
+      ],
+      "Kalyanpur Railly": [
+        "229125"
+      ],
+      "Kamai": [
+        "229309"
+      ],
+      "Kandrawan": [
+        "229404"
+      ],
+      "Kanhpur": [
+        "229124"
+      ],
+      "Kannawan": [
+        "229301"
+      ],
+      "Kanta": [
+        "229305"
+      ],
+      "Karkasa": [
+        "229207"
+      ],
+      "Kasimpur": [
+        "229305"
+      ],
+      "Kasna": [
+        "229308"
+      ],
+      "Kasrawan": [
+        "229301"
+      ],
+      "Kathaura": [
+        "229801"
+      ],
+      "Kathgar": [
+        "229125"
+      ],
+      "Kathwara": [
+        "229303"
+      ],
+      "Katra": [
+        "229204"
+      ],
+      "Kaziana": [
+        "229401"
+      ],
+      "Kewalpur Baretha": [
+        "229402"
+      ],
+      "Khagipur Sandwa": [
+        "229405"
+      ],
+      "Khairahni Pahargarh": [
+        "229401"
+      ],
+      "Khajuro": [
+        "229301"
+      ],
+      "Khanaipur Karangaon": [
+        "229309"
+      ],
+      "Khanapur Chapra": [
+        "229309"
+      ],
+      "Khanapur Khusti": [
+        "229205"
+      ],
+      "Khara": [
+        "229135"
+      ],
+      "Kharwan": [
+        "229802"
+      ],
+      "Khekharua": [
+        "229126"
+      ],
+      "Khidirpurkaraundi": [
+        "229303"
+      ],
+      "Khiro": [
+        "229205"
+      ],
+      "Khurehti": [
+        "229128"
+      ],
+      "Khurrampur": [
+        "229406"
+      ],
+      "Kishundaspur": [
+        "229401"
+      ],
+      "Kodra": [
+        "229202"
+      ],
+      "Konsa": [
+        "229122"
+      ],
+      "Korauli Budhkar": [
+        "229204"
+      ],
+      "Korihar": [
+        "229130"
+      ],
+      "Kotia Chitra": [
+        "229401"
+      ],
+      "Kotra Bahadur Ganj": [
+        "229404"
+      ],
+      "Kotwa": [
+        "229801"
+      ],
+      "Kotwa Mohammadabad": [
+        "229126"
+      ],
+      "Kotwarmau": [
+        "229302"
+      ],
+      "Kubna": [
+        "229306"
+      ],
+      "Kukha Rampur": [
+        "229802"
+      ],
+      "Kumbhi": [
+        "229308"
+      ],
+      "Kumraura": [
+        "229206"
+      ],
+      "Kundanganj": [
+        "229303"
+      ],
+      "Kundwal": [
+        "229121"
+      ],
+      "Kunwarmau": [
+        "229307"
+      ],
+      "Kura": [
+        "229304"
+      ],
+      "Kurha": [
+        "229305"
+      ],
+      "Kurricudauli": [
+        "229301"
+      ],
+      "Kusri Sagarpur": [
+        "229103"
+      ],
+      "Kusumbhi": [
+        "229802"
+      ],
+      "Kusumi": [
+        "229401"
+      ],
+      "Kusundi": [
+        "229205"
+      ],
+      "Kutumra": [
+        "229309"
+      ],
+      "Lachhipur": [
+        "229211"
+      ],
+      "Lahnga": [
+        "229307"
+      ],
+      "Lalganj (Raebareli)": [
+        "229206"
+      ],
+      "Lalganj Bazar": [
+        "229206"
+      ],
+      "Lalumau": [
+        "229206"
+      ],
+      "Lauli": [
+        "229802"
+      ],
+      "Laxmiganj": [
+        "229401"
+      ],
+      "Lodhwamau": [
+        "229001"
+      ],
+      "Lodhwari": [
+        "229310"
+      ],
+      "Lodipur Utrawan": [
+        "229121"
+      ],
+      "Madhukarpur": [
+        "229121"
+      ],
+      "Maha Khera": [
+        "229206"
+      ],
+      "Mahia Senduria": [
+        "229802"
+      ],
+      "Mahrajganj (Raebareli)": [
+        "229306"
+      ],
+      "Mahraniganj": [
+        "229211"
+      ],
+      "Majhigawan": [
+        "229123"
+      ],
+      "Maliak Mau Aima": [
+        "229010"
+      ],
+      "Malik Mau Chaubara": [
+        "229130"
+      ],
+      "Malkegaon": [
+        "229215"
+      ],
+      "Mamuni": [
+        "229127"
+      ],
+      "Matiha": [
+        "229001"
+      ],
+      "Matka": [
+        "229127"
+      ],
+      "Matrampur": [
+        "229127"
+      ],
+      "Mattepur": [
+        "229309"
+      ],
+      "Mau": [
+        "229307"
+      ],
+      "Maugarbi": [
+        "229306"
+      ],
+      "Mawai": [
+        "229404"
+      ],
+      "Mejarganj": [
+        "229128"
+      ],
+      "Melthua": [
+        "229125"
+      ],
+      "Merdhauna": [
+        "229309"
+      ],
+      "Merui": [
+        "229206"
+      ],
+      "Mirzapur Aihari": [
+        "229401"
+      ],
+      "Mishir Khera": [
+        "229122"
+      ],
+      "Mohammadpur Kutcharia": [
+        "229405"
+      ],
+      "Mohanganj": [
+        "229127",
+        "229309"
+      ],
+      "Mohgawa": [
+        "229310"
+      ],
+      "Mohna": [
+        "229304"
+      ],
+      "Mon": [
+        "229306"
+      ],
+      "Mubarakpur": [
+        "229208"
+      ],
+      "Munshiganj (Raebareli)": [
+        "229405"
+      ],
+      "Murai Ka Bagh": [
+        "229207"
+      ],
+      "Muraini": [
+        "229306"
+      ],
+      "Murarmau": [
+        "229212"
+      ],
+      "Murethi": [
+        "229204"
+      ],
+      "Musapur": [
+        "229216"
+      ],
+      "Mustafabad (Raebareli)": [
+        "229404"
+      ],
+      "Nain": [
+        "229127"
+      ],
+      "Nakphulaha": [
+        "229001"
+      ],
+      "Narsawan": [
+        "229207"
+      ],
+      "Nasirabad": [
+        "229307"
+      ],
+      "Neem Tikar": [
+        "229301"
+      ],
+      "Nerthua": [
+        "229103"
+      ],
+      "Nibi": [
+        "229212"
+      ],
+      "Nigoha": [
+        "229302"
+      ],
+      "Nihastha": [
+        "229208"
+      ],
+      "Nisgar": [
+        "229202"
+      ],
+      "Odari": [
+        "229304"
+      ],
+      "Oie": [
+        "229303"
+      ],
+      "Ondeeh": [
+        "229306"
+      ],
+      "Osah": [
+        "229103"
+      ],
+      "P.R.Kaithwal": [
+        "229404"
+      ],
+      "Pachkhara": [
+        "229404"
+      ],
+      "Padera": [
+        "229303"
+      ],
+      "Paharpur Kaso": [
+        "229303"
+      ],
+      "Paho": [
+        "229209"
+      ],
+      "Pahremau": [
+        "229306"
+      ],
+      "Pahuri": [
+        "229201"
+      ],
+      "Pakargaon": [
+        "229309"
+      ],
+      "Pakhrauli": [
+        "229207"
+      ],
+      "Paksarawan": [
+        "229127"
+      ],
+      "Panhauna": [
+        "229135"
+      ],
+      "Para Kala": [
+        "229103"
+      ],
+      "Paraiya Namaksar": [
+        "229305"
+      ],
+      "Pari": [
+        "229401"
+      ],
+      "Parsadepur": [
+        "229129"
+      ],
+      "Paschim Gaon": [
+        "229301"
+      ],
+      "Pendara": [
+        "229802"
+      ],
+      "Phoola": [
+        "229309"
+      ],
+      "Pindauli": [
+        "229311"
+      ],
+      "Pirhi": [
+        "229302"
+      ],
+      "Pothai": [
+        "229302"
+      ],
+      "Prahladpur": [
+        "229404"
+      ],
+      "Purab Nain": [
+        "229127"
+      ],
+      "Pure Bharo Mishir": [
+        "229203"
+      ],
+      "Pure Jhampur": [
+        "229401"
+      ],
+      "Pure Thakur Ram Tewari": [
+        "229304"
+      ],
+      "Pure Wade Singh": [
+        "229302"
+      ],
+      "Purepandey": [
+        "229215"
+      ],
+      "Radhabalampur": [
+        "229125"
+      ],
+      "Raebarely": [
+        "229001"
+      ],
+      "Raebarelykty": [
+        "229001"
+      ],
+      "Raghaupur": [
+        "229123"
+      ],
+      "Rahi": [
+        "229010"
+      ],
+      "Rahwa": [
+        "229303"
+      ],
+      "Rail Coach Factory Lalganj(Raebareli)": [
+        "229120"
+      ],
+      "Raipur": [
+        "229215"
+      ],
+      "Raja Mau": [
+        "229301"
+      ],
+      "Rajamau": [
+        "229309"
+      ],
+      "Ralpur": [
+        "229216"
+      ],
+      "Ram Garh Tikaria": [
+        "229402"
+      ],
+      "Ramgaon": [
+        "229103"
+      ],
+      "Ramipur": [
+        "229124"
+      ],
+      "Rampur Kala": [
+        "229216"
+      ],
+      "Rampur Kasiha": [
+        "229124"
+      ],
+      "Rampur Pawara": [
+        "229126"
+      ],
+      "Ranapur Pahrauli": [
+        "229205"
+      ],
+      "Rasehta": [
+        "229316"
+      ],
+      "Rasoolpur": [
+        "229127"
+      ],
+      "Rastamau": [
+        "229309"
+      ],
+      "Rasulpur": [
+        "229001"
+      ],
+      "Ratapur": [
+        "229316"
+      ],
+      "Ratason": [
+        "229124"
+      ],
+      "Rautapur": [
+        "229216"
+      ],
+      "Rblqila": [
+        "229001"
+      ],
+      "Reewa": [
+        "229103"
+      ],
+      "Reoli": [
+        "229401"
+      ],
+      "Rewhara": [
+        "229127"
+      ],
+      "Rohania": [
+        "229401"
+      ],
+      "Rokha": [
+        "229310"
+      ],
+      "Rukunpur": [
+        "229135"
+      ],
+      "Rupamau": [
+        "229010"
+      ],
+      "Rustampur": [
+        "229001"
+      ],
+      "Saguni": [
+        "229205"
+      ],
+      "Sahjaura": [
+        "229122"
+      ],
+      "Saimbasi": [
+        "229309"
+      ],
+      "Saini": [
+        "229122"
+      ],
+      "Salethu": [
+        "229123"
+      ],
+      "Salon": [
+        "229127"
+      ],
+      "Samodha": [
+        "229212"
+      ],
+      "Samrahda": [
+        "229302"
+      ],
+      "Sandaha": [
+        "229305"
+      ],
+      "Sandi Nagin": [
+        "229001"
+      ],
+      "Sanehi": [
+        "229128"
+      ],
+      "Sarain Mahesha": [
+        "229304"
+      ],
+      "Sarain Manik": [
+        "229310"
+      ],
+      "Sarawan": [
+        "229316"
+      ],
+      "Sareni": [
+        "229212",
+        "229404"
+      ],
+      "Sarwan": [
+        "229302"
+      ],
+      "Satanpur": [
+        "229208"
+      ],
+      "Satanpurwa": [
+        "229135"
+      ],
+      "Sataon": [
+        "229122"
+      ],
+      "Satwa Khera": [
+        "229212"
+      ],
+      "Satyanagar (Raebareli)": [
+        "229001"
+      ],
+      "Sawaiya Hasan": [
+        "229404"
+      ],
+      "Sehgon": [
+        "229311"
+      ],
+      "Semarpaha": [
+        "229206"
+      ],
+      "Semra": [
+        "229128"
+      ],
+      "Semrauta": [
+        "229126"
+      ],
+      "Semri": [
+        "229211"
+      ],
+      "Seni": [
+        "229122"
+      ],
+      "Seoli": [
+        "229308"
+      ],
+      "Shahmau": [
+        "229304"
+      ],
+      "Shankarganj": [
+        "229309"
+      ],
+      "Shankarpur": [
+        "229402"
+      ],
+      "Shanker Bazar": [
+        "229125"
+      ],
+      "Shekhpur Samodha": [
+        "229301"
+      ],
+      "Sheopuri": [
+        "229209"
+      ],
+      "Sheoratanganj": [
+        "229802"
+      ],
+      "Shivgarh": [
+        "229308"
+      ],
+      "Sidhauna": [
+        "229306"
+      ],
+      "Sikandarpur": [
+        "229126"
+      ],
+      "Singhortara": [
+        "229216"
+      ],
+      "Singhpur": [
+        "229304"
+      ],
+      "Siwan": [
+        "229126"
+      ],
+      "Sondasi": [
+        "229203"
+      ],
+      "Sothi": [
+        "229306"
+      ],
+      "Suchi": [
+        "229128"
+      ],
+      "Sudamapur": [
+        "229204"
+      ],
+      "Sujwaria": [
+        "229307"
+      ],
+      "Sultanpur Janauli": [
+        "229204"
+      ],
+      "Sultanpur Khera": [
+        "229130"
+      ],
+      "Suttha": [
+        "229204"
+      ],
+      "Tala": [
+        "229122"
+      ],
+      "Tama Mau": [
+        "229304"
+      ],
+      "Taqia Kala": [
+        "229001"
+      ],
+      "Tejgaon": [
+        "229215"
+      ],
+      "Tenduwa": [
+        "229302"
+      ],
+      "Terukha": [
+        "229125"
+      ],
+      "Tewaripur": [
+        "229128"
+      ],
+      "Thulendi": [
+        "229301"
+      ],
+      "Thulrai": [
+        "229125"
+      ],
+      "Thulwasa": [
+        "229306"
+      ],
+      "Tikar Agachipur": [
+        "229402"
+      ],
+      "Tikari Dandu": [
+        "229310"
+      ],
+      "Tikaria": [
+        "229402"
+      ],
+      "Tikwamau": [
+        "229122"
+      ],
+      "Tilenda": [
+        "229301"
+      ],
+      "Tiloi": [
+        "229309"
+      ],
+      "Tinera": [
+        "229302"
+      ],
+      "Tisha Khanapur": [
+        "229306"
+      ],
+      "Townhall": [
+        "229001"
+      ],
+      "Uchauri": [
+        "229301"
+      ],
+      "Udwa Hemrajpur": [
+        "229304"
+      ],
+      "Umramau": [
+        "229121"
+      ],
+      "Umran": [
+        "229404"
+      ],
+      "Undwa": [
+        "229401"
+      ],
+      "Usroo": [
+        "229202"
+      ],
+      "Utarpara": [
+        "229402"
+      ],
+      "Utragauri": [
+        "229203"
+      ],
+      "Wahabganj": [
+        "229305"
+      ],
+      "Zilaparisad": [
+        "229001"
       ]
     },
     "Sant Ravidas Nagar": {
@@ -5741,12 +9625,631 @@
         "221314"
       ]
     },
+    "Sonbhadra": {
+      "Adalganj": [
+        "231205"
+      ],
+      "Akchhor": [
+        "231216"
+      ],
+      "Amilaudha": [
+        "231210"
+      ],
+      "Amwar": [
+        "231212"
+      ],
+      "Anpara Tps": [
+        "231225"
+      ],
+      "Arangpani": [
+        "231208"
+      ],
+      "Asanahar": [
+        "231223"
+      ],
+      "Babhani": [
+        "231208"
+      ],
+      "Bachara": [
+        "231223"
+      ],
+      "Badgaon": [
+        "231205"
+      ],
+      "Bagesoti": [
+        "231226"
+      ],
+      "Bagharu": [
+        "231212"
+      ],
+      "Bahuar": [
+        "231216"
+      ],
+      "Bahuara": [
+        "231216"
+      ],
+      "Bairpan": [
+        "231225"
+      ],
+      "Bairpur": [
+        "231208"
+      ],
+      "Banki": [
+        "231213"
+      ],
+      "Banvasi Seva Ashram": [
+        "231221"
+      ],
+      "Beej Pur": [
+        "231223"
+      ],
+      "Beena Project": [
+        "231220"
+      ],
+      "Belhatthi": [
+        "231217"
+      ],
+      "Bharahari": [
+        "231205"
+      ],
+      "Bichchhi": [
+        "231216"
+      ],
+      "Billi Markundi": [
+        "231219"
+      ],
+      "Chachikalan": [
+        "231226"
+      ],
+      "Chapki": [
+        "231223"
+      ],
+      "Chatarvar": [
+        "231205"
+      ],
+      "Cherui": [
+        "231206"
+      ],
+      "Chopan": [
+        "231205"
+      ],
+      "Churk": [
+        "231206"
+      ],
+      "Dalla": [
+        "231207"
+      ],
+      "Dharnipur": [
+        "231216"
+      ],
+      "Dharti Dand": [
+        "231223"
+      ],
+      "Dhuma": [
+        "231226"
+      ],
+      "Dibulgani": [
+        "231225"
+      ],
+      "Dohari": [
+        "231215"
+      ],
+      "Dudhi": [
+        "231208"
+      ],
+      "Ekdari": [
+        "231208"
+      ],
+      "Gadia": [
+        "231208"
+      ],
+      "Ghaghara": [
+        "231212"
+      ],
+      "Ghaghari": [
+        "231223"
+      ],
+      "Ghiwahi": [
+        "231226"
+      ],
+      "Ghorawal": [
+        "231210"
+      ],
+      "Ghorpa": [
+        "231226"
+      ],
+      "Gurma Markundi": [
+        "231209"
+      ],
+      "Gurmura": [
+        "231207"
+      ],
+      "Hathwani": [
+        "231208"
+      ],
+      "Hinauta": [
+        "231216"
+      ],
+      "Jamgaon": [
+        "231215"
+      ],
+      "Jarhan": [
+        "231223"
+      ],
+      "Jharo Khurd": [
+        "231208"
+      ],
+      "Jugail": [
+        "231205"
+      ],
+      "Kachnarwa": [
+        "231226"
+      ],
+      "Kaithi": [
+        "231216"
+      ],
+      "Kakarahi": [
+        "231216"
+      ],
+      "Kakari Project": [
+        "231224"
+      ],
+      "Kalwari Mafi": [
+        "231210"
+      ],
+      "Kanachh": [
+        "231205"
+      ],
+      "Kandhaura": [
+        "231225"
+      ],
+      "Kanethi": [
+        "231210"
+      ],
+      "Karahia": [
+        "231208"
+      ],
+      "Kargara": [
+        "231205"
+      ],
+      "Karma": [
+        "231216"
+      ],
+      "Kasyakala": [
+        "231216"
+      ],
+      "Kewal": [
+        "231226"
+      ],
+      "Khadia Project": [
+        "231222"
+      ],
+      "Khairahi": [
+        "231216"
+      ],
+      "Khairpur": [
+        "231216"
+      ],
+      "Khajura": [
+        "231218"
+      ],
+      "Kharhara": [
+        "231205"
+      ],
+      "Khokha Karahia": [
+        "231208"
+      ],
+      "Kirbil": [
+        "231208"
+      ],
+      "Kone": [
+        "231226"
+      ],
+      "Kota": [
+        "231207"
+      ],
+      "Kudari": [
+        "231205"
+      ],
+      "Kudwan": [
+        "231226"
+      ],
+      "Lilasikala": [
+        "231212"
+      ],
+      "Lohadi": [
+        "231210"
+      ],
+      "Maachi": [
+        "231213"
+      ],
+      "Madhupura": [
+        "231216"
+      ],
+      "Mahuaria": [
+        "231212"
+      ],
+      "Mahuli": [
+        "231208"
+      ],
+      "Majhi Dand": [
+        "231213"
+      ],
+      "Mokarsim": [
+        "231216"
+      ],
+      "Mudiladeeh": [
+        "231215"
+      ],
+      "Myorpur": [
+        "231208"
+      ],
+      "Nadhira": [
+        "231223"
+      ],
+      "Nai Bazar": [
+        "231216"
+      ],
+      "Nandana": [
+        "231213"
+      ],
+      "Narokhar": [
+        "231216"
+      ],
+      "Naudiha": [
+        "231212"
+      ],
+      "Naudiha Mishri": [
+        "231226"
+      ],
+      "Naudiha Ramgarh": [
+        "231226"
+      ],
+      "Newari": [
+        "231205"
+      ],
+      "Obra (Sonbhadra)": [
+        "231219"
+      ],
+      "Obra Thermal": [
+        "231219"
+      ],
+      "Oeni Mishra": [
+        "231216"
+      ],
+      "Padarachh": [
+        "231207"
+      ],
+      "Padarikala": [
+        "231213"
+      ],
+      "Padwania": [
+        "231210"
+      ],
+      "Pakarhat": [
+        "231213"
+      ],
+      "Pakari": [
+        "231208"
+      ],
+      "Panari": [
+        "231219"
+      ],
+      "Panauli": [
+        "231215"
+      ],
+      "Pannuganj": [
+        "231213"
+      ],
+      "Parasi Dubey": [
+        "231216"
+      ],
+      "Parsoi": [
+        "231219"
+      ],
+      "Parsona": [
+        "231210"
+      ],
+      "Pauni": [
+        "231213"
+      ],
+      "Pindari": [
+        "231223"
+      ],
+      "Radhore": [
+        "231225"
+      ],
+      "Raipur": [
+        "231213"
+      ],
+      "Rajkhad": [
+        "231208"
+      ],
+      "Rajpur (Sonbhadra)": [
+        "231215"
+      ],
+      "Ram Garh": [
+        "231213"
+      ],
+      "Rampur": [
+        "231213"
+      ],
+      "Renukoot": [
+        "231217"
+      ],
+      "Renusagar": [
+        "231218"
+      ],
+      "Retikala": [
+        "231213"
+      ],
+      "Rizul": [
+        "231210"
+      ],
+      "Robertsganj": [
+        "231216"
+      ],
+      "Robertsganj Hydle Colony": [
+        "231216"
+      ],
+      "Sabha Lilwahi": [
+        "231210"
+      ],
+      "Sagobandh": [
+        "231212"
+      ],
+      "Sahijankala": [
+        "231216"
+      ],
+      "Salkhan": [
+        "231205"
+      ],
+      "Sandi": [
+        "231213"
+      ],
+      "Sarvat": [
+        "231215"
+      ],
+      "Satbahani": [
+        "231208"
+      ],
+      "Shahganj": [
+        "231215"
+      ],
+      "Shaktinagar (Sonbhadra)": [
+        "231222"
+      ],
+      "Shaktinagar Thermal Power Stat": [
+        "231222"
+      ],
+      "Sherwan": [
+        "231226"
+      ],
+      "Shivdwar": [
+        "231210"
+      ],
+      "Shivpur": [
+        "231213"
+      ],
+      "Siddhi Kala": [
+        "231216"
+      ],
+      "Siltham": [
+        "231213"
+      ],
+      "Sindoor": [
+        "231223"
+      ],
+      "Sinduria": [
+        "231205"
+      ],
+      "Sukhdevanand Ashram": [
+        "231217"
+      ],
+      "Sukrut": [
+        "231216"
+      ],
+      "Sundari": [
+        "231212"
+      ],
+      "Tarawan": [
+        "231216"
+      ],
+      "Tendu": [
+        "231216"
+      ],
+      "Turra": [
+        "231221"
+      ],
+      "Wyndhamganj": [
+        "231226"
+      ],
+      "Yogichaura": [
+        "231222"
+      ]
+    },
     "Sultanpur": {
+      "Abhiya Kalan": [
+        "228001"
+      ],
+      "Achalpur": [
+        "227801"
+      ],
+      "Adhanpur": [
+        "227813"
+      ],
+      "Agahar": [
+        "227405"
+      ],
+      "Agai": [
+        "228121"
+      ],
+      "Ahda": [
+        "228132"
+      ],
+      "Ahimane": [
+        "228001"
+      ],
+      "Aindhi": [
+        "227409"
+      ],
+      "Ainjar": [
+        "227814"
+      ],
+      "Akhandnagar": [
+        "228171"
+      ],
+      "Akorhi": [
+        "228151"
+      ],
+      "Alahdadpur": [
+        "227816"
+      ],
+      "Aliganj Bazar": [
+        "227805"
+      ],
+      "Alimuddinpur": [
+        "228171"
+      ],
+      "Alipur Saravan": [
+        "228171"
+      ],
+      "Amari": [
+        "228161"
+      ],
+      "Amethi": [
+        "227405"
+      ],
+      "Amilia Sikara": [
+        "228141"
+      ],
+      "Anapur": [
+        "227409"
+      ],
+      "Angnakol": [
+        "228118"
+      ],
+      "Angrawan": [
+        "227801"
+      ],
+      "Anirudhpur": [
+        "228171"
+      ],
+      "Arjunpur": [
+        "227304",
+        "227409"
+      ],
+      "Asarfpur": [
+        "227813"
+      ],
+      "Asura": [
+        "227409"
+      ],
+      "Atarsuma": [
+        "228121"
+      ],
+      "Ataula": [
+        "227814"
+      ],
+      "Athaisi": [
+        "228120"
+      ],
+      "Aurangabad": [
+        "227813"
+      ],
+      "Ausanpur": [
+        "227304"
+      ],
+      "Babhangawan": [
+        "228151"
+      ],
+      "Baburi": [
+        "227805"
+      ],
+      "Bahadurpur": [
+        "228001"
+      ],
+      "Baharpur": [
+        "227816"
+      ],
+      "Bahauddinpur": [
+        "228133"
+      ],
+      "Bahlolpur": [
+        "227808"
+      ],
       "Bahrauli": [
-        "222302"
+        "222302",
+        "227816"
+      ],
+      "Bahurahwan": [
+        "227814"
+      ],
+      "Baidaha": [
+        "228119"
+      ],
+      "Baijapur": [
+        "228001"
       ],
       "Bainti Kalan": [
         "222301"
+      ],
+      "Balbhadrapur": [
+        "227801"
+      ],
+      "Ballipur": [
+        "228125"
+      ],
+      "Bandhua Kalan": [
+        "227808"
+      ],
+      "Bani": [
+        "228131"
+      ],
+      "Banke Gaon": [
+        "228145"
+      ],
+      "Bankepur": [
+        "227808"
+      ],
+      "Bansi": [
+        "228155"
+      ],
+      "Baqghauna": [
+        "227814"
+      ],
+      "Baranpur": [
+        "227812"
+      ],
+      "Baraulia": [
+        "227801"
+      ],
+      "Barauna Dih": [
+        "228145"
+      ],
+      "Baraunsa": [
+        "228120"
+      ],
+      "Baregaon": [
+        "228119"
+      ],
+      "Barehti": [
+        "227807"
+      ],
+      "Bargaon": [
+        "227407"
+      ],
+      "Bariauna": [
+        "228151"
+      ],
+      "Barmhauli": [
+        "227814"
+      ],
+      "Barna Tikar": [
+        "227409"
+      ],
+      "Barsanda": [
+        "227816"
       ],
       "Barsara": [
         "222302"
@@ -5754,17 +10257,155 @@
       "Barua": [
         "222302"
       ],
+      "Barwaripur": [
+        "228145"
+      ],
+      "Basti Dei": [
+        "227409"
+      ],
+      "Basupur": [
+        "228133"
+      ],
+      "Baura Jagdishpur": [
+        "228142"
+      ],
+      "Bazar Baldirai": [
+        "227806"
+      ],
+      "Bela Pashchim": [
+        "227805"
+      ],
+      "Belahari": [
+        "228133"
+      ],
       "Belahi": [
         "222302"
+      ],
+      "Benipur": [
+        "227405"
+      ],
+      "Bethara": [
+        "228131"
+      ],
+      "Bhada": [
+        "227816"
       ],
       "Bhadaiyan": [
         "222302"
       ],
+      "Bhadar": [
+        "227406"
+      ],
+      "Bhain": [
+        "227816"
+      ],
+      "Bhakhari": [
+        "227806"
+      ],
+      "Bhanauli": [
+        "227813"
+      ],
+      "Bhandara": [
+        "228155"
+      ],
+      "Bhanti": [
+        "227408"
+      ],
+      "Bhapta": [
+        "228001"
+      ],
+      "Bhardhipur": [
+        "227304"
+      ],
+      "Bharkhare": [
+        "227304"
+      ],
+      "Bhatauta Tulsi Patti": [
+        "228161"
+      ],
+      "Bhatgawan": [
+        "227801"
+      ],
+      "Bhawapur": [
+        "227406"
+      ],
+      "Bhenwai": [
+        "227816"
+      ],
+      "Bhikhipur": [
+        "227807"
+      ],
+      "Bhikhupur": [
+        "228142"
+      ],
+      "Bhilampur": [
+        "228131"
+      ],
+      "Bhimi Pachchhim": [
+        "227413"
+      ],
+      "Bhoen": [
+        "227801"
+      ],
       "Bhua Pathkauli": [
         "222303"
       ],
+      "Bijhuri": [
+        "228142"
+      ],
+      "Bikana": [
+        "227408"
+      ],
+      "Bikwajitpur": [
+        "228001"
+      ],
+      "Bingi": [
+        "228121"
+      ],
+      "Biraipur": [
+        "228141"
+      ],
+      "Biri Hajipur": [
+        "228145"
+      ],
+      "Birsinghpur": [
+        "228141"
+      ],
+      "Bisara Pashchim": [
+        "227807"
+      ],
+      "Bisawan": [
+        "227812"
+      ],
+      "Bisesarganj": [
+        "227407"
+      ],
+      "Bisundaspur": [
+        "227409"
+      ],
       "Budhapur": [
         "222302"
+      ],
+      "Burhana": [
+        "228145"
+      ],
+      "Bus Station (Sultanpur)": [
+        "228001"
+      ],
+      "Chakchurawanpur": [
+        "228151"
+      ],
+      "Chanauki": [
+        "227813"
+      ],
+      "Chandaur": [
+        "228121"
+      ],
+      "Chandheria": [
+        "227413"
+      ],
+      "Chandipur": [
+        "228151"
       ],
       "Chaukia": [
         "222302"
@@ -5772,32 +10413,495 @@
       "Chhapar": [
         "222303"
       ],
+      "Chhatauna": [
+        "228001"
+      ],
+      "Chhitepatti": [
+        "228131"
+      ],
+      "Chorma": [
+        "228142"
+      ],
+      "Civil Lines Sultanpur": [
+        "228001"
+      ],
+      "Dadra": [
+        "227813"
+      ],
+      "Dadupur": [
+        "227815"
+      ],
+      "Dahiyawan": [
+        "227406"
+      ],
+      "Dakhin Gaon": [
+        "227411"
+      ],
+      "Damodarpur": [
+        "228120"
+      ],
+      "Daria Amrethu": [
+        "228145"
+      ],
+      "Darkha": [
+        "227405"
+      ],
+      "Darpipur": [
+        "227412"
+      ],
+      "Deara": [
+        "228132"
+      ],
+      "Dehli Mubarakpur": [
+        "228133"
+      ],
+      "Dehriyawan": [
+        "227806"
+      ],
+      "Deokali": [
+        "227816"
+      ],
+      "Deora": [
+        "227814"
+      ],
+      "Deorajpur": [
+        "228161"
+      ],
+      "Deraha": [
+        "227413"
+      ],
       "Dewarh": [
         "222303"
+      ],
+      "Dhajai Keshavpur": [
+        "228151"
+      ],
+      "Dhakwa": [
+        "228001"
+      ],
+      "Dhammaur": [
+        "227408"
+      ],
+      "Dhanapur": [
+        "227407"
+      ],
+      "Dhanaupur": [
+        "228131"
+      ],
+      "Dhani Jalalpur": [
+        "227409"
+      ],
+      "Dharai Mafi": [
+        "227412"
+      ],
+      "Dharawan": [
+        "227805"
+      ],
+      "Dharsauli": [
+        "228141"
+      ],
+      "Dheka Pakhanpur": [
+        "228151"
+      ],
+      "Dhema": [
+        "227816",
+        "228132"
+      ],
+      "Dhundhu": [
+        "228151"
+      ],
+      "Dih": [
+        "227806"
+      ],
+      "Dih Dhaggupur": [
+        "228125"
+      ],
+      "Dobhiara": [
+        "227815"
+      ],
+      "Domadih": [
+        "227809"
+      ],
+      "Dostpur": [
+        "228131"
+      ],
+      "Dubepur": [
+        "227815"
+      ],
+      "Dulari Nagar": [
+        "227809"
+      ],
+      "Durgapur": [
+        "227816"
+      ],
+      "Dwarikaganj": [
+        "228125"
+      ],
+      "Faridpur": [
+        "228171"
+      ],
+      "Fatehpur Sangat": [
+        "228119"
+      ],
+      "Ferozpur Kala": [
+        "228155"
+      ],
+      "Gaderi": [
+        "227405"
+      ],
+      "Gai Mau": [
+        "227809"
+      ],
+      "Gajanpur Duaria": [
+        "227813"
+      ],
+      "Ganpat Sahai Degree College": [
+        "228001"
       ],
       "Garabpur": [
         "222302"
       ],
+      "Garayen": [
+        "227304"
+      ],
+      "Gaura": [
+        "228151"
+      ],
+      "Gaura Jamon": [
+        "227801"
+      ],
+      "Gaura Katari": [
+        "227801"
+      ],
+      "Gaura Loharia": [
+        "227806"
+      ],
+      "Gaura Tikari": [
+        "228161"
+      ],
+      "Gauriganj": [
+        "227409"
+      ],
       "Ghatampur": [
         "222302"
+      ],
+      "Gorabarik": [
+        "228001"
+      ],
+      "Goriabad": [
+        "227809"
+      ],
+      "Gosainganj (Sultanpur)": [
+        "228119"
+      ],
+      "Gosaisinghpur": [
+        "228131"
+      ],
+      "Guawan": [
+        "227409"
+      ],
+      "Gunnaur": [
+        "227807"
+      ],
+      "Guptarganj": [
+        "228151"
+      ],
+      "H A L Korwa": [
+        "227412"
+      ],
+      "Haji Patti": [
+        "227805"
+      ],
+      "Haliapur": [
+        "227815"
+      ],
+      "Hamidpur": [
+        "228145"
+      ],
+      "Hamjapur Pathan": [
+        "228145"
+      ],
+      "Hamzabad": [
+        "228132"
+      ],
+      "Hanumanganj": [
+        "228001"
       ],
       "Hardaspur": [
         "222302"
       ],
+      "Hardoia": [
+        "227807"
+      ],
+      "Hardon": [
+        "227409"
+      ],
+      "Hargaon": [
+        "227801"
+      ],
+      "Harha": [
+        "227304"
+      ],
+      "Hari Mau": [
+        "227809"
+      ],
+      "Haripur": [
+        "228161"
+      ],
+      "Harkaranpur": [
+        "227807"
+      ],
+      "Harkhumau": [
+        "227811"
+      ],
+      "Harthua Babhanpur": [
+        "228171"
+      ],
+      "Hasanpur (Sultanpur)": [
+        "227808"
+      ],
+      "Hatiyawan": [
+        "228131"
+      ],
+      "Hayatnagar": [
+        "228119"
+      ],
+      "Hinduabad": [
+        "228161"
+      ],
+      "Hussainganj Kala": [
+        "227816"
+      ],
+      "Ichhuti": [
+        "227815"
+      ],
+      "Imligaon": [
+        "228131"
+      ],
+      "Imligaon Chupi": [
+        "227813"
+      ],
+      "Inayatpur": [
+        "228125"
+      ],
+      "Isauli": [
+        "227813"
+      ],
+      "Isur": [
+        "228142"
+      ],
+      "Jagdishpur (Sultanpur)": [
+        "227809"
+      ],
+      "Jagdishpur Industrial Area": [
+        "227817"
+      ],
+      "Jagesarganj": [
+        "227809"
+      ],
+      "Jaisinghpur (Sultanpur)": [
+        "228141"
+      ],
+      "Jajjaur": [
+        "228121"
+      ],
+      "Jamalpur Jajrahi": [
+        "228141"
+      ],
       "Jamkhuri": [
         "222302"
+      ],
+      "Jangal Ramnagar": [
+        "227405"
+      ],
+      "Jarai Kalan": [
+        "227815"
+      ],
+      "Jasapara": [
+        "228119"
+      ],
+      "Jhauara": [
+        "228001"
+      ],
+      "Jura Patti": [
+        "228151"
+      ],
+      "Jurupur": [
+        "227808"
+      ],
+      "Juthipur": [
+        "227409"
+      ],
+      "Kachha Bhitaura": [
+        "228132"
+      ],
+      "Kadipur": [
+        "228145"
+      ],
+      "Kadipur Khurd": [
+        "228145"
+      ],
+      "Kaithapur": [
+        "227304"
+      ],
+      "Kaithi Jalalpur": [
+        "228131"
+      ],
+      "Kaithwara": [
+        "228120"
+      ],
+      "Kakwa": [
+        "227405"
+      ],
+      "Kalyanpur": [
+        "227816"
+      ],
+      "Kamla Nehru Institute": [
+        "228118"
+      ],
+      "Kampa": [
+        "227806"
+      ],
+      "Kamrauli": [
+        "227809"
+      ],
+      "Kamtaganj": [
+        "228131"
+      ],
+      "Kanauli": [
+        "228125"
+      ],
+      "Kandhaipur": [
+        "227304"
+      ],
+      "Kanehti": [
+        "227814"
+      ],
+      "Kankupur": [
+        "227816"
+      ],
+      "Karaundi": [
+        "227413"
+      ],
+      "Karaundia": [
+        "228001"
+      ],
+      "Kareban": [
+        "228142"
+      ],
+      "Karnaipur": [
+        "227413"
+      ],
+      "Kasara": [
+        "227413"
+      ],
+      "Katari": [
+        "227801"
+      ],
+      "Katawan": [
+        "228001"
+      ],
+      "Katghara Patti": [
+        "228145"
+      ],
+      "Katsari": [
+        "228145"
+      ],
+      "Kauhar": [
+        "227411"
+      ],
+      "Kenaura": [
+        "227816"
+      ],
+      "Khadar Basantpur": [
+        "228155"
+      ],
+      "Khairabad (Sultanpur)": [
+        "228001"
+      ],
+      "Khalispur Dingur": [
+        "228131"
       ],
       "Khanpur": [
         "222303"
       ],
+      "Kharsara": [
+        "228132"
+      ],
+      "Khokhipur": [
+        "227805"
+      ],
+      "Kisni": [
+        "227811"
+      ],
+      "Kisundaspur": [
+        "228145"
+      ],
+      "Kitiyawan": [
+        "227411"
+      ],
+      "Kohra": [
+        "227405"
+      ],
       "Koiripur": [
         "222301"
+      ],
+      "Korari Gidhar Shah": [
+        "227405"
+      ],
+      "Korari Hir Shah": [
+        "227411"
       ],
       "Kothara Khurd": [
         "222303"
       ],
+      "Kotia": [
+        "227805"
+      ],
+      "Kotwa Lahangrai": [
+        "228151"
+      ],
+      "Kuchhmuchh": [
+        "228001"
+      ],
+      "Kumbhi": [
+        "228131"
+      ],
+      "Kunda": [
+        "227411"
+      ],
+      "Kunda Bhairavpur": [
+        "228131"
+      ],
+      "Kurebhar": [
+        "228151"
+      ],
+      "Kurwar": [
+        "228155"
+      ],
+      "Lahauta": [
+        "228142"
+      ],
+      "Lama Bankata": [
+        "228132"
+      ],
       "Lambhua": [
         "222302"
+      ],
+      "Loco Colony": [
+        "228001"
+      ],
+      "Lohra Mau": [
+        "228001"
+      ],
+      "Loknathpur": [
+        "228131"
+      ],
+      "Madhavpur Chhatauna": [
+        "228119"
+      ],
+      "Magarsan Kala": [
+        "228161"
       ],
       "Maharani Pachchhim": [
         "222303"
@@ -5805,14 +10909,150 @@
       "Mahdeva": [
         "222302"
       ],
+      "Mahemau": [
+        "227816"
+      ],
+      "Mahmadpur": [
+        "227405"
+      ],
+      "Mahmoodpur": [
+        "228125"
+      ],
+      "Mahmoodpur Semri": [
+        "228142"
+      ],
+      "Mahona": [
+        "227811"
+      ],
+      "Mahrajganj": [
+        "227808"
+      ],
+      "Mai Ghatkaur": [
+        "227408"
+      ],
+      "Majhana": [
+        "227805"
+      ],
+      "Makdoomnagar": [
+        "228121"
+      ],
+      "Makhdoompur": [
+        "227816"
+      ],
       "Maksudan": [
         "222302"
       ],
       "Malhipur": [
         "222301"
       ],
+      "Malikpur Nonara": [
+        "228145"
+      ],
+      "Manapur": [
+        "227411"
+      ],
+      "Mangara": [
+        "227816"
+      ],
+      "Mangauli": [
+        "227809"
+      ],
+      "Mangrauli": [
+        "227816"
+      ],
+      "Mangrawan": [
+        "228161"
+      ],
+      "Manipur Patna": [
+        "228125"
+      ],
+      "Maniyarpur": [
+        "227808"
+      ],
+      "Mardanpur": [
+        "227811"
+      ],
+      "Mau": [
+        "227409"
+      ],
+      "Mau Atwara": [
+        "227816"
+      ],
+      "Mawai": [
+        "227801"
+      ],
+      "Mayang": [
+        "228121"
+      ],
+      "Mayas": [
+        "227807"
+      ],
+      "Meghmau": [
+        "227806"
+      ],
+      "Meopur": [
+        "228161"
+      ],
+      "Miranpur": [
+        "227816"
+      ],
+      "Mirpur Saraiya": [
+        "228133"
+      ],
       "Misirpur": [
         "222302"
+      ],
+      "Misrauli": [
+        "227407",
+        "228119"
+      ],
+      "Mochawa": [
+        "227816"
+      ],
+      "Mokalpur": [
+        "228171"
+      ],
+      "Motiganj": [
+        "228125"
+      ],
+      "Motigarpur": [
+        "228132"
+      ],
+      "Muhammadpur": [
+        "227809"
+      ],
+      "Mungar": [
+        "228141"
+      ],
+      "Murua": [
+        "228121"
+      ],
+      "Musafirkhana": [
+        "227813"
+      ],
+      "Musatafabad Saraiya": [
+        "228145"
+      ],
+      "Nachana": [
+        "228151"
+      ],
+      "Nandauli": [
+        "227806"
+      ],
+      "Nandrai": [
+        "227814"
+      ],
+      "Nanemau": [
+        "228133"
+      ],
+      "Naraini": [
+        "227405"
+      ],
+      "Narayanpur": [
+        "228161"
+      ],
+      "Narayanpur Kalan": [
+        "228131"
       ],
       "Narendapur": [
         "222302"
@@ -5820,8 +11060,149 @@
       "Narharpur": [
         "222302"
       ],
+      "Narsara": [
+        "227806"
+      ],
+      "Naudar": [
+        "227809"
+      ],
+      "Naugawan Raitasi": [
+        "227808"
+      ],
+      "Naugawan Tir": [
+        "228155"
+      ],
+      "Nayakot Dharauli": [
+        "227807"
+      ],
+      "Nimi": [
+        "227801"
+      ],
+      "Numayen Merai": [
+        "228141"
+      ],
+      "Padare": [
+        "227814"
+      ],
+      "Padari": [
+        "227405"
+      ],
+      "Paharganj": [
+        "227405"
+      ],
+      "Paharpur": [
+        "228161"
+      ],
+      "Paharpur Rai Patti": [
+        "228131"
+      ],
+      "Paharpur Sarai Bhikham": [
+        "228132"
+      ],
+      "Pakarpur": [
+        "228161"
+      ],
+      "Pakhrauli": [
+        "228001"
+      ],
+      "Palahipur": [
+        "227808"
+      ],
+      "Pali": [
+        "227811"
+      ],
+      "Palia": [
+        "228141"
+      ],
+      "Palia Golpur": [
+        "228131"
+      ],
+      "Para": [
+        "227813"
+      ],
+      "Paras Patti": [
+        "228132"
+      ],
       "Parasurampur": [
         "222302"
+      ],
+      "Parsa Darwa": [
+        "228142"
+      ],
+      "Parsara": [
+        "228142"
+      ],
+      "Parsipur": [
+        "228155"
+      ],
+      "Parvatpur": [
+        "227801"
+      ],
+      "Parwar": [
+        "228151"
+      ],
+      "Pashchim Duara": [
+        "227412"
+      ],
+      "Patipur": [
+        "227304"
+      ],
+      "Paudhan Rampur": [
+        "228171"
+      ],
+      "Peero Saraia": [
+        "227814"
+      ],
+      "Phatefpur": [
+        "227811"
+      ],
+      "Pichhaura": [
+        "227813"
+      ],
+      "Pindara": [
+        "227807"
+      ],
+      "Pindoria": [
+        "227405"
+      ],
+      "Pipargaon": [
+        "228121"
+      ],
+      "Pipari": [
+        "227815"
+      ],
+      "Piparpur": [
+        "228159"
+      ],
+      "Pratap Pur": [
+        "228125"
+      ],
+      "Purab Bisara": [
+        "227813"
+      ],
+      "Purab Gaon": [
+        "227815"
+      ],
+      "Purab Kasthuni": [
+        "227805"
+      ],
+      "Purabgaon": [
+        "227409"
+      ],
+      "Purushottampur": [
+        "228141"
+      ],
+      "Rachkheta": [
+        "227809"
+      ],
+      "Raghipur": [
+        "227409"
+      ],
+      "Raibigo": [
+        "228145"
+      ],
+      "Raincha": [
+        "227806"
       ],
       "Raipur": [
         "222302"
@@ -5829,20 +11210,156 @@
       "Raja Umari": [
         "222302"
       ],
+      "Rajamau": [
+        "227801"
+      ],
+      "Rajupur": [
+        "227805"
+      ],
+      "Rajupur Ikdala": [
+        "228151"
+      ],
+      "Ram Bax Garh": [
+        "227801"
+      ],
+      "Ram Nagar": [
+        "227405"
+      ],
+      "Ramapur": [
+        "227808"
+      ],
+      "Ramganj (Sultanpur)": [
+        "228159"
+      ],
       "Ramgarh": [
-        "222302"
+        "222302",
+        "227407"
+      ],
+      "Ramnagar Kot": [
+        "228001"
       ],
       "Rampur": [
         "222303"
       ],
+      "Raniganj (Sultanpur)": [
+        "227816"
+      ],
+      "Ranipur": [
+        "227304"
+      ],
+      "Rasulabad": [
+        "227813"
+      ],
+      "Rasulpur": [
+        "227809"
+      ],
+      "Ratapur": [
+        "227406"
+      ],
+      "Rawania": [
+        "228161"
+      ],
+      "Rebha": [
+        "227405"
+      ],
+      "Resi": [
+        "227801"
+      ],
       "Rikhpur": [
         "222302"
+      ],
+      "Rohiyawan Jalalpur": [
+        "228131"
+      ],
+      "Rudauli": [
+        "227813"
+      ],
+      "Rupapur": [
+        "228155"
+      ],
+      "Rupinpur": [
+        "228141"
       ],
       "Sadarpur": [
         "222303"
       ],
+      "Sadipur": [
+        "227813"
+      ],
       "Safipur": [
         "222303"
+      ],
+      "Saidkhanpur": [
+        "228151"
+      ],
+      "Saifullaganj": [
+        "228119"
+      ],
+      "Saini": [
+        "227806"
+      ],
+      "Saintha": [
+        "227409"
+      ],
+      "Sambhai": [
+        "227801"
+      ],
+      "Sanaha": [
+        "227408"
+      ],
+      "Sansarpur": [
+        "227811"
+      ],
+      "Saraiya Mafi": [
+        "227812"
+      ],
+      "Saresar": [
+        "227809"
+      ],
+      "Sarkaura": [
+        "228155"
+      ],
+      "Sarme": [
+        "227801"
+      ],
+      "Sarsawan": [
+        "228131"
+      ],
+      "Saruawan": [
+        "227408"
+      ],
+      "Satanpur": [
+        "228145"
+      ],
+      "Sathyain": [
+        "227816"
+      ],
+      "Sawangi": [
+        "227406"
+      ],
+      "Semri Purushottampur": [
+        "227816"
+      ],
+      "Seora": [
+        "227811"
+      ],
+      "Seotari": [
+        "228141"
+      ],
+      "Seur Chamurkha": [
+        "228151"
+      ],
+      "Sevain": [
+        "227411"
+      ],
+      "Shahabuddinpur": [
+        "228161"
+      ],
+      "Shahgarh (Sultanpur)": [
+        "227411"
+      ],
+      "Shahpur": [
+        "227808"
       ],
       "Shahpur Harbansh": [
         "222302"
@@ -5853,20 +11370,183 @@
       "Sheshanpur": [
         "222302"
       ],
+      "Shivgarh": [
+        "227304"
+      ],
+      "Shivgarh Jalalpur": [
+        "227413"
+      ],
+      "Shyamnagar (Sultanpur)": [
+        "228001"
+      ],
+      "Sidhiawan": [
+        "227809"
+      ],
+      "Sikari": [
+        "227815"
+      ],
+      "Sindurwa": [
+        "227809"
+      ],
+      "Singhni": [
+        "227814"
+      ],
+      "Sohgauli": [
+        "228155"
+      ],
+      "Sonara": [
+        "228125"
+      ],
+      "Sonari": [
+        "227816"
+      ],
       "Sonawan": [
         "222301"
+      ],
+      "Soraon": [
+        "227806"
+      ],
+      "Sukhi Bajgarh": [
+        "227801"
+      ],
+      "Sukul Ka Bazar": [
+        "227811"
       ],
       "Sukul Umari": [
         "222303"
       ],
+      "Sukulpur": [
+        "228161"
+      ],
+      "Sultanpur (Avadh)": [
+        "228001"
+      ],
+      "Sultanpur City": [
+        "228001"
+      ],
+      "Surapur": [
+        "228161"
+      ],
+      "Surhurpur": [
+        "228131"
+      ],
+      "Suryabhan Patti": [
+        "227304"
+      ],
+      "Tajuddinpur": [
+        "228171"
+      ],
       "Tamarsepur": [
         "222303"
+      ],
+      "Tarawa": [
+        "227411"
+      ],
+      "Tarsara": [
+        "227411"
+      ],
+      "Tarwa": [
+        "227816"
       ],
       "Tato Muraini": [
         "222302"
       ],
+      "Taudhikpur": [
+        "227815"
+      ],
+      "Tawakkalpur Nagra": [
+        "228161"
+      ],
+      "Teary": [
+        "228119"
+      ],
+      "Teosi": [
+        "227811"
+      ],
+      "Thauri": [
+        "227815"
+      ],
+      "Thengaha": [
+        "227413"
+      ],
+      "Tikari": [
+        "227408"
+      ],
+      "Tikaria": [
+        "227409",
+        "227816"
+      ],
+      "Tikarmafi": [
+        "227413"
+      ],
+      "Tirchhe": [
+        "228155"
+      ],
+      "Tirhut": [
+        "227806"
+      ],
+      "Trilokpur Newada": [
+        "228161"
+      ],
+      "Trisuli": [
+        "227816"
+      ],
+      "Ugharpur": [
+        "228119"
+      ],
+      "Ugharpur Bhatpura": [
+        "228132"
+      ],
+      "Umapur Gana Patti": [
+        "227405"
+      ],
+      "Umara": [
+        "227815"
+      ],
+      "Umarpur": [
+        "228131"
+      ],
+      "Umra Dih": [
+        "227801"
+      ],
+      "Unchgaon": [
+        "227805",
+        "227811"
+      ],
+      "Unurkha": [
+        "228171"
+      ],
+      "Usrauli": [
+        "228161"
+      ],
+      "Uturi": [
+        "228001"
+      ],
       "Waini": [
         "222302"
+      ],
+      "Wallipur": [
+        "227812"
+      ]
+    },
+    "Unnao": {
+      "Dhaura": [
+        "229881"
+      ],
+      "Mohan": [
+        "229881"
+      ],
+      "Nevalganj": [
+        "229881"
+      ],
+      "Rasupur Bankiya": [
+        "229881"
+      ],
+      "Samadpur Hardas": [
+        "229881"
+      ],
+      "Shahpur Tonda": [
+        "229881"
       ]
     },
     "Varanasi": {
