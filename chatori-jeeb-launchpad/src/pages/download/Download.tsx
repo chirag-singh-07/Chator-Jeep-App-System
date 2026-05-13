@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { DownloadLayout } from "@/components/download/DownloadLayout";
 import { StoreButtons } from "@/components/download/StoreButtons";
 import { PhoneMockup } from "@/components/download/PhoneMockup";
+import { RestaurantApkButton, RESTAURANT_APK_SIZE } from "@/components/download/RestaurantApkButton";
 import { Button } from "@/components/ui/button";
 import {
   UtensilsCrossed,
@@ -400,6 +401,7 @@ const Download = () => {
 
               <div className="mt-7 flex flex-wrap items-center gap-4">
                 <StoreButtons />
+                {tab === "restaurant" && <RestaurantApkButton compact className="w-full sm:w-auto" />}
                 <Button asChild variant="ghost" className="group">
                   <Link to={activeApp.to}>
                     Learn more <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -494,6 +496,42 @@ const Download = () => {
               })}
             </motion.div>
           ))}
+        </div>
+      </section>
+
+      <section aria-labelledby="restaurant-apk" className="mt-28">
+        <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-soft">
+          <div className="grid lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="p-8 md:p-10">
+              <div className="inline-flex items-center gap-3 rounded-2xl bg-primary/10 px-4 py-3 text-primary-deep">
+                <img src="/icons/chatori-jeeb-logo.png" alt="" className="h-10 w-10 rounded-xl object-contain" />
+                <span className="text-xs font-bold uppercase tracking-widest">Official Restaurant APK</span>
+              </div>
+              <h2 id="restaurant-apk" className="mt-5 text-3xl md:text-5xl font-extrabold tracking-tight">
+                Download the Chatori Jeeb Restaurant App
+              </h2>
+              <p className="mt-4 max-w-2xl text-muted-foreground">
+                Restaurant partners can install the latest Android release directly from this website and complete onboarding inside the app.
+              </p>
+              <div className="mt-7 flex flex-col gap-4 sm:flex-row sm:items-center">
+                <RestaurantApkButton />
+                <div className="text-sm text-muted-foreground">
+                  <div className="font-semibold text-foreground">Version: latest release</div>
+                  <div>File size: {RESTAURANT_APK_SIZE}</div>
+                </div>
+              </div>
+            </div>
+            <div className="relative min-h-[260px] bg-gradient-warm p-8 md:p-10">
+              <div className="absolute inset-0 bg-gradient-primary opacity-10" aria-hidden />
+              <div className="relative flex h-full flex-col justify-center rounded-3xl border border-border bg-background/80 p-6 backdrop-blur">
+                <img src="/icons/chatori-jeeb-logo.png" alt="Chatori Jeeb logo" className="h-20 w-20 rounded-2xl object-contain shadow-glow" />
+                <div className="mt-5 text-2xl font-extrabold">Chatori Jeeb Restaurant</div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Accept orders, manage your menu, track launch offer status, and receive real-time order alerts.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

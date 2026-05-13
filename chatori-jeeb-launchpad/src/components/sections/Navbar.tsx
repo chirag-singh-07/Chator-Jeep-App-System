@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { UtensilsCrossed, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 const links = [
   { label: "Categories", href: "#categories", id: "categories" },
@@ -49,7 +49,7 @@ export const Navbar = () => {
     >
       <nav className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         <a href="#" className="flex items-center gap-3 font-extrabold text-xl tracking-tighter">
-          <img src="/icons/web-icon-128x128.png" alt="Logo" className="h-10 w-10 object-contain shadow-glow rounded-xl" />
+          <img src="/icons/chatori-jeeb-logo.png" alt="Chatori Jeeb logo" className="h-10 w-10 object-contain shadow-glow rounded-xl" />
           <span>CHATORI <span className="text-primary-deep">JEEB</span></span>
         </a>
 

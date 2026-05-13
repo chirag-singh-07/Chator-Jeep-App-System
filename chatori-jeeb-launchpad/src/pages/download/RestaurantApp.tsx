@@ -1,6 +1,7 @@
 import { DownloadLayout } from "@/components/download/DownloadLayout";
 import { StoreButtons } from "@/components/download/StoreButtons";
 import { PhoneMockup } from "@/components/download/PhoneMockup";
+import { RestaurantApkButton } from "@/components/download/RestaurantApkButton";
 import { ClipboardList, BarChart3, Users, FileText, Store, Receipt } from "lucide-react";
 
 const features = [
@@ -32,7 +33,10 @@ const RestaurantApp = () => {
         <div className="grid md:grid-cols-2 gap-10 items-center">
           <div>
             <StoreButtons />
-            <p className="mt-4 text-sm text-muted-foreground">Free to list. Pay only when you grow.</p>
+            <div className="mt-4">
+              <RestaurantApkButton />
+            </div>
+            <p className="mt-4 text-sm text-muted-foreground">Launch offer registration is available in the app. Registration fees are non-refundable after successful payment.</p>
           </div>
           <div className="flex justify-center md:justify-end">
             <PhoneMockup label="Restaurant app preview" />
@@ -90,7 +94,7 @@ const RestaurantApp = () => {
       <section className="mt-20 rounded-3xl bg-gradient-primary text-primary-foreground p-10 md:p-14 text-center shadow-elegant">
         <h2 className="text-3xl md:text-4xl font-extrabold">Partner with Chatori Jeeb</h2>
         <p className="mt-3 opacity-90 max-w-xl mx-auto">List your restaurant and start receiving orders from chatoris in your city.</p>
-        <div className="mt-6"><StoreButtons align="center" /></div>
+        <div className="mt-6 flex justify-center"><RestaurantApkButton compact /></div>
       </section>
     </DownloadLayout>
   );
