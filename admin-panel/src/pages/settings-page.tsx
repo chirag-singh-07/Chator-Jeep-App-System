@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { adminService } from "@/services/admin.service";
 import { FormField } from "@/components/admin/form-field";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,8 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 
 export function SettingsPage() {
-  const [brand, setBrand] = useState("Chatori Jeep");
-  const [supportEmail, setSupportEmail] = useState("ops@chatorijeep.com");
+  const [brand, setBrand] = useState("Chatori Jeeb");
+  const [supportEmail, setSupportEmail] = useState("ops@chatorijeeb.com");
+  const [launchOfferFee, setLaunchOfferFee] = useState("299");
+  const [standardFee, setStandardFee] = useState("499");
+  const [launchCommission, setLaunchCommission] = useState("10");
+  const [normalCommission, setNormalCommission] = useState("18");
+  const [offerHours, setOfferHours] = useState("48");
   const [autoAssign, setAutoAssign] = useState(true);
   const [refundAlerts, setRefundAlerts] = useState(true);
 
@@ -29,11 +35,46 @@ export function SettingsPage() {
           </FormField>
           <Button
             onClick={() => {
+              void adminService.updateSetting({
+                key: "RESTAURANT_REGISTRATION_PRICING",
+                description: "Chatori Jeeb restaurant registration pricing and commission rules",
+                value: {
+                  launchOfferFee: Number(launchOfferFee),
+                  standardFee: Number(standardFee),
+                  launchCommissionPercentage: Number(launchCommission),
+                  normalCommissionPercentage: Number(normalCommission),
+                  offerWindowHours: Number(offerHours),
+                  launchOfferActive: true,
+                },
+              });
               toast.success("Settings saved.");
             }}
           >
             Save Preferences
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-2xl shadow-sm">
+        <CardHeader>
+          <CardTitle>Restaurant Pricing</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <FormField label="Launch Fee">
+            <Input value={launchOfferFee} onChange={(event) => setLaunchOfferFee(event.target.value.replace(/\D/g, ""))} />
+          </FormField>
+          <FormField label="Standard Fee">
+            <Input value={standardFee} onChange={(event) => setStandardFee(event.target.value.replace(/\D/g, ""))} />
+          </FormField>
+          <FormField label="Launch Commission %">
+            <Input value={launchCommission} onChange={(event) => setLaunchCommission(event.target.value.replace(/[^0-9.]/g, ""))} />
+          </FormField>
+          <FormField label="Normal Commission %">
+            <Input value={normalCommission} onChange={(event) => setNormalCommission(event.target.value.replace(/[^0-9.]/g, ""))} />
+          </FormField>
+          <FormField label="Offer Window Hours">
+            <Input value={offerHours} onChange={(event) => setOfferHours(event.target.value.replace(/\D/g, ""))} />
+          </FormField>
         </CardContent>
       </Card>
 

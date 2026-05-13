@@ -5,7 +5,7 @@ import { connectDB } from "../config/db";
 import { User } from "../modules/user/user.model";
 
 const readConfig = () => {
-  const name = process.env.ADMIN_NAME?.trim() || "Chatori Jeep Admin";
+  const name = process.env.ADMIN_NAME?.trim() || "Chatori Jeeb Admin";
   const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
   const password = process.env.ADMIN_PASSWORD?.trim();
   const phone = process.env.ADMIN_PHONE?.trim();

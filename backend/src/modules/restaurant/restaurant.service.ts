@@ -20,6 +20,7 @@ import Review from "./review.model";
 import { deleteUploadedFiles } from "../../common/services/upload.service";
 import { deleteRestaurantById } from "./restaurant.repository";
 import { Order } from "../order/order.model";
+import { consumeRestaurantRegistrationPayment } from "../payment/payment.service";
 
 const indianPhoneRegex = /^[6-9]\d{9}$/;
 
@@ -42,6 +43,8 @@ export const registerRestaurant = async (input: {
   logoUrls?: Record<string, string>;
   bannerUrls?: Record<string, string>;
   documents?: Array<{ label: string; key: string; url: string }>;
+  termsAccepted?: boolean;
+  registrationPaymentId?: string;
 }) => {
   const email = input.email.trim().toLowerCase();
   const phone = input.phone.trim();
@@ -52,6 +55,17 @@ export const registerRestaurant = async (input: {
 
   const existing = await findUserByEmail(email);
   if (existing) throw new AppError("Email already registered", 409);
+  if (!input.termsAccepted) throw new AppError("Terms and Conditions must be accepted", 400);
+  if (!input.registrationPaymentId) throw new AppError("Verified registration payment is required", 402);
+
+  const payment = await consumeRestaurantRegistrationPayment(
+    input.registrationPaymentId,
+    "",
+  );
+  const activationTimestamp = new Date();
+  const launchOfferExpiresAt = new Date(
+    activationTimestamp.getTime() + (payment.plan.offerWindowHours || 48) * 60 * 60 * 1000,
+  );
 
   // 1. Create auth user with RESTAURANT role (mapped from KITCHEN for legacy code)
   const hashed = await hashPassword(input.password);
@@ -78,7 +92,27 @@ export const registerRestaurant = async (input: {
     bannerUrls: input.bannerUrls,
     documents: input.documents ?? [],
     status: RESTAURANT_STATUS.REQUESTED,
+    termsAccepted: true,
+    termsAcceptedAt: new Date(),
+    activationTimestamp,
+    launchOfferExpiresAt,
+    currentCommissionPercentage: payment.plan.launchCommissionPercentage,
+    registrationPayment: {
+      transactionId: payment._id,
+      razorpayOrderId: payment.razorpayOrderId,
+      razorpayPaymentId: payment.razorpayPaymentId,
+      status: payment.status,
+      amount: payment.amount,
+      currency: payment.currency,
+      paidAt: payment.paidAt,
+      planName: payment.plan.name,
+      launchCommissionPercentage: payment.plan.launchCommissionPercentage,
+      normalCommissionPercentage: payment.plan.normalCommissionPercentage,
+      offerWindowHours: payment.plan.offerWindowHours,
+    },
   });
+
+  await consumeRestaurantRegistrationPayment(input.registrationPaymentId, restaurant._id.toString());
 
   const payload: AuthPayload = { userId: user._id.toString(), role: user.role };
   const accessToken = signAccessToken(payload);
@@ -90,6 +124,7 @@ export const registerRestaurant = async (input: {
     refreshToken,
     restaurantId: restaurant._id.toString(),
     status: restaurant.status,
+    registrationPayment: restaurant.registrationPayment,
   };
 };
 
@@ -129,6 +164,20 @@ export const getMyRestaurantStatus = async (userId: string) => {
     rejectionReason: restaurant.rejectionReason,
     name: restaurant.name,
     restaurantId: restaurant._id.toString(),
+    activationTimestamp: restaurant.activationTimestamp,
+    launchOfferExpiresAt: restaurant.launchOfferExpiresAt,
+    offerActive: Boolean(
+      restaurant.launchOfferExpiresAt &&
+        restaurant.launchOfferExpiresAt.getTime() > Date.now(),
+    ),
+    currentCommissionPercentage:
+      restaurant.launchOfferExpiresAt &&
+      restaurant.launchOfferExpiresAt.getTime() > Date.now()
+        ? restaurant.registrationPayment?.launchCommissionPercentage ??
+          restaurant.currentCommissionPercentage
+        : restaurant.registrationPayment?.normalCommissionPercentage ??
+          restaurant.currentCommissionPercentage,
+    registrationPayment: restaurant.registrationPayment,
   };
 };
 

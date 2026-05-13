@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Modal,
   FlatList,
   Image,
+  TextInput,
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
@@ -21,13 +22,15 @@ import { Colors, Spacing, Radius, Shadows } from "../../constants/Colors";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { ThemedInput } from "@/components/ThemedInput";
 import { PrimaryButton } from "@/components/PrimaryButton";
-import {
-  getCities,
-  getDistricts,
-  getPincodes,
-  getStates,
-} from "@/constants/india-pincode";
+import { ValidatedAddressField } from "@/components/ValidatedAddressField";
 import { apiClient } from "@/lib/api";
+import {
+  AddressDraft,
+  AddressFieldName,
+  formatAddressLine,
+  sanitizeAddressInput,
+  validateAddressDraft,
+} from "@/lib/addressValidation";
 import Animated, {
   FadeInRight,
   FadeOutLeft,
@@ -62,10 +65,12 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showStatePicker, setShowStatePicker] = useState(false);
-  const [showDistrictPicker, setShowDistrictPicker] = useState(false);
-  const [showCityPicker, setShowCityPicker] = useState(false);
-  const [showPincodePicker, setShowPincodePicker] = useState(false);
+  const [addressTouched, setAddressTouched] = useState<Partial<Record<AddressFieldName, boolean>>>({});
+  const landmarkRef = useRef<TextInput>(null);
+  const stateRef = useRef<TextInput>(null);
+  const districtRef = useRef<TextInput>(null);
+  const cityRef = useRef<TextInput>(null);
+  const pinCodeRef = useRef<TextInput>(null);
   const [documentPhotos, setDocumentPhotos] = useState<{
     aadhaarPhoto: ImagePicker.ImagePickerAsset | null;
     panPhoto: ImagePicker.ImagePickerAsset | null;
@@ -118,14 +123,47 @@ export default function RegisterScreen() {
   });
 
   const isCompletingProfile = isAuthenticated && Boolean(user);
-  const states = getStates();
-  const districts = getDistricts(form.address.state);
-  const cities = getCities(form.address.state, form.address.district);
-  const pincodes = getPincodes(
-    form.address.state,
-    form.address.district,
-    form.address.city,
+  const addressDraft: AddressDraft = {
+    fullAddress: form.address.streetName,
+    landmark: form.address.landmark,
+    state: form.address.state,
+    district: form.address.district,
+    city: form.address.city,
+    pinCode: form.address.pincode,
+  };
+
+  const addressValidation = useMemo(
+    () => validateAddressDraft(addressDraft),
+    [addressDraft],
   );
+
+  const updateAddressField = (field: AddressFieldName, value: string) => {
+    const sanitized = sanitizeAddressInput(field, value);
+    setAddressTouched((current) => ({ ...current, [field]: true }));
+    setForm((current) => ({
+      ...current,
+      address: {
+        ...current.address,
+        ...(field === "fullAddress" ? { buildingName: sanitized, streetName: sanitized, area: sanitized } : {}),
+        ...(field === "landmark" ? { landmark: sanitized } : {}),
+        ...(field === "state" ? { state: sanitized } : {}),
+        ...(field === "district" ? { district: sanitized } : {}),
+        ...(field === "city" ? { city: sanitized } : {}),
+        ...(field === "pinCode" ? { pincode: sanitized } : {}),
+      },
+    }));
+  };
+
+  const touchAllAddressFields = () => {
+    setAddressTouched({
+      fullAddress: true,
+      landmark: true,
+      state: true,
+      district: true,
+      city: true,
+      pinCode: true,
+    });
+  };
 
   useEffect(() => {
     if (!isCompletingProfile || !user) {
@@ -167,14 +205,7 @@ export default function RegisterScreen() {
       Boolean(documentPhotos.profilePhoto) &&
       Boolean(documentPhotos.livePhoto);
 
-    const address =
-      form.address.buildingName.trim().length >= 2 &&
-      form.address.streetName.trim().length >= 2 &&
-      form.address.area.trim().length >= 2 &&
-      form.address.state.trim().length > 0 &&
-      form.address.district.trim().length > 0 &&
-      form.address.city.trim().length > 0 &&
-      /^\d{6}$/.test(form.address.pincode.trim());
+    const address = addressValidation.isValid;
 
     const bank =
       form.bankDetails.accountHolderName.trim().length >= 3 &&
@@ -189,7 +220,7 @@ export default function RegisterScreen() {
         : bank);
 
     return { personal, documents, address, payout };
-  }, [documentPhotos, form, isCompletingProfile]);
+  }, [addressValidation.isValid, documentPhotos, form, isCompletingProfile]);
 
   const pickDocumentPhoto = async (
     key:
@@ -317,6 +348,10 @@ export default function RegisterScreen() {
   };
 
   const showStepError = () => {
+    if (step === 3) {
+      touchAllAddressFields();
+    }
+
     const messages: Record<number, string> = {
       1: "Enter a valid name, email, Indian phone number, OTP/password, and vehicle number.",
       2: "Add Aadhaar, PAN, driving license, vehicle RC, insurance, profile selfie, and live photo.",
@@ -405,14 +440,14 @@ export default function RegisterScreen() {
           livePhoto: livePhotoUrl,
         },
         address: {
-          buildingName: form.address.buildingName.trim(),
-          streetName: form.address.streetName.trim(),
-          landmark: form.address.landmark.trim(),
-          area: form.address.area.trim(),
-          state: form.address.state,
-          district: form.address.district,
-          city: form.address.city,
-          pincode: form.address.pincode,
+          buildingName: addressValidation.fields.fullAddress.value,
+          streetName: formatAddressLine(addressDraft),
+          landmark: addressValidation.fields.landmark.value,
+          area: addressValidation.fields.city.value,
+          state: addressValidation.fields.state.value,
+          district: addressValidation.fields.district.value,
+          city: addressValidation.fields.city.value,
+          pincode: addressValidation.fields.pinCode.value,
         },
         payoutMethod: form.payoutMethod,
         upiId: form.payoutMethod === "UPI" ? form.upiId.trim() : undefined,
@@ -566,206 +601,84 @@ export default function RegisterScreen() {
         return (
           <Animated.View key="step3" entering={FadeInRight} exiting={FadeOutLeft} style={styles.stepContainer}>
             <Text style={styles.stepTitle}>Address Info</Text>
-            <Text style={styles.stepSubtitle}>Use your current residential address for verification.</Text>
-            <ThemedInput label="Building Name" placeholder="Shree Heights" icon="business-outline" value={form.address.buildingName} maxLength={80} onChangeText={(text) => setForm({ ...form, address: { ...form.address, buildingName: text.slice(0, 80) } })} />
-            <ThemedInput label="Street Name" placeholder="Station Road" icon="map-outline" value={form.address.streetName} maxLength={90} onChangeText={(text) => setForm({ ...form, address: { ...form.address, streetName: text.slice(0, 90) } })} />
-            <ThemedInput label="Landmark" placeholder="Near city mall" icon="flag-outline" value={form.address.landmark} maxLength={80} onChangeText={(text) => setForm({ ...form, address: { ...form.address, landmark: text.slice(0, 80) } })} />
-            <ThemedInput label="Area" placeholder="Navrangpura" icon="location-outline" value={form.address.area} maxLength={80} onChangeText={(text) => setForm({ ...form, address: { ...form.address, area: text.slice(0, 80) } })} />
-
-            <View style={styles.selectRow}>
-              <View style={styles.selectGroup}>
-                <Text style={styles.groupLabel}>State</Text>
-                <TouchableOpacity style={styles.pickerTrigger} onPress={() => setShowStatePicker(true)}>
-                  <Text style={[styles.pickerText, !form.address.state && styles.pickerPlaceholder]}>
-                    {form.address.state || "Select State"}
-                  </Text>
-                  <Ionicons name="chevron-down" size={18} color={Colors.light.primary} />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={styles.selectRow}>
-              <View style={styles.selectGroup}>
-                <Text style={styles.groupLabel}>District</Text>
-                <TouchableOpacity
-                  style={[styles.pickerTrigger, !form.address.state && styles.pickerDisabled]}
-                  onPress={() => form.address.state && setShowDistrictPicker(true)}
-                >
-                  <Text style={[styles.pickerText, !form.address.district && styles.pickerPlaceholder]}>
-                    {form.address.district || "Select District"}
-                  </Text>
-                  <Ionicons name="chevron-down" size={18} color={Colors.light.primary} />
-                </TouchableOpacity>
-              </View>
-              <View style={styles.selectGroup}>
-                <Text style={styles.groupLabel}>City</Text>
-                <TouchableOpacity
-                  style={[styles.pickerTrigger, !form.address.district && styles.pickerDisabled]}
-                  onPress={() => form.address.district && setShowCityPicker(true)}
-                >
-                  <Text style={[styles.pickerText, !form.address.city && styles.pickerPlaceholder]}>
-                    {form.address.city || "Select City/Post Office"}
-                  </Text>
-                  <Ionicons name="chevron-down" size={18} color={Colors.light.primary} />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={styles.selectRow}>
-              <View style={styles.selectGroup}>
-                <Text style={styles.groupLabel}>PIN Code</Text>
-                {pincodes.length ? (
-                  <TouchableOpacity
-                    style={[styles.pickerTrigger, !form.address.city && styles.pickerDisabled]}
-                    onPress={() => form.address.city && setShowPincodePicker(true)}
-                  >
-                    <Text style={[styles.pickerText, !form.address.pincode && styles.pickerPlaceholder]}>
-                      {form.address.pincode || "Select PIN Code"}
-                    </Text>
-                    <Ionicons name="chevron-down" size={18} color={Colors.light.primary} />
-                  </TouchableOpacity>
-                ) : (
-                  <ThemedInput
-                    label=""
-                    placeholder="6 digit PIN code"
-                    icon="navigate-outline"
-                    keyboardType="numeric"
-                    maxLength={6}
-                    value={form.address.pincode}
-                    onChangeText={(text) => setForm({ ...form, address: { ...form.address, pincode: text.replace(/\D/g, "") } })}
-                  />
-                )}
-              </View>
-            </View>
-
-            <Modal visible={showStatePicker} transparent animationType="slide">
-              <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                  <Text style={styles.modalTitle}>Select State</Text>
-                  <FlatList
-                    data={states}
-                    keyExtractor={(item) => item}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity
-                        style={styles.modalItem}
-                        onPress={() => {
-                          setForm({
-                            ...form,
-                            address: {
-                              ...form.address,
-                              state: item,
-                              district: "",
-                              city: "",
-                              pincode: "",
-                            },
-                          });
-                          setShowStatePicker(false);
-                        }}
-                      >
-                        <Text style={styles.modalItemText}>{item}</Text>
-                      </TouchableOpacity>
-                    )}
-                  />
-                  <TouchableOpacity style={styles.modalClose} onPress={() => setShowStatePicker(false)}>
-                    <Text style={styles.modalCloseText}>Close</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
-
-            <Modal visible={showDistrictPicker} transparent animationType="slide">
-              <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                  <Text style={styles.modalTitle}>Select District</Text>
-                  <FlatList
-                    data={districts}
-                    keyExtractor={(item) => item}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity
-                        style={styles.modalItem}
-                        onPress={() => {
-                          setForm({
-                            ...form,
-                            address: {
-                              ...form.address,
-                              district: item,
-                              city: "",
-                              pincode: "",
-                            },
-                          });
-                          setShowDistrictPicker(false);
-                        }}
-                      >
-                        <Text style={styles.modalItemText}>{item}</Text>
-                      </TouchableOpacity>
-                    )}
-                  />
-                  <TouchableOpacity style={styles.modalClose} onPress={() => setShowDistrictPicker(false)}>
-                    <Text style={styles.modalCloseText}>Close</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
-
-            <Modal visible={showCityPicker} transparent animationType="slide">
-              <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                  <Text style={styles.modalTitle}>Select City</Text>
-                  <FlatList
-                    data={cities}
-                    keyExtractor={(item, index) => `${item}-${index}`}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity
-                        style={styles.modalItem}
-                        onPress={() => {
-                          const nextPincodes = getPincodes(form.address.state, form.address.district, item);
-                          setForm({
-                            ...form,
-                            address: {
-                              ...form.address,
-                              city: item,
-                              pincode: nextPincodes[0] || "",
-                            },
-                          });
-                          setShowCityPicker(false);
-                        }}
-                      >
-                        <Text style={styles.modalItemText}>{item}</Text>
-                      </TouchableOpacity>
-                    )}
-                  />
-                  <TouchableOpacity style={styles.modalClose} onPress={() => setShowCityPicker(false)}>
-                    <Text style={styles.modalCloseText}>Close</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
-
-            <Modal visible={showPincodePicker} transparent animationType="slide">
-              <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                  <Text style={styles.modalTitle}>Select PIN Code</Text>
-                  <FlatList
-                    data={pincodes}
-                    keyExtractor={(item) => item}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity
-                        style={styles.modalItem}
-                        onPress={() => {
-                          setForm({ ...form, address: { ...form.address, pincode: item } });
-                          setShowPincodePicker(false);
-                        }}
-                      >
-                        <Text style={styles.modalItemText}>{item}</Text>
-                      </TouchableOpacity>
-                    )}
-                  />
-                  <TouchableOpacity style={styles.modalClose} onPress={() => setShowPincodePicker(false)}>
-                    <Text style={styles.modalCloseText}>Close</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
+            <Text style={styles.stepSubtitle}>Type every address detail manually for verification.</Text>
+            <ValidatedAddressField
+              label="Full Address / House No / Street"
+              placeholder="House 18, Station Road"
+              value={addressDraft.fullAddress}
+              maxLength={150}
+              returnKeyType="next"
+              onSubmitEditing={() => landmarkRef.current?.focus()}
+              onChangeText={(text) => updateAddressField("fullAddress", text)}
+              touched={addressTouched.fullAddress}
+              valid={addressValidation.fields.fullAddress.isValid}
+              error={addressTouched.fullAddress ? addressValidation.fields.fullAddress.error : ""}
+            />
+            <ValidatedAddressField
+              ref={landmarkRef}
+              label="Landmark (optional)"
+              placeholder="Near city mall"
+              value={addressDraft.landmark}
+              maxLength={90}
+              returnKeyType="next"
+              onSubmitEditing={() => stateRef.current?.focus()}
+              onChangeText={(text) => updateAddressField("landmark", text)}
+              touched={addressTouched.landmark}
+              valid={addressValidation.fields.landmark.isValid}
+              error={addressTouched.landmark ? addressValidation.fields.landmark.error : ""}
+            />
+            <ValidatedAddressField
+              ref={stateRef}
+              label="State"
+              placeholder="Gujarat"
+              value={addressDraft.state}
+              maxLength={60}
+              returnKeyType="next"
+              onSubmitEditing={() => districtRef.current?.focus()}
+              onChangeText={(text) => updateAddressField("state", text)}
+              touched={addressTouched.state}
+              valid={addressValidation.fields.state.isValid}
+              error={addressTouched.state ? addressValidation.fields.state.error : ""}
+            />
+            <ValidatedAddressField
+              ref={districtRef}
+              label="District"
+              placeholder="Ahmedabad"
+              value={addressDraft.district}
+              maxLength={70}
+              returnKeyType="next"
+              onSubmitEditing={() => cityRef.current?.focus()}
+              onChangeText={(text) => updateAddressField("district", text)}
+              touched={addressTouched.district}
+              valid={addressValidation.fields.district.isValid}
+              error={addressTouched.district ? addressValidation.fields.district.error : ""}
+            />
+            <ValidatedAddressField
+              ref={cityRef}
+              label="City / Post Office"
+              placeholder="Navrangpura"
+              value={addressDraft.city}
+              maxLength={60}
+              returnKeyType="next"
+              onSubmitEditing={() => pinCodeRef.current?.focus()}
+              onChangeText={(text) => updateAddressField("city", text)}
+              touched={addressTouched.city}
+              valid={addressValidation.fields.city.isValid}
+              error={addressTouched.city ? addressValidation.fields.city.error : ""}
+            />
+            <ValidatedAddressField
+              ref={pinCodeRef}
+              label="PIN Code"
+              placeholder="380009"
+              value={addressDraft.pinCode}
+              keyboardType="number-pad"
+              maxLength={6}
+              returnKeyType="done"
+              onChangeText={(text) => updateAddressField("pinCode", text)}
+              touched={addressTouched.pinCode}
+              valid={addressValidation.fields.pinCode.isValid}
+              error={addressTouched.pinCode ? addressValidation.fields.pinCode.error : ""}
+            />
           </Animated.View>
         );
       case 4:
@@ -793,8 +706,19 @@ export default function RegisterScreen() {
               <View style={[styles.checkbox, form.termsAccepted && styles.checkboxActive]}>
                 {form.termsAccepted && <Ionicons name="checkmark" size={18} color={Colors.light.black} />}
               </View>
-              <Text style={styles.termsText}>I accept the terms and conditions for delivery partners.</Text>
+              <Text style={styles.termsText}>I agree to the Terms & Conditions for delivery partners.</Text>
             </TouchableOpacity>
+            <View style={styles.legalLinksRow}>
+              <TouchableOpacity onPress={() => router.push("/legal/terms" as any)}>
+                <Text style={styles.legalLink}>Terms</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push("/legal/privacy" as any)}>
+                <Text style={styles.legalLink}>Privacy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push("/legal/refund" as any)}>
+                <Text style={styles.legalLink}>Refund</Text>
+              </TouchableOpacity>
+            </View>
           </Animated.View>
         );
       default:
@@ -884,6 +808,8 @@ const styles = StyleSheet.create({
   checkbox: { width: 26, height: 26, borderRadius: 6, borderWidth: 1.5, borderColor: Colors.light.border, backgroundColor: Colors.light.surface, alignItems: "center", justifyContent: "center" },
   checkboxActive: { backgroundColor: Colors.light.primary, borderColor: Colors.light.primary },
   termsText: { flex: 1, color: Colors.light.textDim, fontSize: 14, lineHeight: 20, fontWeight: "600" },
+  legalLinksRow: { flexDirection: "row", justifyContent: "center", gap: Spacing.lg, marginTop: Spacing.sm },
+  legalLink: { color: Colors.light.primary, fontSize: 12, fontWeight: "900", letterSpacing: 1 },
   footer: { paddingBottom: Spacing.xl, paddingTop: Spacing.md },
   mainBtn: { ...Shadows.gold },
   loginLinkContainer: { flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: Spacing.lg, gap: Spacing.xs },

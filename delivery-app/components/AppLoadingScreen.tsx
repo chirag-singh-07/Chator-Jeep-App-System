@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { Image, View, StyleSheet, Dimensions } from 'react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -8,7 +8,6 @@ import Animated, {
   Easing 
 } from 'react-native-reanimated';
 import { Colors } from '../constants/Colors';
-import { Ionicons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
 
@@ -45,7 +44,10 @@ export const AppLoadingScreen = ({ onFinish }: { onFinish?: () => void }) => {
     <View style={styles.container}>
       <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
         <View style={styles.iconCircle}>
-          <Ionicons name="bicycle" size={80} color={Colors.light.background} />
+          <Image
+            source={require("../assets/icons/delivery-app-logo.png")}
+            style={styles.logoImage}
+          />
         </View>
         <Animated.Text style={[styles.title, logoAnimatedStyle]}>
           Chatori Jeeb
@@ -67,6 +69,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
     zIndex: 9999,
+  },
+  logoImage: {
+    width: 112,
+    height: 112,
+    borderRadius: 32,
+    resizeMode: 'contain',
   },
   logoContainer: {
     alignItems: 'center',

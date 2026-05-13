@@ -12,7 +12,8 @@ import {
   ScrollView,
   StatusBar,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
@@ -94,7 +95,10 @@ export default function LoginScreen() {
                 style={styles.logoContainer}
               >
                 <View style={styles.logoCircle}>
-                  <Ionicons name="restaurant" size={45} color={Colors.light.primary} />
+                  <Image
+                    source={require("../../assets/icons/ios-icon-180x180.png")}
+                    style={styles.logoImage}
+                  />
                 </View>
               </Animated.View>
               
@@ -248,6 +252,12 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 10,
     transform: [{ rotate: '-10deg' }],
+  },
+  logoImage: {
+    width: 72,
+    height: 72,
+    borderRadius: 22,
+    resizeMode: 'contain',
   },
   welcomeText: {
     fontSize: 34,

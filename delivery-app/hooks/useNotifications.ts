@@ -3,7 +3,18 @@ import messaging from "@react-native-firebase/messaging";
 import { apiClient } from "../lib/api";
 import { useAuthStore } from "../store/useAuthStore";
 import { Alert } from "react-native";
+import { Vibration } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
+
+const openOrderFromNotification = (data?: { [key: string]: any }) => {
+  const orderId = data?.orderId;
+  if (orderId) {
+    router.push(`/order/${orderId}` as any);
+  }
+};
+
+messaging().setBackgroundMessageHandler(async () => undefined);
 
 export const useNotifications = () => {
   const { user, isAuthenticated } = useAuthStore();
@@ -46,10 +57,23 @@ export const useNotifications = () => {
       });
 
       const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+        Vibration.vibrate([0, 300, 120, 300]);
         Alert.alert(
-          remoteMessage.notification?.title || "Delivery Update",
+          remoteMessage.notification?.title || "Chatori Jeeb Delivery",
           remoteMessage.notification?.body || "",
+          [
+            { text: "Later", style: "cancel" },
+            { text: "Open Order", onPress: () => openOrderFromNotification(remoteMessage.data) },
+          ],
         );
+      });
+
+      messaging().onNotificationOpenedApp((remoteMessage) => {
+        openOrderFromNotification(remoteMessage.data);
+      });
+
+      messaging().getInitialNotification().then((remoteMessage) => {
+        if (remoteMessage) openOrderFromNotification(remoteMessage.data);
       });
 
       return unsubscribe;

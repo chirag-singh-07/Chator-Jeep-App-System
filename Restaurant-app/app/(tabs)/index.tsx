@@ -142,6 +142,11 @@ export default function KitchenDashboard() {
   }, [categories, menuItems]);
 
   const dashboardMenuItems = useMemo(() => menuItems.slice(0, 4), [menuItems]);
+  const offerRemainingMs = restaurantInfo?.launchOfferExpiresAt
+    ? Math.max(0, new Date(restaurantInfo.launchOfferExpiresAt).getTime() - Date.now())
+    : 0;
+  const offerHours = Math.floor(offerRemainingMs / (60 * 60 * 1000));
+  const offerMinutes = Math.floor((offerRemainingMs % (60 * 60 * 1000)) / (60 * 1000));
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
@@ -302,6 +307,23 @@ export default function KitchenDashboard() {
           <TouchableOpacity onPress={() => router.push("/(tabs)/menu")}>
             <Text style={styles.feedLink}>Manage Menu</Text>
           </TouchableOpacity>
+        </View>
+
+        <View style={styles.offerCard}>
+          <View>
+            <Text style={styles.offerLabel}>
+              {restaurantInfo?.offerActive ? "LAUNCH OFFER ACTIVE" : "STANDARD COMMISSION"}
+            </Text>
+            <Text style={styles.offerTitle}>
+              {restaurantInfo?.currentCommissionPercentage || 18}% commission
+            </Text>
+            <Text style={styles.offerSub}>
+              {restaurantInfo?.offerActive
+                ? `${offerHours}h ${offerMinutes}m left before standard pricing`
+                : "Launch offer has ended for this kitchen"}
+            </Text>
+          </View>
+          <Ionicons name="timer-outline" size={28} color={Colors.light.primary} />
         </View>
 
         <View style={styles.menuPreviewList}>
@@ -500,6 +522,37 @@ const styles = StyleSheet.create({
     color: "#555",
     fontWeight: "bold",
     marginTop: 2,
+  },
+  offerCard: {
+    marginHorizontal: 20,
+    marginTop: 16,
+    marginBottom: 8,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: "#222",
+    backgroundColor: "#0A0A0A",
+    padding: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  offerLabel: {
+    color: Colors.light.primary,
+    fontSize: 10,
+    fontWeight: "900",
+    letterSpacing: 1.2,
+  },
+  offerTitle: {
+    color: "#FFF",
+    fontSize: 20,
+    fontWeight: "900",
+    marginTop: 6,
+  },
+  offerSub: {
+    color: "#888",
+    fontSize: 12,
+    fontWeight: "700",
+    marginTop: 4,
   },
   actionGrid: {
     flexDirection: "row",

@@ -68,6 +68,24 @@ export interface IRestaurant extends Document {
   totalEarnings: number;
   totalReviews: number;
   fcmTokens: string[];
+  termsAccepted: boolean;
+  termsAcceptedAt?: Date;
+  registrationPayment?: {
+    transactionId: Types.ObjectId;
+    razorpayOrderId: string;
+    razorpayPaymentId?: string;
+    status: string;
+    amount: number;
+    currency: string;
+    paidAt?: Date;
+    planName: string;
+    launchCommissionPercentage: number;
+    normalCommissionPercentage: number;
+    offerWindowHours: number;
+  };
+  activationTimestamp?: Date;
+  launchOfferExpiresAt?: Date;
+  currentCommissionPercentage: number;
 }
 
 // ─── Schema ────────────────────────────────────────────────────────────────────
@@ -143,6 +161,24 @@ const restaurantSchema = new Schema<IRestaurant>(
     totalEarnings: { type: Number, default: 0 },
     totalReviews: { type: Number, default: 0 },
     fcmTokens: { type: [String], default: [] },
+    termsAccepted: { type: Boolean, default: false },
+    termsAcceptedAt: { type: Date },
+    registrationPayment: {
+      transactionId: { type: Schema.Types.ObjectId, ref: "PaymentTransaction" },
+      razorpayOrderId: { type: String },
+      razorpayPaymentId: { type: String },
+      status: { type: String },
+      amount: { type: Number },
+      currency: { type: String, default: "INR" },
+      paidAt: { type: Date },
+      planName: { type: String },
+      launchCommissionPercentage: { type: Number, default: 10 },
+      normalCommissionPercentage: { type: Number, default: 18 },
+      offerWindowHours: { type: Number, default: 48 },
+    },
+    activationTimestamp: { type: Date },
+    launchOfferExpiresAt: { type: Date },
+    currentCommissionPercentage: { type: Number, default: 18 },
   },
   { timestamps: true }
 );

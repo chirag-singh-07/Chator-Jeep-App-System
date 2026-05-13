@@ -16,7 +16,7 @@
       }
     },
     "android": {
-      "package": "com.chatorijeep.deliveryapp",
+      "package": "com.chatorijeeb.deliveryapp",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -41,7 +41,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/icons/ios-icon-1024x1024.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",

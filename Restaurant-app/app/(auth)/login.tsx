@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from "react-native";
 import { Alert, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
@@ -58,9 +59,12 @@ export default function LoginScreen() {
         <View style={styles.content}>
           <View style={styles.header}>
             <View style={styles.brandIcon}>
-              <Ionicons name="flash" size={40} color={Colors.light.primary} />
+              <Image
+                source={require("../../assets/icons/ios-icon-180x180.png")}
+                style={styles.brandLogo}
+              />
             </View>
-            <Text style={styles.title}>CHATOR JEEP</Text>
+            <Text style={styles.title}>CHATORI JEEB</Text>
             <Text style={styles.subtitle}>KITCHEN PARTNER PORTAL</Text>
           </View>
 
@@ -71,7 +75,7 @@ export default function LoginScreen() {
                 <Ionicons name="mail" size={20} color="#666" />
                 <TextInput
                   style={styles.input}
-                  placeholder="name@chatorjeep.com"
+                    placeholder="name@chatorijeeb.com"
                   placeholderTextColor="#333"
                   value={email}
                   onChangeText={setEmail}
@@ -171,6 +175,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#222",
     marginBottom: 25,
+  },
+  brandLogo: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    resizeMode: "contain",
   },
   title: {
     fontSize: 32,

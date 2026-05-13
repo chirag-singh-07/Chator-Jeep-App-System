@@ -26,7 +26,7 @@ const run = async (): Promise<void> => {
   } else {
     console.log(`Admin user ${ADMIN_EMAIL} not found. Creating new admin...`);
     await User.create({
-      name: "Chatori Jeep Admin",
+      name: "Chatori Jeeb Admin",
       email: ADMIN_EMAIL,
       password: hashedPassword,
       role: ROLES.ADMIN,

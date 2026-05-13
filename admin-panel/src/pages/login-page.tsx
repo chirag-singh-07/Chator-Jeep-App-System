@@ -106,7 +106,7 @@ export function LoginPage() {
         {/* Footer */}
         <div className="relative z-10">
           <p className="text-white/30 text-xs font-bold tracking-[0.2em] uppercase">
-            © 2026 CHATORI JEEP INC. ALL RIGHTS RESERVED.
+            © 2026 CHATORI JEEB INC. ALL RIGHTS RESERVED.
           </p>
         </div>
         
@@ -136,7 +136,7 @@ export function LoginPage() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="name@chatorijeep.com"
+                    placeholder="name@chatorijeeb.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required

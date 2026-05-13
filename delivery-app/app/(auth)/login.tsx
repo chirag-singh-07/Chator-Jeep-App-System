@@ -6,6 +6,7 @@ import {
   Text,
   View,
   ScrollView,
+  Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -60,10 +61,9 @@ export default function LoginScreen() {
           >
             <View style={styles.header}>
               <View style={styles.logoContainer}>
-                <Ionicons
-                  name="bicycle"
-                  size={40}
-                  color={Colors.light.primary}
+                <Image
+                  source={require("../../assets/icons/delivery-app-logo.png")}
+                  style={styles.logoImage}
                 />
               </View>
               <Text style={styles.kicker}>Partner Console</Text>
@@ -77,7 +77,7 @@ export default function LoginScreen() {
             <View style={styles.card}>
               <ThemedInput
                 label="Email Address"
-                placeholder="rider@chatorijeep.com"
+                placeholder="rider@chatorijeeb.com"
                 icon="mail-outline"
                 value={email}
                 onChangeText={setEmail}
@@ -162,6 +162,12 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
     borderWidth: 1,
     borderColor: Colors.light.border,
+  },
+  logoImage: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    resizeMode: "contain",
   },
   kicker: {
     color: Colors.light.primary,

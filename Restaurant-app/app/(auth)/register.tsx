@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
+import { ValidatedAddressField } from "@/components/ValidatedAddressField";
 
 import { Alert, ActivityIndicator } from "react-native";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -23,16 +24,18 @@ import { apiClient } from "@/lib/api";
 
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "react-native";
+import RazorpayCheckout from "react-native-razorpay";
 import {
-  getCities,
-  getDistricts,
-  getPincodes,
-  getStates,
-} from "@/constants/india-pincode";
+  AddressDraft,
+  AddressFieldName,
+  formatAddressLine,
+  sanitizeAddressInput,
+  validateAddressDraft,
+} from "@/lib/addressValidation";
 
 const { width, height } = Dimensions.get("window");
 
-const STEPS = ["Account", "Kitchen", "Brand", "Location", "Legal", "Menu"];
+const STEPS = ["Account", "Kitchen", "Brand", "Location", "Legal", "Menu", "Checkout"];
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const indianPhoneRegex = /^[6-9]\d{9}$/;
 const fssaiRegex = /^\d{14}$/;
@@ -103,10 +106,12 @@ export default function RegisterScreen() {
   const [city, setCity] = useState("");
   const [pinCode, setPinCode] = useState("");
 
-  const [showStateModal, setShowStateModal] = useState(false);
-  const [showDistrictModal, setShowDistrictModal] = useState(false);
-  const [showCityModal, setShowCityModal] = useState(false);
-  const [showPincodeModal, setShowPincodeModal] = useState(false);
+  const [addressTouched, setAddressTouched] = useState<Partial<Record<AddressFieldName, boolean>>>({});
+  const landmarkRef = useRef<TextInput>(null);
+  const stateRef = useRef<TextInput>(null);
+  const districtRef = useRef<TextInput>(null);
+  const cityRef = useRef<TextInput>(null);
+  const pinCodeRef = useRef<TextInput>(null);
   const [categoryPickerItemId, setCategoryPickerItemId] = useState<string | null>(null);
   const [subcategoryPickerItemId, setSubcategoryPickerItemId] = useState<string | null>(null);
 
@@ -131,6 +136,10 @@ export default function RegisterScreen() {
   ]);
   const [menuCategories, setMenuCategories] = useState<MenuCategory[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [pricingPlan, setPricingPlan] = useState<any>(null);
+  const [paymentStatus, setPaymentStatus] = useState<"IDLE" | "PROCESSING" | "PAID" | "FAILED">("IDLE");
+  const [registrationPaymentId, setRegistrationPaymentId] = useState("");
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -146,6 +155,19 @@ export default function RegisterScreen() {
     };
 
     void fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    const fetchPricingPlan = async () => {
+      try {
+        const response = await apiClient.get("/payments/restaurant-registration/plan");
+        setPricingPlan(response.data.data);
+      } catch (error) {
+        console.warn("Failed to fetch registration pricing", error);
+      }
+    };
+
+    void fetchPricingPlan();
   }, []);
 
   const pickImage = async (type: "logo" | "banner") => {
@@ -215,12 +237,43 @@ export default function RegisterScreen() {
     }
   };
 
-  const isPinCodeValidForSelectedState = () => {
-    const normalizedPin = pinCode.trim();
-    if (!/^\d{6}$/.test(normalizedPin)) return false;
-    const availablePincodes = getPincodes(state, district, city);
-    if (!availablePincodes.length) return true;
-    return availablePincodes.includes(normalizedPin);
+  const addressDraft: AddressDraft = {
+    fullAddress: street,
+    landmark,
+    state,
+    district,
+    city,
+    pinCode,
+  };
+
+  const addressValidation = useMemo(
+    () => validateAddressDraft(addressDraft),
+    [addressDraft],
+  );
+
+  const updateAddressField = (field: AddressFieldName, value: string) => {
+    const sanitized = sanitizeAddressInput(field, value);
+    setAddressTouched((current) => ({ ...current, [field]: true }));
+
+    if (field === "fullAddress") {
+      setStreet(sanitized);
+      setFullAddress(sanitized);
+    } else if (field === "landmark") setLandmark(sanitized);
+    else if (field === "state") setState(sanitized);
+    else if (field === "district") setDistrict(sanitized);
+    else if (field === "city") setCity(sanitized);
+    else setPinCode(sanitized);
+  };
+
+  const touchAllAddressFields = () => {
+    setAddressTouched({
+      fullAddress: true,
+      landmark: true,
+      state: true,
+      district: true,
+      city: true,
+      pinCode: true,
+    });
   };
 
   const selectedMenuCategory = (categoryId: string) =>
@@ -335,37 +388,11 @@ export default function RegisterScreen() {
         return;
       }
     } else if (currentStep === 3) {
-      if (!street || !fullAddress || !state || !district || !city || !pinCode) {
+      if (!addressValidation.isValid) {
+        touchAllAddressFields();
         Alert.alert(
           "VALIDATION ERROR",
-          "Please fill all required address fields.",
-        );
-        return;
-      }
-      if (street.trim().length < 3 || fullAddress.trim().length < 8) {
-        Alert.alert("VALIDATION ERROR", "Street/building and full address need more detail.");
-        return;
-      }
-      if (!getDistricts(state).includes(district)) {
-        Alert.alert(
-          "VALIDATION ERROR",
-          "Please select a district that belongs to the selected state.",
-        );
-        return;
-      }
-      if (!getCities(state, district).includes(city)) {
-        Alert.alert(
-          "VALIDATION ERROR",
-          "Please select a city/post office that belongs to the selected district.",
-        );
-        return;
-      }
-      if (!isPinCodeValidForSelectedState()) {
-        Alert.alert(
-          "VALIDATION ERROR",
-          getPincodes(state, district, city).length
-            ? "This PIN code does not match the selected city/post office."
-            : "PIN code must be exactly 6 digits.",
+          "Please correct the highlighted address fields before continuing.",
         );
         return;
       }
@@ -442,14 +469,25 @@ export default function RegisterScreen() {
         );
         return;
       }
+    } else if (currentStep === 6) {
+      if (!termsAccepted) {
+        Alert.alert("TERMS REQUIRED", "Please accept the Terms & Conditions before payment.");
+        return;
+      }
     }
 
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       try {
+        const verifiedPayment = await collectRegistrationPayment();
+        if (!verifiedPayment?.transactionId) {
+          Alert.alert("PAYMENT REQUIRED", "Complete payment to submit registration.");
+          return;
+        }
+
         setUploadStatus({ message: "CREATING ACCOUNT...", isUploading: true });
-        const finalAddress = `${street}, ${landmark ? landmark + ", " : ""}${fullAddress}, ${city}, ${district}, ${state} - ${pinCode}`;
+        const finalAddress = formatAddressLine(addressDraft);
 
         await register({
           email,
@@ -461,9 +499,9 @@ export default function RegisterScreen() {
           cuisines: [foodType],
           address: {
             line1: finalAddress,
-            city: city,
-            state: state,
-            pinCode: pinCode,
+            city: addressValidation.fields.city.value,
+            state: addressValidation.fields.state.value,
+            pinCode: addressValidation.fields.pinCode.value,
           },
           bankDetails: {
             accountHolderName: bankAccountHolder.trim(),
@@ -471,6 +509,8 @@ export default function RegisterScreen() {
             ifscCode: bankIfsc.trim().toUpperCase(),
             bankName: bankName.trim(),
           },
+          termsAccepted,
+          registrationPaymentId: verifiedPayment.transactionId,
         });
 
         if (logo || banner) {
@@ -586,6 +626,59 @@ export default function RegisterScreen() {
     }
   };
 
+  const collectRegistrationPayment = async () => {
+    if (registrationPaymentId && paymentStatus === "PAID") {
+      return { transactionId: registrationPaymentId };
+    }
+
+    setPaymentStatus("PROCESSING");
+    try {
+      const orderResponse = await apiClient.post("/payments/restaurant-registration/order", {
+        email,
+        restaurantName: kitchenName,
+      });
+      const paymentOrder = orderResponse.data.data;
+
+      const razorpayResult = await RazorpayCheckout.open({
+        key: paymentOrder.keyId,
+        amount: Math.round(Number(paymentOrder.amount) * 100),
+        currency: paymentOrder.currency || "INR",
+        name: "Chatori Jeeb",
+        description: paymentOrder.plan?.name || "Restaurant registration",
+        order_id: paymentOrder.razorpayOrderId,
+        prefill: {
+          name: kitchenName,
+          email,
+          contact: phone,
+        },
+        theme: { color: Colors.light.primary },
+        notes: {
+          purpose: "RESTAURANT_REGISTRATION",
+          transactionId: paymentOrder.transactionId,
+        },
+      });
+
+      const verifyResponse = await apiClient.post("/payments/restaurant-registration/verify", {
+        transactionId: paymentOrder.transactionId,
+        razorpayOrderId: razorpayResult.razorpay_order_id || paymentOrder.razorpayOrderId,
+        razorpayPaymentId: razorpayResult.razorpay_payment_id,
+        razorpaySignature: razorpayResult.razorpay_signature,
+      });
+
+      const verified = verifyResponse.data.data;
+      setRegistrationPaymentId(verified.transactionId);
+      setPaymentStatus("PAID");
+      return verified;
+    } catch (error: any) {
+      setPaymentStatus("FAILED");
+      Alert.alert(
+        "PAYMENT FAILED",
+        error?.response?.data?.message || error?.description || error?.message || "Payment could not be completed. Please try again.",
+      );
+      return null;
+    }
+  };
+
   const prevStep = () => {
     if (currentStep > 0) setCurrentStep(currentStep - 1);
     else router.back();
@@ -602,7 +695,7 @@ export default function RegisterScreen() {
               <Text style={styles.label}>BUSINESS EMAIL</Text>
               <TextInput
                 style={styles.input}
-                placeholder="ops@chatorjeep.com"
+                placeholder="ops@chatorijeeb.com"
                 placeholderTextColor="#666"
                 value={email}
                 onChangeText={(value) => setEmail(value.trim())}
@@ -716,269 +809,89 @@ export default function RegisterScreen() {
           </View>
         );
       case 3:
-        const availableStates = getStates();
-        const availableDistricts = getDistricts(state);
-        const availableCities = getCities(state, district);
-        const availablePincodes = getPincodes(state, district, city);
         return (
           <View style={styles.stepContent}>
             <Text style={styles.stepTitle}>LOGISTICS NODE</Text>
             <Text style={styles.stepSub}>
-              Specify your collection point with precision.
+              Specify your collection point manually with precise address details.
             </Text>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>STREET NAME / BUILDING</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Flat 402, Sunshine Heights"
-                placeholderTextColor="#444"
-                value={street}
-                onChangeText={(value) => setStreet(value.slice(0, 90))}
-                maxLength={90}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>LANDMARK (OPTIONAL)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Near City Mall"
-                placeholderTextColor="#444"
-                value={landmark}
-                onChangeText={(value) => setLandmark(value.slice(0, 80))}
-                maxLength={80}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>FULL ADDRESS DETAILS</Text>
-              <TextInput
-                style={[styles.input, { height: 80, paddingTop: 15 }]}
-                multiline
-                placeholder="Sector 4, Main Road..."
-                placeholderTextColor="#444"
-                value={fullAddress}
-                onChangeText={(value) => setFullAddress(value.slice(0, 220))}
-                maxLength={220}
-              />
-            </View>
-
-            <View style={styles.row}>
-              <View style={[styles.inputGroup, { flex: 1, marginRight: 10 }]}>
-                <Text style={styles.label}>STATE</Text>
-                <TouchableOpacity
-                  style={styles.pickerTrigger}
-                  onPress={() => setShowStateModal(true)}
-                >
-                  <Text
-                    style={[styles.pickerText, !state && { color: "#666" }]}
-                  >
-                    {state || "Select State"}
-                  </Text>
-                  <Ionicons
-                    name="chevron-down"
-                    size={16}
-                    color={Colors.light.primary}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={styles.row}>
-              <View style={[styles.inputGroup, { flex: 1, marginRight: 10 }]}>
-                <Text style={styles.label}>DISTRICT</Text>
-                <TouchableOpacity
-                  style={[styles.pickerTrigger, !state && { opacity: 0.5 }]}
-                  onPress={() => (state ? setShowDistrictModal(true) : null)}
-                >
-                  <Text style={[styles.pickerText, !district && { color: "#666" }]}>
-                    {district || "Select District"}
-                  </Text>
-                  <Ionicons
-                    name="chevron-down"
-                    size={16}
-                    color={Colors.light.primary}
-                  />
-                </TouchableOpacity>
-              </View>
-
-              <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={styles.label}>CITY</Text>
-                <TouchableOpacity
-                  style={[styles.pickerTrigger, !district && { opacity: 0.5 }]}
-                  onPress={() => (district ? setShowCityModal(true) : null)}
-                >
-                  <Text style={[styles.pickerText, !city && { color: "#666" }]}>
-                    {city || "Select City/Post Office"}
-                  </Text>
-                  <Ionicons
-                    name="chevron-down"
-                    size={16}
-                    color={Colors.light.primary}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>PIN CODE</Text>
-              {availablePincodes.length ? (
-                <TouchableOpacity
-                  style={styles.pickerTrigger}
-                  onPress={() => setShowPincodeModal(true)}
-                >
-                  <Text style={[styles.pickerText, !pinCode && { color: "#666" }]}>
-                    {pinCode || "Select PIN code"}
-                  </Text>
-                  <Ionicons
-                    name="chevron-down"
-                    size={16}
-                    color={Colors.light.primary}
-                  />
-                </TouchableOpacity>
-              ) : (
-                <TextInput
-                  style={styles.input}
-                  placeholder="400001"
-                  placeholderTextColor="#444"
-                  value={pinCode}
-                  onChangeText={(value) => setPinCode(value.replace(/\D/g, ""))}
-                  keyboardType="numeric"
-                  maxLength={6}
-                />
-              )}
-              {pinCode.length === 6 && !isPinCodeValidForSelectedState() && (
-                <Text style={styles.errorText}>
-                  PIN code does not match the selected state data.
-                </Text>
-              )}
-            </View>
-
-            {/* State Modal */}
-            <Modal visible={showStateModal} transparent animationType="slide">
-              <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                  <Text style={styles.modalTitle}>SELECT STATE</Text>
-                  <FlatList
-                    data={availableStates}
-                    keyExtractor={(item) => item}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity
-                        style={styles.modalItem}
-                        onPress={() => {
-                          setState(item);
-                          setDistrict("");
-                          setCity("");
-                          setPinCode("");
-                          setShowStateModal(false);
-                        }}
-                      >
-                        <Text style={styles.modalItemText}>{item}</Text>
-                      </TouchableOpacity>
-                    )}
-                  />
-                  <TouchableOpacity
-                    style={styles.modalClose}
-                    onPress={() => setShowStateModal(false)}
-                  >
-                    <Text style={styles.modalCloseText}>CLOSE</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
-
-            <Modal visible={showDistrictModal} transparent animationType="slide">
-              <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                  <Text style={styles.modalTitle}>SELECT DISTRICT</Text>
-                  <FlatList
-                    data={availableDistricts}
-                    keyExtractor={(item) => item}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity
-                        style={styles.modalItem}
-                        onPress={() => {
-                          setDistrict(item);
-                          setCity("");
-                          setPinCode("");
-                          setShowDistrictModal(false);
-                        }}
-                      >
-                        <Text style={styles.modalItemText}>{item}</Text>
-                      </TouchableOpacity>
-                    )}
-                  />
-                  <TouchableOpacity
-                    style={styles.modalClose}
-                    onPress={() => setShowDistrictModal(false)}
-                  >
-                    <Text style={styles.modalCloseText}>CLOSE</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
-
-            {/* City Modal */}
-            <Modal visible={showCityModal} transparent animationType="slide">
-              <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                  <Text style={styles.modalTitle}>SELECT CITY</Text>
-                  <FlatList
-                    data={availableCities}
-                    keyExtractor={(item) => item}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity
-                        style={styles.modalItem}
-                        onPress={() => {
-                          setCity(item);
-                          const nextPincodes = getPincodes(state, district, item);
-                          setPinCode(nextPincodes[0] || "");
-                          setShowCityModal(false);
-                        }}
-                      >
-                        <Text style={styles.modalItemText}>{item}</Text>
-                      </TouchableOpacity>
-                    )}
-                  />
-                  <TouchableOpacity
-                    style={styles.modalClose}
-                    onPress={() => setShowCityModal(false)}
-                  >
-                    <Text style={styles.modalCloseText}>CLOSE</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
-
-            <Modal visible={showPincodeModal} transparent animationType="slide">
-              <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                  <Text style={styles.modalTitle}>SELECT PIN CODE</Text>
-                  <FlatList
-                    data={availablePincodes}
-                    keyExtractor={(item) => item}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity
-                        style={styles.modalItem}
-                        onPress={() => {
-                          setPinCode(item);
-                          setShowPincodeModal(false);
-                        }}
-                      >
-                        <Text style={styles.modalItemText}>{item}</Text>
-                      </TouchableOpacity>
-                    )}
-                  />
-                  <TouchableOpacity
-                    style={styles.modalClose}
-                    onPress={() => setShowPincodeModal(false)}
-                  >
-                    <Text style={styles.modalCloseText}>CLOSE</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
+            <ValidatedAddressField
+              label="FULL ADDRESS / HOUSE NO / STREET"
+              placeholder="Flat 402, Sunshine Heights, Main Road"
+              value={addressDraft.fullAddress}
+              onChangeText={(value) => updateAddressField("fullAddress", value)}
+              onSubmitEditing={() => landmarkRef.current?.focus()}
+              returnKeyType="next"
+              maxLength={150}
+              touched={addressTouched.fullAddress}
+              valid={addressValidation.fields.fullAddress.isValid}
+              error={addressTouched.fullAddress ? addressValidation.fields.fullAddress.error : ""}
+            />
+            <ValidatedAddressField
+              ref={landmarkRef}
+              label="LANDMARK (OPTIONAL)"
+              placeholder="Near City Mall"
+              value={addressDraft.landmark}
+              onChangeText={(value) => updateAddressField("landmark", value)}
+              onSubmitEditing={() => stateRef.current?.focus()}
+              returnKeyType="next"
+              maxLength={90}
+              touched={addressTouched.landmark}
+              valid={addressValidation.fields.landmark.isValid}
+              error={addressTouched.landmark ? addressValidation.fields.landmark.error : ""}
+            />
+            <ValidatedAddressField
+              ref={stateRef}
+              label="STATE"
+              placeholder="Maharashtra"
+              value={addressDraft.state}
+              onChangeText={(value) => updateAddressField("state", value)}
+              onSubmitEditing={() => districtRef.current?.focus()}
+              returnKeyType="next"
+              maxLength={60}
+              touched={addressTouched.state}
+              valid={addressValidation.fields.state.isValid}
+              error={addressTouched.state ? addressValidation.fields.state.error : ""}
+            />
+            <ValidatedAddressField
+              ref={districtRef}
+              label="DISTRICT"
+              placeholder="Mumbai"
+              value={addressDraft.district}
+              onChangeText={(value) => updateAddressField("district", value)}
+              onSubmitEditing={() => cityRef.current?.focus()}
+              returnKeyType="next"
+              maxLength={70}
+              touched={addressTouched.district}
+              valid={addressValidation.fields.district.isValid}
+              error={addressTouched.district ? addressValidation.fields.district.error : ""}
+            />
+            <ValidatedAddressField
+              ref={cityRef}
+              label="CITY / POST OFFICE"
+              placeholder="Andheri East"
+              value={addressDraft.city}
+              onChangeText={(value) => updateAddressField("city", value)}
+              onSubmitEditing={() => pinCodeRef.current?.focus()}
+              returnKeyType="next"
+              maxLength={60}
+              touched={addressTouched.city}
+              valid={addressValidation.fields.city.isValid}
+              error={addressTouched.city ? addressValidation.fields.city.error : ""}
+            />
+            <ValidatedAddressField
+              ref={pinCodeRef}
+              label="PIN CODE"
+              placeholder="400001"
+              value={addressDraft.pinCode}
+              onChangeText={(value) => updateAddressField("pinCode", value)}
+              keyboardType="number-pad"
+              returnKeyType="done"
+              maxLength={6}
+              touched={addressTouched.pinCode}
+              valid={addressValidation.fields.pinCode.isValid}
+              error={addressTouched.pinCode ? addressValidation.fields.pinCode.error : ""}
+            />
           </View>
         );
       case 4:
@@ -1444,6 +1357,74 @@ export default function RegisterScreen() {
             </Modal>
           </View>
         );
+      case 6:
+        return (
+          <View style={styles.stepContent}>
+            <Text style={styles.stepTitle}>SECURE CHECKOUT</Text>
+            <Text style={styles.stepSub}>
+              Complete your one-time Chatori Jeeb kitchen registration payment.
+            </Text>
+
+            <View style={styles.checkoutCard}>
+              <View>
+                <Text style={styles.checkoutLabel}>REGISTRATION PLAN</Text>
+                <Text style={styles.checkoutTitle}>
+                  {pricingPlan?.name || "Chatori Jeeb Launch Offer"}
+                </Text>
+              </View>
+              <Text style={styles.checkoutAmount}>
+                ₹{pricingPlan?.registrationFee || 299}
+              </Text>
+              <View style={styles.checkoutDivider} />
+              <Text style={styles.checkoutLine}>
+                Launch commission: {pricingPlan?.launchCommissionPercentage || 10}% for first {pricingPlan?.offerWindowHours || 48} hours
+              </Text>
+              <Text style={styles.checkoutLine}>
+                Normal commission after offer: {pricingPlan?.normalCommissionPercentage || 18}%
+              </Text>
+              <Text style={styles.checkoutLine}>
+                Payment is verified securely with Razorpay before account creation.
+              </Text>
+              <View style={styles.nonRefundableBox}>
+                <Ionicons name="alert-circle" size={18} color="#F59E0B" />
+                <Text style={styles.nonRefundableText}>
+                  Registration fee is non-refundable once payment is successful.
+                </Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={styles.termsRowDark}
+              onPress={() => setTermsAccepted((current) => !current)}
+            >
+              <View style={[styles.checkbox, termsAccepted && styles.checkboxActive]}>
+                {termsAccepted && <Ionicons name="checkmark" size={18} color="#000" />}
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.termsTextDark}>I agree to the Terms & Conditions</Text>
+                <Text style={styles.termsSubTextDark}>
+                Includes privacy, refund, registration fee, non-refundable payment, and commission policy.
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.legalLinksRow}>
+              <TouchableOpacity onPress={() => router.push("/legal/terms" as any)}>
+                <Text style={styles.legalLink}>Terms</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push("/legal/privacy" as any)}>
+                <Text style={styles.legalLink}>Privacy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push("/legal/refund" as any)}>
+                <Text style={styles.legalLink}>Refund</Text>
+              </TouchableOpacity>
+            </View>
+
+            {paymentStatus === "FAILED" && (
+              <Text style={styles.errorText}>Payment failed. Review details and retry checkout.</Text>
+            )}
+          </View>
+        );
       default:
         return null;
     }
@@ -1495,17 +1476,27 @@ export default function RegisterScreen() {
           <TouchableOpacity
             style={[
               styles.mainBtn,
-              (isLoading || uploadStatus.isUploading) && { opacity: 0.6 },
+              (isLoading ||
+                uploadStatus.isUploading ||
+                (currentStep === 3 && !addressValidation.isValid)) && {
+                opacity: 0.6,
+              },
             ]}
             onPress={nextStep}
-            disabled={isLoading || uploadStatus.isUploading}
+            disabled={
+              isLoading ||
+              uploadStatus.isUploading ||
+              (currentStep === 3 && !addressValidation.isValid)
+            }
           >
             {isLoading || uploadStatus.isUploading ? (
               <ActivityIndicator color="black" />
             ) : (
               <Text style={styles.mainBtnText}>
                 {currentStep === STEPS.length - 1
-                  ? "FINALIZE PROTOCOL"
+                  ? paymentStatus === "FAILED"
+                    ? "RETRY PAYMENT"
+                    : "PAY & FINALIZE"
                   : "NEXT SEQUENCE"}
               </Text>
             )}
@@ -1868,6 +1859,111 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   addMenuButtonText: {
+    color: Colors.light.primary,
+    fontSize: 12,
+    fontWeight: "900",
+    letterSpacing: 1,
+  },
+  checkoutCard: {
+    backgroundColor: "#0A0A0A",
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "#222",
+    padding: 20,
+    marginBottom: 18,
+  },
+  checkoutLabel: {
+    color: "#777",
+    fontSize: 10,
+    fontWeight: "900",
+    letterSpacing: 1.2,
+    marginBottom: 8,
+  },
+  checkoutTitle: {
+    color: "#FFF",
+    fontSize: 18,
+    fontWeight: "900",
+  },
+  checkoutAmount: {
+    color: Colors.light.primary,
+    fontSize: 42,
+    fontWeight: "900",
+    marginTop: 18,
+  },
+  checkoutDivider: {
+    height: 1,
+    backgroundColor: "#222",
+    marginVertical: 16,
+  },
+  checkoutLine: {
+    color: "#AAA",
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 21,
+    marginBottom: 8,
+  },
+  nonRefundableBox: {
+    marginTop: 10,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(245,158,11,0.35)",
+    backgroundColor: "rgba(245,158,11,0.1)",
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  nonRefundableText: {
+    flex: 1,
+    color: "#FDE68A",
+    fontSize: 12,
+    fontWeight: "900",
+    lineHeight: 18,
+  },
+  termsRowDark: {
+    minHeight: 72,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#222",
+    backgroundColor: "#0A0A0A",
+    padding: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  checkbox: {
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: "#333",
+    backgroundColor: "#111",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkboxActive: {
+    backgroundColor: Colors.light.primary,
+    borderColor: Colors.light.primary,
+  },
+  termsTextDark: {
+    color: "#FFF",
+    fontSize: 14,
+    fontWeight: "900",
+  },
+  termsSubTextDark: {
+    color: "#777",
+    fontSize: 11,
+    fontWeight: "700",
+    marginTop: 4,
+    lineHeight: 16,
+  },
+  legalLinksRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 22,
+    marginTop: 18,
+  },
+  legalLink: {
     color: Colors.light.primary,
     fontSize: 12,
     fontWeight: "900",

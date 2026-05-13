@@ -190,11 +190,11 @@ export function AdminShell({ children }: { children?: React.ReactNode }) {
           >
             <div className="flex items-center gap-3 mb-2 px-1">
               <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center overflow-hidden border border-primary/20 p-1 shadow-lg shadow-primary/10">
-                <img src="/icons/web-icon-128x128.png" alt="Logo" className="size-full object-contain" />
+                <img src="/icons/web-icon-128x128.png" alt="Chatori Jeeb logo" className="size-full object-contain" />
               </div>
               {!collapsed && (
                 <div>
-                   <h2 className="text-lg font-black tracking-tighter leading-none">CHATORI JEEP</h2>
+                   <h2 className="text-lg font-black tracking-tighter leading-none">CHATORI JEEB</h2>
                    <p className="text-[10px] font-black uppercase text-primary tracking-widest mt-1">Platform Admin</p>
                 </div>
               )}

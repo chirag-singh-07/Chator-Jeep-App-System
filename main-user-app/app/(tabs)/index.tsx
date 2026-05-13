@@ -440,7 +440,7 @@ export default function HomeScreen() {
           >
             <View style={styles.referContent}>
               <Text style={styles.referTitle}>Refer & Earn ₹100</Text>
-              <Text style={styles.referDesc}>Invite your friends to Chatori Jeep and get credits on their first order!</Text>
+              <Text style={styles.referDesc}>Invite your friends to Chatori Jeeb and get credits on their first order!</Text>
               <View style={styles.referBtn}>
                 <Text style={styles.referBtnText}>INVITE NOW</Text>
               </View>

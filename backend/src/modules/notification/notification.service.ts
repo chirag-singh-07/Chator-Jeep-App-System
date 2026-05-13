@@ -6,6 +6,23 @@ import { Restaurant } from "../restaurant/restaurant.model";
 import { DeliveryPartner } from "../delivery/delivery.model";
 
 export class NotificationService {
+  private static getSoundForType(type?: string) {
+    const normalized = String(type || "").toUpperCase();
+    if (normalized.includes("DELIVERED")) return "order_delivered";
+    if (normalized.includes("DELIVERY_ASSIGNED") || normalized.includes("DELIVERY_REQUEST")) return "delivery_assigned";
+    if (normalized.includes("ACCEPTED")) return "order_accepted";
+    return "new_order";
+  }
+
+  private static stringifyData(data?: any) {
+    return Object.fromEntries(
+      Object.entries(data || {}).map(([key, value]) => [
+        key,
+        value == null ? "" : typeof value === "string" ? value : JSON.stringify(value),
+      ]),
+    );
+  }
+
   /**
    * Send notification to a Customer
    */
@@ -80,14 +97,35 @@ export class NotificationService {
     const firebase = getFirebase();
     if (!firebase) return;
 
+    const sound = this.getSoundForType(payload.type);
     const message = {
       notification: {
         title: payload.title,
         body: payload.body,
       },
-      data: {
+      data: this.stringifyData({
         ...(payload.data || {}),
         type: payload.type || "",
+        sound,
+        clickAction: "ORDER_DETAILS",
+      }),
+      android: {
+        priority: "high" as const,
+        notification: {
+          channelId: "orders",
+          sound,
+          clickAction: "ORDER_DETAILS",
+          priority: "high" as const,
+        },
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: `${sound}.wav`,
+            category: "ORDER_DETAILS",
+            contentAvailable: true,
+          },
+        },
       },
       tokens: tokens,
     };

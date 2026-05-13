@@ -272,10 +272,16 @@ export const notifyRidersForOrder = async (orderId: string) => {
     );
     // ⚡ Send Push Notification
     void NotificationService.sendToPartner(rider._id.toString(), {
-      title: "New Delivery Request!",
+      title: `New delivery #${order._id.toString().slice(-6).toUpperCase()}`,
       body: `New order near ${restaurant.name}. Earnings: ₹${earnings.estimatedAmount}`,
       type: "NEW_DELIVERY_REQUEST",
-      data: requestPayload,
+      data: {
+        ...requestPayload,
+        customerName: customer?.name || "",
+        orderAmount: String(order.totalAmount),
+        deliveryAddress: formatUserAddress(customer),
+        orderStatus: order.status,
+      },
     });
   });
 
@@ -333,8 +339,15 @@ export const acceptOrderRequest = async (userId: string, orderId: string) => {
   void NotificationService.sendToCustomer(order.userId.toString(), {
     title: "Delivery Partner Assigned",
     body: `${partner.fullName} will be delivering your order.`,
-    type: "ORDER_ACCEPTED",
-    data: { orderId: orderId, partnerName: partner.fullName },
+    type: "DELIVERY_ASSIGNED",
+    data: {
+      orderId: orderId,
+      partnerName: partner.fullName,
+      customerName: customer?.name || "",
+      orderAmount: String(order.totalAmount),
+      deliveryAddress: formatUserAddress(customer),
+      orderStatus: "DELIVERY_ASSIGNED",
+    },
   });
 
   return payload;
@@ -653,9 +666,15 @@ export const updateDeliveryStatus = async (
     // ⚡ Notify Customer
     void NotificationService.sendToCustomer(order.userId.toString(), {
       title: "Order Delivered",
-      body: "Enjoy your meal!",
+      body: `Order #${orderId.slice(-6).toUpperCase()} delivered. Enjoy your meal!`,
       type: "ORDER_DELIVERED",
-      data: { orderId: orderId },
+      data: {
+        orderId: orderId,
+        customerName: payload.customer?.name || "",
+        orderAmount: String(order.totalAmount),
+        deliveryAddress: payload.customer?.address || "",
+        orderStatus: "DELIVERED",
+      },
     });
 
     return payload;

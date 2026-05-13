@@ -39,7 +39,7 @@ export function ProfilePage() {
   const [activeTab, setActiveTab] = useState("overview");
   const [formData, setFormData] = useState({
     name: user?.name || "Admin User",
-    email: user?.email || "admin@chatorijeep.com",
+    email: user?.email || "admin@chatorijeeb.com",
     phone: "+91 98110 11001",
     bio: "Lead Platform Operations Manager responsible for overseeing restaurant onboarding, operational quality, and dispatcher performance across the SaaS workspace."
   });

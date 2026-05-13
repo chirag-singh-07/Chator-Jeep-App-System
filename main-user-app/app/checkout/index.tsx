@@ -61,11 +61,11 @@ export default function CheckoutScreen() {
   const handleRazorpayPayment = async (razorpayData: any) => {
     const options = {
       description: 'Food Order Payment',
-      image: 'https://chatorijeep.com/logo.png',
+      image: 'https://chatorijeeb.com/logo.png',
       currency: razorpayData.currency || 'INR',
       key: razorpayData.key,
       amount: razorpayData.amount,
-      name: 'Chatori Jeep',
+      name: 'Chatori Jeeb',
       order_id: razorpayData.razorpayOrderId,
       prefill: {
         email: 'user@example.com',

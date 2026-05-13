@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -21,6 +21,15 @@ import { useLocationStore } from '@/store/useLocationStore';
 import * as Haptics from 'expo-haptics';
 import * as Location from 'expo-location';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { ValidatedAddressField } from '@/components/ValidatedAddressField';
+import {
+  AddressDraft,
+  AddressFieldName,
+  emptyAddressDraft,
+  formatAddressLine,
+  sanitizeAddressInput,
+  validateAddressDraft,
+} from '@/lib/addressValidation';
 
 const { width, height } = Dimensions.get('window');
 
@@ -40,14 +49,41 @@ export default function AddressPickerScreen() {
   const [tempAddress, setTempAddress] = useState<any>(null);
   
   // Form fields
-  const [flat, setFlat] = useState('');
-  const [area, setArea] = useState('');
-  const [city, setCity] = useState('');
-  const [pincode, setPincode] = useState('');
+  const [addressDraft, setAddressDraft] = useState<AddressDraft>(emptyAddressDraft);
+  const [touchedFields, setTouchedFields] = useState<Partial<Record<AddressFieldName, boolean>>>({});
   const [label, setLabel] = useState('Home'); // Home, Work, Other
+  const [savingAddress, setSavingAddress] = useState(false);
+  const landmarkRef = useRef<TextInput>(null);
+  const stateRef = useRef<TextInput>(null);
+  const districtRef = useRef<TextInput>(null);
+  const cityRef = useRef<TextInput>(null);
+  const pinCodeRef = useRef<TextInput>(null);
   
   const router = useRouter();
   const { setCurrentAddress, addAddress, savedAddresses, removeAddress } = useLocationStore();
+  const addressValidation = useMemo(
+    () => validateAddressDraft(addressDraft),
+    [addressDraft],
+  );
+
+  const updateAddressField = (field: AddressFieldName, value: string) => {
+    setTouchedFields((current) => ({ ...current, [field]: true }));
+    setAddressDraft((current) => ({
+      ...current,
+      [field]: sanitizeAddressInput(field, value),
+    }));
+  };
+
+  const markAllAddressFieldsTouched = () => {
+    setTouchedFields({
+      fullAddress: true,
+      landmark: true,
+      state: true,
+      district: true,
+      city: true,
+      pinCode: true,
+    });
+  };
 
   const handleSearch = (text: string) => {
     setSearch(text);
@@ -66,42 +102,56 @@ export default function AddressPickerScreen() {
   const handleSelect = (item: any) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setTempAddress(item);
-    setFlat(item.name || item.street || 'Current Location');
-    setArea(item.address || `${item.street || ''}${item.city ? `, ${item.city}` : ''}`.trim());
-    setCity(item.city || '');
-    setPincode(item.postalCode || '');
+    setAddressDraft({
+      fullAddress: sanitizeAddressInput(
+        "fullAddress",
+        item.address || item.name || item.street || "Current Location",
+      ),
+      landmark: "",
+      state: sanitizeAddressInput("state", item.region || ""),
+      district: sanitizeAddressInput("district", item.district || ""),
+      city: sanitizeAddressInput("city", item.city || ""),
+      pinCode: sanitizeAddressInput("pinCode", item.postalCode || ""),
+    });
+    setTouchedFields({});
     setLabel('Home');
     setShowForm(true);
   };
 
   const openManualForm = () => {
     setTempAddress(null);
-    setFlat('');
-    setArea('');
-    setCity('');
-    setPincode('');
+    setAddressDraft(emptyAddressDraft);
+    setTouchedFields({});
     setLabel('Home');
     setShowForm(true);
   };
 
-  const saveAddress = () => {
-    if (!flat.trim() || !area.trim()) {
-      alert('Please enter flat/house no and area');
+  const saveAddress = async () => {
+    if (savingAddress) return;
+
+    if (!addressValidation.isValid) {
+      markAllAddressFieldsTouched();
+      alert('Please correct the highlighted address fields.');
       return;
     }
 
+    setSavingAddress(true);
     const id = Math.random().toString(36).substr(2, 9);
-    const fullAddress = `${flat.trim()}, ${area.trim()}${city.trim() ? `, ${city.trim()}` : ''}${pincode.trim() ? ` - ${pincode.trim()}` : ''}`;
+    const formattedAddress = formatAddressLine(addressDraft);
+    const fullAddressValue = addressValidation.fields.fullAddress.value;
     const newAddr = {
       id,
-      flat: flat.trim(),
-      area: area.trim(),
-      city: city.trim() || tempAddress?.city || '',
-      pincode: pincode.trim(),
+      flat: fullAddressValue,
+      area: `${addressValidation.fields.city.value}, ${addressValidation.fields.district.value}`,
+      city: addressValidation.fields.city.value,
+      state: addressValidation.fields.state.value,
+      district: addressValidation.fields.district.value,
+      landmark: addressValidation.fields.landmark.value,
+      pincode: addressValidation.fields.pinCode.value,
       label,
       type: label,
-      line1: `${flat.trim()}, ${area.trim()}`,
-      address: fullAddress,
+      line1: formattedAddress,
+      address: formattedAddress,
       coordinates: tempAddress?.coordinates || { latitude: 0, longitude: 0 },
     };
 
@@ -110,6 +160,7 @@ export default function AddressPickerScreen() {
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setShowForm(false);
+    setSavingAddress(false);
     router.back();
   };
 
@@ -312,43 +363,98 @@ export default function AddressPickerScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Address Details</Text>
               <TouchableOpacity onPress={() => setShowForm(false)}>
-                <Ionicons name="close" size={24} color="#000" />
+                <Ionicons name="close" size={24} color="#FFF" />
               </TouchableOpacity>
             </View>
 
             <ScrollView contentContainerStyle={{padding: 20}}>
-               <Text style={styles.inputLabel}>FLAT / HOUSE NO / FLOOR</Text>
-               <TextInput
-                 style={styles.formInput}
-                 placeholder="E.g. Flat 101, Ground Floor"
-                 value={flat}
-                 onChangeText={setFlat}
+               <ValidatedAddressField
+                 dark
+                 label="FULL ADDRESS / HOUSE NO / STREET"
+                 placeholder="Flat 101, MG Road, Near Metro Gate"
+                 value={addressDraft.fullAddress}
+                 onChangeText={(value) => updateAddressField("fullAddress", value)}
+                 onSubmitEditing={() => landmarkRef.current?.focus()}
+                 returnKeyType="next"
+                 maxLength={150}
+                 touched={touchedFields.fullAddress}
+                 valid={addressValidation.fields.fullAddress.isValid}
+                 error={touchedFields.fullAddress ? addressValidation.fields.fullAddress.error : ""}
                />
 
-               <Text style={styles.inputLabel}>AREA / LOCALITY</Text>
-               <TextInput
-                 style={[styles.formInput, { height: 80 }]}
-                 placeholder="E.g. Sector 44, Near Huda City Center"
-                 multiline
-                 value={area}
-                 onChangeText={setArea}
+               <ValidatedAddressField
+                 dark
+                 ref={landmarkRef}
+                 label="LANDMARK (OPTIONAL)"
+                 placeholder="Near City Mall"
+                 value={addressDraft.landmark}
+                 onChangeText={(value) => updateAddressField("landmark", value)}
+                 onSubmitEditing={() => stateRef.current?.focus()}
+                 returnKeyType="next"
+                 maxLength={90}
+                 touched={touchedFields.landmark}
+                 valid={addressValidation.fields.landmark.isValid}
+                 error={touchedFields.landmark ? addressValidation.fields.landmark.error : ""}
                />
 
-               <Text style={styles.inputLabel}>CITY</Text>
-               <TextInput
-                 style={styles.formInput}
-                 placeholder="E.g. New Delhi"
-                 value={city}
-                 onChangeText={setCity}
+               <ValidatedAddressField
+                 dark
+                 ref={stateRef}
+                 label="STATE"
+                 placeholder="Maharashtra"
+                 value={addressDraft.state}
+                 onChangeText={(value) => updateAddressField("state", value)}
+                 onSubmitEditing={() => districtRef.current?.focus()}
+                 returnKeyType="next"
+                 maxLength={60}
+                 touched={touchedFields.state}
+                 valid={addressValidation.fields.state.isValid}
+                 error={touchedFields.state ? addressValidation.fields.state.error : ""}
                />
 
-               <Text style={styles.inputLabel}>PIN CODE</Text>
-               <TextInput
-                 style={styles.formInput}
-                 placeholder="E.g. 110001"
-                 value={pincode}
-                 onChangeText={setPincode}
-                 keyboardType="numeric"
+               <ValidatedAddressField
+                 dark
+                 ref={districtRef}
+                 label="DISTRICT"
+                 placeholder="Mumbai"
+                 value={addressDraft.district}
+                 onChangeText={(value) => updateAddressField("district", value)}
+                 onSubmitEditing={() => cityRef.current?.focus()}
+                 returnKeyType="next"
+                 maxLength={70}
+                 touched={touchedFields.district}
+                 valid={addressValidation.fields.district.isValid}
+                 error={touchedFields.district ? addressValidation.fields.district.error : ""}
+               />
+
+               <ValidatedAddressField
+                 dark
+                 ref={cityRef}
+                 label="CITY / POST OFFICE"
+                 placeholder="Andheri East"
+                 value={addressDraft.city}
+                 onChangeText={(value) => updateAddressField("city", value)}
+                 onSubmitEditing={() => pinCodeRef.current?.focus()}
+                 returnKeyType="next"
+                 maxLength={60}
+                 touched={touchedFields.city}
+                 valid={addressValidation.fields.city.isValid}
+                 error={touchedFields.city ? addressValidation.fields.city.error : ""}
+               />
+
+               <ValidatedAddressField
+                 dark
+                 ref={pinCodeRef}
+                 label="PIN CODE"
+                 placeholder="400001"
+                 value={addressDraft.pinCode}
+                 onChangeText={(value) => updateAddressField("pinCode", value)}
+                 keyboardType="number-pad"
+                 returnKeyType="done"
+                 maxLength={6}
+                 touched={touchedFields.pinCode}
+                 valid={addressValidation.fields.pinCode.isValid}
+                 error={touchedFields.pinCode ? addressValidation.fields.pinCode.error : ""}
                />
 
                <Text style={styles.inputLabel}>SAVE AS</Text>
@@ -369,8 +475,19 @@ export default function AddressPickerScreen() {
                   ))}
                </View>
 
-               <TouchableOpacity style={styles.saveBtn} onPress={saveAddress}>
-                  <Text style={styles.saveBtnText}>Save and Continue</Text>
+               <TouchableOpacity
+                 style={[
+                   styles.saveBtn,
+                   (!addressValidation.isValid || savingAddress) && styles.saveBtnDisabled,
+                 ]}
+                 onPress={saveAddress}
+                 disabled={!addressValidation.isValid || savingAddress}
+               >
+                  {savingAddress ? (
+                    <ActivityIndicator color="#1A1A1A" />
+                  ) : (
+                    <Text style={styles.saveBtnText}>NEXT SEQUENCE</Text>
+                  )}
                </TouchableOpacity>
             </ScrollView>
           </KeyboardAvoidingView>
@@ -439,9 +556,9 @@ const styles = StyleSheet.create({
   emptyContainer: { alignItems: 'center', marginTop: 50 },
   emptyText: { marginTop: 15, color: '#999', fontSize: 14, fontWeight: '600' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#FFF', borderTopLeftRadius: 30, borderTopRightRadius: 30, maxHeight: height * 0.8 },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 25, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  modalTitle: { fontSize: 18, fontWeight: '900', color: Colors.light.text },
+  modalContent: { backgroundColor: '#050505', borderTopLeftRadius: 30, borderTopRightRadius: 30, maxHeight: height * 0.88, borderWidth: 1, borderColor: '#1F1F1F' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 25, borderBottomWidth: 1, borderBottomColor: '#1F1F1F' },
+  modalTitle: { fontSize: 18, fontWeight: '900', color: '#FFF' },
   inputLabel: { fontSize: 11, fontWeight: '900', color: '#999', letterSpacing: 1, marginBottom: 10, marginTop: 20 },
   formInput: { backgroundColor: '#F9FAFB', borderRadius: 15, padding: 15, fontSize: 15, fontWeight: '600', color: '#000', borderWidth: 1, borderColor: '#F3F4F6' },
   manualBtn: {
@@ -479,5 +596,6 @@ const styles = StyleSheet.create({
   labelBtnText: { fontSize: 14, fontWeight: '800', color: '#666' },
   activeLabelBtnText: { color: '#1A1A1A' },
   saveBtn: { backgroundColor: Colors.light.primary, height: 60, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginTop: 35, shadowColor: Colors.light.primary, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
+  saveBtnDisabled: { opacity: 0.45 },
   saveBtnText: { fontSize: 17, fontWeight: '900', color: '#1A1A1A' },
 });

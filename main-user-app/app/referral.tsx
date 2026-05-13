@@ -30,7 +30,7 @@ export default function ReferralScreen() {
     try {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       await Share.share({
-        message: `Hey! Use my referral code ${referralCode} to get ₹100 OFF on your first 3 orders on Chatori Jeep! Download now: https://chatorijeep.com`,
+        message: `Hey! Use my referral code ${referralCode} to get ₹100 OFF on your first 3 orders on Chatori Jeeb! Download now: https://chatorijeeb.com`,
       });
     } catch (error) {
       console.log(error);

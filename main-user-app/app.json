@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Chatori Jeep",
+    "name": "Chatori Jeeb",
     "slug": "main-user-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -12,7 +12,7 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.chatorijeep.userapp",
+      "package": "com.chatorijeeb.userapp",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -33,7 +33,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/icons/ios-icon-1024x1024.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",

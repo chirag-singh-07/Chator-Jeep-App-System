@@ -48,7 +48,7 @@ export default function SupportScreen() {
   };
 
   const contactEmail = () => {
-    Linking.openURL('mailto:support@chatorijeep.com');
+    Linking.openURL('mailto:support@chatorijeeb.com');
   };
 
   return (

@@ -18,12 +18,12 @@ export const sendOtp = async (email: string, type: "register" | "forgot_password
     expiresAt,
   });
 
-  const subject = type === "register" ? "Verify your Account - Chatori Jeep" : "Security Code - Chatori Jeep";
+  const subject = type === "register" ? "Verify your Account - Chatori Jeeb" : "Security Code - Chatori Jeeb";
   
   const html = `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 12px; background-color: #ffffff;">
       <div style="text-align: center; margin-bottom: 24px;">
-        <h1 style="color: #D4AF37; margin: 0; font-size: 28px; letter-spacing: -1px;">Chatori Jeep</h1>
+        <h1 style="color: #D4AF37; margin: 0; font-size: 28px; letter-spacing: -1px;">Chatori Jeeb</h1>
         <p style="color: #666; margin: 4px 0 0 0; font-size: 14px;">Partner Delivery Console</p>
       </div>
       
@@ -34,12 +34,12 @@ export const sendOtp = async (email: string, type: "register" | "forgot_password
       </div>
       
       <div style="margin-top: 24px; text-align: center; color: #999; font-size: 12px;">
-        <p>&copy; ${new Date().getFullYear()} Chatori Jeep Fleet System. All rights reserved.</p>
+        <p>&copy; ${new Date().getFullYear()} Chatori Jeeb Fleet System. All rights reserved.</p>
       </div>
     </div>
   `;
 
-  const text = `Your Chatori Jeep OTP for ${type.replace("_", " ")} is: ${otpCode}. It expires in 10 minutes.`;
+  const text = `Your Chatori Jeeb OTP for ${type.replace("_", " ")} is: ${otpCode}. It expires in 10 minutes.`;
   
   let emailSent = false;
   let emailError: any = null;

@@ -88,7 +88,7 @@ export const createOrder = async (
     );
   }
 
-  await notifyNewOrder(order._id.toString(), userId, input.restaurantId, draft.itemsTotal);
+  await notifyNewOrder(order._id.toString(), userId, input.restaurantId, draft.itemsTotal, input.deliveryAddress);
 
   return { ...order.toObject(), remainingAmount };
 };
@@ -126,7 +126,18 @@ const buildOrderDraft = async (userId: string, input: OrderInput) => {
   );
 
   const deliveryFee = Math.round(config.deliveryBaseFee + distanceKm * config.deliveryPerKmFee);
-  const commissionAmount = Math.round((foodTotal * config.commissionPercentage) / 100);
+  const offerActive = Boolean(
+    restaurant.launchOfferExpiresAt &&
+      restaurant.launchOfferExpiresAt.getTime() > Date.now(),
+  );
+  const commissionPercentage = offerActive
+    ? restaurant.registrationPayment?.launchCommissionPercentage ??
+      restaurant.currentCommissionPercentage ??
+      config.commissionPercentage
+    : restaurant.registrationPayment?.normalCommissionPercentage ??
+      restaurant.currentCommissionPercentage ??
+      config.commissionPercentage;
+  const commissionAmount = Math.round((foodTotal * commissionPercentage) / 100);
   const platformFee = config.platformFixedFee;
 
   const itemsTotal = foodTotal + deliveryFee + platformFee;
@@ -149,7 +160,13 @@ const buildOrderDraft = async (userId: string, input: OrderInput) => {
   };
 };
 
-const notifyNewOrder = async (orderId: string, userId: string, restaurantId: string, itemsTotal: number) => {
+const notifyNewOrder = async (
+  orderId: string,
+  userId: string,
+  restaurantId: string,
+  itemsTotal: number,
+  deliveryAddress?: string,
+) => {
   if (orderQueue) {
     try {
       await orderQueue.add(
@@ -166,14 +183,25 @@ const notifyNewOrder = async (orderId: string, userId: string, restaurantId: str
     title: "Order Placed!",
     body: "Your order has been placed. Waiting for restaurant confirmation.",
     type: "ORDER_PLACED",
-    data: { orderId },
+    data: {
+      orderId,
+      orderAmount: String(itemsTotal),
+      orderStatus: "PLACED",
+      deliveryAddress: deliveryAddress || "",
+    },
   });
 
   void NotificationService.sendToRestaurant(restaurantId, {
-    title: "New Order Received!",
+    title: `New order #${orderId.slice(-6).toUpperCase()}`,
     body: `New order worth Rs.${itemsTotal}. Please confirm.`,
-    type: "ORDER_PLACED",
-    data: { orderId },
+    type: "NEW_ORDER",
+    data: {
+      orderId,
+      customerName: "",
+      orderAmount: String(itemsTotal),
+      deliveryAddress: deliveryAddress || "",
+      orderStatus: "PLACED",
+    },
   });
 };
 
@@ -368,7 +396,7 @@ export const verifyPaymentAndCreateOrder = async (
     walletAmountUsed: 0,
   } as any);
 
-  await notifyNewOrder(order._id.toString(), userId, input.restaurantId, draft.itemsTotal);
+  await notifyNewOrder(order._id.toString(), userId, input.restaurantId, draft.itemsTotal, input.deliveryAddress);
   notifyCustomerPaymentConfirmed(userId, order._id.toString(), "Razorpay");
 
   return { ...order.toObject(), remainingAmount: 0 };
@@ -514,7 +542,13 @@ export const updateOrderStatus = async (
     title: `Order ${label}`,
     body: `Your order is now: ${label}.`,
     type: `ORDER_${nextStatus}` as any,
-    data: { orderId, status: nextStatus },
+    data: {
+      orderId,
+      status: nextStatus,
+      orderStatus: nextStatus,
+      orderAmount: String(order.totalAmount),
+      deliveryAddress: order.deliveryAddress,
+    },
   });
 
   if (nextStatus === ORDER_STATUS.READY) {

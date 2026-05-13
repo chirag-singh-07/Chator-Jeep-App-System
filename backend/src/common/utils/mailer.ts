@@ -12,7 +12,7 @@ export const sendEmail = async (
 ) => {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Chatori Jeep <noreply@chatorijeeb.com>',
+      from: 'Chatori Jeeb <noreply@chatorijeeb.com>',
       to: [to],
       subject: subject,
       text: text,

@@ -58,6 +58,21 @@ export const verifyRazorpayPayment = (
   return expectedSignature === razorpaySignature;
 };
 
+export const verifyRazorpayWebhookSignature = (
+  rawBody: string,
+  signature: string,
+) => {
+  const secret = process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_KEY_SECRET;
+  if (!secret) throw new AppError("Razorpay webhook secret not configured", 500);
+
+  const expectedSignature = crypto
+    .createHmac("sha256", secret)
+    .update(rawBody)
+    .digest("hex");
+
+  return expectedSignature === signature;
+};
+
 /** Create a Razorpay payout (for restaurant/delivery partner payouts) */
 export const createRazorpayPayout = async (input: {
   accountNumber: string;
