@@ -22,7 +22,11 @@ export default function RootLayout() {
     if (!navigationState?.key) return;
 
     const inAuthGroup = segments[0] === "(auth)";
-    const isPublicAuthPage = segments[1] === "login" || segments[1] === "register";
+    const authPage = segments[1] as string | undefined;
+    const isPublicAuthPage =
+      authPage === "login" ||
+      authPage === "register" ||
+      authPage === "forgot-password";
     
     if (!isAuthenticated) {
       // If not authenticated and not on login/register, go to login
@@ -50,6 +54,7 @@ export default function RootLayout() {
       }}>
         <Stack.Screen name="(auth)/login" />
         <Stack.Screen name="(auth)/register" />
+        <Stack.Screen name="(auth)/forgot-password" />
         <Stack.Screen name="(auth)/pending" />
         <Stack.Screen name="(auth)/rejected" />
         <Stack.Screen name="(tabs)" />

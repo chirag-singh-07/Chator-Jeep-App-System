@@ -46,6 +46,20 @@ export default function LoginScreen() {
         router.replace("/(tabs)");
       }
     } catch (error: any) {
+      if (error?.paymentRequired) {
+        Alert.alert(
+          "Payment Required",
+          "This restaurant account was not completed with a successful payment. Please finish registration and pay the registration amount to continue.",
+          [
+            {
+              text: "Pay Now",
+              onPress: () => router.replace("/(auth)/register"),
+            },
+          ],
+        );
+        return;
+      }
+
       Alert.alert("Login Failed", getLoginErrorMessage(error));
     }
   };
@@ -130,9 +144,9 @@ export default function LoginScreen() {
 
             <TouchableOpacity 
               style={styles.forgotBtn}
-              onPress={() => Alert.alert("Coming Soon", "Please contact support for password recovery.")}
+              onPress={() => router.push("/(auth)/forgot-password" as any)}
             >
-              <Text style={styles.forgotText}>Request Access Support?</Text>
+              <Text style={styles.forgotText}>Forgot Password?</Text>
             </TouchableOpacity>
           </View>
 

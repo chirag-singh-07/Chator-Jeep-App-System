@@ -173,7 +173,7 @@ const restaurantSchema = new Schema<IRestaurant>(
       paidAt: { type: Date },
       planName: { type: String },
       launchCommissionPercentage: { type: Number, default: 10 },
-      normalCommissionPercentage: { type: Number, default: 18 },
+      normalCommissionPercentage: { type: Number, default: 10 },
       offerWindowHours: { type: Number, default: 48 },
     },
     activationTimestamp: { type: Date },

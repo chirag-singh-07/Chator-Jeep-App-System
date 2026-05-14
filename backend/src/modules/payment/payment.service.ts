@@ -13,9 +13,9 @@ export const getPaymentInfo = () => ({
 export const getRestaurantRegistrationPlan = async () => {
   const config = await getSetting("RESTAURANT_REGISTRATION_PRICING", {
     launchOfferFee: 299,
-    standardFee: 499,
+    standardFee: 999,
     launchCommissionPercentage: 10,
-    normalCommissionPercentage: 18,
+    normalCommissionPercentage: 10,
     offerWindowHours: 48,
     launchOfferActive: true,
   });
@@ -23,13 +23,15 @@ export const getRestaurantRegistrationPlan = async () => {
   const launchOfferActive = config.launchOfferActive !== false;
   const fee = launchOfferActive
     ? Number(config.launchOfferFee || 299)
-    : Number(config.standardFee || 499);
+    : Number(config.standardFee || 999);
+  const standardFee = Number(config.standardFee || 999);
 
   return {
     name: launchOfferActive ? "Chatori Jeeb Launch Offer" : "Chatori Jeeb Standard Plan",
     registrationFee: fee,
-    launchCommissionPercentage: Number(config.launchCommissionPercentage || 10),
-    normalCommissionPercentage: Number(config.normalCommissionPercentage || 18),
+    originalRegistrationFee: standardFee,
+    launchCommissionPercentage: 10,
+    normalCommissionPercentage: 10,
     offerWindowHours: Number(config.offerWindowHours || 48),
     launchOfferActive,
     currency: "INR",

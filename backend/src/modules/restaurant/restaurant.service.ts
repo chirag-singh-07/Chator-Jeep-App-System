@@ -21,6 +21,7 @@ import { deleteUploadedFiles } from "../../common/services/upload.service";
 import { deleteRestaurantById } from "./restaurant.repository";
 import { Order } from "../order/order.model";
 import { consumeRestaurantRegistrationPayment } from "../payment/payment.service";
+import { User, IUser } from "../user/user.model";
 
 const indianPhoneRegex = /^[6-9]\d{9}$/;
 
@@ -69,50 +70,63 @@ export const registerRestaurant = async (input: {
 
   // 1. Create auth user with RESTAURANT role (mapped from KITCHEN for legacy code)
   const hashed = await hashPassword(input.password);
-  const user = await createUser({
-    name: input.ownerName,
-    email,
-    password: hashed,
-    phone,
-    role: ROLES.KITCHEN as any, // We keep the enum internal as KITCHEN for now to avoid breaking other components
-  });
+  let user: IUser | null = null;
+  let restaurant: any = null;
+
+  try {
+    user = await createUser({
+      name: input.ownerName,
+      email,
+      password: hashed,
+      phone,
+      role: ROLES.KITCHEN as any, // We keep the enum internal as KITCHEN for now to avoid breaking other components
+    });
 
   // 2. Create restaurant profile — starts as REQUESTED
-  const restaurant = await createRestaurant({
-    ownerId: user._id as any,
-    ownerName: input.ownerName,
-    name: input.restaurantName,
-    email,
-    phone,
-    fssaiLicense: input.fssaiLicense,
-    address: input.address,
-    cuisines: input.cuisines ?? [],
-    bankDetails: input.bankDetails,
-    logoUrls: input.logoUrls,
-    bannerUrls: input.bannerUrls,
-    documents: input.documents ?? [],
-    status: RESTAURANT_STATUS.REQUESTED,
-    termsAccepted: true,
-    termsAcceptedAt: new Date(),
-    activationTimestamp,
-    launchOfferExpiresAt,
-    currentCommissionPercentage: payment.plan.launchCommissionPercentage,
-    registrationPayment: {
-      transactionId: payment._id,
-      razorpayOrderId: payment.razorpayOrderId,
-      razorpayPaymentId: payment.razorpayPaymentId,
-      status: payment.status,
-      amount: payment.amount,
-      currency: payment.currency,
-      paidAt: payment.paidAt,
-      planName: payment.plan.name,
-      launchCommissionPercentage: payment.plan.launchCommissionPercentage,
-      normalCommissionPercentage: payment.plan.normalCommissionPercentage,
-      offerWindowHours: payment.plan.offerWindowHours,
-    },
-  });
+    restaurant = await createRestaurant({
+      ownerId: user._id as any,
+      ownerName: input.ownerName,
+      name: input.restaurantName,
+      email,
+      phone,
+      fssaiLicense: input.fssaiLicense,
+      address: input.address,
+      cuisines: input.cuisines ?? [],
+      bankDetails: input.bankDetails,
+      logoUrls: input.logoUrls,
+      bannerUrls: input.bannerUrls,
+      documents: input.documents ?? [],
+      status: RESTAURANT_STATUS.REQUESTED,
+      termsAccepted: true,
+      termsAcceptedAt: new Date(),
+      activationTimestamp,
+      launchOfferExpiresAt,
+      currentCommissionPercentage: payment.plan.launchCommissionPercentage,
+      registrationPayment: {
+        transactionId: payment._id,
+        razorpayOrderId: payment.razorpayOrderId,
+        razorpayPaymentId: payment.razorpayPaymentId,
+        status: payment.status,
+        amount: payment.amount,
+        currency: payment.currency,
+        paidAt: payment.paidAt,
+        planName: payment.plan.name,
+        launchCommissionPercentage: payment.plan.launchCommissionPercentage,
+        normalCommissionPercentage: payment.plan.normalCommissionPercentage,
+        offerWindowHours: payment.plan.offerWindowHours,
+      },
+    });
 
-  await consumeRestaurantRegistrationPayment(input.registrationPaymentId, restaurant._id.toString());
+    await consumeRestaurantRegistrationPayment(input.registrationPaymentId, restaurant._id.toString());
+  } catch (error) {
+    if (restaurant?._id) await Restaurant.findByIdAndDelete(restaurant._id).catch(() => null);
+    if (user?._id) await User.findByIdAndDelete(user._id).catch(() => null);
+    throw error;
+  }
+
+  if (!user || !restaurant) {
+    throw new AppError("Restaurant registration could not be completed", 500);
+  }
 
   const payload: AuthPayload = { userId: user._id.toString(), role: user.role };
   const accessToken = signAccessToken(payload);
@@ -141,6 +155,9 @@ export const loginRestaurant = async (email: string, password: string) => {
   if (!valid) throw new AppError("Invalid credentials", 401);
 
   const restaurant = await findRestaurantByOwner(user._id.toString());
+  if (!restaurant?.registrationPayment?.razorpayPaymentId || !restaurant.registrationPayment?.paidAt) {
+    throw new AppError("Registration payment required. Please complete payment before logging in.", 402);
+  }
 
   const payload: AuthPayload = { userId: user._id.toString(), role: user.role };
   const accessToken = signAccessToken(payload);

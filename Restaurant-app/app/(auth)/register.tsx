@@ -21,6 +21,7 @@ import { ValidatedAddressField } from "@/components/ValidatedAddressField";
 import { Alert, ActivityIndicator } from "react-native";
 import { useAuthStore } from "@/store/useAuthStore";
 import { apiClient } from "@/lib/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "react-native";
@@ -42,6 +43,16 @@ const fssaiRegex = /^\d{14}$/;
 const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 const accountNumberRegex = /^\d{9,18}$/;
+const REGISTER_DRAFT_KEY = "restaurant-registration-draft-v1";
+
+const addressFieldLabels: Record<AddressFieldName, string> = {
+  fullAddress: "street address",
+  landmark: "landmark",
+  state: "state",
+  district: "district",
+  city: "city",
+  pinCode: "PIN code",
+};
 
 type OnboardingMenuItem = {
   id: string;
@@ -73,6 +84,7 @@ const createMenuDraft = (): OnboardingMenuItem => ({
 
 export default function RegisterScreen() {
   const [currentStep, setCurrentStep] = useState(0);
+  const hasLoadedDraft = useRef(false);
   const [uploadStatus, setUploadStatus] = useState<{
     message: string;
     isUploading: boolean;
@@ -140,6 +152,125 @@ export default function RegisterScreen() {
   const [pricingPlan, setPricingPlan] = useState<any>(null);
   const [paymentStatus, setPaymentStatus] = useState<"IDLE" | "PROCESSING" | "PAID" | "FAILED">("IDLE");
   const [registrationPaymentId, setRegistrationPaymentId] = useState("");
+
+  useEffect(() => {
+    const loadDraft = async () => {
+      try {
+        const savedDraft = await AsyncStorage.getItem(REGISTER_DRAFT_KEY);
+        if (!savedDraft) return;
+
+        const draft = JSON.parse(savedDraft);
+        setCurrentStep(Math.min(Number(draft.currentStep || 0), STEPS.length - 1));
+        setEmail(draft.email || "");
+        setPassword(draft.password || "");
+        setKitchenName(draft.kitchenName || "");
+        setPhone(draft.phone || "");
+        setFoodType(draft.foodType || "both");
+        setLogo(draft.logo || null);
+        setBanner(draft.banner || null);
+        setStreet(draft.street || "");
+        setFullAddress(draft.fullAddress || draft.street || "");
+        setLandmark(draft.landmark || "");
+        setState(draft.state || "");
+        setDistrict(draft.district || "");
+        setCity(draft.city || "");
+        setPinCode(draft.pinCode || "");
+        setAadhar(draft.aadhar || null);
+        setPan(draft.pan || null);
+        setLivePhoto(draft.livePhoto || null);
+        setFssaiLicense(draft.fssaiLicense || "");
+        setGstNumber(draft.gstNumber || "");
+        setFssaiDoc(draft.fssaiDoc || null);
+        setGstDoc(draft.gstDoc || null);
+        setAddressProofDoc(draft.addressProofDoc || null);
+        setPremisesProofDoc(draft.premisesProofDoc || null);
+        setBankAccountHolder(draft.bankAccountHolder || "");
+        setBankAccountNumber(draft.bankAccountNumber || "");
+        setBankIfsc(draft.bankIfsc || "");
+        setBankName(draft.bankName || "");
+        setMenuDrafts(Array.isArray(draft.menuDrafts) && draft.menuDrafts.length ? draft.menuDrafts : [createMenuDraft()]);
+        setTermsAccepted(Boolean(draft.termsAccepted));
+      } catch (error) {
+        console.warn("Failed to load restaurant registration draft", error);
+      } finally {
+        hasLoadedDraft.current = true;
+      }
+    };
+
+    void loadDraft();
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedDraft.current) return;
+
+    const draft = {
+      currentStep,
+      email,
+      password,
+      kitchenName,
+      phone,
+      foodType,
+      logo,
+      banner,
+      street,
+      fullAddress,
+      landmark,
+      state,
+      district,
+      city,
+      pinCode,
+      aadhar,
+      pan,
+      livePhoto,
+      fssaiLicense,
+      gstNumber,
+      fssaiDoc,
+      gstDoc,
+      addressProofDoc,
+      premisesProofDoc,
+      bankAccountHolder,
+      bankAccountNumber,
+      bankIfsc,
+      bankName,
+      menuDrafts,
+      termsAccepted,
+    };
+
+    AsyncStorage.setItem(REGISTER_DRAFT_KEY, JSON.stringify(draft)).catch((error) => {
+      console.warn("Failed to save restaurant registration draft", error);
+    });
+  }, [
+    currentStep,
+    email,
+    password,
+    kitchenName,
+    phone,
+    foodType,
+    logo,
+    banner,
+    street,
+    fullAddress,
+    landmark,
+    state,
+    district,
+    city,
+    pinCode,
+    aadhar,
+    pan,
+    livePhoto,
+    fssaiLicense,
+    gstNumber,
+    fssaiDoc,
+    gstDoc,
+    addressProofDoc,
+    premisesProofDoc,
+    bankAccountHolder,
+    bankAccountNumber,
+    bankIfsc,
+    bankName,
+    menuDrafts,
+    termsAccepted,
+  ]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -339,14 +470,47 @@ export default function RegisterScreen() {
     return response.data.data.urls || {};
   };
 
+  const showMissingField = (fieldLabel: string) => {
+    Alert.alert("MISSING FIELD", `Please enter ${fieldLabel} before continuing.`);
+  };
+
+  const showMissingPhoto = (photoLabel: string) => {
+    Alert.alert("PHOTO REQUIRED", `Please upload ${photoLabel} before continuing.`);
+  };
+
+  const showAddressError = () => {
+    const requiredAddressFields: AddressFieldName[] = [
+      "fullAddress",
+      "state",
+      "district",
+      "city",
+      "pinCode",
+    ];
+    const firstInvalidField = requiredAddressFields.find(
+      (field) => !addressValidation.fields[field].isValid,
+    );
+
+    if (!firstInvalidField) return;
+
+    setAddressTouched((current) => ({ ...current, [firstInvalidField]: true }));
+    const fieldLabel = addressFieldLabels[firstInvalidField];
+    const fieldError = addressValidation.fields[firstInvalidField].error;
+    const message = fieldError === "This field is required."
+      ? `Please enter ${fieldLabel} before continuing.`
+      : `Please correct ${fieldLabel}: ${fieldError}`;
+
+    Alert.alert("ADDRESS ERROR", message);
+  };
+
   const nextStep = async () => {
     // Validation for each step
     if (currentStep === 0) {
-      if (!email || !password) {
-        Alert.alert(
-          "VALIDATION ERROR",
-          "Please enter both email and password to proceed.",
-        );
+      if (!email.trim()) {
+        showMissingField("business email");
+        return;
+      }
+      if (!password) {
+        showMissingField("password");
         return;
       }
       if (!emailRegex.test(email.trim())) {
@@ -361,11 +525,12 @@ export default function RegisterScreen() {
         return;
       }
     } else if (currentStep === 1) {
-      if (!kitchenName || !phone) {
-        Alert.alert(
-          "VALIDATION ERROR",
-          "Restaurant name and phone number are required.",
-        );
+      if (!kitchenName.trim()) {
+        showMissingField("restaurant name");
+        return;
+      }
+      if (!phone.trim()) {
+        showMissingField("phone number");
         return;
       }
       if (kitchenName.trim().length < 3 || kitchenName.trim().length > 80) {
@@ -380,42 +545,31 @@ export default function RegisterScreen() {
         return;
       }
     } else if (currentStep === 2) {
-      if (!logo || !banner) {
-        Alert.alert(
-          "VALIDATION ERROR",
-          "Please upload both your Logo and Fleet Banner.",
-        );
+      if (!logo) {
+        showMissingPhoto("your restaurant logo");
+        return;
+      }
+      if (!banner) {
+        showMissingPhoto("your fleet banner");
         return;
       }
     } else if (currentStep === 3) {
       if (!addressValidation.isValid) {
-        touchAllAddressFields();
-        Alert.alert(
-          "VALIDATION ERROR",
-          "Please correct the highlighted address fields before continuing.",
-        );
+        showAddressError();
         return;
       }
     } else if (currentStep === 4) {
-      if (
-        !aadhar ||
-        !pan ||
-        !livePhoto ||
-        !fssaiLicense.trim() ||
-        !fssaiDoc ||
-        !addressProofDoc ||
-        !premisesProofDoc ||
-        !bankAccountHolder.trim() ||
-        !bankAccountNumber.trim() ||
-        !bankIfsc.trim() ||
-        !bankName.trim()
-      ) {
-        Alert.alert(
-          "VALIDATION ERROR",
-          "Aadhar, PAN, live photo, FSSAI license, address proof, premises proof, and bank details are required.",
-        );
-        return;
-      }
+      if (!aadhar) return showMissingPhoto("Aadhar card");
+      if (!pan) return showMissingPhoto("PAN card");
+      if (!livePhoto) return showMissingPhoto("your live photo");
+      if (!fssaiLicense.trim()) return showMissingField("FSSAI license number");
+      if (!fssaiDoc) return showMissingPhoto("FSSAI license document");
+      if (!addressProofDoc) return showMissingPhoto("address proof");
+      if (!premisesProofDoc) return showMissingPhoto("premises proof");
+      if (!bankAccountHolder.trim()) return showMissingField("bank account holder name");
+      if (!bankAccountNumber.trim()) return showMissingField("bank account number");
+      if (!bankIfsc.trim()) return showMissingField("bank IFSC code");
+      if (!bankName.trim()) return showMissingField("bank name");
       if (gstNumber.trim() && !gstDoc) {
         Alert.alert(
           "VALIDATION ERROR",
@@ -449,25 +603,37 @@ export default function RegisterScreen() {
       }
     } else if (currentStep === 5) {
       const validMenuDrafts = getValidMenuDrafts();
-      const hasInvalidItem = validMenuDrafts.some(
-        (item) =>
-          item.name.length < 2 ||
-          item.name.length > 80 ||
-          !item.price ||
-          !item.category ||
-          !item.image?.uri ||
-          Number.isNaN(Number(item.price)) ||
-          Number(item.price) <= 0 ||
-          Number(item.price) > 99999 ||
-          item.shortDescription.length > 160,
-      );
-
-      if (validMenuDrafts.length === 0 || hasInvalidItem) {
-        Alert.alert(
-          "VALIDATION ERROR",
-          "Add at least one food item with image, name, category, and a valid price before sending for verification.",
-        );
+      if (validMenuDrafts.length === 0) {
+        Alert.alert("MENU ITEM REQUIRED", "Please add at least one food item before continuing.");
         return;
+      }
+
+      for (const [index, item] of validMenuDrafts.entries()) {
+        const itemLabel = `menu item ${index + 1}`;
+        if (item.name.length < 2 || item.name.length > 80) {
+          Alert.alert("MENU ERROR", `Please enter a valid name for ${itemLabel}.`);
+          return;
+        }
+        if (!item.price) {
+          Alert.alert("MENU ERROR", `Please enter a price for ${itemLabel}.`);
+          return;
+        }
+        if (Number.isNaN(Number(item.price)) || Number(item.price) <= 0 || Number(item.price) > 99999) {
+          Alert.alert("MENU ERROR", `Please enter a valid price for ${itemLabel}.`);
+          return;
+        }
+        if (!item.category) {
+          Alert.alert("MENU ERROR", `Please select a category for ${itemLabel}.`);
+          return;
+        }
+        if (!item.image?.uri) {
+          Alert.alert("MENU ERROR", `Please upload an image for ${itemLabel}.`);
+          return;
+        }
+        if (item.shortDescription.length > 160) {
+          Alert.alert("MENU ERROR", `Please keep the description for ${itemLabel} under 160 characters.`);
+          return;
+        }
       }
     } else if (currentStep === 6) {
       if (!termsAccepted) {
@@ -577,6 +743,7 @@ export default function RegisterScreen() {
           });
         }
 
+        await AsyncStorage.removeItem(REGISTER_DRAFT_KEY);
         setUploadStatus({
           message: "REGISTRATION COMPLETE",
           isUploading: false,
@@ -1372,15 +1539,24 @@ export default function RegisterScreen() {
                   {pricingPlan?.name || "Chatori Jeeb Launch Offer"}
                 </Text>
               </View>
-              <Text style={styles.checkoutAmount}>
-                ₹{pricingPlan?.registrationFee || 299}
+              <Text style={styles.checkoutOfferPrice}>
+                {"\u20B9"}{pricingPlan?.registrationFee || 299}
               </Text>
+              <View style={styles.ecommercePriceMeta}>
+                <Text style={styles.checkoutMrp}>
+                  MRP {"\u20B9"}{pricingPlan?.originalRegistrationFee || 999}
+                </Text>
+                <View style={styles.offerBadge}>
+                  <Ionicons name="pricetag" size={14} color="#000" />
+                  <Text style={styles.offerBadgeText}>Launching Offer</Text>
+                </View>
+              </View>
               <View style={styles.checkoutDivider} />
               <Text style={styles.checkoutLine}>
-                Launch commission: {pricingPlan?.launchCommissionPercentage || 10}% for first {pricingPlan?.offerWindowHours || 48} hours
+                Partner commission: {pricingPlan?.launchCommissionPercentage || pricingPlan?.normalCommissionPercentage || 10}%
               </Text>
               <Text style={styles.checkoutLine}>
-                Normal commission after offer: {pricingPlan?.normalCommissionPercentage || 18}%
+                Launching offer registration price.
               </Text>
               <Text style={styles.checkoutLine}>
                 Payment is verified securely with Razorpay before account creation.
@@ -1476,18 +1652,12 @@ export default function RegisterScreen() {
           <TouchableOpacity
             style={[
               styles.mainBtn,
-              (isLoading ||
-                uploadStatus.isUploading ||
-                (currentStep === 3 && !addressValidation.isValid)) && {
+              (isLoading || uploadStatus.isUploading) && {
                 opacity: 0.6,
               },
             ]}
             onPress={nextStep}
-            disabled={
-              isLoading ||
-              uploadStatus.isUploading ||
-              (currentStep === 3 && !addressValidation.isValid)
-            }
+            disabled={isLoading || uploadStatus.isUploading}
           >
             {isLoading || uploadStatus.isUploading ? (
               <ActivityIndicator color="black" />
@@ -1884,11 +2054,40 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "900",
   },
-  checkoutAmount: {
+  checkoutOfferPrice: {
     color: Colors.light.primary,
-    fontSize: 42,
+    fontSize: 52,
     fontWeight: "900",
     marginTop: 18,
+  },
+  ecommercePriceMeta: {
+    marginTop: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flexWrap: "wrap",
+  },
+  checkoutMrp: {
+    color: "#888",
+    fontSize: 18,
+    fontWeight: "900",
+    textDecorationLine: "line-through",
+    textDecorationColor: "#AAA",
+  },
+  offerBadge: {
+    borderRadius: 999,
+    backgroundColor: Colors.light.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  offerBadgeText: {
+    color: "#000",
+    fontSize: 11,
+    fontWeight: "900",
+    letterSpacing: 0.6,
   },
   checkoutDivider: {
     height: 1,
