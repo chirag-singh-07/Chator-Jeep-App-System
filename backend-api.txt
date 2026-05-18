@@ -1,0 +1,3 @@
+RENDER_BACKEND_URL=https://chator-jeep-app-system-api.onrender.com
+LOCAL_BACKEND_URL=http://localhost:8000
+DEPLOY_BACKEND_URL=https://www.backennd.chatorijeeb.com

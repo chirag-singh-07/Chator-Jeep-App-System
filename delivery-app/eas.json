@@ -14,7 +14,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://chator-jeep-app-api.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://chator-jeep-app-system-api.onrender.com"
       }
     },
     "production": {}

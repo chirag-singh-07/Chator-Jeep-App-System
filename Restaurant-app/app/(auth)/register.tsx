@@ -800,6 +800,11 @@ export default function RegisterScreen() {
 
     setPaymentStatus("PROCESSING");
     try {
+      // Check if RazorpayCheckout is available
+      if (!RazorpayCheckout || typeof RazorpayCheckout.open !== 'function') {
+        throw new Error('Razorpay module is not available. Please ensure the app is properly built with native modules.');
+      }
+
       const orderResponse = await apiClient.post("/payments/restaurant-registration/order", {
         email,
         restaurantName: kitchenName,

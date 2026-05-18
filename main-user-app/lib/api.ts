@@ -4,7 +4,7 @@ import { router } from "expo-router";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Platform } from "react-native";
 
-const PRODUCTION_API_URL = "https://chator-jeep-app-api.onrender.com/api/v1";
+const PRODUCTION_API_URL = "https://chator-jeep-app-system-api.onrender.com/api/v1";
 
 const normalizeApiUrl = (url: string) => {
   const cleaned = url.trim().replace(/^["']|["']$/g, "").replace(/\/+$/, "");

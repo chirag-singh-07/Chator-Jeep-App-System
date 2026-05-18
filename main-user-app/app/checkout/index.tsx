@@ -59,6 +59,11 @@ export default function CheckoutScreen() {
   const grandTotal = Math.max(0, subTotal - discount);
 
   const handleRazorpayPayment = async (razorpayData: any) => {
+    // Check if RazorpayCheckout is available
+    if (!RazorpayCheckout || typeof RazorpayCheckout.open !== 'function') {
+      throw new Error('Razorpay module is not available. Please ensure the app is properly built with native modules.');
+    }
+
     const options = {
       description: 'Food Order Payment',
       image: 'https://chatorijeeb.com/logo.png',
