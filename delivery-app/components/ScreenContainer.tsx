@@ -1,17 +1,19 @@
 import React, { PropsWithChildren } from "react";
-import { StyleSheet, View, StatusBar, Platform } from "react-native";
+import { StyleProp, StyleSheet, View, StatusBar, Platform, ViewStyle } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
 
 interface ScreenContainerProps extends PropsWithChildren {
   withSafeArea?: boolean;
   backgroundColor?: string;
+  style?: StyleProp<ViewStyle>;
 }
 
 export function ScreenContainer({ 
   children, 
   withSafeArea = false,
-  backgroundColor = Colors.light.background 
+  backgroundColor = Colors.light.background,
+  style,
 }: ScreenContainerProps) {
   const Container = withSafeArea ? SafeAreaView : View;
 
@@ -22,7 +24,7 @@ export function ScreenContainer({
         backgroundColor={Colors.light.background}
         translucent={Platform.OS === 'android'}
       />
-      <Container style={styles.container}>
+      <Container style={[styles.container, style]}>
         {children}
       </Container>
     </View>

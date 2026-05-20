@@ -23,7 +23,7 @@ export const updateDeliveryByOrder = (orderId: string, payload: Partial<IDeliver
 
 export const findNearestAvailableRider = (
   coordinates: [number, number],
-  maxDistance = 5000
+  maxDistance = 10000
 ): Promise<IDeliveryPartner | null> =>
   DeliveryPartner.findOne({
     isAvailable: true,

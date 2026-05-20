@@ -47,6 +47,72 @@ const sortOrders = (orders: DeliveryOrder[]) =>
       Number(new Date(a.order?.createdAt ?? 0)),
   );
 
+const isMockOrderId = (orderId: string) => orderId.startsWith("MOCK-");
+
+const createTimeline = (status: DeliveryOrder["status"]) => {
+  const now = new Date().toISOString();
+  return [
+    { label: "Accepted", done: true, date: now },
+    { label: "Picked up", done: ["PICKED_UP", "ARRIVED", "COMPLETED"].includes(status), date: status === "ACCEPTED" ? null : now },
+    { label: "Arrived", done: ["ARRIVED", "COMPLETED"].includes(status), date: ["ACCEPTED", "PICKED_UP"].includes(status) ? null : now },
+    { label: "Completed", done: status === "COMPLETED", date: status === "COMPLETED" ? now : null },
+  ];
+};
+
+const createMockDeliveryOrder = (orderId: string, status: DeliveryOrder["status"] = "ACCEPTED"): DeliveryOrder => {
+  const createdAt = new Date().toISOString();
+
+  return {
+    id: orderId,
+    orderId,
+    status,
+    acceptedAt: createdAt,
+    deliveryOtp: "1234",
+    route: {
+      pickupAddress: "The Chatori Kitchen, Sector 15, Gurugram",
+      dropAddress: "Happy Heights, Tower B, Sector 46, Gurugram",
+      pickupCoordinates: [77.043, 28.4595],
+      dropCoordinates: [77.0588, 28.4368],
+    },
+    restaurant: {
+      id: "mock-restaurant",
+      name: "The Chatori Kitchen",
+      phone: "9876543210",
+      address: "Sector 15, Gurugram",
+      coordinates: [77.043, 28.4595],
+    },
+    customer: {
+      id: "mock-customer",
+      name: "Aman Sharma",
+      phone: "9999999999",
+      address: "Happy Heights, Tower B, Sector 46, Gurugram",
+      coordinates: [77.0588, 28.4368],
+    },
+    order: {
+      id: orderId,
+      totalAmount: 450,
+      paymentStatus: "PAID",
+      status: "OUT_FOR_DELIVERY",
+      createdAt,
+      items: [
+        { menuItemId: "mock-paneer-roll", name: "Paneer Tikka Roll", price: 180, quantity: 1 },
+        { menuItemId: "mock-momos", name: "Veg Steamed Momos", price: 140, quantity: 1 },
+        { menuItemId: "mock-coffee", name: "Cold Coffee", price: 130, quantity: 1 },
+      ],
+    },
+    paymentSummary: {
+      totalAmount: 450,
+      paymentStatus: "PAID",
+    },
+    earnings: {
+      estimatedAmount: 45,
+      finalAmount: 45,
+      distanceKm: 4.2,
+    },
+    statusTimeline: createTimeline(status),
+  };
+};
+
 export const useDeliveryStore = create<DeliveryState>((set, get) => ({
   dashboard: null,
   orders: [],
@@ -116,10 +182,18 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
     set({ isLoading: true });
     try {
       const response = await apiClient.get("/delivery/me/dashboard");
-      set({
-        dashboard: response.data,
-        orders: sortOrders(response.data.assignedOrders ?? []),
-        isLoading: false,
+      set((state) => {
+        const mockOrders = state.orders.filter((order) => isMockOrderId(order.orderId));
+        const assignedOrders = sortOrders([...(response.data.assignedOrders ?? []), ...mockOrders]);
+        return {
+          dashboard: {
+            ...response.data,
+            activeOrder: mockOrders[0] ?? response.data.activeOrder,
+            assignedOrders,
+          },
+          orders: assignedOrders,
+          isLoading: false,
+        };
       });
     } catch (error) {
       set({ isLoading: false });
@@ -130,9 +204,12 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
     set({ isLoading: true });
     try {
       const response = await apiClient.get("/delivery/orders/assigned");
-      set({
-        orders: sortOrders(response.data ?? []),
-        isLoading: false,
+      set((state) => {
+        const mockOrders = state.orders.filter((order) => isMockOrderId(order.orderId));
+        return {
+          orders: sortOrders([...(response.data ?? []), ...mockOrders]),
+          isLoading: false,
+        };
       });
     } catch (error) {
       set({ isLoading: false });
@@ -140,6 +217,12 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
   },
 
   fetchOrderDetail: async (orderId) => {
+    if (isMockOrderId(orderId)) {
+      const mockOrder = get().orders.find((order) => order.orderId === orderId);
+      set({ selectedOrder: mockOrder ?? createMockDeliveryOrder(orderId) });
+      return;
+    }
+
     const response = await apiClient.get(`/delivery/orders/${orderId}`);
     set({ selectedOrder: response.data });
   },
@@ -163,6 +246,13 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
   },
 
   acceptOrder: async (orderId) => {
+    if (isMockOrderId(orderId)) {
+      const mockOrder = createMockDeliveryOrder(orderId);
+      get().mergeRealtimeDelivery(mockOrder);
+      set({ activeRequest: null, selectedOrder: mockOrder });
+      return;
+    }
+
     const response = await apiClient.patch(
       `/delivery/orders/${orderId}/accept`,
     );
@@ -170,6 +260,53 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
   },
 
   updateOrderStatus: async (orderId, status, otp) => {
+    if (isMockOrderId(orderId)) {
+      const currentOrder =
+        get().orders.find((order) => order.orderId === orderId) ??
+        get().selectedOrder ??
+        createMockDeliveryOrder(orderId);
+      const nextStatus = status as DeliveryOrder["status"];
+
+      if (nextStatus === "COMPLETED" && otp !== currentOrder.deliveryOtp) {
+        Alert.alert("Invalid OTP", "Use 1234 for the test order.");
+        return;
+      }
+
+      const nextOrder: DeliveryOrder = {
+        ...currentOrder,
+        status: nextStatus,
+        pickedUpAt: ["PICKED_UP", "ARRIVED", "COMPLETED"].includes(nextStatus)
+          ? new Date().toISOString()
+          : currentOrder.pickedUpAt,
+        deliveredAt: nextStatus === "COMPLETED" ? new Date().toISOString() : currentOrder.deliveredAt,
+        statusTimeline: createTimeline(nextStatus),
+      };
+
+      get().mergeRealtimeDelivery(nextOrder);
+
+      if (nextStatus === "COMPLETED") {
+        set((state) => ({
+          selectedOrder: nextOrder,
+          dashboard: state.dashboard
+            ? {
+                ...state.dashboard,
+                activeOrder: null,
+                wallet: {
+                  ...state.dashboard.wallet,
+                  balance: state.dashboard.wallet.balance + (nextOrder.earnings?.finalAmount ?? 0),
+                  totalEarnings: state.dashboard.wallet.totalEarnings + (nextOrder.earnings?.finalAmount ?? 0),
+                },
+              }
+            : state.dashboard,
+        }));
+        Alert.alert(
+          "Test delivery completed",
+          "Mock order completed. Earnings were added locally for testing.",
+        );
+      }
+      return;
+    }
+
     const response = await apiClient.patch(
       `/delivery/orders/${orderId}/status`,
       { status, otp },
@@ -209,22 +346,38 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
               activeOrder: order.status !== "COMPLETED" ? order : null,
               assignedOrders: nextOrders,
             }
-          : state.dashboard,
+          : {
+              availability: {
+                isOnline: true,
+                isAvailable: order.status === "COMPLETED",
+              },
+              activeOrder: order.status !== "COMPLETED" ? order : null,
+              assignedOrders: nextOrders,
+              wallet: {
+                balance: 0,
+                heldBalance: 0,
+                totalEarnings: 0,
+                totalPaidOut: 0,
+                pendingPayouts: 0,
+              },
+            },
       };
     });
   },
 
   simulateOrder: () => {
+    const orderId = "MOCK-" + Math.random().toString(36).slice(2, 9).toUpperCase();
     const mockRequest = {
-      orderId: "MOCK-" + Math.random().toString(36).substr(2, 9).toUpperCase(),
-      pickupAddress: "123 Kitchen Street, Gourmet Valley",
-      deliveryAddress: "456 Customer Lane, Happy Heights",
+      orderId,
+      pickupAddress: "The Chatori Kitchen, Sector 15, Gurugram",
+      deliveryAddress: "Happy Heights, Tower B, Sector 46, Gurugram",
       totalAmount: 450,
       itemsCount: 3,
       restaurantName: "The Chatori Kitchen",
-      estimatedDistance: "4.2 km",
+      distanceKm: 4.2,
       estimatedTime: "15 mins",
-      earnings: 45.00,
+      earnings: 45,
+      expiresIn: 30,
     };
     set({ activeRequest: mockRequest });
   },

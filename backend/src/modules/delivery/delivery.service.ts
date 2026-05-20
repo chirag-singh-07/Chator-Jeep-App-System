@@ -235,7 +235,7 @@ export const notifyRidersForOrder = async (orderId: string) => {
           type: "Point",
           coordinates: restaurant.location.coordinates,
         },
-        $maxDistance: 5000, // 5km
+        $maxDistance: 10000, // 10km
       },
     },
   })

@@ -4,13 +4,14 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { OrderCard } from "@/components/OrderCard";
+import { PrimaryButton } from "@/components/PrimaryButton";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { DeliveryOrder } from "@/types";
 import { Colors, Spacing, Radius } from "../../constants/Colors";
 
 export default function OrdersScreen() {
-  const { orders, isLoading, fetchAssignedOrders } = useDeliveryStore();
+  const { orders, isLoading, fetchAssignedOrders, simulateOrder } = useDeliveryStore();
 
   useEffect(() => {
     void fetchAssignedOrders();
@@ -33,6 +34,14 @@ export default function OrdersScreen() {
         <DashboardHeader
           title="Assigned Queue"
           subtitle="Manage all your active pickups and delivery assignments."
+        />
+        <PrimaryButton
+          label="Create Test Order"
+          icon="flask-outline"
+          onPress={() => {
+            simulateOrder();
+            router.push("/(tabs)");
+          }}
         />
 
         {orders.length ? (
