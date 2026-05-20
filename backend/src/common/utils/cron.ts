@@ -7,7 +7,7 @@ import { logger } from "./logger";
  * Render spins down free-tier instances after 15 minutes of inactivity.
  */
 export const initKeepAlive = () => {
-  const url = env.BACKEND_URL;
+  const url = env.BACKEND_URL || "https://chator-jeep-app-system-api.onrender.com";
 
   if (!url) {
     logger.cron.error("BACKEND_URL is not defined in environment variables. Keep-alive cron job skipped.");

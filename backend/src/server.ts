@@ -7,9 +7,12 @@ import { initSocket } from "./sockets";
 import { initFirebase } from "./config/firebase";
 import { initWorkers } from "./jobs/workers";
 import { initKeepAlive } from "./common/utils/cron";
+import { initMongoHealthCheck } from "./common/utils/mongo-cron";
+import { ensureCategories } from "./scripts/ensure-categories";
 
 const bootstrap = async (): Promise<void> => {
   await connectDB();
+  await ensureCategories();
   initFirebase();
 
   const server = createServer(app);
@@ -28,6 +31,7 @@ const bootstrap = async (): Promise<void> => {
   server.listen(env.PORT, () => {
     console.log(`Server running on port ${env.PORT}`);
     initKeepAlive();
+    initMongoHealthCheck();
   });
 };
 
