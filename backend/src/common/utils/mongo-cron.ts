@@ -18,7 +18,7 @@ export const initMongoHealthCheck = () => {
     try {
       // Check connection status
       if (mongoose.connection.readyState !== 1) {
-        logger.cron.warn(`⚠️  MongoDB connection state: ${mongoose.connection.readyState} (expected 1 for connected)`);
+        logger.cron.error(`⚠️  MongoDB connection state: ${mongoose.connection.readyState} (expected 1 for connected)`);
         return;
       }
 
@@ -29,7 +29,7 @@ export const initMongoHealthCheck = () => {
         if (result.ok === 1) {
           logger.cron.info("✅ MongoDB health check passed - server is responsive");
         } else {
-          logger.cron.warn("⚠️  MongoDB ping returned unexpected response:", result);
+          logger.cron.error("⚠️  MongoDB ping returned unexpected response: " + JSON.stringify(result));
         }
       }
     } catch (error) {
