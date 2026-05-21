@@ -31,6 +31,8 @@ const UserApp = lazy(() => import("./pages/download/UserApp.tsx"));
 const PartnerApp = lazy(() => import("./pages/download/PartnerApp.tsx"));
 const RestaurantApp = lazy(() => import("./pages/download/RestaurantApp.tsx"));
 
+const RequestDeletion = lazy(() => import("./pages/account/RequestDeletion.tsx"));
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -62,6 +64,7 @@ const App = () => (
             <Route path="/app/user" element={<UserApp />} />
             <Route path="/app/partner" element={<PartnerApp />} />
             <Route path="/app/restaurant" element={<RestaurantApp />} />
+            <Route path="/account/delete" element={<RequestDeletion />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

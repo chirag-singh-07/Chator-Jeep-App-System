@@ -12,7 +12,7 @@ export const sendEmail = async (
 ) => {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Chatori Jeeb <noreply@chatorijeeb.com>',
+      from: "Chatori Jeeb <noreply@chatorijeeb.com>",
       to: [to],
       subject: subject,
       text: text,
@@ -20,12 +20,17 @@ export const sendEmail = async (
     });
 
     if (error) {
-      logger.error(`[RESEND ERROR] Code: ${(error as any).statusCode} | Name: ${(error as any).name} | Message: ${error.message}`, error);
+      logger.error(
+        `[RESEND ERROR] Code: ${(error as any).statusCode} | Name: ${(error as any).name} | Message: ${error.message}`,
+        error,
+      );
       logger.error(`[RESEND FULL ERROR]`, JSON.stringify(error, null, 2));
       throw error;
     }
 
-    logger.info(`[EMAIL SENT] ✅ Resend ID: ${data?.id} | To: ${to} | Subject: ${subject}`);
+    logger.info(
+      `[EMAIL SENT] ✅ Resend ID: ${data?.id} | To: ${to} | Subject: ${subject}`,
+    );
     return true;
   } catch (error: any) {
     logger.error(`[EMAIL FAILED] ❌ To: ${to} | Subject: ${subject}`, error);
@@ -37,11 +42,13 @@ export const sendEmail = async (
       raw: JSON.stringify(error),
     });
 
-    if (process.env.NODE_ENV === 'production') {
-      throw error; // Let otp.service handle it and return proper error to user
+    if (process.env.NODE_ENV === "production") {
+      throw error;
     }
-    
-    logger.warn(`[EMAIL BYPASS] Continuing in ${process.env.NODE_ENV} mode despite email failure.`);
-    return false; // Return false in dev so caller can decide what to do
+
+    logger.warn(
+      `[EMAIL BYPASS] Continuing in ${process.env.NODE_ENV} mode despite email failure.`,
+    );
+    return false;
   }
 };

@@ -14,6 +14,7 @@ import couponRoutes from "../modules/coupon/coupon.routes";
 import systemRoutes from "../modules/system/system.routes";
 import bannerRoutes from "../modules/banner/banner.routes";
 import reviewRoutes from "../modules/review/review.routes";
+import deletionRoutes from "../modules/account-deletion/deletion.routes";
 
 const router = Router();
 
@@ -32,5 +33,6 @@ router.use("/coupons", couponRoutes);
 router.use("/system", systemRoutes);
 router.use("/banners", bannerRoutes);
 router.use("/reviews", reviewRoutes);
+router.use("/account", deletionRoutes);
 
 export default router;
