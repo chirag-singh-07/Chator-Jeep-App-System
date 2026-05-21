@@ -2,6 +2,10 @@ import { useEffect } from "react";
 import * as Location from "expo-location";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
+import {
+  startBackgroundLocation,
+  stopBackgroundLocation,
+} from "@/lib/backgroundLocation";
 
 export function useLiveLocationSync() {
   const isAuthenticated = useAuthStore(
@@ -16,6 +20,7 @@ export function useLiveLocationSync() {
 
   useEffect(() => {
     if (!isAuthenticated || !dashboard?.availability.isOnline) {
+      void stopBackgroundLocation();
       return;
     }
 
@@ -38,9 +43,12 @@ export function useLiveLocationSync() {
     void sync();
 
     if (dashboard.activeOrder) {
+      void startBackgroundLocation();
       intervalId = setInterval(() => {
         void sync();
-      }, 15000);
+      }, 10000);
+    } else {
+      void stopBackgroundLocation();
     }
 
     return () => {

@@ -20,6 +20,9 @@ router.post("/reviews", authMiddleware, ctrl.createReview);
 /** POST /api/v1/restaurants/register - Restaurant owner signs up */
 router.post("/register", ctrl.registerRestaurant);
 
+/** POST /api/v1/restaurants/register/precheck - Validate before payment */
+router.post("/register/precheck", ctrl.precheckRestaurantRegistration);
+
 /** POST /api/v1/restaurants/login - Restaurant owner logs in */
 router.post("/login", ctrl.loginRestaurant);
 

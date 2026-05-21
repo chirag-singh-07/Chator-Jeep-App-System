@@ -25,6 +25,34 @@ import { User, IUser } from "../user/user.model";
 
 const indianPhoneRegex = /^[6-9]\d{9}$/;
 
+const validateRestaurantRegistrationInput = async (input: {
+  email: string;
+  phone: string;
+  termsAccepted?: boolean;
+}) => {
+  const email = input.email.trim().toLowerCase();
+  const phone = input.phone.trim();
+
+  if (!indianPhoneRegex.test(phone)) {
+    throw new AppError("Please enter a valid Indian mobile number", 400);
+  }
+
+  const existing = await findUserByEmail(email);
+  if (existing) throw new AppError("Email already registered", 409);
+  if (!input.termsAccepted) throw new AppError("Terms and Conditions must be accepted", 400);
+
+  return { email, phone };
+};
+
+export const precheckRestaurantRegistration = async (input: {
+  email: string;
+  phone: string;
+  termsAccepted?: boolean;
+}) => {
+  await validateRestaurantRegistrationInput(input);
+  return { canProceed: true };
+};
+
 // ─── Register Restaurant ─────────────────────────────────────────────────────
 export const registerRestaurant = async (input: {
   ownerName: string;
@@ -47,16 +75,7 @@ export const registerRestaurant = async (input: {
   termsAccepted?: boolean;
   registrationPaymentId?: string;
 }) => {
-  const email = input.email.trim().toLowerCase();
-  const phone = input.phone.trim();
-
-  if (!indianPhoneRegex.test(phone)) {
-    throw new AppError("Please enter a valid Indian mobile number", 400);
-  }
-
-  const existing = await findUserByEmail(email);
-  if (existing) throw new AppError("Email already registered", 409);
-  if (!input.termsAccepted) throw new AppError("Terms and Conditions must be accepted", 400);
+  const { email, phone } = await validateRestaurantRegistrationInput(input);
   if (!input.registrationPaymentId) throw new AppError("Verified registration payment is required", 402);
 
   const payment = await consumeRestaurantRegistrationPayment(

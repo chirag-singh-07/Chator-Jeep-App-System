@@ -16,6 +16,13 @@ export const registerRestaurant = asyncHandler(
   },
 );
 
+export const precheckRestaurantRegistration = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await service.precheckRestaurantRegistration(req.body);
+    res.status(200).json({ success: true, data: result });
+  },
+);
+
 export const loginRestaurant = asyncHandler(
   async (req: Request, res: Response) => {
     const { email, password } = req.body;
@@ -250,4 +257,3 @@ export const createReview = asyncHandler(
     res.status(201).json({ success: true, data: review });
   },
 );
-

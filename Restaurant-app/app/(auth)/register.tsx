@@ -193,6 +193,11 @@ export default function RegisterScreen() {
         setBankName(draft.bankName || "");
         setMenuDrafts(Array.isArray(draft.menuDrafts) && draft.menuDrafts.length ? draft.menuDrafts : [createMenuDraft()]);
         setTermsAccepted(Boolean(draft.termsAccepted));
+        if (draft.registrationPaymentId && draft.paymentStatus === "PAID") {
+          setRegistrationPaymentId(draft.registrationPaymentId);
+          setPaymentStatus("PAID");
+          setPaymentMessage(draft.paymentMessage || "Payment verified successfully. You can submit without paying again.");
+        }
       } catch (error) {
         console.warn("Failed to load restaurant registration draft", error);
       } finally {
@@ -237,6 +242,9 @@ export default function RegisterScreen() {
       bankName,
       menuDrafts,
       termsAccepted,
+      registrationPaymentId: paymentStatus === "PAID" ? registrationPaymentId : "",
+      paymentStatus: paymentStatus === "PAID" ? "PAID" : "IDLE",
+      paymentMessage: paymentStatus === "PAID" ? paymentMessage : "",
     };
 
     AsyncStorage.setItem(REGISTER_DRAFT_KEY, JSON.stringify(draft)).catch((error) => {
@@ -273,6 +281,9 @@ export default function RegisterScreen() {
     bankName,
     menuDrafts,
     termsAccepted,
+    registrationPaymentId,
+    paymentStatus,
+    paymentMessage,
   ]);
 
   useEffect(() => {
@@ -649,6 +660,7 @@ export default function RegisterScreen() {
       setCurrentStep(currentStep + 1);
     } else {
       try {
+        await validateRegistrationBeforePayment();
         const verifiedPayment = await collectRegistrationPayment();
 
         setUploadStatus({ message: "CREATING ACCOUNT...", isUploading: true });
@@ -778,7 +790,10 @@ export default function RegisterScreen() {
           description = rawMsg || "Payment could not be completed. Please try again.";
         } else if (lowerMsg.includes("email already registered") || lowerMsg.includes("already registered")) {
           title = "EMAIL ALREADY IN USE";
-          description = "This email is already registered with us.\n\nPlease use a different email, or go back to the login screen if this is your account.";
+          description =
+            paymentStatus === "PAID"
+              ? "This email is already registered. Your payment is verified and saved for this attempt. Change the email and tap submit again; you will not be charged again."
+              : "This email is already registered with us.\n\nPlease use a different email, or go back to the login screen if this is your account.";
         } else if (lowerMsg.includes("network") || lowerMsg.includes("timeout") || lowerMsg.includes("econnrefused")) {
           title = "CONNECTION FAILED";
           description = "We couldn't reach our servers. Please check your internet connection and try again.";
@@ -793,12 +808,27 @@ export default function RegisterScreen() {
           description = "Your account was created but we couldn't upload your documents. Please try uploading them again from your profile.";
         } else if (rawMsg.length > 0) {
           // Use the backend's message directly if it's meaningful
-          description = rawMsg;
+          description =
+            paymentStatus === "PAID"
+              ? `${rawMsg}\n\nYour payment is verified and saved. Fix the issue and tap submit again; you will not be charged again.`
+              : rawMsg;
         }
 
         Alert.alert(title, description, [{ text: "OK", style: "default" }]);
       }
     }
+  };
+
+  const validateRegistrationBeforePayment = async () => {
+    if (registrationPaymentId && paymentStatus === "PAID") {
+      return;
+    }
+
+    await apiClient.post("/restaurants/register/precheck", {
+      email,
+      phone,
+      termsAccepted,
+    });
   };
 
   const collectRegistrationPayment = async () => {
