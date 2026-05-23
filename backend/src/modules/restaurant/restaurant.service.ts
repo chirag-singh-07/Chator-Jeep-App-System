@@ -282,11 +282,6 @@ export const adminGetRestaurant = async (id: string) => {
 };
 
 export const adminApproveRestaurant = async (id: string, adminUserId: string) => {
-  const menuCount = await MenuItem.countDocuments({ restaurantId: id });
-  if (menuCount === 0) {
-    throw new AppError("Restaurant must submit at least one menu item before approval", 400);
-  }
-
   const restaurant = await approveRestaurant(id, adminUserId);
   if (!restaurant) throw new AppError("Restaurant not found", 404);
   return restaurant;

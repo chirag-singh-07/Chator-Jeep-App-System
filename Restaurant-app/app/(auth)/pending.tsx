@@ -8,7 +8,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -38,6 +39,18 @@ export default function PendingVerificationScreen() {
       setChecking(false);
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      checkStatus();
+      
+      const interval = setInterval(() => {
+        checkStatus();
+      }, 5000);
+      
+      return () => clearInterval(interval);
+    }, [])
+  );
 
   const STEPS = [
     { label: 'Application Submitted', done: true },

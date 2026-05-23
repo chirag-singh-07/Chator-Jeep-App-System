@@ -74,7 +74,7 @@ export default function LoginScreen() {
           <View style={styles.header}>
             <View style={styles.brandIcon}>
               <Image
-                source={require("../../assets/icons/ios-icon-180x180.png")}
+                source={require("../../assets/resturant-app-logo.png")}
                 style={styles.brandLogo}
               />
             </View>

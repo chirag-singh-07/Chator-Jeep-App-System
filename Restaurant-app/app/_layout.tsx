@@ -22,6 +22,7 @@ export default function RootLayout() {
     if (!navigationState?.key) return;
 
     const inAuthGroup = segments[0] === "(auth)";
+    const inOnboarding = segments[0] === "(onboarding)";
     const authPage = segments[1] as string | undefined;
     const isPublicAuthPage =
       authPage === "login" ||
@@ -29,12 +30,12 @@ export default function RootLayout() {
       authPage === "forgot-password";
     
     if (!isAuthenticated) {
-      // If not authenticated and not on login/register, go to login
-      if (!inAuthGroup || !isPublicAuthPage) {
-        router.replace("/(auth)/login");
+      // If not authenticated and not on login/register/onboarding, go to onboarding
+      if (!inAuthGroup && !inOnboarding) {
+        router.replace("/(onboarding)");
       }
-    } else if (isAuthenticated && inAuthGroup) {
-      // If authenticated but still in auth group, redirect based on status
+    } else if (isAuthenticated && (inAuthGroup || inOnboarding)) {
+      // If authenticated but still in auth or onboarding, redirect based on status
       if (user?.status === "REQUESTED" || user?.status === "PENDING") {
         router.replace("/(auth)/pending");
       } else if (user?.status === "REJECTED") {
@@ -57,6 +58,7 @@ export default function RootLayout() {
         <Stack.Screen name="(auth)/forgot-password" />
         <Stack.Screen name="(auth)/pending" />
         <Stack.Screen name="(auth)/rejected" />
+        <Stack.Screen name="(onboarding)" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="order/[id]" />
       </Stack>
