@@ -1,7 +1,6 @@
 import { Schema, model, Document } from "mongoose";
 
 export interface IAccountDeletionRequest extends Document {
-  _id: string;
   email: string;
   userId?: string;
   reason: string;

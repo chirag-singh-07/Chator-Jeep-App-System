@@ -34,7 +34,7 @@ export class DeletionService {
     });
 
     // Send confirmation email
-    await this.sendDeletionConfirmationEmail(email, request._id as string);
+    await this.sendDeletionConfirmationEmail(email, request._id.toString());
 
     return request;
   }
@@ -83,12 +83,12 @@ export class DeletionService {
     `;
 
     try {
-      await sendEmail({
-        to: email,
-        subject: "Account Deletion Request - Action Required",
-        text: "Account Deletion Request - Action Required",
-        html: emailTemplate,
-      });
+      await sendEmail(
+        email,
+        "Account Deletion Request - Action Required",
+        "Account Deletion Request - Action Required",
+        emailTemplate,
+      );
     } catch (error) {
       throw error;
     }
@@ -112,16 +112,17 @@ export class DeletionService {
     const updated = await deletionRepository.confirmDeletion(requestId);
 
     // Send confirmation email
-    await sendEmail({
-      to: request.email,
-      subject: "Account Deletion Confirmed",
-      html: `
+    await sendEmail(
+      request.email,
+      "Account Deletion Confirmed",
+      `Your account deletion has been confirmed. Your account will be deleted on ${new Date(request.confirmationDeadline).toDateString()}.`,
+      `
         <h2>Deletion Confirmed</h2>
         <p>Your account deletion has been confirmed. Your account will be deleted on ${new Date(request.confirmationDeadline).toDateString()}.</p>
         <p>If you want to cancel this process, click the link below:</p>
         <a href="${process.env.FRONTEND_URL}/account/delete/cancel/${requestId}">Cancel Deletion</a>
       `,
-    });
+    );
 
     return updated;
   }
@@ -144,15 +145,16 @@ export class DeletionService {
     const updated = await deletionRepository.cancelDeletion(requestId, reason);
 
     // Send cancellation email
-    await sendEmail({
-      to: request.email,
-      subject: "Account Deletion Cancelled",
-      html: `
+    await sendEmail(
+      request.email,
+      "Account Deletion Cancelled",
+      "Your account deletion request has been cancelled. Your account is safe and active.",
+      `
         <h2>Deletion Cancelled</h2>
         <p>Your account deletion request has been cancelled. Your account is safe and active.</p>
         <p>You can continue using Chatori Jeeb normally.</p>
       `,
-    });
+    );
 
     return updated;
   }
@@ -170,7 +172,7 @@ export class DeletionService {
 
         // Update deletion request status
         await deletionRepository.updateStatus(
-          request._id as string,
+          request._id.toString(),
           "DELETED",
           {
             deletedAt: new Date(),

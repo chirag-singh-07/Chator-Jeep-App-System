@@ -58,7 +58,7 @@ export const getAllDeletions = async (req: Request, res: Response) => {
 
 export const getDeletionDetails = async (req: Request, res: Response) => {
   const { requestId } = req.params;
-  const request = await deletionService.getRequestById(requestId as string);
+  const request = await deletionService.getRequest(requestId as string);
   res.status(200).json({ success: true, data: request });
 };
 
