@@ -53,6 +53,11 @@ export const initiateCheckoutPayment = asyncHandler(async (req: AuthenticatedReq
   res.status(200).json({ success: true, data: result });
 });
 
+export const checkoutPreview = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const result = await service.checkoutPreview(req.user!.userId, req.body);
+  res.status(200).json({ success: true, data: result });
+});
+
 export const verifyCheckoutPayment = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const result = await service.verifyPaymentAndCreateOrder(req.user!.userId, req.body);
   res.status(201).json({ success: true, data: result });

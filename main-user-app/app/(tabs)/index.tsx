@@ -179,7 +179,10 @@ export default function HomeScreen() {
             }}
           >
             <View style={styles.locIndicator}>
-              <Ionicons name="location" size={18} color={Colors.light.primary} />
+              <Image
+                source={require('../../assets/images/icon.png')}
+                style={{ width: 28, height: 28, borderRadius: 8, resizeMode: 'contain' }}
+              />
             </View>
             <View style={{ marginLeft: 12 }}>
               <View

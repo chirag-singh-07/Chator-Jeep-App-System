@@ -96,7 +96,7 @@ export default function LoginScreen() {
               >
                 <View style={styles.logoCircle}>
                   <Image
-                    source={require("../../assets/icons/ios-icon-180x180.png")}
+                    source={require("../../assets/images/icon.png")}
                     style={styles.logoImage}
                   />
                 </View>

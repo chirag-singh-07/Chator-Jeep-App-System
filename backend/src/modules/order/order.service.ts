@@ -120,10 +120,11 @@ const buildOrderDraft = async (userId: string, input: OrderInput) => {
 
   const config = await getPlatformConfig();
   
-  const distanceKm = haversineKm(
+  const rawDistanceKm = haversineKm(
     restaurant.location.coordinates as [number, number],
     input.location.coordinates
   );
+  const distanceKm = Math.min(rawDistanceKm, 15);
 
   const deliveryFee = Math.round(config.deliveryBaseFee + distanceKm * config.deliveryPerKmFee);
   const offerActive = Boolean(
@@ -565,4 +566,14 @@ export const updateOrderStatus = async (
   }
 
   return updated;
+};
+
+export const checkoutPreview = async (userId: string, input: OrderInput) => {
+  const draft = await buildOrderDraft(userId, input);
+  return {
+    foodAmount: draft.payload.foodAmount,
+    deliveryFee: draft.payload.deliveryFee,
+    platformFee: draft.payload.platformFee,
+    totalAmount: draft.itemsTotal,
+  };
 };

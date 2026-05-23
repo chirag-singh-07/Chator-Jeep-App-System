@@ -38,6 +38,8 @@ export default function CheckoutScreen() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('COD');
   const [isProcessing, setIsProcessing] = useState(false);
   const [promoCode, setPromoCode] = useState('');
+  const [breakdown, setBreakdown] = useState({ foodAmount: totalAmount, deliveryFee: 0, platformFee: 0, totalAmount: totalAmount });
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
   useEffect(() => {
     const defaultAddress = currentAddress || savedAddresses[0] || null;
@@ -53,10 +55,39 @@ export default function CheckoutScreen() {
   const [discount, setDiscount] = useState(0);
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
 
-  const DELIVERY_FEE = 30;
-  const TAXES = Math.round(totalAmount * 0.05);
-  const subTotal = totalAmount + DELIVERY_FEE + TAXES;
-  const grandTotal = Math.max(0, subTotal - discount);
+  const fetchPreview = async (address: any) => {
+    try {
+      setIsPreviewLoading(true);
+      const baseOrderData = {
+        restaurantId,
+        items: items.map((item) => ({ menuItemId: item.id, quantity: item.quantity })),
+        deliveryAddress: `${address.label || address.type || 'Address'}: ${address.line1 || address.flat}, ${address.city || address.area}`,
+        location: {
+          type: 'Point',
+          coordinates: address.coordinates
+            ? [address.coordinates.longitude, address.coordinates.latitude]
+            : [77.1025, 28.7041],
+        },
+        paymentMethod: 'ONLINE',
+      };
+      const res = await api.post('/orders/payment/checkout-preview', baseOrderData);
+      if (res.data?.success) {
+        setBreakdown(res.data.data);
+      }
+    } catch (err) {
+      console.log('Failed to fetch preview', err);
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (step === 2 && selectedAddress) {
+      fetchPreview(selectedAddress);
+    }
+  }, [step, selectedAddress]);
+
+  const grandTotal = Math.max(0, breakdown.totalAmount - discount);
 
   const handleRazorpayPayment = async (razorpayData: any) => {
     // Check if RazorpayCheckout is available
@@ -262,16 +293,37 @@ export default function CheckoutScreen() {
             </TouchableOpacity>
 
             <View style={styles.summaryCard}>
-              <Text style={styles.summaryTitle}>Summary</Text>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Subtotal</Text>
-                <Text style={styles.summaryValue}>Rs.{totalAmount}</Text>
-              </View>
-              <View style={styles.summaryDivider} />
-              <View style={styles.summaryRow}>
-                <Text style={styles.grandTotalLabel}>Total to Pay</Text>
-                <Text style={styles.grandTotalValue}>Rs.{grandTotal}</Text>
-              </View>
+              <Text style={styles.summaryTitle}>Detailed Bill</Text>
+              
+              {isPreviewLoading ? (
+                <ActivityIndicator size="small" color={Colors.light.primary} style={{ marginVertical: 20 }} />
+              ) : (
+                <>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Item Total</Text>
+                    <Text style={styles.summaryValue}>₹{breakdown.foodAmount}</Text>
+                  </View>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Delivery Fee</Text>
+                    <Text style={styles.summaryValue}>₹{breakdown.deliveryFee}</Text>
+                  </View>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Platform Fee</Text>
+                    <Text style={styles.summaryValue}>₹{breakdown.platformFee}</Text>
+                  </View>
+                  {discount > 0 && (
+                    <View style={styles.summaryRow}>
+                      <Text style={[styles.summaryLabel, { color: '#22C55E' }]}>Promo Discount</Text>
+                      <Text style={[styles.summaryValue, { color: '#22C55E' }]}>- ₹{discount}</Text>
+                    </View>
+                  )}
+                  <View style={styles.summaryDivider} />
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.grandTotalLabel}>To Pay</Text>
+                    <Text style={styles.grandTotalValue}>₹{grandTotal}</Text>
+                  </View>
+                </>
+              )}
             </View>
           </Animated.View>
         )}

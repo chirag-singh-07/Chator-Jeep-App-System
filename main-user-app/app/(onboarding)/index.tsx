@@ -97,6 +97,13 @@ export default function OnboardingScreen() {
         renderItem={({ item, index }) => (
           <View style={styles.slide}>
             <View style={styles.topSection}>
+              {/* App Logo Badge */}
+              <View style={styles.logoBadge}>
+                <Image
+                  source={require('@/assets/images/icon.png')}
+                  style={styles.logoImg}
+                />
+              </View>
               <Animated.View 
                 entering={FadeInDown.duration(1000)}
                 style={styles.imageContainer}
@@ -194,6 +201,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.light.primary,
+    paddingTop: 20,
+  },
+  logoBadge: {
+    width: 72,
+    height: 72,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.5)',
+  },
+  logoImg: {
+    width: 50,
+    height: 50,
+    borderRadius: 14,
+    resizeMode: 'contain',
   },
   imageContainer: {
     width: width * 0.8,

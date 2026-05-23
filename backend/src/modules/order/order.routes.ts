@@ -33,6 +33,15 @@ router.post(
   controller.initiateCheckoutPayment
 );
 
+/** POST /api/v1/orders/payment/checkout-preview — Preview checkout prices */
+router.post(
+  "/payment/checkout-preview",
+  authMiddleware,
+  roleMiddleware([ROLES.USER]),
+  validate(onlineCheckoutPaymentSchema),
+  controller.checkoutPreview
+);
+
 /** POST /api/v1/orders/payment/verify-create — Verify payment, then create order */
 router.post(
   "/payment/verify-create",
