@@ -6,11 +6,12 @@ type FormFieldProps = {
   description?: string;
   error?: string;
   children: React.ReactNode;
+  className?: string;
 };
 
-export function FormField({ label, htmlFor, description, error, children }: FormFieldProps) {
+export function FormField({ label, htmlFor, description, error, children, className }: FormFieldProps) {
   return (
-    <div className={cn("flex flex-col gap-2", error && "data-[invalid=true]")} data-invalid={Boolean(error)}>
+    <div className={cn("flex flex-col gap-2", error && "data-[invalid=true]", className)} data-invalid={Boolean(error)}>
       <label htmlFor={htmlFor} className="text-sm font-medium">
         {label}
       </label>

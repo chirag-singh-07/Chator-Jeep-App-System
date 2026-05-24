@@ -28,6 +28,24 @@ export function RestaurantFormPage() {
   const [heroImage, setHeroImage] = useState("");
   const [logoImage, setLogoImage] = useState("");
   const [notes, setNotes] = useState("");
+
+  // Full Address
+  const [addressLine1, setAddressLine1] = useState("");
+  const [city, setCity] = useState("");
+  const [stateForm, setStateForm] = useState("");
+  const [pinCode, setPinCode] = useState("");
+
+  // Bank Details
+  const [bankName, setBankName] = useState("");
+  const [accountHolderName, setAccountHolderName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [ifscCode, setIfscCode] = useState("");
+
+  // Documents
+  const [fssaiLicense, setFssaiLicense] = useState("");
+  const [aadharCard, setAadharCard] = useState("");
+  const [panCard, setPanCard] = useState("");
+  const [livePhoto, setLivePhoto] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -46,7 +64,7 @@ export function RestaurantFormPage() {
     if (errors.name || errors.owner || errors.email || errors.phone || errors.password || errors.location || !name || !owner || !email || !location || !password) {
       return;
     }
-    
+
     setIsLoading(true);
     try {
       await adminService.createRestaurant({
@@ -60,7 +78,19 @@ export function RestaurantFormPage() {
         cuisine,
         heroImage,
         logoImage,
-        notes
+        notes,
+        addressLine1,
+        city,
+        state: stateForm,
+        pinCode,
+        bankName,
+        accountHolderName,
+        accountNumber,
+        ifscCode,
+        fssaiLicense,
+        aadharCard,
+        panCard,
+        livePhoto
       });
       toast.success("Restaurant created successfully.");
       navigate("/restaurants?type=" + type);
@@ -112,12 +142,12 @@ export function RestaurantFormPage() {
           </div>
 
           <FormField label="Owner Login Password" error={errors.password}>
-             <div className="relative">
-                <Input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} aria-invalid={Boolean(errors.password)} placeholder="Assign a default password" disabled={isLoading} className="pr-10" />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-             </div>
+            <div className="relative">
+              <Input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} aria-invalid={Boolean(errors.password)} placeholder="Assign a default password" disabled={isLoading} className="pr-10" />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </FormField>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -145,9 +175,81 @@ export function RestaurantFormPage() {
             </FormField>
           </div>
 
-          <FormField label="Internal Notes">
-            <Textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Ops or approval notes..." disabled={isLoading} />
-          </FormField>
+          {/* Full Address Section */}
+          <div className="pt-4 border-t">
+            <h3 className="text-lg font-semibold mb-4">Full Address</h3>
+            <div className="grid gap-4 md:grid-cols-2">
+              <FormField label="Address Line 1" className="md:col-span-2">
+                <Input value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} placeholder="Street address, building, etc." disabled={isLoading} />
+              </FormField>
+              <FormField label="City">
+                <Input value={city} onChange={(e) => setCity(e.target.value)} disabled={isLoading} />
+              </FormField>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="State">
+                  <Input value={stateForm} onChange={(e) => setStateForm(e.target.value)} disabled={isLoading} />
+                </FormField>
+                <FormField label="PIN Code">
+                  <Input value={pinCode} onChange={(e) => setPinCode(e.target.value)} disabled={isLoading} />
+                </FormField>
+              </div>
+            </div>
+          </div>
+
+          {/* Bank Details Section */}
+          <div className="pt-4 border-t">
+            <h3 className="text-lg font-semibold mb-4">Bank Details</h3>
+            <div className="grid gap-4 md:grid-cols-2">
+              <FormField label="Bank Name">
+                <Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="e.g. HDFC Bank" disabled={isLoading} />
+              </FormField>
+              <FormField label="Account Holder Name">
+                <Input value={accountHolderName} onChange={(e) => setAccountHolderName(e.target.value)} disabled={isLoading} />
+              </FormField>
+              <FormField label="Account Number">
+                <Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} disabled={isLoading} />
+              </FormField>
+              <FormField label="IFSC Code">
+                <Input value={ifscCode} onChange={(e) => setIfscCode(e.target.value)} disabled={isLoading} />
+              </FormField>
+            </div>
+          </div>
+
+          {/* Documents Section */}
+          <div className="pt-4 border-t">
+            <h3 className="text-lg font-semibold mb-4">Verification Documents</h3>
+            <div className="grid gap-4 md:grid-cols-2 mb-4">
+              <FormField label="FSSAI License Number" className="md:col-span-2">
+                <Input value={fssaiLicense} onChange={(e) => setFssaiLicense(e.target.value)} placeholder="14-digit FSSAI number" disabled={isLoading} />
+              </FormField>
+            </div>
+            <div className="grid gap-6 md:grid-cols-3">
+              <FormField label="Aadhar Card">
+                <div className="flex flex-col gap-3">
+                  <UploadDropzone preview={aadharCard} onChange={setAadharCard} folder="restaurants/documents" />
+                  <Input value={aadharCard} onChange={(e) => setAadharCard(e.target.value)} placeholder="URL" disabled={isLoading} />
+                </div>
+              </FormField>
+              <FormField label="PAN Card">
+                <div className="flex flex-col gap-3">
+                  <UploadDropzone preview={panCard} onChange={setPanCard} folder="restaurants/documents" />
+                  <Input value={panCard} onChange={(e) => setPanCard(e.target.value)} placeholder="URL" disabled={isLoading} />
+                </div>
+              </FormField>
+              <FormField label="Live Photo">
+                <div className="flex flex-col gap-3">
+                  <UploadDropzone preview={livePhoto} onChange={setLivePhoto} folder="restaurants/documents" />
+                  <Input value={livePhoto} onChange={(e) => setLivePhoto(e.target.value)} placeholder="URL" disabled={isLoading} />
+                </div>
+              </FormField>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t">
+            <FormField label="Internal Notes">
+              <Textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Ops or approval notes..." disabled={isLoading} />
+            </FormField>
+          </div>
 
           <div className="flex flex-wrap gap-2">
             <Button onClick={onSave} disabled={isLoading}>
@@ -172,7 +274,7 @@ export function RestaurantFormPage() {
             ) : (
               <div className="h-40 w-full rounded-t-2xl bg-muted border border-dashed flex items-center justify-center text-sm text-muted-foreground">Banner Preview</div>
             )}
-            
+
             <div className="absolute -bottom-10 left-6 h-20 w-20 rounded-full border-4 border-background bg-background shadow-sm overflow-hidden">
               {logoImage ? (
                 <img src={logoImage} alt={name || "Logo preview"} className="h-full w-full object-cover" />

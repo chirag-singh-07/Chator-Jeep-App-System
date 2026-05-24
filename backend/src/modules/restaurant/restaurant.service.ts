@@ -378,6 +378,18 @@ export const adminCreateRestaurant = async (
     heroImage?: string;
     logoImage?: string;
     notes?: string;
+    addressLine1?: string;
+    city?: string;
+    state?: string;
+    pinCode?: string;
+    bankName?: string;
+    accountHolderName?: string;
+    accountNumber?: string;
+    ifscCode?: string;
+    fssaiLicense?: string;
+    aadharCard?: any;
+    panCard?: any;
+    livePhoto?: any;
   }
 ) => {
   const { email, phone } = await validateRestaurantRegistrationInput({
@@ -418,7 +430,22 @@ export const adminCreateRestaurant = async (
       cuisines,
       bannerUrls,
       logoUrls,
-      address: { line1: input.location || "", city: "", state: "", pinCode: "" },
+      fssaiLicense: input.fssaiLicense,
+      aadharCard: input.aadharCard,
+      panCard: input.panCard,
+      livePhoto: input.livePhoto,
+      address: {
+        line1: input.addressLine1 || input.location || "",
+        city: input.city || "",
+        state: input.state || "",
+        pinCode: input.pinCode || "",
+      },
+      bankDetails: {
+        bankName: input.bankName || "",
+        accountHolderName: input.accountHolderName || "",
+        accountNumber: input.accountNumber || "",
+        ifscCode: input.ifscCode || "",
+      },
       status: mappedStatus,
       termsAccepted: true,
       termsAcceptedAt: new Date(),
