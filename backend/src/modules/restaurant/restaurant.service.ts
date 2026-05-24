@@ -425,6 +425,19 @@ export const adminCreateRestaurant = async (
       activationTimestamp: new Date(),
       currentCommissionPercentage: 10,
       description: input.notes,
+      registrationPayment: {
+        transactionId: new mongoose.Types.ObjectId() as any,
+        razorpayOrderId: "OFFLINE_CASH",
+        razorpayPaymentId: "OFFLINE_CASH_" + Date.now(),
+        status: "COMPLETED",
+        amount: 0,
+        currency: "INR",
+        paidAt: new Date(),
+        planName: "Offline Registration",
+        launchCommissionPercentage: 10,
+        normalCommissionPercentage: 10,
+        offerWindowHours: 0,
+      },
     });
     
     // Add admin action since it's created by admin
