@@ -5,10 +5,12 @@ import { Image as ImageIcon, Trash2, ExternalLink, HardDrive, Search, RefreshCcw
 import { adminService } from "@/services/admin.service";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 
 export function MediaPage() {
   const [media, setMedia] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteKey, setDeleteKey] = useState<string | null>(null);
 
   useEffect(() => {
     fetchMedia();
@@ -32,8 +34,6 @@ export function MediaPage() {
   };
 
   const handleDelete = async (key: string) => {
-    if (!confirm("Are you sure you want to permanently delete this asset from S3?")) return;
-    
     try {
       await adminService.deleteMedia([key]);
       toast.success("Asset deleted from bucket");
@@ -115,7 +115,7 @@ export function MediaPage() {
                     />
                     
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
-                       <Button size="icon" variant="destructive" className="h-10 w-10 rounded-full" onClick={() => handleDelete(item.key)}>
+                       <Button size="icon" variant="destructive" className="h-10 w-10 rounded-full" onClick={() => setDeleteKey(item.key)}>
                           <Trash2 className="h-4 w-4" />
                        </Button>
                        <a href={item.url} target="_blank" rel="noreferrer" className="p-2 bg-white/20 rounded-full hover:bg-white/40 transition-colors">
@@ -132,6 +132,17 @@ export function MediaPage() {
            )}
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={!!deleteKey}
+        onOpenChange={(open) => !open && setDeleteKey(null)}
+        title="Delete Cloud Asset"
+        description="Are you sure you want to permanently delete this asset from S3? This action cannot be undone and may break images currently linked on the platform."
+        onConfirm={() => {
+          if (deleteKey) handleDelete(deleteKey);
+        }}
+        confirmText="Delete Asset"
+      />
     </div>
   );
 }

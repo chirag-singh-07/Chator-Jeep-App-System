@@ -11,12 +11,14 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { useUsersStore } from "@/stores/useUsersStore";
 import type { UsersSubView } from "@/types/dashboard";
 
 export function UsersPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [statusFilter, setStatusFilter] = useState("all");
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   
   const { 
     users, 
@@ -81,10 +83,10 @@ export function UsersPage() {
             variant="ghost" 
             size="sm" 
             className="hover:bg-destructive/10 hover:text-destructive rounded-xl text-muted-foreground"
-            onClick={() => {
-              if (window.confirm("Are you sure you want to delete this user?")) {
-                deleteUser(row._id);
-              }
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setDeleteUserId(row._id);
             }}
           >
             <Trash2 className="size-4" />
@@ -172,6 +174,17 @@ export function UsersPage() {
           className="border-0 shadow-none bg-transparent"
         />
       )}
+
+      <ConfirmDialog
+        open={!!deleteUserId}
+        onOpenChange={(open) => !open && setDeleteUserId(null)}
+        title="Delete User"
+        description="Are you sure you want to permanently delete this user account? This action cannot be undone."
+        onConfirm={() => {
+          if (deleteUserId) deleteUser(deleteUserId);
+        }}
+        confirmText="Delete Account"
+      />
     </div>
   );
 }

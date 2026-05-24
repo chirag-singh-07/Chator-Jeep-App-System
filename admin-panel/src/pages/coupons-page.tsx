@@ -33,12 +33,14 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectItem } from "@/components/ui/select";
+import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import type { Coupon } from "@/types/dashboard";
 
 export function CouponsPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     code: "",
     discountType: "PERCENTAGE",
@@ -96,7 +98,6 @@ export function CouponsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this coupon?")) return;
     try {
       await adminService.deleteCoupon(id);
       toast.success("Coupon deleted");
@@ -260,7 +261,7 @@ export function CouponsPage() {
                     size="icon"
                     variant="ghost"
                     className="h-8 w-8 rounded-full text-rose-500 hover:bg-rose-50"
-                    onClick={() => handleDelete(coupon._id)}
+                    onClick={() => setDeleteId(coupon._id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -340,6 +341,17 @@ export function CouponsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={!!deleteId}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+        title="Delete Coupon"
+        description="Are you sure you want to permanently delete this coupon? Users will no longer be able to redeem it."
+        onConfirm={() => {
+          if (deleteId) handleDelete(deleteId);
+        }}
+        confirmText="Delete Coupon"
+      />
     </div>
   );
 }

@@ -25,12 +25,14 @@ import {
 import { Label } from "@/components/ui/label";
 import { Select, SelectItem } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { useBannerStore, type BannerRecord } from "@/stores/useBannerStore";
 
 export function BannerAdsPage() {
   const { banners, loading, fetchBanners, createBanner, updateBanner, deleteBanner } = useBannerStore();
   const [query, setQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editingBanner, setEditingBanner] = useState<BannerRecord | null>(null);
   const [formData, setFormData] = useState({
     title: "",
@@ -99,7 +101,6 @@ export function BannerAdsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this banner?")) return;
     try {
       await deleteBanner(id);
       toast.success("Banner deleted.");
@@ -169,7 +170,7 @@ export function BannerAdsPage() {
               <Edit2 className="size-3.5" />
               <span className="font-bold text-[13px]">Edit Banner</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className="rounded-xl flex gap-2 cursor-pointer text-red-600" onClick={() => handleDelete(row._id)}>
+            <DropdownMenuItem className="rounded-xl flex gap-2 cursor-pointer text-red-600" onClick={() => setDeleteId(row._id)}>
               <Trash2 className="size-3.5" />
               <span className="font-bold text-[13px]">Delete</span>
             </DropdownMenuItem>
@@ -326,6 +327,17 @@ export function BannerAdsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!deleteId}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+        title="Delete Banner"
+        description="Are you sure you want to permanently delete this banner ad?"
+        onConfirm={() => {
+          if (deleteId) handleDelete(deleteId);
+        }}
+        confirmText="Delete Banner"
+      />
     </div>
   );
 }

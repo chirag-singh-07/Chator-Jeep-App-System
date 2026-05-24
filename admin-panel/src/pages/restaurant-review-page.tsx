@@ -22,6 +22,8 @@ import {
 import { useParams, useNavigate } from "react-router-dom";
 import { useRestaurantStore } from "@/stores/useRestaurantStore";
 import { adminService } from "@/services/admin.service";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 
 // ─── Rejection Modal ──────────────────────────────────────────────────────────
 function RejectionModal({
@@ -98,6 +100,7 @@ export function RestaurantReviewPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [menuLoading, setMenuLoading] = useState(false);
 
@@ -165,19 +168,13 @@ export function RestaurantReviewPage() {
 
   const handleDelete = async () => {
     if (!id) return;
-    if (
-      !window.confirm(
-        "Are you SURE you want to delete this restaurant? This will permanently delete all menu items, documents, and S3 images. This action cannot be undone.",
-      )
-    ) {
-      return;
-    }
     try {
       await deleteRestaurant(id);
+      toast.success("Restaurant deleted successfully.");
       navigate("/admin/restaurants");
     } catch (error) {
       console.error("Deletion failed:", error);
-      alert("Failed to delete restaurant. Please try again.");
+      toast.error("Failed to delete restaurant. Please try again.");
     }
   };
 
@@ -650,7 +647,7 @@ export function RestaurantReviewPage() {
 
               <button
                 disabled={loading}
-                onClick={handleDelete}
+                onClick={() => setShowDeleteModal(true)}
                 className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-gray-200 bg-gray-50 hover:bg-red-50 hover:border-red-200 transition-all text-left group/del disabled:opacity-50"
               >
                 <div className="h-10 w-10 rounded-xl bg-gray-400 group-hover/del:bg-red-600 flex items-center justify-center shrink-0 shadow-lg transition-colors">
@@ -707,6 +704,15 @@ export function RestaurantReviewPage() {
           onClose={() => setShowRejectModal(false)}
         />
       )}
+
+      <ConfirmDialog
+        open={showDeleteModal}
+        onOpenChange={setShowDeleteModal}
+        title="Delete Restaurant"
+        description="Are you SURE you want to delete this restaurant? This will permanently delete all menu items, documents, and S3 images. This action cannot be undone."
+        onConfirm={handleDelete}
+        confirmText="Permanently Delete"
+      />
     </div>
   );
 }
