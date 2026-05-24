@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Search, MoreVertical, Edit2, Trash2, Layout, Image as ImageIcon, ExternalLink, Filter } from "lucide-react";
+import { Plus, Search, MoreVertical, Edit2, Trash2, Layout, Image as ImageIcon, ExternalLink, Filter, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable, type DataColumn } from "@/components/admin/data-table";
 import { StatusBadge } from "@/components/admin/status-badge";
+import { UploadDropzone } from "@/components/admin/upload-dropzone";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -190,10 +191,15 @@ export function BannerAdsPage() {
           <h1 className="text-3xl font-black tracking-tight text-foreground">Banners & Ads</h1>
           <p className="text-muted-foreground text-sm font-medium">Control the visual storytelling and promotions on the user app home screen.</p>
         </div>
-        <Button onClick={() => handleOpenDialog()} className="rounded-2xl h-11 px-6 shadow-lg shadow-primary/20">
-          <Plus className="size-4 mr-2" />
-          Create New Ad
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => fetchBanners()} className="rounded-2xl h-11 px-4 shadow-sm" disabled={loading}>
+            <RefreshCw className={`size-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button onClick={() => handleOpenDialog()} className="rounded-2xl h-11 px-6 shadow-lg shadow-primary/20">
+            <Plus className="size-4 mr-2" />
+            Create New Ad
+          </Button>
+        </div>
       </div>
 
       <div className="flex items-center gap-4 bg-card/40 border border-secondary/10 shadow-sm p-4 rounded-3xl backdrop-blur-md">
@@ -261,14 +267,21 @@ export function BannerAdsPage() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="image" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Image URL*</Label>
-              <Input
-                id="image"
-                value={formData.imageUrl}
-                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                placeholder="https://example.com/banner.jpg"
-                className="rounded-xl h-11 border-secondary/20"
-              />
+              <Label htmlFor="image" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Banner Image*</Label>
+              <div className="flex flex-col gap-3">
+                <UploadDropzone 
+                  preview={formData.imageUrl} 
+                  onChange={(url) => setFormData({ ...formData, imageUrl: url })} 
+                  folder="banners" 
+                />
+                <Input
+                  id="image"
+                  value={formData.imageUrl}
+                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                  placeholder="Or paste https://example.com/banner.jpg"
+                  className="rounded-xl h-11 border-secondary/20"
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
