@@ -163,4 +163,10 @@ export const adminService = {
     const response = await apiClient.post("/system/settings", data);
     return response.data;
   },
+
+  // Dashboard Overview
+  getOverviewStats: async (range: string = "1m") => {
+    const response = await apiClient.get("/system/overview", { params: { range } });
+    return response.data;
+  },
 };

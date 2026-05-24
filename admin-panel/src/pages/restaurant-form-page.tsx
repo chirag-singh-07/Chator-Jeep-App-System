@@ -26,6 +26,7 @@ export function RestaurantFormPage() {
   const [cuisine, setCuisine] = useState("");
   const [type, setType] = useState("active");
   const [heroImage, setHeroImage] = useState("");
+  const [logoImage, setLogoImage] = useState("");
   const [notes, setNotes] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -57,6 +58,7 @@ export function RestaurantFormPage() {
         location,
         cuisine,
         heroImage,
+        logoImage,
         notes
       });
       toast.success("Restaurant created successfully.");
@@ -109,7 +111,7 @@ export function RestaurantFormPage() {
           </div>
 
           <FormField label="Owner Login Password" error={errors.password}>
-             <Input type="text" value={password} onChange={(event) => setPassword(event.target.value)} aria-invalid={Boolean(errors.password)} placeholder="Assign a default password" disabled={isLoading} />
+             <Input type="password" value={password} onChange={(event) => setPassword(event.target.value)} aria-invalid={Boolean(errors.password)} placeholder="Assign a default password" disabled={isLoading} />
           </FormField>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -121,12 +123,21 @@ export function RestaurantFormPage() {
             </FormField>
           </div>
 
-          <FormField label="Hero Image" description="Optional preview image for the restaurant listing and detail page.">
-            <div className="flex flex-col gap-3">
-              <UploadDropzone preview={heroImage} onChange={setHeroImage} />
-              <Input value={heroImage} onChange={(event) => setHeroImage(event.target.value)} placeholder="Paste image URL" disabled={isLoading} />
-            </div>
-          </FormField>
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField label="Banner Image" description="Wide header image for the restaurant.">
+              <div className="flex flex-col gap-3">
+                <UploadDropzone preview={heroImage} onChange={setHeroImage} folder="restaurants/banners" />
+                <Input value={heroImage} onChange={(event) => setHeroImage(event.target.value)} placeholder="Paste banner image URL" disabled={isLoading} />
+              </div>
+            </FormField>
+
+            <FormField label="Logo Image" description="Square profile image for the restaurant.">
+              <div className="flex flex-col gap-3">
+                <UploadDropzone preview={logoImage} onChange={setLogoImage} folder="restaurants/logos" />
+                <Input value={logoImage} onChange={(event) => setLogoImage(event.target.value)} placeholder="Paste logo image URL" disabled={isLoading} />
+              </div>
+            </FormField>
+          </div>
 
           <FormField label="Internal Notes">
             <Textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Ops or approval notes..." disabled={isLoading} />
@@ -149,8 +160,22 @@ export function RestaurantFormPage() {
           <CardTitle>Preview</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          {heroImage ? <img src={heroImage} alt={name || "Restaurant preview"} className="h-56 w-full rounded-2xl object-cover" /> : null}
-          <div>
+          <div className="relative">
+            {heroImage ? (
+              <img src={heroImage} alt={name || "Banner preview"} className="h-40 w-full rounded-t-2xl object-cover bg-muted" />
+            ) : (
+              <div className="h-40 w-full rounded-t-2xl bg-muted border border-dashed flex items-center justify-center text-sm text-muted-foreground">Banner Preview</div>
+            )}
+            
+            <div className="absolute -bottom-10 left-6 h-20 w-20 rounded-full border-4 border-background bg-background shadow-sm overflow-hidden">
+              {logoImage ? (
+                <img src={logoImage} alt={name || "Logo preview"} className="h-full w-full object-cover" />
+              ) : (
+                <div className="h-full w-full bg-muted flex items-center justify-center text-xs text-muted-foreground">Logo</div>
+              )}
+            </div>
+          </div>
+          <div className="mt-8">
             <p className="text-xl font-semibold">{name || "Restaurant Name"}</p>
             <p className="mt-1 text-sm text-muted-foreground">{location || "Location preview"}</p>
             <p className="mt-2 text-sm text-muted-foreground">{cuisine || "Cuisine preview"}</p>

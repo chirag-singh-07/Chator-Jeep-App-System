@@ -2,11 +2,16 @@
 
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { categoryDistributionData, ordersTrendData, revenueTrendData } from "@/data/dashboard-data";
 
 const PIE_COLORS = ["#f59e0b", "#f97316", "#0ea5e9", "#4f46e5", "#ef4444"];
 
-export function OverviewCharts() {
+type OverviewChartsProps = {
+  ordersTrendData?: Array<{ label: string; orders: number }>;
+  revenueTrendData?: Array<{ label: string; revenue: number }>;
+  categoryDistributionData?: Array<{ name: string; value: number }>;
+};
+
+export function OverviewCharts({ ordersTrendData = [], revenueTrendData = [], categoryDistributionData = [] }: OverviewChartsProps) {
   return (
     <section className="grid gap-4 xl:grid-cols-5">
       <Card className="rounded-2xl shadow-sm xl:col-span-3">

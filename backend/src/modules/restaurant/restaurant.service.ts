@@ -376,6 +376,7 @@ export const adminCreateRestaurant = async (
     location?: string;
     cuisine?: string;
     heroImage?: string;
+    logoImage?: string;
     notes?: string;
   }
 ) => {
@@ -405,6 +406,7 @@ export const adminCreateRestaurant = async (
     if (input.type === "active") mappedStatus = RESTAURANT_STATUS.ACTIVE;
 
     const bannerUrls = input.heroImage ? { default: input.heroImage } : undefined;
+    const logoUrls = input.logoImage ? { default: input.logoImage } : undefined;
     const cuisines = input.cuisine ? input.cuisine.split(",").map((c: string) => c.trim()) : [];
 
     restaurant = await createRestaurant({
@@ -415,6 +417,7 @@ export const adminCreateRestaurant = async (
       phone,
       cuisines,
       bannerUrls,
+      logoUrls,
       address: { line1: input.location || "", city: "", state: "", pinCode: "" },
       status: mappedStatus,
       termsAccepted: true,

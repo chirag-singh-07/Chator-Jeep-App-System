@@ -5,8 +5,8 @@ import { StatsGrid } from "@/components/admin/stats-grid";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { statsCards } from "@/data/dashboard-data";
-import type { DateRange } from "@/types/dashboard";
+import { adminService } from "@/services/admin.service";
+import type { DateRange, StatsCard } from "@/types/dashboard";
 
 const dateFilters: Array<{ key: DateRange; label: string }> = [
   { key: "1d", label: "1 Day" },
@@ -16,13 +16,45 @@ const dateFilters: Array<{ key: DateRange; label: string }> = [
   { key: "lifetime", label: "Lifetime" }
 ];
 
+type OverviewData = {
+  statsCards: StatsCard[];
+  ordersTrendData: Array<{ label: string; orders: number }>;
+  revenueTrendData: Array<{ label: string; revenue: number }>;
+  categoryDistributionData: Array<{ name: string; value: number }>;
+  operationsHealth: {
+    unassignedOrders: number;
+    kitchensBelowSLA: number;
+    refundsInProgress: number;
+  };
+};
+
 export function OverviewPage() {
   const [dateRange, setDateRange] = useState<DateRange>("1m");
   const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<OverviewData | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const timeout = setTimeout(() => setLoading(false), 500);
-    return () => clearTimeout(timeout);
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    
+    adminService.getOverviewStats(dateRange)
+      .then((res) => {
+        if (!cancelled) {
+          setData(res.data);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error("Failed to load overview stats:", err);
+          setError("Failed to load dashboard data");
+          setLoading(false);
+        }
+      });
+
+    return () => { cancelled = true; };
   }, [dateRange]);
 
   if (loading) {
@@ -35,6 +67,19 @@ export function OverviewPage() {
           ))}
         </div>
         <Skeleton className="h-[320px] rounded-2xl" />
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex flex-col gap-4">
+        <Card className="rounded-2xl shadow-sm">
+          <CardContent className="flex flex-col items-center justify-center p-12 text-center">
+            <p className="text-lg font-semibold text-destructive">{error || "No data available"}</p>
+            <p className="mt-2 text-sm text-muted-foreground">Check your backend connection and try again.</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -70,8 +115,12 @@ export function OverviewPage() {
         </CardHeader>
       </Card>
 
-      <StatsGrid data={statsCards} />
-      <OverviewCharts />
+      <StatsGrid data={data.statsCards} />
+      <OverviewCharts
+        ordersTrendData={data.ordersTrendData}
+        revenueTrendData={data.revenueTrendData}
+        categoryDistributionData={data.categoryDistributionData}
+      />
 
       <div className="grid gap-4 xl:grid-cols-3">
         <Card className="rounded-2xl shadow-sm">
@@ -82,15 +131,15 @@ export function OverviewPage() {
           <CardContent className="flex flex-col gap-3">
             <div className="flex items-center justify-between rounded-2xl bg-muted/50 p-3">
               <span className="text-sm text-muted-foreground">Orders awaiting assignment</span>
-              <span className="font-semibold">14</span>
+              <span className="font-semibold">{data.operationsHealth.unassignedOrders}</span>
             </div>
             <div className="flex items-center justify-between rounded-2xl bg-muted/50 p-3">
               <span className="text-sm text-muted-foreground">Kitchens below SLA</span>
-              <span className="font-semibold">3</span>
+              <span className="font-semibold">{data.operationsHealth.kitchensBelowSLA}</span>
             </div>
             <div className="flex items-center justify-between rounded-2xl bg-muted/50 p-3">
               <span className="text-sm text-muted-foreground">Refunds in progress</span>
-              <span className="font-semibold">6</span>
+              <span className="font-semibold">{data.operationsHealth.refundsInProgress}</span>
             </div>
           </CardContent>
         </Card>
