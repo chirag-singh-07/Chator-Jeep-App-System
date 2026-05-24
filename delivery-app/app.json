@@ -4,7 +4,7 @@
     "slug": "delivery-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icons/ios-icon-1024x1024.png",
+    "icon": "./assets/icons/delivery-app-logo.png",
     "scheme": "deliveryapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
@@ -22,10 +22,8 @@
       "package": "com.chatorijeeb.deliveryapp",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/icons/android-icon-512x512.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#ffffff",
+        "foregroundImage": "./assets/icons/delivery-app-logo.png"
       },
       "permissions": [
         "ACCESS_COARSE_LOCATION",
@@ -47,7 +45,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/icons/ios-icon-1024x1024.png",
+          "image": "./assets/icons/delivery-app-logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",

@@ -14,7 +14,8 @@
     "generate:india-data": "ts-node-dev --transpile-only --no-notify scripts/generate-india-data.ts",
     "create:admin": "ts-node-dev --transpile-only --no-notify src/scripts/create-admin.ts",
     "verify:admin": "ts-node-dev --transpile-only --no-notify src/scripts/verify-admin.ts",
-    "rename:admin-email": "ts-node-dev --transpile-only --no-notify src/scripts/rename-admin-email.ts"
+    "rename:admin-email": "ts-node-dev --transpile-only --no-notify src/scripts/rename-admin-email.ts",
+    "migrate:admin-login": "ts-node-dev --transpile-only --no-notify src/scripts/migrate-admin-login.ts"
   },
   "keywords": [
     "cloud-kitchen",

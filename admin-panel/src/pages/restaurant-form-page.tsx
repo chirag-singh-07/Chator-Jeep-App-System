@@ -108,12 +108,12 @@ export function RestaurantFormPage() {
           <CardTitle>Add New Restaurant</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-5">
-          <FormField label="Restaurant Name" error={errors.name}>
+          <FormField label="Restaurant Name" required error={errors.name}>
             <Input value={name} onChange={(event) => setName(event.target.value)} aria-invalid={Boolean(errors.name)} disabled={isLoading} />
           </FormField>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="Owner Name" error={errors.owner}>
+            <FormField label="Owner Name" required error={errors.owner}>
               <Input value={owner} onChange={(event) => setOwner(event.target.value)} aria-invalid={Boolean(errors.owner)} disabled={isLoading} />
             </FormField>
             <FormField label="Restaurant Status">
@@ -127,7 +127,7 @@ export function RestaurantFormPage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="Contact Email" error={errors.email}>
+            <FormField label="Contact Email" required error={errors.email}>
               <Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} aria-invalid={Boolean(errors.email)} disabled={isLoading} />
             </FormField>
             <FormField label="Contact Phone" error={errors.phone}>
@@ -141,7 +141,7 @@ export function RestaurantFormPage() {
             </FormField>
           </div>
 
-          <FormField label="Owner Login Password" error={errors.password}>
+          <FormField label="Owner Login Password" required error={errors.password}>
             <div className="relative">
               <Input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} aria-invalid={Boolean(errors.password)} placeholder="Assign a default password" disabled={isLoading} className="pr-10" />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
@@ -151,7 +151,7 @@ export function RestaurantFormPage() {
           </FormField>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="Location" error={errors.location}>
+            <FormField label="Location" required error={errors.location}>
               <Input value={location} onChange={(event) => setLocation(event.target.value)} aria-invalid={Boolean(errors.location)} disabled={isLoading} />
             </FormField>
             <FormField label="Cuisine">
