@@ -4,7 +4,8 @@ import {
   getCoupons, 
   getCouponById, 
   updateCoupon, 
-  deleteCoupon 
+  deleteCoupon,
+  validateCoupon 
 } from "./coupon.service";
 import { asyncHandler } from "../../common/utils/async-handler";
 
@@ -45,5 +46,18 @@ export const deleteCouponHandler = asyncHandler(async (req: Request, res: Respon
   res.status(200).json({
     success: true,
     message: "Coupon deleted successfully",
+  });
+});
+
+export const applyCouponHandler = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  const { code, orderAmount } = req.body;
+  if (!code || orderAmount == null) {
+    res.status(400).json({ success: false, message: "Coupon code and order amount are required" });
+    return;
+  }
+  const result = await validateCoupon(code, orderAmount);
+  res.status(200).json({
+    success: true,
+    data: result,
   });
 });

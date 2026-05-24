@@ -124,29 +124,37 @@ export default function CheckoutScreen() {
     }
   };
 
-  const handleApplyPromo = () => {
-    if (!promoCode) return;
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) return;
     setIsApplyingPromo(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-    setTimeout(() => {
-      const code = promoCode.toUpperCase();
-      let appliedDiscount = 0;
-      if (code === 'CHATORI100') appliedDiscount = 100;
-      else if (code === 'SAVE50') appliedDiscount = 50;
-      else if (code === 'WELCOME') appliedDiscount = Math.round(totalAmount * 0.2);
+    try {
+      const res = await api.post('/coupons/apply', {
+        code: promoCode.trim(),
+        orderAmount: breakdown.totalAmount || totalAmount,
+      });
 
-      if (appliedDiscount > 0) {
+      if (res.data?.success) {
+        const { discount: appliedDiscount, message } = res.data.data;
         setDiscount(appliedDiscount);
-        Alert.alert('Success', 'Promo code applied!');
+        Alert.alert('🎉 Coupon Applied', message);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      } else {
-        setDiscount(0);
-        Alert.alert('Error', 'Invalid promo code');
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
+    } catch (error: any) {
+      const errMsg = error?.response?.data?.message || 'Invalid coupon code';
+      setDiscount(0);
+      Alert.alert('Coupon Failed', errMsg);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } finally {
       setIsApplyingPromo(false);
-    }, 1000);
+    }
+  };
+
+  const handleRemovePromo = () => {
+    setPromoCode('');
+    setDiscount(0);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
   const handlePlaceOrder = async () => {
@@ -292,9 +300,50 @@ export default function CheckoutScreen() {
               <View style={styles.radio}>{paymentMethod === 'ONLINE' && <View style={[styles.radioInner, { backgroundColor: '#3399cc' }]} />}</View>
             </TouchableOpacity>
 
+            {/* Promo Code Section */}
+            <View style={styles.promoSection}>
+              <Text style={styles.promoLabel}>Have a coupon?</Text>
+              {discount > 0 ? (
+                <View style={styles.promoApplied}>
+                  <View style={styles.promoAppliedLeft}>
+                    <Ionicons name="pricetag" size={18} color="#22C55E" />
+                    <View>
+                      <Text style={styles.promoAppliedCode}>{promoCode.toUpperCase()}</Text>
+                      <Text style={styles.promoAppliedSavings}>You save ₹{discount}</Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity onPress={handleRemovePromo} style={styles.promoRemoveBtn}>
+                    <Ionicons name="close-circle" size={22} color="#EF4444" />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={styles.promoInputRow}>
+                  <TextInput
+                    style={styles.promoInput}
+                    placeholder="Enter coupon code"
+                    placeholderTextColor="#999"
+                    value={promoCode}
+                    onChangeText={setPromoCode}
+                    autoCapitalize="characters"
+                    editable={!isApplyingPromo}
+                  />
+                  <TouchableOpacity
+                    style={[styles.promoApplyBtn, (!promoCode.trim() || isApplyingPromo) && styles.promoApplyBtnDisabled]}
+                    onPress={handleApplyPromo}
+                    disabled={!promoCode.trim() || isApplyingPromo}
+                  >
+                    {isApplyingPromo ? (
+                      <ActivityIndicator size="small" color="#FFF" />
+                    ) : (
+                      <Text style={styles.promoApplyBtnText}>Apply</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
             <View style={styles.summaryCard}>
               <Text style={styles.summaryTitle}>Detailed Bill</Text>
-              
+
               {isPreviewLoading ? (
                 <ActivityIndicator size="small" color={Colors.light.primary} style={{ marginVertical: 20 }} />
               ) : (
@@ -383,4 +432,92 @@ const styles = StyleSheet.create({
   nextBtnText: { color: Colors.light.black, fontSize: 16, fontWeight: '900' },
   placeOrderBtn: { backgroundColor: '#22C55E', height: 58, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   placeOrderText: { color: '#FFF', fontSize: 16, fontWeight: '900' },
+  promoSection: {
+    backgroundColor: '#FFF', padding: 16, borderRadius: 16, marginBottom: 16, borderWidth: 1, borderColor: '#E5E7EB',
+  },
+  promoLabel: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 10 },
+  promoInputRow: { flexDirection: 'row', gap: 8 },
+  promoInput: {
+    flex: 1, backgroundColor: '#F9FAFB', height: 48, borderRadius: 12, paddingHorizontal: 16,
+    borderWidth: 1, borderColor: '#E5E7EB', fontSize: 14, color: '#111827',
+  },
+  promoApplyBtn: {
+    backgroundColor: '#22C55E', height: 48, width: 80, borderRadius: 12,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  promoApplyBtnDisabled: { opacity: 0.5 },
+  promoApplyBtnText: { color: '#FFF', fontSize: 14, fontWeight: '800' },
+  promoApplied: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 14,
+    backgroundColor: '#F0FDF4', borderRadius: 12, borderWidth: 1, borderColor: '#22C55E',
+  },
+  promoAppliedLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  promoAppliedCode: { fontSize: 14, fontWeight: '800', color: '#111827', marginBottom: 2 },
+  promoAppliedSavings: { fontSize: 12, color: '#22C55E', fontWeight: '600' },
+  safetyCard: {
+    backgroundColor: '#F0FDF4', // light green
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#D1FAE5', // green border
+  },
+  safetyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 10,
+  },
+  shieldIcon: {
+    width: 20,
+    height: 20,
+    resizeMode: 'contain',
+  },
+  safetyTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#15803D', // dark green text
+    flex: 1,
+  },
+  safetyToggle: {
+    backgroundColor: '#22C55E', // bright green
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  safetyToggleOff: {
+    backgroundColor: '#F3F4F6', // grey for off
+  },
+  safetyToggleText: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  safetyBenefit: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    marginBottom: 8,
+  },
+  safetyCheck: {
+    width: 18,
+    height: 18,
+    resizeMode: 'contain',
+  },
+  safetyText: {
+    fontSize: 13,
+    color: '#374151', // grey text
+    lineHeight: 18,
+    flex: 1,
+  },
+  promoRemoveBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: '#F3F4F6',
+  },
 });
