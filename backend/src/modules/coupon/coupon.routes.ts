@@ -6,6 +6,7 @@ import {
   updateCouponHandler,
   deleteCouponHandler,
   applyCouponHandler,
+  getActiveCouponsHandler,
 } from "./coupon.controller";
 import { ROLES } from "../../common/constants/roles";
 import { authMiddleware } from "../../common/middleware/auth.middleware";
@@ -15,6 +16,7 @@ const router = Router();
 
 // Public route (requires auth but any role)
 router.post("/apply", authMiddleware, applyCouponHandler);
+router.get("/active", authMiddleware, getActiveCouponsHandler);
 
 // Admin only routes
 router.use(authMiddleware);

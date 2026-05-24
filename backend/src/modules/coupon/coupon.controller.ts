@@ -5,9 +5,18 @@ import {
   getCouponById, 
   updateCoupon, 
   deleteCoupon,
-  validateCoupon 
+  validateCoupon,
+  getActiveCoupons,
 } from "./coupon.service";
 import { asyncHandler } from "../../common/utils/async-handler";
+
+export const getActiveCouponsHandler = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  const coupons = await getActiveCoupons();
+  res.status(200).json({
+    success: true,
+    data: coupons,
+  });
+});
 
 export const createCouponHandler = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   const coupon = await createCoupon(req.body);

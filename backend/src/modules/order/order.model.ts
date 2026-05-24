@@ -35,6 +35,8 @@ export interface IOrder extends Document {
   razorpayOrderId?: string;
   razorpayPaymentId?: string;
   walletAmountUsed?: number;
+  couponCode?: string;
+  couponDiscount?: number;
   deliveryOtp?: string;
   cancellationReason?: string;
   createdAt: Date;
@@ -90,6 +92,8 @@ const orderSchema = new Schema<IOrder>(
     razorpayOrderId: { type: String, default: null },
     razorpayPaymentId: { type: String, default: null },
     walletAmountUsed: { type: Number, default: 0 },
+    couponCode: { type: String, default: null },
+    couponDiscount: { type: Number, default: 0 },
     deliveryOtp: { type: String, select: false },
     cancellationReason: { type: String, default: null }
   },

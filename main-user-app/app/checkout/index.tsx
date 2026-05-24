@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,6 +10,9 @@ import {
   ActivityIndicator,
   Alert,
   TextInput,
+  Modal,
+  FlatList,
+  Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
@@ -17,7 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCartStore } from '@/store/useCartStore';
 import { useLocationStore } from '@/store/useLocationStore';
 import { useOrderStore } from '@/store/useOrderStore';
-import Animated, { FadeInRight } from 'react-native-reanimated';
+import Animated, { FadeInRight, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import * as WebBrowser from 'expo-web-browser';
 import api from '@/lib/api';
@@ -26,6 +29,16 @@ import RazorpayCheckout from 'react-native-razorpay';
 WebBrowser.maybeCompleteAuthSession();
 
 type PaymentMethod = 'COD' | 'ONLINE';
+
+interface CouponItem {
+  _id: string;
+  code: string;
+  discountType: 'FIXED' | 'PERCENTAGE';
+  discountValue: number;
+  minOrderAmount: number;
+  maxDiscountAmount?: number;
+  expiryDate: string;
+}
 
 export default function CheckoutScreen() {
   const router = useRouter();
@@ -41,6 +54,14 @@ export default function CheckoutScreen() {
   const [breakdown, setBreakdown] = useState({ foodAmount: totalAmount, deliveryFee: 0, platformFee: 0, totalAmount: totalAmount });
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
+  // Coupon state
+  const [discount, setDiscount] = useState(0);
+  const [appliedCouponCode, setAppliedCouponCode] = useState('');
+  const [isApplyingPromo, setIsApplyingPromo] = useState(false);
+  const [showCouponModal, setShowCouponModal] = useState(false);
+  const [availableCoupons, setAvailableCoupons] = useState<CouponItem[]>([]);
+  const [isFetchingCoupons, setIsFetchingCoupons] = useState(false);
+
   useEffect(() => {
     const defaultAddress = currentAddress || savedAddresses[0] || null;
     if (!selectedAddress || (currentAddress && selectedAddress?.id !== currentAddress.id)) {
@@ -51,9 +72,6 @@ export default function CheckoutScreen() {
   }, [savedAddresses, currentAddress]);
 
   const addressList = savedAddresses.length > 0 ? savedAddresses : currentAddress ? [currentAddress] : [];
-
-  const [discount, setDiscount] = useState(0);
-  const [isApplyingPromo, setIsApplyingPromo] = useState(false);
 
   const fetchPreview = async (address: any) => {
     try {
@@ -88,6 +106,27 @@ export default function CheckoutScreen() {
   }, [step, selectedAddress]);
 
   const grandTotal = Math.max(0, breakdown.totalAmount - discount);
+
+  // Fetch available coupons
+  const fetchAvailableCoupons = useCallback(async () => {
+    setIsFetchingCoupons(true);
+    try {
+      const res = await api.get('/coupons/active');
+      if (res.data?.success) {
+        setAvailableCoupons(res.data.data || []);
+      }
+    } catch (err) {
+      console.log('Failed to fetch coupons', err);
+    } finally {
+      setIsFetchingCoupons(false);
+    }
+  }, []);
+
+  const handleOpenCouponModal = () => {
+    fetchAvailableCoupons();
+    setShowCouponModal(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
 
   const handleRazorpayPayment = async (razorpayData: any) => {
     // Check if RazorpayCheckout is available
@@ -124,26 +163,31 @@ export default function CheckoutScreen() {
     }
   };
 
-  const handleApplyPromo = async () => {
-    if (!promoCode.trim()) return;
+  const handleApplyPromo = async (code?: string) => {
+    const codeToApply = (code || promoCode).trim();
+    if (!codeToApply) return;
     setIsApplyingPromo(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
     try {
       const res = await api.post('/coupons/apply', {
-        code: promoCode.trim(),
+        code: codeToApply,
         orderAmount: breakdown.totalAmount || totalAmount,
       });
 
       if (res.data?.success) {
         const { discount: appliedDiscount, message } = res.data.data;
         setDiscount(appliedDiscount);
+        setAppliedCouponCode(codeToApply.toUpperCase());
+        setPromoCode(codeToApply.toUpperCase());
+        setShowCouponModal(false);
         Alert.alert('🎉 Coupon Applied', message);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
     } catch (error: any) {
       const errMsg = error?.response?.data?.message || 'Invalid coupon code';
       setDiscount(0);
+      setAppliedCouponCode('');
       Alert.alert('Coupon Failed', errMsg);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
@@ -154,7 +198,13 @@ export default function CheckoutScreen() {
   const handleRemovePromo = () => {
     setPromoCode('');
     setDiscount(0);
+    setAppliedCouponCode('');
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const handleSelectCoupon = (coupon: CouponItem) => {
+    setPromoCode(coupon.code);
+    handleApplyPromo(coupon.code);
   };
 
   const handlePlaceOrder = async () => {
@@ -178,6 +228,7 @@ export default function CheckoutScreen() {
             : [77.1025, 28.7041],
         },
         paymentMethod: paymentMethod,
+        ...(appliedCouponCode ? { couponCode: appliedCouponCode } : {}),
       };
 
       if (paymentMethod === 'ONLINE') {
@@ -214,6 +265,97 @@ export default function CheckoutScreen() {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const getCouponDescription = (coupon: CouponItem) => {
+    if (coupon.discountType === 'PERCENTAGE') {
+      const maxPart = coupon.maxDiscountAmount ? ` up to ₹${coupon.maxDiscountAmount}` : '';
+      return `${coupon.discountValue}% OFF${maxPart}`;
+    }
+    return `₹${coupon.discountValue} OFF`;
+  };
+
+  const getCouponMinOrder = (coupon: CouponItem) => {
+    if (coupon.minOrderAmount > 0) {
+      return `Min. order ₹${coupon.minOrderAmount}`;
+    }
+    return 'No minimum order';
+  };
+
+  const formatExpiryDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = date.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays <= 0) return 'Expiring today';
+    if (diffDays === 1) return 'Expires tomorrow';
+    if (diffDays <= 7) return `Expires in ${diffDays} days`;
+    return `Valid till ${date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`;
+  };
+
+  const isEligible = (coupon: CouponItem) => {
+    const orderAmt = breakdown.totalAmount || totalAmount;
+    return orderAmt >= coupon.minOrderAmount;
+  };
+
+  const renderCouponItem = ({ item, index }: { item: CouponItem; index: number }) => {
+    const eligible = isEligible(item);
+    const isApplied = appliedCouponCode === item.code;
+
+    return (
+      <Animated.View entering={FadeInDown.delay(index * 60).duration(300)}>
+        <View style={[styles.couponCard, !eligible && styles.couponCardDisabled, isApplied && styles.couponCardApplied]}>
+          {/* Dashed border ticket effect */}
+          <View style={styles.couponLeftStrip}>
+            <Ionicons name="pricetag" size={18} color={eligible ? '#FFF' : '#BBB'} />
+          </View>
+          <View style={styles.couponContent}>
+            <View style={styles.couponHeader}>
+              <Text style={[styles.couponCode, !eligible && styles.couponTextDisabled]}>{item.code}</Text>
+              {isApplied && (
+                <View style={styles.appliedBadge}>
+                  <Ionicons name="checkmark-circle" size={14} color="#22C55E" />
+                  <Text style={styles.appliedBadgeText}>Applied</Text>
+                </View>
+              )}
+            </View>
+            <Text style={[styles.couponDiscount, !eligible && styles.couponTextDisabled]}>
+              {getCouponDescription(item)}
+            </Text>
+            <View style={styles.couponMeta}>
+              <Text style={[styles.couponMinOrder, !eligible && styles.couponTextDisabled]}>
+                {getCouponMinOrder(item)}
+              </Text>
+              <Text style={styles.couponExpiry}>{formatExpiryDate(item.expiryDate)}</Text>
+            </View>
+            {!eligible && (
+              <Text style={styles.couponIneligibleText}>
+                Add ₹{Math.ceil((item.minOrderAmount || 0) - (breakdown.totalAmount || totalAmount))} more to use
+              </Text>
+            )}
+          </View>
+          <TouchableOpacity
+            style={[
+              styles.couponSelectBtn,
+              !eligible && styles.couponSelectBtnDisabled,
+              isApplied && styles.couponSelectBtnApplied,
+            ]}
+            onPress={() => (isApplied ? handleRemovePromo() : handleSelectCoupon(item))}
+            disabled={!eligible && !isApplied}
+          >
+            <Text
+              style={[
+                styles.couponSelectBtnText,
+                !eligible && styles.couponSelectBtnTextDisabled,
+                isApplied && styles.couponSelectBtnTextApplied,
+              ]}
+            >
+              {isApplied ? 'Remove' : 'Apply'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+    );
   };
 
   return (
@@ -300,47 +442,67 @@ export default function CheckoutScreen() {
               <View style={styles.radio}>{paymentMethod === 'ONLINE' && <View style={[styles.radioInner, { backgroundColor: '#3399cc' }]} />}</View>
             </TouchableOpacity>
 
-            {/* Promo Code Section */}
-            <View style={styles.promoSection}>
-              <Text style={styles.promoLabel}>Have a coupon?</Text>
-              {discount > 0 ? (
-                <View style={styles.promoApplied}>
+            {/* Coupon Section */}
+            <View style={styles.couponSection}>
+              <View style={styles.couponSectionHeader}>
+                <View style={styles.couponSectionHeaderLeft}>
+                  <Ionicons name="pricetag-outline" size={18} color="#374151" />
+                  <Text style={styles.couponSectionTitle}>Coupons & Offers</Text>
+                </View>
+              </View>
+
+              {discount > 0 && appliedCouponCode ? (
+                <Animated.View entering={FadeInUp.duration(300)} style={styles.promoApplied}>
                   <View style={styles.promoAppliedLeft}>
-                    <Ionicons name="pricetag" size={18} color="#22C55E" />
-                    <View>
-                      <Text style={styles.promoAppliedCode}>{promoCode.toUpperCase()}</Text>
-                      <Text style={styles.promoAppliedSavings}>You save ₹{discount}</Text>
+                    <View style={styles.promoAppliedIconWrap}>
+                      <Ionicons name="checkmark-circle" size={22} color="#22C55E" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.promoAppliedCode}>{appliedCouponCode}</Text>
+                      <Text style={styles.promoAppliedSavings}>You save ₹{discount} on this order</Text>
                     </View>
                   </View>
                   <TouchableOpacity onPress={handleRemovePromo} style={styles.promoRemoveBtn}>
                     <Ionicons name="close-circle" size={22} color="#EF4444" />
                   </TouchableOpacity>
-                </View>
+                </Animated.View>
               ) : (
-                <View style={styles.promoInputRow}>
-                  <TextInput
-                    style={styles.promoInput}
-                    placeholder="Enter coupon code"
-                    placeholderTextColor="#999"
-                    value={promoCode}
-                    onChangeText={setPromoCode}
-                    autoCapitalize="characters"
-                    editable={!isApplyingPromo}
-                  />
-                  <TouchableOpacity
-                    style={[styles.promoApplyBtn, (!promoCode.trim() || isApplyingPromo) && styles.promoApplyBtnDisabled]}
-                    onPress={handleApplyPromo}
-                    disabled={!promoCode.trim() || isApplyingPromo}
-                  >
-                    {isApplyingPromo ? (
-                      <ActivityIndicator size="small" color="#FFF" />
-                    ) : (
-                      <Text style={styles.promoApplyBtnText}>Apply</Text>
-                    )}
+                <View>
+                  <View style={styles.promoInputRow}>
+                    <View style={styles.promoInputWrap}>
+                      <Ionicons name="ticket-outline" size={16} color="#999" style={{ marginRight: 8 }} />
+                      <TextInput
+                        style={styles.promoInput}
+                        placeholder="Enter coupon code"
+                        placeholderTextColor="#999"
+                        value={promoCode}
+                        onChangeText={setPromoCode}
+                        autoCapitalize="characters"
+                        editable={!isApplyingPromo}
+                      />
+                    </View>
+                    <TouchableOpacity
+                      style={[styles.promoApplyBtn, (!promoCode.trim() || isApplyingPromo) && styles.promoApplyBtnDisabled]}
+                      onPress={() => handleApplyPromo()}
+                      disabled={!promoCode.trim() || isApplyingPromo}
+                    >
+                      {isApplyingPromo ? (
+                        <ActivityIndicator size="small" color="#FFF" />
+                      ) : (
+                        <Text style={styles.promoApplyBtnText}>Apply</Text>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                  <TouchableOpacity style={styles.browseCouponsBtn} onPress={handleOpenCouponModal}>
+                    <Ionicons name="gift-outline" size={16} color={Colors.light.primary} />
+                    <Text style={styles.browseCouponsBtnText}>Browse available coupons</Text>
+                    <Ionicons name="chevron-forward" size={16} color={Colors.light.primary} />
                   </TouchableOpacity>
                 </View>
               )}
             </View>
+
+            {/* Bill Summary */}
             <View style={styles.summaryCard}>
               <Text style={styles.summaryTitle}>Detailed Bill</Text>
 
@@ -361,10 +523,13 @@ export default function CheckoutScreen() {
                     <Text style={styles.summaryValue}>₹{breakdown.platformFee}</Text>
                   </View>
                   {discount > 0 && (
-                    <View style={styles.summaryRow}>
-                      <Text style={[styles.summaryLabel, { color: '#22C55E' }]}>Promo Discount</Text>
+                    <Animated.View entering={FadeInDown.duration(300)} style={styles.summaryRow}>
+                      <View style={styles.discountLabelRow}>
+                        <Ionicons name="pricetag" size={14} color="#22C55E" />
+                        <Text style={[styles.summaryLabel, { color: '#22C55E', marginLeft: 4 }]}>Coupon Discount</Text>
+                      </View>
                       <Text style={[styles.summaryValue, { color: '#22C55E' }]}>- ₹{discount}</Text>
-                    </View>
+                    </Animated.View>
                   )}
                   <View style={styles.summaryDivider} />
                   <View style={styles.summaryRow}>
@@ -389,9 +554,78 @@ export default function CheckoutScreen() {
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Coupon Browser Modal */}
+      <Modal visible={showCouponModal} animationType="slide" transparent statusBarTranslucent>
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={() => setShowCouponModal(false)} />
+          <View style={styles.modalContent}>
+            <View style={styles.modalHandle} />
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Available Coupons</Text>
+              <TouchableOpacity onPress={() => setShowCouponModal(false)} style={styles.modalCloseBtn}>
+                <Ionicons name="close" size={22} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Manual Input in Modal */}
+            <View style={styles.modalInputRow}>
+              <View style={styles.modalInputWrap}>
+                <Ionicons name="ticket-outline" size={16} color="#999" style={{ marginRight: 8 }} />
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Type coupon code"
+                  placeholderTextColor="#999"
+                  value={promoCode}
+                  onChangeText={setPromoCode}
+                  autoCapitalize="characters"
+                  editable={!isApplyingPromo}
+                />
+              </View>
+              <TouchableOpacity
+                style={[styles.modalApplyBtn, (!promoCode.trim() || isApplyingPromo) && styles.promoApplyBtnDisabled]}
+                onPress={() => handleApplyPromo()}
+                disabled={!promoCode.trim() || isApplyingPromo}
+              >
+                {isApplyingPromo ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <Text style={styles.modalApplyBtnText}>Apply</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalDivider}>
+              <View style={styles.modalDividerLine} />
+              <Text style={styles.modalDividerText}>OR CHOOSE A COUPON</Text>
+              <View style={styles.modalDividerLine} />
+            </View>
+
+            {isFetchingCoupons ? (
+              <ActivityIndicator size="large" color={Colors.light.primary} style={{ marginTop: 40 }} />
+            ) : availableCoupons.length === 0 ? (
+              <View style={styles.noCouponsWrap}>
+                <Ionicons name="ticket-outline" size={48} color="#DDD" />
+                <Text style={styles.noCouponsText}>No coupons available right now</Text>
+                <Text style={styles.noCouponsSubtext}>Check back later for exciting offers!</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={availableCoupons}
+                keyExtractor={(item) => item._id}
+                renderItem={renderCouponItem}
+                contentContainerStyle={styles.couponList}
+                showsVerticalScrollIndicator={false}
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
@@ -414,54 +648,376 @@ const styles = StyleSheet.create({
   paymentTitle: { fontSize: 15, fontWeight: '800' },
   radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#DDD', alignItems: 'center', justifyContent: 'center' },
   radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.light.primary },
+
+  // Coupon Section
+  couponSection: {
+    backgroundColor: '#FFF',
+    padding: 16,
+    borderRadius: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  couponSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+  },
+  couponSectionHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  couponSectionTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#374151',
+  },
+  promoInputRow: { flexDirection: 'row', gap: 8 },
+  promoInputWrap: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    height: 48,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  promoInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#111827',
+    height: 48,
+  },
+  promoApplyBtn: {
+    backgroundColor: '#22C55E',
+    height: 48,
+    width: 80,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  promoApplyBtnDisabled: { opacity: 0.4 },
+  promoApplyBtnText: { color: '#FFF', fontSize: 14, fontWeight: '800' },
+  browseCouponsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    marginTop: 10,
+    backgroundColor: '#FFFBEB',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    borderStyle: 'dashed',
+  },
+  browseCouponsBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#92400E',
+  },
+  promoApplied: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 14,
+    backgroundColor: '#F0FDF4',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#86EFAC',
+  },
+  promoAppliedLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+  promoAppliedIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#DCFCE7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  promoAppliedCode: { fontSize: 14, fontWeight: '800', color: '#111827', marginBottom: 1 },
+  promoAppliedSavings: { fontSize: 12, color: '#16A34A', fontWeight: '600' },
+  promoRemoveBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+  },
+
+  // Summary
   summaryCard: { backgroundColor: '#FFF', borderRadius: 24, padding: 20, marginTop: 10 },
   summaryTitle: { fontSize: 16, fontWeight: '900', marginBottom: 16 },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   summaryLabel: { color: '#666' },
   summaryValue: { fontWeight: '700' },
   summaryDivider: { height: 1, backgroundColor: '#F3F4F6', marginVertical: 10 },
   grandTotalLabel: { fontSize: 16, fontWeight: '900' },
   grandTotalValue: { fontSize: 20, fontWeight: '900', color: Colors.light.primary },
+  discountLabelRow: { flexDirection: 'row', alignItems: 'center' },
+
+  // Empty / Address
   emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 40 },
   emptyTitle: { fontSize: 18, fontWeight: '900', marginBottom: 10 },
   emptyText: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20, paddingHorizontal: 20 },
   addAddressBtn: { backgroundColor: Colors.light.primary, paddingVertical: 15, borderRadius: 20, paddingHorizontal: 25, alignItems: 'center', justifyContent: 'center', marginTop: 10 },
   addAddressBtnText: { color: Colors.light.black, fontSize: 15, fontWeight: '900' },
+
+  // Footer
   footer: { padding: 20, backgroundColor: '#FFF' },
   nextBtn: { backgroundColor: Colors.light.primary, height: 58, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   nextBtnText: { color: Colors.light.black, fontSize: 16, fontWeight: '900' },
   placeOrderBtn: { backgroundColor: '#22C55E', height: 58, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   placeOrderText: { color: '#FFF', fontSize: 16, fontWeight: '900' },
-  promoSection: {
-    backgroundColor: '#FFF', padding: 16, borderRadius: 16, marginBottom: 16, borderWidth: 1, borderColor: '#E5E7EB',
+
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
   },
-  promoLabel: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 10 },
-  promoInputRow: { flexDirection: 'row', gap: 8 },
-  promoInput: {
-    flex: 1, backgroundColor: '#F9FAFB', height: 48, borderRadius: 12, paddingHorizontal: 16,
-    borderWidth: 1, borderColor: '#E5E7EB', fontSize: 14, color: '#111827',
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
-  promoApplyBtn: {
-    backgroundColor: '#22C55E', height: 48, width: 80, borderRadius: 12,
-    alignItems: 'center', justifyContent: 'center',
+  modalContent: {
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: SCREEN_HEIGHT * 0.8,
+    paddingBottom: 30,
   },
-  promoApplyBtnDisabled: { opacity: 0.5 },
-  promoApplyBtnText: { color: '#FFF', fontSize: 14, fontWeight: '800' },
-  promoApplied: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 14,
-    backgroundColor: '#F0FDF4', borderRadius: 12, borderWidth: 1, borderColor: '#22C55E',
+  modalHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#DDD',
+    alignSelf: 'center',
+    marginTop: 12,
   },
-  promoAppliedLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
-  promoAppliedCode: { fontSize: 14, fontWeight: '800', color: '#111827', marginBottom: 2 },
-  promoAppliedSavings: { fontSize: 12, color: '#22C55E', fontWeight: '600' },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#111827',
+  },
+  modalCloseBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalInputRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  modalInputWrap: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    height: 48,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  modalInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#111827',
+    height: 48,
+  },
+  modalApplyBtn: {
+    backgroundColor: '#22C55E',
+    height: 48,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalApplyBtnText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  modalDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  modalDividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E5E7EB',
+  },
+  modalDividerText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#9CA3AF',
+    marginHorizontal: 12,
+    letterSpacing: 0.5,
+  },
+  couponList: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  noCouponsWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 50,
+  },
+  noCouponsText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#9CA3AF',
+    marginTop: 12,
+  },
+  noCouponsSubtext: {
+    fontSize: 13,
+    color: '#D1D5DB',
+    marginTop: 4,
+  },
+
+  // Coupon Cards
+  couponCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    overflow: 'hidden',
+  },
+  couponCardDisabled: {
+    opacity: 0.6,
+    backgroundColor: '#FAFAFA',
+  },
+  couponCardApplied: {
+    borderColor: '#86EFAC',
+    backgroundColor: '#F0FDF4',
+  },
+  couponLeftStrip: {
+    width: 44,
+    backgroundColor: Colors.light.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'stretch',
+  },
+  couponContent: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  couponHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  couponCode: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#111827',
+    letterSpacing: 1,
+  },
+  couponTextDisabled: {
+    color: '#9CA3AF',
+  },
+  appliedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  appliedBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#22C55E',
+  },
+  couponDiscount: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#374151',
+    marginBottom: 4,
+  },
+  couponMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  couponMinOrder: {
+    fontSize: 11,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  couponExpiry: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    fontWeight: '500',
+  },
+  couponIneligibleText: {
+    fontSize: 11,
+    color: '#EF4444',
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  couponSelectBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 12,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: Colors.light.primary,
+  },
+  couponSelectBtnDisabled: {
+    borderColor: '#D1D5DB',
+  },
+  couponSelectBtnApplied: {
+    borderColor: '#EF4444',
+    backgroundColor: '#FEF2F2',
+  },
+  couponSelectBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: Colors.light.primary,
+  },
+  couponSelectBtnTextDisabled: {
+    color: '#9CA3AF',
+  },
+  couponSelectBtnTextApplied: {
+    color: '#EF4444',
+  },
+
+  // Safety card styles (preserved from original)
   safetyCard: {
-    backgroundColor: '#F0FDF4', // light green
+    backgroundColor: '#F0FDF4',
     borderRadius: 16,
     padding: 16,
     marginTop: 12,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#D1FAE5', // green border
+    borderColor: '#D1FAE5',
   },
   safetyHeader: {
     flexDirection: 'row',
@@ -477,17 +1033,17 @@ const styles = StyleSheet.create({
   safetyTitle: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#15803D', // dark green text
+    color: '#15803D',
     flex: 1,
   },
   safetyToggle: {
-    backgroundColor: '#22C55E', // bright green
+    backgroundColor: '#22C55E',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
   },
   safetyToggleOff: {
-    backgroundColor: '#F3F4F6', // grey for off
+    backgroundColor: '#F3F4F6',
   },
   safetyToggleText: {
     color: '#FFF',
@@ -507,17 +1063,8 @@ const styles = StyleSheet.create({
   },
   safetyText: {
     fontSize: 13,
-    color: '#374151', // grey text
+    color: '#374151',
     lineHeight: 18,
     flex: 1,
-  },
-  promoRemoveBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 16,
-    backgroundColor: '#F3F4F6',
   },
 });

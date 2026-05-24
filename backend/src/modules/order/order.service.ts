@@ -16,6 +16,7 @@ import { addEarningsToRestaurant } from "../restaurant/restaurant.service";
 import { getPlatformConfig } from "../system/system.service";
 import { haversineKm } from "../../common/utils/geo.util";
 import { Restaurant } from "../restaurant/restaurant.model";
+import { validateCoupon, incrementCouponUsage } from "../coupon/coupon.service";
 
 const canTransition = (current: OrderStatus, next: OrderStatus, actorRole: Role): boolean => {
   if ((next as string) === ORDER_STATUS.CANCELLED) {
@@ -54,6 +55,7 @@ export const createOrder = async (
     location: { type: "Point"; coordinates: [number, number] };
     paymentMethod?: "COD" | "ONLINE" | "WALLET" | "PARTIAL_WALLET";
     useWalletAmount?: number;
+    couponCode?: string;
   }
 ) => {
   const draft = await buildOrderDraft(userId, input);
@@ -78,8 +80,14 @@ export const createOrder = async (
     ...draft.payload,
     paymentMethod,
     walletAmountUsed,
+    couponCode: draft.couponCode || null,
+    couponDiscount: draft.couponDiscount || 0,
     paymentStatus: initialPaymentStatus,
   } as any);
+
+  if (draft.couponCode) {
+    await incrementCouponUsage(draft.couponCode);
+  }
 
   if (walletAmountUsed > 0) {
     await UserWalletTransaction.updateOne(
@@ -100,6 +108,7 @@ type OrderInput = {
   location: { type: "Point"; coordinates: [number, number] };
   paymentMethod?: "COD" | "ONLINE" | "WALLET" | "PARTIAL_WALLET";
   useWalletAmount?: number;
+  couponCode?: string;
 };
 
 const buildOrderDraft = async (userId: string, input: OrderInput) => {
@@ -143,8 +152,25 @@ const buildOrderDraft = async (userId: string, input: OrderInput) => {
 
   const itemsTotal = foodTotal + deliveryFee + platformFee;
 
+  // Apply coupon if provided
+  let couponDiscount = 0;
+  let couponCode: string | null = null;
+  if (input.couponCode) {
+    try {
+      const couponResult = await validateCoupon(input.couponCode, itemsTotal);
+      couponDiscount = couponResult.discount;
+      couponCode = couponResult.code;
+    } catch {
+      // Coupon invalid — proceed without discount (don't block the order)
+    }
+  }
+
+  const finalTotal = Math.max(0, itemsTotal - couponDiscount);
+
   return {
-    itemsTotal,
+    itemsTotal: finalTotal,
+    couponCode,
+    couponDiscount,
     payload: {
       userId: new Types.ObjectId(userId),
       restaurantId: new Types.ObjectId(input.restaurantId),
@@ -153,7 +179,7 @@ const buildOrderDraft = async (userId: string, input: OrderInput) => {
       deliveryFee,
       commissionAmount,
       platformFee,
-      totalAmount: itemsTotal,
+      totalAmount: finalTotal,
       deliveryAddress: input.deliveryAddress,
       location: input.location,
       status: ORDER_STATUS.PENDING,
@@ -357,6 +383,8 @@ export const initiateRazorpayCheckout = async (userId: string, input: OrderInput
       foodAmount: draft.payload.foodAmount,
       deliveryFee: draft.payload.deliveryFee,
       platformFee: draft.payload.platformFee,
+      couponDiscount: draft.couponDiscount || 0,
+      couponCode: draft.couponCode || null,
       totalAmount: draft.itemsTotal,
     },
   };
@@ -395,7 +423,13 @@ export const verifyPaymentAndCreateOrder = async (
     razorpayOrderId: input.razorpayOrderId,
     razorpayPaymentId: input.razorpayPaymentId,
     walletAmountUsed: 0,
+    couponCode: draft.couponCode || null,
+    couponDiscount: draft.couponDiscount || 0,
   } as any);
+
+  if (draft.couponCode) {
+    await incrementCouponUsage(draft.couponCode);
+  }
 
   await notifyNewOrder(order._id.toString(), userId, input.restaurantId, draft.itemsTotal, input.deliveryAddress);
   notifyCustomerPaymentConfirmed(userId, order._id.toString(), "Razorpay");
@@ -574,6 +608,8 @@ export const checkoutPreview = async (userId: string, input: OrderInput) => {
     foodAmount: draft.payload.foodAmount,
     deliveryFee: draft.payload.deliveryFee,
     platformFee: draft.payload.platformFee,
+    couponDiscount: draft.couponDiscount || 0,
+    couponCode: draft.couponCode || null,
     totalAmount: draft.itemsTotal,
   };
 };

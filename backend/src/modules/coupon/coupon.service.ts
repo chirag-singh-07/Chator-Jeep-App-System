@@ -1,6 +1,30 @@
 import { Coupon, ICoupon } from "./coupon.model";
 import { AppError } from "../../common/errors/app-error";
 
+export const getActiveCoupons = async () => {
+  const now = new Date();
+  const coupons = await Coupon.find({
+    isActive: true,
+    expiryDate: { $gt: now },
+    $or: [
+      { usageLimit: { $exists: false } },
+      { usageLimit: null },
+      { $expr: { $lt: ["$usedCount", "$usageLimit"] } },
+    ],
+  })
+    .select("code discountType discountValue minOrderAmount maxDiscountAmount expiryDate")
+    .sort({ createdAt: -1 })
+    .lean();
+  return coupons;
+};
+
+export const incrementCouponUsage = async (code: string) => {
+  await Coupon.updateOne(
+    { code: code.toUpperCase() },
+    { $inc: { usedCount: 1 } }
+  );
+};
+
 export const createCoupon = async (data: Partial<ICoupon>) => {
   const existing = await Coupon.findOne({ code: data.code?.toUpperCase() });
   if (existing) {
