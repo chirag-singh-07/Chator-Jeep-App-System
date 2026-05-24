@@ -1,6 +1,9 @@
 // Admin Panel Logo Component
-export const Logo = ({ size = "md", variant = "default" }) => {
-  const sizeClasses = {
+type LogoSize = "sm" | "md" | "lg" | "xl";
+type LogoWithTextSize = "sm" | "md" | "lg";
+
+export const Logo = ({ size = "md", variant = "default" }: { size?: LogoSize; variant?: string }) => {
+  const sizeClasses: Record<LogoSize, string> = {
     sm: "w-8 h-8",
     md: "w-10 h-10",
     lg: "w-16 h-16",
@@ -20,8 +23,8 @@ export const Logo = ({ size = "md", variant = "default" }) => {
   );
 };
 
-export const LogoWithText = ({ size = "md" }) => {
-  const sizeClasses = {
+export const LogoWithText = ({ size = "md" }: { size?: LogoWithTextSize }) => {
+  const sizeClasses: Record<LogoWithTextSize, string> = {
     sm: "text-sm gap-1",
     md: "text-base gap-2",
     lg: "text-lg gap-3",
@@ -34,3 +37,4 @@ export const LogoWithText = ({ size = "md" }) => {
     </div>
   );
 };
+
