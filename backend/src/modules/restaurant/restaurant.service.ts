@@ -363,6 +363,92 @@ export const adminDeleteRestaurant = async (id: string) => {
   return deleteRestaurantById(id);
 };
 
+// ─── Admin Create Restaurant ───────────────────────────────────────────────────
+export const adminCreateRestaurant = async (
+  adminUserId: string,
+  input: {
+    ownerName: string;
+    email: string;
+    password: string;
+    phone: string;
+    restaurantName: string;
+    type?: string;
+    location?: string;
+    cuisine?: string;
+    heroImage?: string;
+    notes?: string;
+  }
+) => {
+  const { email, phone } = await validateRestaurantRegistrationInput({
+    email: input.email,
+    phone: input.phone,
+    termsAccepted: true,
+  });
+
+  const hashed = await hashPassword(input.password);
+  let user: IUser | null = null;
+  let restaurant: any = null;
+
+  try {
+    user = await createUser({
+      name: input.ownerName,
+      email,
+      password: hashed,
+      phone,
+      role: ROLES.KITCHEN as any,
+    });
+
+    let mappedStatus: RestaurantStatus = RESTAURANT_STATUS.ACTIVE;
+    if (input.type === "requested") mappedStatus = RESTAURANT_STATUS.REQUESTED;
+    if (input.type === "closed") mappedStatus = RESTAURANT_STATUS.CLOSED;
+    if (input.type === "flagged") mappedStatus = RESTAURANT_STATUS.FLAGGED;
+    if (input.type === "active") mappedStatus = RESTAURANT_STATUS.ACTIVE;
+
+    const bannerUrls = input.heroImage ? { default: input.heroImage } : undefined;
+    const cuisines = input.cuisine ? input.cuisine.split(",").map((c: string) => c.trim()) : [];
+
+    restaurant = await createRestaurant({
+      ownerId: user._id as any,
+      ownerName: input.ownerName,
+      name: input.restaurantName,
+      email,
+      phone,
+      cuisines,
+      bannerUrls,
+      address: { line1: input.location || "", city: "", state: "", pinCode: "" },
+      status: mappedStatus,
+      termsAccepted: true,
+      termsAcceptedAt: new Date(),
+      activationTimestamp: new Date(),
+      currentCommissionPercentage: 10,
+      description: input.notes,
+    });
+    
+    // Add admin action since it's created by admin
+    await Restaurant.findByIdAndUpdate(restaurant._id, {
+      $push: {
+        adminActions: {
+          adminId: adminUserId,
+          action: "APPROVED",
+          reason: "Created by Admin via Admin Panel",
+          timestamp: new Date()
+        }
+      }
+    });
+
+  } catch (error) {
+    if (restaurant?._id) await Restaurant.findByIdAndDelete(restaurant._id).catch(() => null);
+    if (user?._id) await User.findByIdAndDelete(user._id).catch(() => null);
+    throw error;
+  }
+
+  if (!user || !restaurant) {
+    throw new AppError("Restaurant creation failed", 500);
+  }
+
+  return restaurant;
+};
+
 // ─── Menu Management ─────────────────────────────────────────────────────────
 export const addMenuItem = async (userId: string, body: any) => {
   const restaurant = await findRestaurantByOwner(userId);

@@ -15,9 +15,7 @@ const sizeMap = {
 
 export const Logo = ({ size = 'md', variant = 'default' }: LogoProps) => {
   const logoSize = sizeMap[size];
-  const logoSource = variant === 'white' 
-    ? require('../logos/chef-logo-white.png')
-    : require('../logos/chef-logo.png');
+  const logoSource = require('../assets/images/icon.png');
 
   return (
     <View style={[styles.container, logoSize]}>

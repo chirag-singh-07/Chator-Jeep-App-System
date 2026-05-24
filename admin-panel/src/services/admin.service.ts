@@ -55,6 +55,12 @@ export const adminService = {
     return response.data;
   },
 
+  createRestaurant: async (data: any) => {
+    const response = await apiClient.post("/restaurants/admin/create", data);
+    return response.data;
+  },
+
+
   getMenuItems: async (params?: { page?: number; limit?: number; search?: string; category?: string; restaurantId?: string }) => {
     const response = await apiClient.get("/restaurants/admin/menu", { params });
     return response.data;

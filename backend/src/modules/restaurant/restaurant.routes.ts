@@ -118,6 +118,15 @@ router.get(
   ctrl.adminListMenuItems
 );
 
+/** POST /api/v1/restaurants/admin/create - Admin creates a new restaurant */
+router.post(
+  "/admin/create",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  ctrl.adminCreateRestaurant
+);
+
+
 /** GET /api/v1/restaurants/admin/:id - Full restaurant detail for review */
 router.get(
   "/admin/:id",
