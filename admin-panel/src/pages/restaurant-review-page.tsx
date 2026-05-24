@@ -24,6 +24,22 @@ import { useRestaurantStore } from "@/stores/useRestaurantStore";
 import { adminService } from "@/services/admin.service";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+
+// ─── Image Preview Modal ──────────────────────────────────────────────────────
+function ImagePreviewModal({ url, onClose }: { url: string | null; onClose: () => void }) {
+  return (
+    <Dialog open={!!url} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-4xl p-1 bg-transparent border-none shadow-none">
+        {url && (
+          <div className="relative flex items-center justify-center rounded-lg overflow-hidden bg-black/50 backdrop-blur-sm p-2">
+            <img src={url} alt="Document Preview" className="max-w-full max-h-[85vh] object-contain rounded-md" />
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 // ─── Rejection Modal ──────────────────────────────────────────────────────────
 function RejectionModal({
@@ -101,6 +117,7 @@ export function RestaurantReviewPage() {
   const navigate = useNavigate();
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [menuLoading, setMenuLoading] = useState(false);
 
@@ -312,68 +329,84 @@ export function RestaurantReviewPage() {
             <h2 className="font-black text-lg mb-6 flex items-center gap-2">
               <Building2 className="h-5 w-5 text-primary" /> Entity Information
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {[
-                {
-                  icon: User,
-                  label: "Owner Name",
-                  value: restaurant.ownerName,
-                },
-                {
-                  icon: Mail,
-                  label: "Business Email",
-                  value: restaurant.email,
-                },
-                {
-                  icon: Phone,
-                  label: "Business Phone",
-                  value: restaurant.phone,
-                },
-                {
-                  icon: MapPin,
-                  label: "Primary Address",
-                  value: restaurant.address
-                    ? `${restaurant.address.line1}, ${restaurant.address.city} - ${restaurant.address.pinCode}`
-                    : "Not provided",
-                },
-                {
-                  icon: ShieldCheck,
-                  label: "FSSAI ID",
-                  value: restaurant.fssaiLicense || "Pending submission",
-                },
-                {
-                  icon: Building2,
-                  label: "Bank Name",
-                  value: restaurant.bankDetails?.bankName || "Not provided",
-                },
-                {
-                  icon: FileText,
-                  label: "Bank Account",
-                  value: restaurant.bankDetails?.accountNumber
-                    ? `•••• ${String(restaurant.bankDetails.accountNumber).slice(-4)}`
-                    : "Not provided",
-                },
-                {
-                  icon: ShieldCheck,
-                  label: "IFSC Code",
-                  value: restaurant.bankDetails?.ifscCode || "Not provided",
-                },
-              ].map(({ icon: Icon, label, value }) => (
-                <div
-                  key={label}
-                  className="flex items-start gap-3 p-3 rounded-2xl border bg-white/40"
-                >
-                  <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                    <Icon className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="overflow-hidden">
-                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">
-                      {label}
-                    </p>
-                    <p className="text-sm font-bold mt-0.5 truncate">{value}</p>
-                  </div>
+
+            <div className="space-y-8">
+              {/* Basic Details */}
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Basic Details</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[
+                    { icon: User, label: "Owner Name", value: restaurant.ownerName },
+                    { icon: Mail, label: "Business Email", value: restaurant.email },
+                    { icon: Phone, label: "Business Phone", value: restaurant.phone },
+                    { icon: ShieldCheck, label: "FSSAI ID", value: restaurant.fssaiLicense || "Pending submission" },
+                  ].map(({ icon: Icon, label, value }) => (
+                    <div key={label} className="flex items-center gap-3 p-3 rounded-2xl border bg-white/40">
+                      <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <Icon className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="overflow-hidden">
+                        <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">{label}</p>
+                        <p className="text-sm font-bold mt-0.5 truncate">{value}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+
+              {/* Full Address */}
+              <div className="p-5 rounded-2xl border bg-gray-50/50">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
+                  <MapPin className="h-4 w-4" /> Full Address
+                </h3>
+                {restaurant.address ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="col-span-1 sm:col-span-2">
+                      <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Address Line 1</p>
+                      <p className="text-sm font-bold mt-1">{restaurant.address.line1 || "Not provided"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">City & State</p>
+                      <p className="text-sm font-bold mt-1">{restaurant.address.city || "N/A"}, {restaurant.address.state || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">PIN Code</p>
+                      <p className="text-sm font-bold mt-1">{restaurant.address.pinCode || "N/A"}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm font-bold text-muted-foreground italic">Address not provided</p>
+                )}
+              </div>
+
+              {/* Bank Details */}
+              <div className="p-5 rounded-2xl border bg-primary/5">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-primary/80 mb-4 flex items-center gap-2">
+                  <Building2 className="h-4 w-4" /> Full Bank Details
+                </h3>
+                {restaurant.bankDetails ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[10px] text-primary/60 font-black uppercase tracking-widest">Bank Name</p>
+                      <p className="text-sm font-bold mt-1">{restaurant.bankDetails.bankName || "Not provided"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-primary/60 font-black uppercase tracking-widest">Account Holder Name</p>
+                      <p className="text-sm font-bold mt-1">{restaurant.bankDetails.accountHolderName || "Not provided"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-primary/60 font-black uppercase tracking-widest">Account Number</p>
+                      <p className="text-sm font-bold mt-1 tracking-wider">{restaurant.bankDetails.accountNumber || "Not provided"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-primary/60 font-black uppercase tracking-widest">IFSC Code</p>
+                      <p className="text-sm font-bold mt-1 tracking-wider">{restaurant.bankDetails.ifscCode || "Not provided"}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm font-bold text-muted-foreground italic">Bank details not provided</p>
+                )}
+              </div>
             </div>
           </div>
 
@@ -386,58 +419,58 @@ export function RestaurantReviewPage() {
               {/* Mandatory Legal Documents */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {restaurant.aadharCard && (
-                  <div className="p-4 rounded-2xl bg-white border hover:border-primary/50 transition-all">
+                  <div className="p-4 rounded-2xl bg-white border hover:border-primary/50 transition-all cursor-pointer group" onClick={() => setPreviewImage(getImgUrl(restaurant.aadharCard, 'full'))}>
                     <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-2">
                       Aadhar Card
                     </p>
-                    <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted mb-3">
+                    <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted mb-3 relative">
                       <img
                         src={getImgUrl(restaurant.aadharCard, 'medium')}
                         alt="Aadhar"
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
                       />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                        <Eye className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md" />
+                      </div>
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
                       className="w-full rounded-xl gap-2"
-                      asChild
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPreviewImage(getImgUrl(restaurant.aadharCard, 'full'));
+                      }}
                     >
-                      <a
-                        href={getImgUrl(restaurant.aadharCard, 'full')}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <Eye className="h-4 w-4" /> View Full Image
-                      </a>
+                      <Eye className="h-4 w-4" /> Preview Full Image
                     </Button>
                   </div>
                 )}
                 {restaurant.panCard && (
-                  <div className="p-4 rounded-2xl bg-white border hover:border-primary/50 transition-all">
+                  <div className="p-4 rounded-2xl bg-white border hover:border-primary/50 transition-all cursor-pointer group" onClick={() => setPreviewImage(getImgUrl(restaurant.panCard, 'full'))}>
                     <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-2">
                       PAN Card
                     </p>
-                    <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted mb-3">
+                    <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted mb-3 relative">
                       <img
                         src={getImgUrl(restaurant.panCard, 'medium')}
                         alt="PAN"
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
                       />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                        <Eye className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md" />
+                      </div>
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
                       className="w-full rounded-xl gap-2"
-                      asChild
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPreviewImage(getImgUrl(restaurant.panCard, 'full'));
+                      }}
                     >
-                      <a
-                        href={getImgUrl(restaurant.panCard, 'full')}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <Eye className="h-4 w-4" /> View Full Image
-                      </a>
+                      <Eye className="h-4 w-4" /> Preview Full Image
                     </Button>
                   </div>
                 )}
@@ -454,12 +487,18 @@ export function RestaurantReviewPage() {
                       Live Identity Verification
                     </p>
                   </div>
-                  <div className="aspect-square w-48 mx-auto rounded-3xl overflow-hidden border-4 border-white shadow-lg mb-4">
+                  <div 
+                    className="aspect-square w-48 mx-auto rounded-3xl overflow-hidden border-4 border-white shadow-lg mb-4 cursor-pointer relative group"
+                    onClick={() => setPreviewImage(getImgUrl(restaurant.livePhoto, 'full'))}
+                  >
                     <img
                       src={getImgUrl(restaurant.livePhoto, 'medium')}
                       alt="Live Photo"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
                     />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                        <Eye className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md" />
+                    </div>
                   </div>
                   <p className="text-[10px] text-center text-muted-foreground uppercase font-bold">
                     Captured via live camera during onboarding
@@ -499,11 +538,9 @@ export function RestaurantReviewPage() {
                           size="sm"
                           variant="ghost"
                           className="rounded-xl h-9 w-9 p-0"
-                          asChild
+                          onClick={() => setPreviewImage(doc.url)}
                         >
-                          <a href={doc.url} target="_blank" rel="noreferrer">
-                            <Eye className="h-4 w-4" />
-                          </a>
+                          <Eye className="h-4 w-4" />
                         </Button>
                         <Button
                           size="sm"
@@ -712,6 +749,11 @@ export function RestaurantReviewPage() {
         description="Are you SURE you want to delete this restaurant? This will permanently delete all menu items, documents, and S3 images. This action cannot be undone."
         onConfirm={handleDelete}
         confirmText="Permanently Delete"
+      />
+
+      <ImagePreviewModal 
+        url={previewImage} 
+        onClose={() => setPreviewImage(null)} 
       />
     </div>
   );
