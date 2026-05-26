@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { Image, View, StyleSheet, Dimensions } from 'react-native';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withTiming, 
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
   withSequence,
-  Easing 
+  Easing
 } from 'react-native-reanimated';
 import { Colors } from '../constants/Colors';
 
@@ -16,7 +16,6 @@ export const AppLoadingScreen = ({ onFinish }: { onFinish?: () => void }) => {
   const opacity = useSharedValue(0);
 
   useEffect(() => {
-    // Logo entrance animation
     opacity.value = withTiming(1, { duration: 800 });
     scale.value = withSequence(
       withTiming(1.2, { duration: 600, easing: Easing.bezier(0.25, 0.1, 0.25, 1) }),
@@ -63,7 +62,7 @@ export const AppLoadingScreen = ({ onFinish }: { onFinish?: () => void }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.primary, // Premium Gold
+    backgroundColor: Colors.light.primary,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'absolute',
@@ -71,9 +70,8 @@ const styles = StyleSheet.create({
     zIndex: 9999,
   },
   logoImage: {
-    width: 112,
-    height: 112,
-    borderRadius: 32,
+    width: 90,
+    height: 90,
     resizeMode: 'contain',
   },
   logoContainer: {

@@ -1,20 +1,21 @@
 import React, { useState, useRef } from 'react';
-import { 
-  StyleSheet, 
-  View, 
-  Text, 
-  FlatList, 
-  TouchableOpacity, 
-  Dimensions, 
-  Platform
+import {
+  StyleSheet,
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  Dimensions,
+  Platform,
+  Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors, Spacing, Radius, Shadows } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import Animated, { 
-  FadeInDown, 
+import Animated, {
+  FadeInDown,
   FadeInUp,
 } from 'react-native-reanimated';
 
@@ -26,6 +27,7 @@ const SLIDES = [
     title: 'Welcome to Fleet',
     description: 'Join thousands of partners delivering joy across the city every day with speed and reliability.',
     icon: 'bicycle-outline',
+    showLogo: true,
   },
   {
     id: '2',
@@ -136,14 +138,21 @@ export default function OnboardingScreen() {
         showsHorizontalScrollIndicator={false}
         renderItem={({ item }) => (
           <View style={styles.slide}>
-            <Animated.View 
+            <Animated.View
               entering={FadeInDown.duration(800)}
               style={styles.iconWrapper}
             >
               <View style={styles.glowCircle} />
-              <Ionicons name={item.icon as any} size={100} color={Colors.light.primary} />
+              {item.showLogo ? (
+                <Image
+                  source={require('../../assets/icons/delivery-app-logo.png')}
+                  style={styles.logoImage}
+                />
+              ) : (
+                <Ionicons name={item.icon as any} size={100} color={Colors.light.primary} />
+              )}
             </Animated.View>
-            
+
             <View style={styles.textContainer}>
               <Animated.Text entering={FadeInUp.delay(200)} style={styles.title}>
                 {item.title}
@@ -238,6 +247,11 @@ const styles = StyleSheet.create({
     opacity: 0.08,
     borderWidth: 1,
     borderColor: Colors.light.primary,
+  },
+  logoImage: {
+    width: 140,
+    height: 140,
+    resizeMode: 'contain',
   },
   textContainer: {
     paddingHorizontal: 40,

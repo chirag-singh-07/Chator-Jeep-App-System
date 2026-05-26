@@ -70,13 +70,13 @@ export const useMenuStore = create<MenuState>((set, get) => ({
     }
   },
 
-  fetchHomeData: async (lat, lng) => {
+  fetchHomeData: async (lat?: number, lng?: number, city?: string) => {
     set({ isLoading: true, error: null });
     try {
       const [categoriesResult, restaurantsResult, popularResult] =
         await Promise.allSettled([
         api.get("/categories"),
-        api.get("/restaurants", { params: { lat, lng, limit: 10 } }),
+        api.get("/restaurants", { params: { lat, lng, city, limit: 10 } }),
         api.get("/restaurants/menu/popular"),
       ]);
 

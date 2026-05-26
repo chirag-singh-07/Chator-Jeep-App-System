@@ -614,6 +614,7 @@ export const listRestaurants = async (query: {
   search?: string;
   lat?: string;
   lng?: string;
+  city?: string;
   page?: string;
   limit?: string;
 }) => {
@@ -626,35 +627,98 @@ export const listRestaurants = async (query: {
   if (query.search) {
     filter.name = { $regex: query.search, $options: "i" };
   }
-  
+
   if (query.categoryId) {
     filter.cuisines = { $in: [query.categoryId] };
   }
 
   let sort: any = { createdAt: -1 };
+  let restaurants: any[] = [];
+  let total = 0;
 
-  // If coordinates provided, sort by proximity
+  // If coordinates provided, try geo query first, then fallback to city-based or all
   if (query.lat && query.lng) {
     const latitude = parseFloat(query.lat);
     const longitude = parseFloat(query.lng);
-    filter.location = {
-      $near: {
-        $geometry: { type: "Point", coordinates: [longitude, latitude] },
-        $maxDistance: 15000, // 15km
+
+    // First try geo query for restaurants WITH location coordinates
+    const geoFilter = {
+      ...filter,
+      location: {
+        $near: {
+          $geometry: { type: "Point", coordinates: [longitude, latitude] },
+          $maxDistance: 15000, // 15km
+        },
       },
     };
-    // Mongoose $near automatically sorts by distance
-    sort = null; 
-  }
 
-  const [restaurants, total] = await Promise.all([
-    Restaurant.find(filter)
-      .sort(sort)
-      .skip(skip)
-      .limit(limit)
-      .exec(),
-    Restaurant.countDocuments(filter).exec(),
-  ]);
+    try {
+      const geoResults = await Restaurant.find(geoFilter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec();
+
+      total = await Restaurant.countDocuments(geoFilter).exec();
+
+      // If we found restaurants with geo query, return them
+      if (geoResults.length > 0) {
+        restaurants = geoResults;
+      } else {
+        // No results with geo query - try to find restaurants in the same city/area
+        // First, try to find restaurants without strict location (they may not have coordinates set)
+        const noLocationFilter = {
+          ...filter,
+          $or: [
+            { location: { $exists: false } },
+            { location: null },
+            { "location.coordinates": { $size: 0 } },
+            { "address.city": { $regex: query.city ?? "", $options: "i" } },
+          ],
+        };
+
+        const noLocationResults = await Restaurant.find(noLocationFilter)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .exec();
+
+        const noLocationCount = await Restaurant.countDocuments(noLocationFilter).exec();
+
+        if (noLocationResults.length > 0) {
+          restaurants = noLocationResults;
+          total = noLocationCount;
+        } else {
+          // Fallback: get all active restaurants (ignore location entirely)
+          restaurants = await Restaurant.find(filter)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .exec();
+          total = await Restaurant.countDocuments(filter).exec();
+        }
+      }
+    } catch (geoError) {
+      // Geo query failed (e.g., no 2dsphere index) - fallback to all restaurants
+      console.warn("Geo query failed, falling back to all restaurants:", geoError);
+      restaurants = await Restaurant.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec();
+      total = await Restaurant.countDocuments(filter).exec();
+    }
+  } else {
+    // No coordinates provided - show all active restaurants
+    [restaurants, total] = await Promise.all([
+      Restaurant.find(filter)
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      Restaurant.countDocuments(filter).exec(),
+    ]);
+  }
 
   return {
     restaurants,

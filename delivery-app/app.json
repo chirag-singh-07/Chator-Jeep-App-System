@@ -22,8 +22,12 @@
       "package": "com.chatorijeeb.deliveryapp",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff",
-        "foregroundImage": "./assets/icons/delivery-app-logo.png"
+        "backgroundColor": "#E6B94D",
+        "foregroundImage": "./assets/icons/delivery-app-logo.png",
+        "dark": {
+          "backgroundColor": "#1a1a1a",
+          "foregroundImage": "./assets/icons/delivery-app-logo.png"
+        }
       },
       "permissions": [
         "ACCESS_COARSE_LOCATION",
@@ -48,9 +52,10 @@
           "image": "./assets/icons/delivery-app-logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#E6B94D",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#1a1a1a",
+            "image": "./assets/icons/delivery-app-logo.png"
           }
         }
       ],

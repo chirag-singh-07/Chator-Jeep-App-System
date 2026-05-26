@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep -l \"restaurants\")",
+      "Bash(xargs grep -l \"location\\\\|coordinates\")",
+      "Bash(xargs grep -l \"restaurant\\\\|Restaurant\")",
+      "Bash(xargs grep -l \"createRestaurant\\\\|addRestaurant\\\\|location\")",
+      "Bash(npm run *)"
+    ]
+  }
+}

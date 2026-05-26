@@ -89,7 +89,8 @@ export default function HomeScreen() {
   const loadData = async () => {
     const lat = currentAddress?.coordinates?.latitude;
     const lng = currentAddress?.coordinates?.longitude;
-    await fetchHomeData(lat, lng);
+    const city = currentAddress?.city;
+    await fetchHomeData(lat, lng, city);
   };
 
   const onRefresh = async () => {

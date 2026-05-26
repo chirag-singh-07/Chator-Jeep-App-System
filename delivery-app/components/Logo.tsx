@@ -15,14 +15,11 @@ const sizeMap = {
 
 export const Logo = ({ size = 'md', variant = 'default' }: LogoProps) => {
   const logoSize = sizeMap[size];
-  const logoSource = variant === 'white' 
-    ? require('../logos/chef-logo-white.png')
-    : require('../logos/chef-logo.png');
 
   return (
     <View style={[styles.container, logoSize]}>
       <Image
-        source={logoSource}
+        source={require('../assets/icons/delivery-app-logo.png')}
         style={[logoSize, { resizeMode: 'contain' }]}
       />
     </View>
