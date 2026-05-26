@@ -35,9 +35,9 @@ export const getSystemLogs = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const type = (req.query.type as "system" | "cron") || "system";
     const lines = parseInt((req.query.lines as string) || "100");
-    
+
     const logs = getLogs(type, lines);
-    
+
     // Parse logs for frontend to consume easily
     // Expected format: [TIMESTAMP] [LEVEL] Message
     const parsedLogs = logs.reverse().map((line, index) => {
@@ -59,5 +59,33 @@ export const getSystemLogs = asyncHandler(
     });
 
     res.status(200).json({ success: true, data: parsedLogs });
+  }
+);
+
+export const getPaymentStats = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const stats = await service.getPaymentStats();
+    res.status(200).json({ success: true, data: stats });
+  }
+);
+
+export const getSalesAnalytics = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const stats = await service.getSalesAnalytics(req.query as any);
+    res.status(200).json({ success: true, data: stats });
+  }
+);
+
+export const getRevenueAnalytics = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const stats = await service.getRevenueAnalytics(req.query as any);
+    res.status(200).json({ success: true, data: stats });
+  }
+);
+
+export const getTopItems = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const stats = await service.getTopItems(parseInt(req.query.limit as string) || 10);
+    res.status(200).json({ success: true, data: stats });
   }
 );

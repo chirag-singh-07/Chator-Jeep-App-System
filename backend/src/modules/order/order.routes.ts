@@ -105,4 +105,12 @@ router.get("/:orderId/payment/status", authMiddleware, roleMiddleware([ROLES.USE
 /** POST /api/v1/orders/:orderId/payment/verify — Verify Razorpay payment */
 router.post("/:orderId/payment/verify", authMiddleware, roleMiddleware([ROLES.USER]), controller.verifyPayment);
 
+/** POST /api/v1/orders/admin/:orderId/refund — Admin refund endpoint */
+router.post(
+  "/admin/:orderId/refund",
+  authMiddleware,
+  roleMiddleware([ROLES.ADMIN]),
+  controller.adminRefundOrder
+);
+
 export default router;

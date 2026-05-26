@@ -29,5 +29,29 @@ router.post(
   roleMiddleware(["ADMIN"]),
   controller.updateSetting,
 );
+router.get(
+  "/payment-stats",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  controller.getPaymentStats,
+);
+router.get(
+  "/analytics/sales",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  controller.getSalesAnalytics,
+);
+router.get(
+  "/analytics/revenue",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  controller.getRevenueAnalytics,
+);
+router.get(
+  "/analytics/top-items",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  controller.getTopItems,
+);
 
 export default router;

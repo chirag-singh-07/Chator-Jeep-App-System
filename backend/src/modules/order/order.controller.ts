@@ -87,3 +87,11 @@ export const getWalletTransactions = asyncHandler(async (req: AuthenticatedReque
   const data = await getUserWalletTransactions(req.user!.userId);
   res.status(200).json({ success: true, data });
 });
+
+// ─── Admin Refund ──────────────────────────────────────────────────────────────
+
+export const adminRefundOrder = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { amount, reason } = req.body;
+  const result = await service.adminRefund(req.user!.userId, req.params.orderId as string, { amount, reason });
+  res.status(200).json({ success: true, data: result });
+});

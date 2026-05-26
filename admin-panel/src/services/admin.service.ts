@@ -169,4 +169,51 @@ export const adminService = {
     const response = await apiClient.get("/system/overview", { params: { range } });
     return response.data;
   },
+
+  // Payments
+  getPayments: async (params: { status?: string; method?: string; page?: number; search?: string; startDate?: string; endDate?: string }) => {
+    const response = await apiClient.get("/orders/admin/all", {
+      params: {
+        ...params,
+        status: params.status === "all" ? undefined : params.status
+      }
+    });
+    return response.data;
+  },
+
+  getPaymentStats: async () => {
+    const response = await apiClient.get("/system/payment-stats");
+    return response.data;
+  },
+
+  getPaymentGatewayConfig: async () => {
+    const response = await apiClient.get("/payment/info");
+    return response.data;
+  },
+
+  updatePaymentGateway: async (data: { gateway: string; enabled: boolean }) => {
+    const response = await apiClient.patch("/payment/gateway", data);
+    return response.data;
+  },
+
+  initiateRefund: async (orderId: string, data: { amount: number; reason: string }) => {
+    const response = await apiClient.post(`/orders/admin/${orderId}/refund`, data);
+    return response.data;
+  },
+
+  // Analytics
+  getAnalyticsSales: async (params: { range?: string; startDate?: string; endDate?: string }) => {
+    const response = await apiClient.get("/system/analytics/sales", { params });
+    return response.data;
+  },
+
+  getAnalyticsRevenue: async (params: { range?: string; startDate?: string; endDate?: string }) => {
+    const response = await apiClient.get("/system/analytics/revenue", { params });
+    return response.data;
+  },
+
+  getAnalyticsTopItems: async (params?: { limit?: number; range?: string }) => {
+    const response = await apiClient.get("/system/analytics/top-items", { params });
+    return response.data;
+  },
 };

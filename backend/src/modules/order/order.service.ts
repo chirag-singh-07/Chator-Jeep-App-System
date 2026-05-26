@@ -613,3 +613,45 @@ export const checkoutPreview = async (userId: string, input: OrderInput) => {
     totalAmount: draft.itemsTotal,
   };
 };
+
+export const adminRefund = async (
+  adminId: string,
+  orderId: string,
+  input: { amount: number; reason: string }
+) => {
+  const order = await repo.getOrderById(orderId);
+  if (!order) throw new AppError("Order not found", 404);
+
+  if (order.paymentStatus === PAYMENT_STATUS.REFUNDED) {
+    throw new AppError("Payment already refunded", 400);
+  }
+
+  if (order.paymentMethod === "COD") {
+    throw new AppError("COD orders cannot be refunded through online refund", 400);
+  }
+
+  const refundAmount = input.amount || order.totalAmount;
+
+  await repo.updateOrder(orderId, {
+    paymentStatus: PAYMENT_STATUS.REFUNDED,
+  } as any);
+
+  if (order.walletAmountUsed && order.walletAmountUsed > 0) {
+    await refundUserWallet(order.userId.toString(), order.walletAmountUsed, orderId, `Admin refund: ${input.reason}`);
+  }
+
+  void NotificationService.sendToCustomer(order.userId.toString(), {
+    title: "Refund Processed",
+    body: `A refund of Rs ${refundAmount} has been processed for order ${orderId}.`,
+    type: "REFUND_PROCESSED" as any,
+    data: { orderId, refundAmount },
+  });
+
+  return {
+    success: true,
+    refundAmount,
+    reason: input.reason,
+    orderId,
+    refundedAt: new Date(),
+  };
+};
