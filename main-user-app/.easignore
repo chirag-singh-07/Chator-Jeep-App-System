@@ -32,6 +32,7 @@ yarn-error.log*
 *.p8
 *.key
 *.mobileprovision
+keystore.properties
 
 # Misc
 .easignore

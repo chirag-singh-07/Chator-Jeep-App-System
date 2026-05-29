@@ -17,7 +17,15 @@
         "EXPO_PUBLIC_API_URL": "https://chator-jeep-app-system-api.onrender.com/api/v1"
       }
     },
-    "production": {}
+    "production": {
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://chator-jeep-app-system-api.onrender.com/api/v1"
+      }
+    }
   },
   "submit": {
     "production": {}

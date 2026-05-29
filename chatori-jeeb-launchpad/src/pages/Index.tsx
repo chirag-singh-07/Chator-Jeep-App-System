@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from "react";
 import { Navbar } from "@/components/sections/Navbar";
 import { Hero } from "@/components/sections/Hero";
+import { AppDownload } from "@/components/sections/AppDownload";
 import { ScrollProgress } from "@/components/ScrollProgress";
 import { BackToTop } from "@/components/BackToTop";
 
@@ -19,7 +20,6 @@ const Coverage = lazy(() => import("@/components/sections/Coverage").then(m => (
 const Testimonials = lazy(() => import("@/components/sections/Testimonials").then(m => ({ default: m.Testimonials })));
 const Blog = lazy(() => import("@/components/sections/Blog").then(m => ({ default: m.Blog })));
 const FAQ = lazy(() => import("@/components/sections/FAQ").then(m => ({ default: m.FAQ })));
-const AppDownload = lazy(() => import("@/components/sections/AppDownload").then(m => ({ default: m.AppDownload })));
 const CTA = lazy(() => import("@/components/sections/CTA").then(m => ({ default: m.CTA })));
 const Footer = lazy(() => import("@/components/sections/Footer").then(m => ({ default: m.Footer })));
 
@@ -43,6 +43,7 @@ const Index = () => {
       <ScrollProgress />
       <Navbar />
       <Hero />
+      <AppDownload />
       <Suspense fallback={<div className="h-32" aria-hidden />}>
         <Categories />
         <Features />
@@ -58,7 +59,6 @@ const Index = () => {
         <Testimonials />
         <Blog />
         <FAQ />
-        <AppDownload />
         <CTA />
         <Footer />
       </Suspense>

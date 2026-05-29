@@ -1,50 +1,32 @@
-# Welcome to your Expo app 👋
+# Main User App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Expo app for the customer-facing Chatori Jeeb experience.
 
-## Get started
+## Generate a Play Console AAB
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+This project is set up to produce an Android App Bundle (`.aab`) with EAS Build:
 
 ```bash
-npm run reset-project
+npm run android:aab
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+That command uses the `production` profile from `eas.json`, which is configured for:
 
-## Learn more
+- Android `app-bundle` output
+- automatic version code incrementation
+- production API configuration
 
-To learn more about developing your project with Expo, look at the following resources:
+For local Gradle release builds, add a `keystore.properties` file next to `package.json` by copying `keystore.properties.example` and filling in your real upload-key values.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Before uploading to Play Console
 
-## Join the community
+1. Make sure the build completes successfully in EAS.
+2. Download the generated `.aab` from the EAS dashboard.
+3. Upload it to the Google Play Console under the correct app listing.
 
-Join our community of developers creating universal apps.
+## Local development
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+npm install
+npm run start
+```
