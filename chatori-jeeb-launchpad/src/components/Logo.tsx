@@ -1,4 +1,6 @@
 // Chatori Jeeb Logo Component
+import mainAppLogo from "@/assets/brand/main-app-logo.png";
+
 export const Logo = ({ size = "md", variant = "default" }) => {
   const sizeClasses = {
     sm: "w-8 h-8",
@@ -7,14 +9,12 @@ export const Logo = ({ size = "md", variant = "default" }) => {
     xl: "w-20 h-20",
   };
 
-  const logoPath = variant === "white" ? "/logos/chef-logo-white.png" : "/logos/chef-logo.png";
-
   return (
     <div className={`flex items-center justify-center ${sizeClasses[size]}`}>
-      <img 
-        src={logoPath} 
-        alt="Chef Logo - Chatori Jeeb" 
-        className="w-full h-full object-contain"
+      <img
+        src={mainAppLogo}
+        alt="Chatori Jeeb logo"
+        className={`w-full h-full object-contain ${variant === "white" ? "drop-shadow-sm" : ""}`}
       />
     </div>
   );

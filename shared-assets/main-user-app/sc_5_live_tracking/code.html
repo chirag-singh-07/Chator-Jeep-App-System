@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Montserrat:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .soft-glow-amber {
+      box-shadow: 0 0 20px 2px rgba(255, 193, 7, 0.15);
+    }
+    .map-mask {
+      mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+    }
+    .order-line-active {
+      background: linear-gradient(to bottom, #785900 50%, #e2e2e2 50%);
+    }
+    @keyframes pulse-soft {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.05); }
+    }
+    .animate-pulse-soft {
+      animation: pulse-soft 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    .rider-float {
+      animation: float 4s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+    }
+  </style>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "inverse-surface": "#2f3131",
+            "on-secondary-fixed": "#1a1c1c",
+            "on-tertiary-container": "#555555",
+            "on-background": "#1a1c1c",
+            "background": "#f9f9f9",
+            "secondary-fixed": "#e2e2e2",
+            "surface-tint": "#785900",
+            "outline-variant": "#d4c5ab",
+            "surface-container-lowest": "#ffffff",
+            "inverse-on-surface": "#f1f1f1",
+            "on-error": "#ffffff",
+            "tertiary-fixed": "#e2e2e2",
+            "secondary-fixed-dim": "#c6c6c7",
+            "tertiary-container": "#cbcbcb",
+            "on-primary-fixed": "#261a00",
+            "inverse-primary": "#fabd00",
+            "on-secondary-container": "#616363",
+            "secondary": "#5d5f5f",
+            "primary": "#785900",
+            "surface-dim": "#dadada",
+            "error-container": "#ffdad6",
+            "primary-container": "#ffc107",
+            "on-primary-container": "#6d5100",
+            "surface-container-low": "#f3f3f3",
+            "surface": "#f9f9f9",
+            "on-primary-fixed-variant": "#5b4300",
+            "outline": "#827660",
+            "surface-container": "#eeeeee",
+            "on-primary": "#ffffff",
+            "on-tertiary-fixed-variant": "#474747",
+            "on-error-container": "#93000a",
+            "on-tertiary": "#ffffff",
+            "tertiary-fixed-dim": "#c6c6c6",
+            "surface-variant": "#e2e2e2",
+            "tertiary": "#5e5e5e",
+            "surface-container-high": "#e8e8e8",
+            "primary-fixed-dim": "#fabd00",
+            "surface-container-highest": "#e2e2e2",
+            "on-tertiary-fixed": "#1b1b1b",
+            "on-surface": "#1a1c1c",
+            "error": "#ba1a1a",
+            "on-secondary": "#ffffff",
+            "secondary-container": "#dfe0e0",
+            "surface-bright": "#f9f9f9",
+            "on-surface-variant": "#4f4632",
+            "primary-fixed": "#ffdf9e",
+            "on-secondary-fixed-variant": "#454747"
+          },
+          "borderRadius": {
+            "DEFAULT": "1rem",
+            "lg": "2rem",
+            "xl": "3rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "base": "8px",
+            "gutter": "16px",
+            "md": "24px",
+            "xs": "4px",
+            "sm": "12px",
+            "lg": "32px",
+            "xl": "48px",
+            "container-margin": "20px"
+          },
+          "fontFamily": {
+            "display-lg": ["Montserrat"],
+            "headline-lg": ["Montserrat"],
+            "body-lg": ["Inter"],
+            "headline-md": ["Montserrat"],
+            "headline-lg-mobile": ["Montserrat"],
+            "label-sm": ["Inter"],
+            "label-lg": ["Inter"],
+            "body-md": ["Inter"]
+          },
+          "fontSize": {
+            "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+            "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+            "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+            "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+            "headline-lg-mobile": ["28px", {"lineHeight": "34px", "fontWeight": "700"}],
+            "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+            "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+            "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body-md overflow-x-hidden">
+<!-- Marketing Frame Wrapper -->
+<main class="min-h-screen w-full flex flex-col items-center bg-white px-container-margin py-xl">
+<!-- Marketing Content -->
+<header class="text-center max-w-xl mb-xl">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-primary mb-sm">
+        Track Your Order Live
+      </h1>
+<p class="font-body-md text-body-md text-secondary">
+        Get real-time delivery updates from restaurant to doorstep.
+      </p>
+</header>
+<!-- Phone Mockup Frame -->
+<div class="relative w-full max-w-[380px] aspect-[9/19] rounded-[3rem] border-[8px] border-on-secondary-fixed shadow-2xl overflow-hidden bg-surface">
+<!-- TopAppBar -->
+<nav class="flex justify-between items-center w-full px-container-margin py-base max-w-7xl mx-auto bg-surface shadow-sm z-10 sticky top-0">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">location_on</span>
+<span class="font-headline-md text-headline-md font-bold text-primary">Chatori Jeeb</span>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="User profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCP_RtXC0fL0-KyP1_-JZxVieah2ycMpn7M4WJKbCP6IvL9bsEruTR545rC2WJ8r4JEZyqlkenflCe38as_1ePzUZB-11-EpQatnx4J_FPJCi04D--wt04SfTb_DgsC_dEnf4t4a7-lCUIXyC5SXQqyeZCqsgzCBSTiccAXnFlc0eI5An7BbvfP5XhaMKQiBDe9Fplk9Ev7v9hN__8yxpgX7ONefiCh4bRtdYtPh-JS6wYctB0SjrndksPMDt8q_ShBmGaajNUM_9I"/>
+</div>
+</nav>
+<!-- Live Tracking Content Area -->
+<div class="relative flex-1 h-full flex flex-col overflow-y-auto pb-32">
+<!-- Live Map Mockup -->
+<div class="relative w-full h-[45%] bg-surface-variant overflow-hidden map-mask">
+<div class="absolute inset-0 grayscale opacity-40 bg-[url('https://api.mapbox.com/styles/v1/mapbox/light-v10/static/77.2090,28.6139,13,0/600x600?access_token=none')] bg-cover" data-location="New Delhi" style=""></div>
+<!-- Tracking Overlay Elements -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none" viewbox="0 0 400 400">
+<path class="opacity-30" d="M50,300 Q150,280 200,150 T350,50" fill="none" stroke="#785900" stroke-dasharray="8 8" stroke-width="4"></path>
+<circle cx="50" cy="300" fill="#785900" r="8"></circle> <!-- Restaurant -->
+<circle class="animate-pulse-soft" cx="350" cy="50" fill="#FFC107" r="8"></circle> <!-- Home -->
+</svg>
+<!-- Floating Rider Icon -->
+<div class="absolute left-[45%] top-[35%] rider-float">
+<div class="bg-primary-container p-2 rounded-full shadow-lg border-2 border-white">
+<span class="material-symbols-outlined text-on-primary-container text-[20px]">delivery_dining</span>
+</div>
+<div class="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-on-background text-white text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap font-bold">
+              Amrit is on his way
+            </div>
+</div>
+<!-- ETA Badge -->
+<div class="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-lg flex flex-col items-center border border-primary-container/20">
+<span class="text-label-sm font-bold text-secondary uppercase tracking-widest">ETA</span>
+<span class="text-headline-md font-extrabold text-primary">15 mins</span>
+</div>
+</div>
+<!-- Order Details & Timeline -->
+<div class="px-container-margin -mt-8 relative z-20">
+<!-- Status Card -->
+<div class="bg-white rounded-lg p-md shadow-lg border border-surface-container-highest soft-glow-amber mb-md">
+<div class="flex items-center justify-between mb-md">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Out for Delivery</h3>
+<p class="text-label-sm text-secondary">Order #CJ-88291 • Arriving by 8:45 PM</p>
+</div>
+<div class="w-12 h-12 bg-primary-container/20 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[28px]">electric_moped</span>
+</div>
+</div>
+<!-- Timeline -->
+<div class="space-y-4">
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<div class="w-4 h-4 rounded-full bg-primary ring-4 ring-primary-container/30"></div>
+<div class="w-0.5 h-10 bg-primary"></div>
+</div>
+<div class="pb-2">
+<p class="font-label-lg text-on-surface">Order Confirmed</p>
+<p class="text-label-sm text-secondary">8:10 PM</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<div class="w-4 h-4 rounded-full bg-primary ring-4 ring-primary-container/30"></div>
+<div class="w-0.5 h-10 bg-primary"></div>
+</div>
+<div class="pb-2">
+<p class="font-label-lg text-on-surface">Food is being prepared</p>
+<p class="text-label-sm text-secondary">8:15 PM</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<div class="w-4 h-4 rounded-full bg-primary ring-4 ring-primary-container/30 animate-pulse"></div>
+<div class="w-0.5 h-10 bg-secondary-fixed"></div>
+</div>
+<div class="pb-2">
+<p class="font-label-lg text-primary font-bold">Out for Delivery</p>
+<p class="text-label-sm text-secondary">8:30 PM</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<div class="w-4 h-4 rounded-full bg-secondary-fixed"></div>
+</div>
+<div>
+<p class="font-label-lg text-secondary opacity-50">Delivered</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Rider Profile Card -->
+<div class="bg-surface-container rounded-lg p-sm border border-outline-variant/30">
+<div class="flex items-center gap-md">
+<div class="relative">
+<img class="w-14 h-14 rounded-full border-2 border-white object-cover" data-alt="A professional delivery rider portrait, smiling warmly, wearing a clean mustard yellow uniform. High-key studio lighting with a soft cream background, creating a premium and trustworthy corporate feel. Detailed facial features and realistic textures in a modern photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBF-oMsu4YtC36n1Vg8mS4Cl3iZLQQtzBI7VH6pCUDxA6lZocYxfXar2QNiOhZcP3tDmPMydI4sXzLQ1wnTyA7O5FNj236D79bkKUohiCxi2m4oWgtz41py-pHiI76rysYMqO_5wP1SjArdHW5YDmgQttQkrwN6XrxawO9jN4AI384_tH-0IXNvUN5ErGHifk07iojk6YPMlh8Le85pal-S7UZQm8ksisKdCGlKpDaoSTf8fZRPQBY3XFbi5QJRAB5r76T8Zwd2Ppk"/>
+<div class="absolute -bottom-1 -right-1 bg-primary text-white p-0.5 rounded-full border border-white">
+<span class="material-symbols-outlined text-[12px] block" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<div class="flex-1">
+<h4 class="font-label-lg text-on-surface">Amrit Singh</h4>
+<p class="text-label-sm text-secondary">4.9 ★ • Top Delivery Partner</p>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm border border-outline-variant active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-primary">call</span>
+</button>
+<button class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center shadow-sm active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-on-primary-container">chat</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- BottomNavBar Mockup -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-4 pt-2 bg-surface shadow-[0px_-10px_30px_rgba(0,0,0,0.04)] rounded-t-lg">
+<div class="flex flex-col items-center justify-center text-secondary hover:bg-surface-container-highest transition-all px-4 py-1">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary hover:bg-surface-container-highest transition-all px-4 py-1">
+<span class="material-symbols-outlined">search</span>
+<span class="font-label-sm text-label-sm">Search</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 scale-90 duration-150 ease-in-out">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shopping_bag</span>
+<span class="font-label-sm text-label-sm">Orders</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary hover:bg-surface-container-highest transition-all px-4 py-1">
+<span class="material-symbols-outlined">local_offer</span>
+<span class="font-label-sm text-label-sm">Offers</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary hover:bg-surface-container-highest transition-all px-4 py-1">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</div>
+</nav>
+</div>
+</main>
+<script>
+    // Micro-interaction for rider movement simulation
+    document.addEventListener('DOMContentLoaded', () => {
+      const rider = document.querySelector('.rider-float');
+      let posX = 45;
+      let posY = 35;
+      let direction = 1;
+
+      setInterval(() => {
+        posX += 0.05 * direction;
+        posY -= 0.03 * direction;
+        
+        if (posX > 60 || posX < 40) direction *= -1;
+        
+        rider.style.left = posX + '%';
+        rider.style.top = posY + '%';
+      }, 50);
+    });
+  </script>
+</body></html>

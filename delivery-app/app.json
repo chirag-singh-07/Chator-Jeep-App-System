@@ -4,7 +4,7 @@
     "slug": "delivery-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icons/delivery-app-logo.png",
+    "icon": "./assets/delivery-app-logo.png",
     "scheme": "deliveryapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
@@ -23,10 +23,10 @@
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#E6B94D",
-        "foregroundImage": "./assets/icons/delivery-app-logo.png",
+        "foregroundImage": "./assets/delivery-app-logo.png",
         "dark": {
           "backgroundColor": "#1a1a1a",
-          "foregroundImage": "./assets/icons/delivery-app-logo.png"
+          "foregroundImage": "./assets/delivery-app-logo.png"
         }
       },
       "permissions": [
@@ -34,14 +34,15 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION",
         "FOREGROUND_SERVICE",
-        "FOREGROUND_SERVICE_LOCATION"
+        "FOREGROUND_SERVICE_LOCATION",
+        
       ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/delivery-app-logo.png"
     },
     "plugins": [
       "expo-router",
@@ -49,13 +50,13 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/icons/delivery-app-logo.png",
+          "image": "./assets/delivery-app-logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#E6B94D",
+          "backgroundColor": "#072dd6ff",
           "dark": {
             "backgroundColor": "#1a1a1a",
-            "image": "./assets/icons/delivery-app-logo.png"
+            "image": "./assets/delivery-app-logo.png"
           }
         }
       ],

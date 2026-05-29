@@ -1,8 +1,11 @@
 import { DownloadLayout } from "@/components/download/DownloadLayout";
 import { StoreButtons } from "@/components/download/StoreButtons";
-import { PhoneMockup } from "@/components/download/PhoneMockup";
 import { RestaurantApkButton } from "@/components/download/RestaurantApkButton";
 import { ClipboardList, BarChart3, Users, FileText, Store, Receipt } from "lucide-react";
+import restaurantOrders from "@/assets/screenshots/restaurant-orders.png";
+import restaurantDashboard from "@/assets/screenshots/restaurant-dashboard.png";
+import restaurantMenu from "@/assets/screenshots/restaurant-menu.png";
+import restaurantLiveTracking from "@/assets/screenshots/restaurant-live-tracking.png";
 
 const features = [
   { Icon: ClipboardList, title: "Order management", text: "Accept, prepare and dispatch — all from one screen." },
@@ -39,7 +42,12 @@ const RestaurantApp = () => {
             <p className="mt-4 text-sm text-muted-foreground">Launch offer registration is available in the app. Registration fees are non-refundable after successful payment.</p>
           </div>
           <div className="flex justify-center md:justify-end">
-            <PhoneMockup label="Restaurant app preview" />
+            <img
+              src={restaurantOrders}
+              alt="Chatori Jeeb restaurant app orders screen"
+              loading="lazy"
+              className="w-full max-w-[320px] rounded-[2rem] shadow-elegant"
+            />
           </div>
         </div>
       }
@@ -71,6 +79,28 @@ const RestaurantApp = () => {
               <div className="text-4xl md:text-5xl font-extrabold text-foreground">{s.value}</div>
               <div className="mt-1 text-sm text-muted-foreground">{s.label}</div>
             </div>
+          ))}
+        </div>
+      </section>
+
+      <section aria-labelledby="screens" className="mt-20">
+        <h2 id="screens" className="text-2xl md:text-3xl font-extrabold">Inside the restaurant app</h2>
+        <div className="mt-8 grid md:grid-cols-4 gap-6">
+          {[
+            { src: restaurantOrders, title: "Orders" },
+            { src: restaurantDashboard, title: "Dashboard" },
+            { src: restaurantMenu, title: "Menu" },
+            { src: restaurantLiveTracking, title: "Tracking" },
+          ].map((shot) => (
+            <figure key={shot.title} className="text-center">
+              <img
+                src={shot.src}
+                alt={`Restaurant app ${shot.title.toLowerCase()} screenshot`}
+                loading="lazy"
+                className="w-full rounded-[1.75rem] shadow-elegant"
+              />
+              <figcaption className="mt-3 text-sm font-semibold text-muted-foreground">{shot.title}</figcaption>
+            </figure>
           ))}
         </div>
       </section>

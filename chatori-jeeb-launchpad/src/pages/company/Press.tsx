@@ -1,6 +1,10 @@
 import { CompanyLayout } from "@/components/company/CompanyLayout";
 import { Button } from "@/components/ui/button";
 import { Download, Calendar, Building2, Users } from "lucide-react";
+import mainAppLogo from "@/assets/brand/main-app-logo.png";
+import userHomeScreen from "@/assets/screenshots/user-home.png";
+import userLiveTracking from "@/assets/screenshots/user-live-tracking.png";
+import restaurantDashboard from "@/assets/screenshots/restaurant-dashboard.png";
 
 const mentions = [
   { outlet: "YourStory", title: "Chatori Jeeb crosses 2M orders in record time", date: "Mar 2026" },
@@ -55,6 +59,24 @@ const Press = () => {
         <div>
           <h2 className="text-2xl md:text-3xl font-extrabold">Media kit</h2>
           <p className="mt-2 text-muted-foreground max-w-xl">Logos, brand colors and product screenshots for press use.</p>
+          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <figure className="rounded-2xl border border-border bg-card p-4">
+              <img src={mainAppLogo} alt="Chatori Jeeb logo" className="h-24 w-full object-contain" />
+              <figcaption className="mt-3 text-xs font-semibold text-muted-foreground">Logo</figcaption>
+            </figure>
+            <figure className="rounded-2xl border border-border bg-card p-4">
+              <img src={userHomeScreen} alt="User app home screen" className="w-full rounded-xl" />
+              <figcaption className="mt-3 text-xs font-semibold text-muted-foreground">User home</figcaption>
+            </figure>
+            <figure className="rounded-2xl border border-border bg-card p-4">
+              <img src={userLiveTracking} alt="User app live tracking screen" className="w-full rounded-xl" />
+              <figcaption className="mt-3 text-xs font-semibold text-muted-foreground">Live tracking</figcaption>
+            </figure>
+            <figure className="rounded-2xl border border-border bg-card p-4">
+              <img src={restaurantDashboard} alt="Restaurant app dashboard screen" className="w-full rounded-xl" />
+              <figcaption className="mt-3 text-xs font-semibold text-muted-foreground">Dashboard</figcaption>
+            </figure>
+          </div>
         </div>
         <Button asChild size="lg">
           <a href="mailto:press@chatorijeeb.com?subject=Media Kit Request">

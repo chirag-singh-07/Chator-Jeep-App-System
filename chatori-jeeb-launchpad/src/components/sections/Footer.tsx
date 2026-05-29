@@ -52,7 +52,7 @@ export const Footer = () => {
         <div className="grid md:grid-cols-6 gap-10">
           <div className="md:col-span-2">
             <Link to="/" className="flex items-center gap-3 font-extrabold text-xl tracking-tighter">
-              <img src="/icons/chatori-jeeb-logo.png" alt="Chatori Jeeb logo" className="h-9 w-9 object-contain shadow-glow rounded-xl" />
+              <img src="/icons/main-app-logo.png" alt="Chatori Jeeb logo" className="h-9 w-9 object-contain shadow-glow rounded-xl" />
               CHATORI <span className="text-primary-deep">JEEB</span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground max-w-sm">

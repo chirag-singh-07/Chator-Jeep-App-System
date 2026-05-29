@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Chatori Jeeb - Business Insights</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .yellow-glow {
+            box-shadow: 0px 4px 15px rgba(255, 193, 7, 0.25);
+        }
+        .phone-mockup-border {
+            border: 12px solid #1a1c1c;
+            border-radius: 48px;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "surface-container": "#eeeeee",
+                "error": "#ba1a1a",
+                "background": "#f9f9f9",
+                "on-tertiary-container": "#545656",
+                "on-secondary-fixed": "#1c1b1b",
+                "secondary": "#5f5e5e",
+                "on-primary": "#ffffff",
+                "surface-variant": "#e2e2e2",
+                "surface-dim": "#dadada",
+                "on-primary-container": "#6d5100",
+                "inverse-on-surface": "#f0f1f1",
+                "secondary-container": "#e2dfde",
+                "error-container": "#ffdad6",
+                "on-error-container": "#93000a",
+                "tertiary-fixed-dim": "#c6c6c7",
+                "surface-tint": "#785900",
+                "on-secondary-fixed-variant": "#474746",
+                "primary-container": "#ffc107",
+                "outline": "#827660",
+                "surface-container-highest": "#e2e2e2",
+                "secondary-fixed": "#e5e2e1",
+                "on-tertiary-fixed": "#1a1c1c",
+                "on-secondary": "#ffffff",
+                "on-secondary-container": "#636262",
+                "on-tertiary-fixed-variant": "#454747",
+                "inverse-surface": "#2f3131",
+                "tertiary": "#5d5f5f",
+                "primary-fixed-dim": "#fabd00",
+                "on-error": "#ffffff",
+                "primary": "#785900",
+                "inverse-primary": "#fabd00",
+                "surface-container-low": "#f3f3f4",
+                "on-primary-fixed": "#261a00",
+                "on-primary-fixed-variant": "#5b4300",
+                "outline-variant": "#d4c5ab",
+                "primary-fixed": "#ffdf9e",
+                "on-surface-variant": "#4f4632",
+                "surface-container-lowest": "#ffffff",
+                "on-background": "#1a1c1c",
+                "surface-container-high": "#e8e8e8",
+                "on-surface": "#1a1c1c",
+                "on-tertiary": "#ffffff",
+                "tertiary-fixed": "#e2e2e2",
+                "surface": "#f9f9f9",
+                "secondary-fixed-dim": "#c8c6c5",
+                "tertiary-container": "#cacbcb",
+                "surface-bright": "#f9f9f9"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "gutter": "16px",
+                "margin-mobile": "24px",
+                "section-gap": "80px",
+                "margin-desktop": "64px",
+                "base": "8px"
+        },
+        "fontFamily": {
+                "label-sm": ["Inter"],
+                "label-lg": ["Inter"],
+                "body-md": ["Inter"],
+                "headline-md": ["Inter"],
+                "headline-lg": ["Inter"],
+                "display-lg": ["Inter"],
+                "display-lg-mobile": ["Inter"],
+                "body-lg": ["Inter"]
+        },
+        "fontSize": {
+                "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                "label-lg": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+        }
+      },
+    },
+  }
+</script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+</style>
+</head>
+<body class="bg-background text-on-background overflow-x-hidden">
+<main class="relative min-h-screen flex flex-col items-center pt-16 px-margin-mobile md:px-margin-desktop overflow-hidden">
+<!-- Background Decor -->
+<div class="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] bg-primary-container/20 rounded-full blur-[120px] -z-10"></div>
+<div class="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary-fixed/30 rounded-full blur-[100px] -z-10"></div>
+<!-- Marketing Headline Section -->
+<div class="w-full max-w-[1280px] text-center mb-12">
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface mb-4 tracking-tighter">
+                Business Insights &amp; Reports
+            </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">
+                Understand growth with smart analytics. Real-time data visualization designed for the high-performance modern merchant.
+            </p>
+</div>
+<!-- Android Mockup Container -->
+<div class="relative w-full max-w-[380px] aspect-[9/19.5] mx-auto phone-mockup-border bg-white shadow-2xl overflow-hidden mb-section-gap">
+<!-- Notch -->
+<div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-[#1a1c1c] rounded-b-2xl z-[70]"></div>
+<!-- App Content Canvas -->
+<div class="relative h-full w-full bg-surface-container-lowest overflow-y-auto no-scrollbar pb-24">
+<!-- Top App Bar -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 h-16 bg-white/80 backdrop-blur-xl border-b border-outline-variant/30">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">menu</span>
+<span class="font-bold text-on-surface tracking-tight text-lg">Chatori Jeeb</span>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-primary/20">
+<img alt="Profile" data-alt="A professional headshot of a restaurant manager with a warm smile, wearing a modern charcoal uniform. The setting is a bright, upscale restaurant kitchen with soft bokeh lighting. The image maintains a clean, high-key light mode aesthetic with natural skin tones and professional clarity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0ZQmE-pofZA-VvmlmcpahvrSh69QG7LF6LyBi5JD3p6i10XKjWDgADJGTFmWLWgRmc5lZCR1UY8_2Nrwq3i7x_b1IElyJ1ECFDiKmqgVoc4GOB-6F7XkAN4hS5cXdr4hO75S_D4GjLyRRBliPb_7YY7Tq6aVm-deiEAaJSlxVfVuH60O5uummVw1r8-L3OfEFt1hj7_7FCx-sP21sA-qRblES8GS_ogxLpYf1lPt__9kUsFbOq1_pHG0rBiO54W1BApbyntRAbBoi"/>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="pt-20 px-4 space-y-6">
+<!-- Title Section -->
+<div class="flex justify-between items-end">
+<div>
+<p class="font-label-sm text-label-sm text-secondary uppercase tracking-widest">Performance</p>
+<h2 class="font-headline-md text-headline-md text-on-surface">Advanced Analytics</h2>
+</div>
+<span class="material-symbols-outlined text-primary bg-primary-container/20 p-2 rounded-lg">calendar_month</span>
+</div>
+<!-- Revenue Card -->
+<div class="bg-white rounded-3xl p-6 shadow-sm border border-outline-variant/20">
+<div class="flex justify-between items-center mb-6">
+<div>
+<p class="text-secondary font-label-sm">Monthly Revenue</p>
+<p class="text-headline-md font-bold text-on-surface">₹4,82,900</p>
+</div>
+<div class="flex items-center text-primary font-bold">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span class="text-label-lg ml-1">+12.4%</span>
+</div>
+</div>
+<!-- Bar Chart Visualization -->
+<div class="flex items-end justify-between h-32 gap-2 px-1">
+<div class="w-full bg-surface-container-high rounded-t-lg h-[40%]" style="transition: height 1s cubic-bezier(0.34, 1.56, 0.64, 1);"></div>
+<div class="w-full bg-surface-container-high rounded-t-lg h-[65%]" style="transition: height 1s cubic-bezier(0.34, 1.56, 0.64, 1);"></div>
+<div class="w-full bg-surface-container-high rounded-t-lg h-[50%]" style="transition: height 1s cubic-bezier(0.34, 1.56, 0.64, 1);"></div>
+<div class="w-full bg-primary-container rounded-t-lg h-[90%] yellow-glow relative" style="transition: height 1s cubic-bezier(0.34, 1.56, 0.64, 1);">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-on-primary text-[10px] px-2 py-0.5 rounded font-bold shadow-sm">Peak</div>
+</div>
+<div class="w-full bg-surface-container-high rounded-t-lg h-[75%]" style="transition: height 1s cubic-bezier(0.34, 1.56, 0.64, 1);"></div>
+<div class="w-full bg-surface-container-high rounded-t-lg h-[60%]" style="transition: height 1s cubic-bezier(0.34, 1.56, 0.64, 1);"></div>
+</div>
+<div class="flex justify-between mt-2 text-[10px] text-secondary font-medium">
+<span class="">MON</span><span class="">TUE</span><span class="">WED</span><span class="">THU</span><span class="">FRI</span><span class="">SAT</span>
+</div>
+</div>
+<!-- Top Selling Items -->
+<div class="space-y-4">
+<h3 class="font-label-lg text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-fixed-dim">stars</span>
+                            Top Selling Items
+                        </h3>
+<div class="grid gap-3">
+<!-- Item 1 -->
+<div class="flex items-center justify-between p-3 bg-white rounded-2xl border border-outline-variant/10 shadow-sm">
+<div class="flex items-center gap-3">
+<img alt="Garlic Naan" class="w-12 h-12 rounded-xl object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIl_Mek6zyiXRk30MtbEvlK5zo0w2DIFKMgU3nN_G8Bn8m75qvkJnQOlrwDoeV3CHTSSK7VYKzOhnsneVifRBWOK9s9cYbSMFgfrB01ErHKX0whJOrjNmHKZsWO7Iae27rgy8NN_ov5tgC-xjx3Z2s68ku_7PIFTG9pR3IWvwp8uDRv7su0SXK7zpXvyO_iWk_-JEFpELP-DsC7u5Wi4gcFluUb3uCs1g40UAZyJtRHsvFjJVS2Ibxko4M52oqHjwQKDwUEC4CIAgX"/>
+<div>
+<p class="font-label-lg text-on-surface">Garlic Naan</p>
+<p class="text-[11px] text-secondary">842 orders this month</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-bold text-on-surface">₹42k</p>
+<div class="w-16 h-1 bg-surface-container-high rounded-full mt-1 overflow-hidden">
+<div class="bg-primary-container w-[85%] h-full"></div>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="flex items-center justify-between p-3 bg-white rounded-2xl border border-outline-variant/10 shadow-sm">
+<div class="flex items-center gap-3">
+<img alt="Dal Makhani" class="w-12 h-12 rounded-xl object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTkh8kR-VEDRqQK1RuQBaGKuZp6cJcHTM_dMSMlwQ_s6u7iRd2qQIU7zfNKj2-ph96nvMpQyjR7bKwTgw_qnAYTB_DjQuE8bmFuvN1L6Qa7ybNcljPQAXgnhT5eaoNen4mjsmilJmW6lBLLv7Mq9trLvlNC8leauIpamZpKfdopHx-1M73DoOu-gh9ALxIBOOgctCaG1WsnToy8qtUHpSpHxIT4yp_LKLRZtzRGvO2TavlcLl_Dg11XXFwo60Dt-7SOoixS_M9shJs"/>
+<div>
+<p class="font-label-lg text-on-surface">Dal Makhani</p>
+<p class="text-[11px] text-secondary">615 orders this month</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-bold text-on-surface">₹98k</p>
+<div class="w-16 h-1 bg-surface-container-high rounded-full mt-1 overflow-hidden">
+<div class="bg-primary-container w-[65%] h-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Heatmap Widget -->
+<div class="bg-white rounded-3xl p-6 shadow-sm border border-outline-variant/20">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="font-label-lg text-on-surface">Customer Trend Heatmap</h3>
+<p class="text-[11px] text-secondary">Peak hour visitor density</p>
+</div>
+<span class="material-symbols-outlined text-primary">query_stats</span>
+</div>
+<div class="grid grid-cols-7 gap-1">
+<div class="aspect-square rounded-sm bg-primary-container/10"></div>
+<div class="aspect-square rounded-sm bg-primary-container/30"></div>
+<div class="aspect-square rounded-sm bg-primary-container/20"></div>
+<div class="aspect-square rounded-sm bg-primary-container/50"></div>
+<div class="aspect-square rounded-sm bg-primary-container/90 yellow-glow"></div>
+<div class="aspect-square rounded-sm bg-primary-container/40"></div>
+<div class="aspect-square rounded-sm bg-primary-container/10"></div>
+<div class="aspect-square rounded-sm bg-primary-container/5"></div>
+<div class="aspect-square rounded-sm bg-primary-container/20"></div>
+<div class="aspect-square rounded-sm bg-primary-container/60"></div>
+<div class="aspect-square rounded-sm bg-primary-container yellow-glow"></div>
+<div class="aspect-square rounded-sm bg-primary-container/70"></div>
+<div class="aspect-square rounded-sm bg-primary-container/30"></div>
+<div class="aspect-square rounded-sm bg-primary-container/5"></div>
+</div>
+<div class="flex justify-between mt-3 text-[9px] text-secondary uppercase tracking-tighter">
+<span class="">12 PM</span><span class="">4 PM</span><span class="">8 PM</span><span class="">12 AM</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Features -->
+<div class="flex flex-wrap justify-center gap-8 opacity-70 mb-12">
+<div class="flex items-center gap-2 px-6 py-3 rounded-full border border-outline-variant/40 bg-white/50">
+<span class="material-symbols-outlined text-primary">verified</span>
+<span class="font-label-lg text-on-surface">Enterprise Ready</span>
+</div>
+<div class="flex items-center gap-2 px-6 py-3 rounded-full border border-outline-variant/40 bg-white/50">
+<span class="material-symbols-outlined text-primary">bolt</span>
+<span class="font-label-lg text-on-surface">Real-time Sync</span>
+</div>
+<div class="flex items-center gap-2 px-6 py-3 rounded-full border border-outline-variant/40 bg-white/50">
+<span class="material-symbols-outlined text-primary">security</span>
+<span class="font-label-lg text-on-surface">Secure Data</span>
+</div>
+</div>
+</main>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const bars = document.querySelectorAll('.rounded-t-lg');
+            bars.forEach((bar, index) => {
+                const targetHeight = bar.style.height;
+                bar.style.height = '0%';
+                setTimeout(() => {
+                    bar.style.transition = 'height 1s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    bar.style.height = targetHeight;
+                }, 200 + (index * 100));
+            });
+        });
+    </script>
+</body></html>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Chatori Jeeb - Premium Final Showcase</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .premium-glow {
+            box-shadow: 0 0 80px 20px rgba(255, 193, 7, 0.15);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .floating {
+            animation: floating 6s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(1deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        .floating-reverse {
+            animation: floating-reverse 7s ease-in-out infinite;
+        }
+        @keyframes floating-reverse {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(15px) rotate(-1.5deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-surface": "#2f3131",
+                      "on-secondary-fixed": "#1a1c1c",
+                      "on-tertiary-container": "#555555",
+                      "on-background": "#1a1c1c",
+                      "background": "#f9f9f9",
+                      "secondary-fixed": "#e2e2e2",
+                      "surface-tint": "#785900",
+                      "outline-variant": "#d4c5ab",
+                      "surface-container-lowest": "#ffffff",
+                      "inverse-on-surface": "#f1f1f1",
+                      "on-error": "#ffffff",
+                      "tertiary-fixed": "#e2e2e2",
+                      "secondary-fixed-dim": "#c6c6c7",
+                      "tertiary-container": "#cbcbcb",
+                      "on-primary-fixed": "#261a00",
+                      "inverse-primary": "#fabd00",
+                      "on-secondary-container": "#616363",
+                      "secondary": "#5d5f5f",
+                      "primary": "#785900",
+                      "surface-dim": "#dadada",
+                      "error-container": "#ffdad6",
+                      "primary-container": "#ffc107",
+                      "on-primary-container": "#6d5100",
+                      "surface-container-low": "#f3f3f3",
+                      "surface": "#f9f9f9",
+                      "on-primary-fixed-variant": "#5b4300",
+                      "outline": "#827660",
+                      "surface-container": "#eeeeee",
+                      "on-primary": "#ffffff",
+                      "on-tertiary-fixed-variant": "#474747",
+                      "on-error-container": "#93000a",
+                      "on-tertiary": "#ffffff",
+                      "tertiary-fixed-dim": "#c6c6c6",
+                      "surface-variant": "#e2e2e2",
+                      "tertiary": "#5e5e5e",
+                      "surface-container-high": "#e8e8e8",
+                      "primary-fixed-dim": "#fabd00",
+                      "surface-container-highest": "#e2e2e2",
+                      "on-tertiary-fixed": "#1b1b1b",
+                      "on-surface": "#1a1c1c",
+                      "error": "#ba1a1a",
+                      "on-secondary": "#ffffff",
+                      "secondary-container": "#dfe0e0",
+                      "surface-bright": "#f9f9f9",
+                      "on-surface-variant": "#4f4632",
+                      "primary-fixed": "#ffdf9e",
+                      "on-secondary-fixed-variant": "#454747"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "base": "8px",
+                      "gutter": "16px",
+                      "md": "24px",
+                      "xs": "4px",
+                      "sm": "12px",
+                      "lg": "32px",
+                      "xl": "48px",
+                      "container-margin": "20px"
+              },
+              "fontFamily": {
+                      "display-lg": ["Montserrat"],
+                      "headline-lg": ["Montserrat"],
+                      "body-lg": ["Inter"],
+                      "headline-md": ["Montserrat"],
+                      "headline-lg-mobile": ["Montserrat"],
+                      "label-sm": ["Inter"],
+                      "label-lg": ["Inter"],
+                      "body-md": ["Inter"]
+              },
+              "fontSize": {
+                      "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-lg-mobile": ["28px", {"lineHeight": "34px", "fontWeight": "700"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                      "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-body-md text-on-background overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- Marketing Frame Background -->
+<div class="fixed inset-0 z-0 bg-[#FCFBF8] flex items-center justify-center overflow-hidden">
+<div class="absolute w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px] premium-glow"></div>
+<div class="absolute -top-40 -left-40 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[100px]"></div>
+</div>
+<!-- Main Content Layout -->
+<main class="relative z-10 w-full min-h-screen flex flex-col items-center justify-between py-xl px-container-margin">
+<!-- Headline Section -->
+<div class="w-full max-w-4xl text-center space-y-md">
+<h1 class="font-display-lg text-display-lg md:text-5xl lg:text-6xl text-on-background tracking-tighter">
+                Your Ultimate Food <br/>
+<span class="text-primary italic">Ordering Experience</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-tertiary-container max-w-2xl mx-auto px-4">
+                Fast delivery, amazing restaurants, and delicious food — all in one app. Curated for the modern foodie.
+            </p>
+</div>
+<!-- UI Mockup Artistic Composition -->
+<div class="relative w-full max-w-5xl h-[442px] md:h-[530px] flex justify-center items-center">
+<!-- Background Hero Image (Dish) -->
+<div class="absolute inset-0 z-0 flex items-center justify-center opacity-20 pointer-events-none">
+<img alt="" class="w-full h-full object-contain scale-125" data-alt="A hyper-realistic, top-down photograph of a steaming, premium hand-tossed pizza with fresh basil and melted buffalo mozzarella. The image is set against a warm, dark wood surface with soft amber rim lighting to emphasize textures. The aesthetic is luxurious and artisanal, fitting a high-end corporate food delivery platform with a sophisticated and indulgent mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbXckptV1AbWwp90yK8aPvvB0YkvB3JwARDpuIdSw5q-PT5L1Kwwx4jI4T4o5d-xt23XX6COkKarrb9xZoQ74n56aR9reoU9x8lG2vwpc4sXTZZ-lt7Fe_9KPDSCcElZTISrz8SKluj_v3CBI9qVRQdkrvz0Wm96SSROKRFMT7faHcsZv65kEeKIKozT7fm0rO45BPuXVaYez4A-1U315odtJN-02MpOI2jjpH4qdmizJxy_4e4J2pyO8kI-xOGHSpZWspG0ufYmY"/>
+</div>
+<!-- Overlapping Screen Screens -->
+<div class="relative w-full h-full flex items-center justify-center">
+<!-- Screen 1: Home/Discover (Back Left) -->
+<div class="absolute left-4 md:left-[10%] lg:left-[15%] w-48 md:w-64 aspect-[9/19] bg-surface rounded-xl shadow-2xl border border-outline/10 transform -rotate-12 floating-reverse z-10 overflow-hidden">
+<div class="p-sm space-y-sm">
+<div class="flex justify-between items-center mb-base">
+<div class="w-8 h-8 rounded-full bg-surface-container"></div>
+<div class="material-symbols-outlined text-primary">location_on</div>
+</div>
+<div class="h-4 w-3/4 bg-surface-container rounded-full"></div>
+<div class="grid grid-cols-2 gap-xs">
+<div class="h-20 bg-primary-container/20 rounded-lg"></div>
+<div class="h-20 bg-surface-container-highest rounded-lg"></div>
+</div>
+<div class="space-y-xs">
+<div class="h-32 bg-surface-container rounded-xl overflow-hidden relative">
+<img alt="" class="w-full h-full object-cover" data-alt="A vibrant culinary photograph of diverse global cuisines, showcasing colorful sushi rolls and gourmet burgers with premium lighting. The shot uses shallow depth of field to emphasize freshness and quality. The colors are rich and high-contrast, designed for a modern, high-end mobile interface that prioritizes visual food appeal." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDReji1hnUxrG-AkNtL1wpxZbo7aq2rwxlB-I0lh0_bXrU6goE1vM10EIJu2itbNVjvPOCYNHW9cdJD4d2mtPnVcwQlH1oy76QDjUxONb6bCJW-eisekwCD-bIkq8Q87oIeV7IDMH2ts0GBuOoCbx67sCgGj35GMpyBU-cDy6pPilfumGIZactZYenimONFvKWTMLQWYlgRe3me7KKksNWOFUHbGCGldMbwo7wgv3rXBlC5z6XEHS1Me6YL6U611PPKAaSeGMySbzo"/>
+</div>
+<div class="h-4 w-1/2 bg-surface-container-highest rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Screen 2: Tracking (Middle High) -->
+<div class="absolute z-30 w-56 md:w-72 aspect-[9/19] bg-surface rounded-xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.15)] border border-outline/20 transform scale-110 z-30 overflow-hidden">
+<!-- Tracking Header -->
+<div class="bg-primary p-md text-on-primary">
+<p class="font-label-sm text-label-sm opacity-80">ESTIMATED ARRIVAL</p>
+<h3 class="font-headline-md text-headline-md">15-20 Mins</h3>
+</div>
+<!-- Tracking Map View -->
+<div class="h-3/5 bg-surface-container relative">
+<div class="absolute inset-0 bg-neutral-100" data-location="New Delhi" style=""></div>
+<!-- Mock Route Line -->
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-3/4 h-1 bg-primary/20 rounded-full relative">
+<div class="absolute right-0 -top-1 w-3 h-3 bg-primary rounded-full"></div>
+<div class="absolute left-0 -top-1 w-3 h-3 bg-on-surface rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Order Card -->
+<div class="p-md space-y-sm">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container">delivery_dining</span>
+</div>
+<div>
+<p class="font-label-lg text-label-lg">Rahul is on the way</p>
+<p class="text-[10px] text-on-surface-variant">4.9 ★ Delivery Partner</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Screen 3: Detail (Back Right) -->
+<div class="absolute right-4 md:right-[10%] lg:right-[15%] w-48 md:w-64 aspect-[9/19] bg-surface rounded-xl shadow-2xl border border-outline/10 transform rotate-12 floating z-20 overflow-hidden">
+<div class="h-2/5 bg-surface-container relative">
+<img alt="" class="w-full h-full object-cover" data-alt="A premium close-up shot of an authentic Indian Biryani bowl, showing aromatic basmati rice, tender meat chunks, and caramelized onions. The lighting is soft and warm, highlighting the vibrant yellow and orange hues of the spices. The scene is clean and minimalist, presented in a high-fidelity white ceramic bowl to convey luxury and hygiene." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlr1_eNpRyYjqdOa10-N7-n4JAKnkrKDJ9PI7pcJ99IqPQjW5Wbks2bbuZPm1tRnfPwfyqkZuixzk67bkaFa_fKna3uyCSK7YtBEzp2Y0ljN2JnrixDr3mf3eZghZOEwJpi5peP9LrJy889wN3R_Ka7U_O5kIAMXLWBXmFCnrxU15mZieGqyrP5yoUrLeqJ2AkUYut2n0NjwGjHFVIFmkLNMPtiQi3gxoMhzPv07Lc1ux3shYO3h4TM5WgAUBqfE5cNRmsKrWpCQ8"/>
+<div class="absolute top-4 left-4 w-8 h-8 bg-white/80 backdrop-blur rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">arrow_back</span>
+</div>
+</div>
+<div class="p-md space-y-sm">
+<h4 class="font-headline-md text-headline-md">Hyderabadi Dum Biryani</h4>
+<div class="flex gap-base">
+<div class="px-2 py-0.5 bg-green-50 text-green-700 text-[10px] font-bold rounded-sm border border-green-200">BESTSELLER</div>
+<div class="text-on-surface-variant text-[10px]">4.8 (2k+ ratings)</div>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full"></div>
+<div class="h-2 w-5/6 bg-surface-container-highest rounded-full"></div>
+<div class="pt-md">
+<div class="w-full h-10 bg-on-background rounded-full flex items-center justify-center text-white text-label-lg">
+                                Add to Cart - ₹349
+                            </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Branding & CTA -->
+<div class="w-full max-w-4xl flex flex-col items-center gap-lg">
+<!-- Download Button CTA -->
+<button class="group relative px-xl py-md bg-on-background text-surface rounded-full font-headline-md flex items-center gap-md transition-all hover:scale-105 active:scale-95 shadow-xl hover:shadow-primary-container/20">
+<span class="font-bold">Download Now</span>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+<div class="absolute -inset-1 bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</button>
+<!-- Store Icons -->
+<div class="flex items-center gap-lg opacity-40">
+<div class="flex items-center gap-base">
+<span class="material-symbols-outlined text-2xl">shop</span>
+<p class="font-label-lg text-label-lg">App Store</p>
+</div>
+<div class="w-1 h-1 rounded-full bg-outline"></div>
+<div class="flex items-center gap-base">
+<span class="material-symbols-outlined text-2xl">play_apps</span>
+<p class="font-label-lg text-label-lg">Play Store</p>
+</div>
+</div>
+<!-- Branding Anchor -->
+<div class="pt-md border-t border-outline/10 w-full flex justify-center">
+<span class="font-headline-md text-headline-md font-bold text-primary tracking-tight">Chatori Jeeb</span>
+</div>
+</div>
+</main>
+<!-- Floating Background Particles (Decoration) -->
+<div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+<div class="absolute top-1/4 left-1/4 w-3 h-3 bg-primary/40 rounded-full floating" style="animation-delay: 1s"></div>
+<div class="absolute top-1/2 right-1/4 w-2 h-2 bg-primary/30 rounded-full floating-reverse" style="animation-delay: 2s"></div>
+<div class="absolute bottom-1/4 right-1/3 w-4 h-4 bg-primary/20 rounded-full floating" style="animation-delay: 0.5s"></div>
+<div class="absolute top-1/3 right-10 w-2 h-2 bg-primary/50 rounded-full floating-reverse" style="animation-delay: 3s"></div>
+</div>
+</body></html>

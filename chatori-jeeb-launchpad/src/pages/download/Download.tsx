@@ -504,7 +504,7 @@ const Download = () => {
           <div className="grid lg:grid-cols-[1.1fr_0.9fr]">
             <div className="p-8 md:p-10">
               <div className="inline-flex items-center gap-3 rounded-2xl bg-primary/10 px-4 py-3 text-primary-deep">
-                <img src="/icons/chatori-jeeb-logo.png" alt="" className="h-10 w-10 rounded-xl object-contain" />
+                <img src="/icons/main-app-logo.png" alt="" className="h-10 w-10 rounded-xl object-contain" />
                 <span className="text-xs font-bold uppercase tracking-widest">Official Restaurant APK</span>
               </div>
               <h2 id="restaurant-apk" className="mt-5 text-3xl md:text-5xl font-extrabold tracking-tight">
@@ -524,7 +524,7 @@ const Download = () => {
             <div className="relative min-h-[260px] bg-gradient-warm p-8 md:p-10">
               <div className="absolute inset-0 bg-gradient-primary opacity-10" aria-hidden />
               <div className="relative flex h-full flex-col justify-center rounded-3xl border border-border bg-background/80 p-6 backdrop-blur">
-                <img src="/icons/chatori-jeeb-logo.png" alt="Chatori Jeeb logo" className="h-20 w-20 rounded-2xl object-contain shadow-glow" />
+                <img src="/icons/main-app-logo.png" alt="Chatori Jeeb logo" className="h-20 w-20 rounded-2xl object-contain shadow-glow" />
                 <div className="mt-5 text-2xl font-extrabold">Chatori Jeeb Restaurant</div>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Accept orders, manage your menu, track launch offer status, and receive real-time order alerts.

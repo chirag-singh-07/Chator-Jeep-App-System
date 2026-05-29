@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Offers &amp; Discounts - Chatori Jeeb</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#2f3131",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "on-tertiary-container": "#555555",
+                        "on-background": "#1a1c1c",
+                        "background": "#f9f9f9",
+                        "secondary-fixed": "#e2e2e2",
+                        "surface-tint": "#785900",
+                        "outline-variant": "#d4c5ab",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#f1f1f1",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed": "#e2e2e2",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "tertiary-container": "#cbcbcb",
+                        "on-primary-fixed": "#261a00",
+                        "inverse-primary": "#fabd00",
+                        "on-secondary-container": "#616363",
+                        "secondary": "#5d5f5f",
+                        "primary": "#785900",
+                        "surface-dim": "#dadada",
+                        "error-container": "#ffdad6",
+                        "primary-container": "#ffc107",
+                        "on-primary-container": "#6d5100",
+                        "surface-container-low": "#f3f3f3",
+                        "surface": "#f9f9f9",
+                        "on-primary-fixed-variant": "#5b4300",
+                        "outline": "#827660",
+                        "surface-container": "#eeeeee",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#474747",
+                        "on-error-container": "#93000a",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed-dim": "#c6c6c6",
+                        "surface-variant": "#e2e2e2",
+                        "tertiary": "#5e5e5e",
+                        "surface-container-high": "#e8e8e8",
+                        "primary-fixed-dim": "#fabd00",
+                        "surface-container-highest": "#e2e2e2",
+                        "on-tertiary-fixed": "#1b1b1b",
+                        "on-surface": "#1a1c1c",
+                        "error": "#ba1a1a",
+                        "on-secondary": "#ffffff",
+                        "secondary-container": "#dfe0e0",
+                        "surface-bright": "#f9f9f9",
+                        "on-surface-variant": "#4f4632",
+                        "primary-fixed": "#ffdf9e",
+                        "on-secondary-fixed-variant": "#454747"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "gutter": "16px",
+                        "md": "24px",
+                        "xs": "4px",
+                        "sm": "12px",
+                        "lg": "32px",
+                        "xl": "48px",
+                        "container-margin": "20px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Montserrat"],
+                        "headline-lg": ["Montserrat"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Montserrat"],
+                        "headline-lg-mobile": ["Montserrat"],
+                        "label-sm": ["Inter"],
+                        "label-lg": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "34px", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .offer-card-glow {
+            box-shadow: 0px 10px 30px rgba(120, 89, 0, 0.08);
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        .glass-effect {
+            backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.8);
+        }
+        @keyframes subtle-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.9; transform: scale(0.98); }
+        }
+        .animate-pulse-custom {
+            animation: subtle-pulse 4s infinite ease-in-out;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container-lowest min-h-screen font-body-md text-on-surface">
+<!-- Marketing Frame -->
+<div class="max-w-[420px] mx-auto bg-white min-h-screen overflow-hidden flex flex-col relative border-[12px] border-on-secondary-fixed rounded-[3rem] shadow-2xl my-8">
+<!-- Marketing Copy Section -->
+<div class="pt-xl px-container-margin pb-lg text-center bg-white">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-sm leading-tight">
+                Save More With Exclusive Offers
+            </h1>
+<p class="font-body-md text-body-md text-secondary leading-relaxed px-base">
+                Unlock exciting food deals, coupons, and cashback rewards.
+            </p>
+</div>
+<!-- UI Mockup Canvas -->
+<div class="flex-grow bg-surface overflow-y-auto pb-32 rounded-t-xl shadow-inner border-t border-surface-variant relative">
+<!-- TopAppBar Placeholder (JSON Rule Applied) -->
+<header class="bg-surface flex justify-between items-center w-full px-container-margin py-base sticky top-0 z-40 shadow-sm">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary text-[28px]" data-icon="location_on">location_on</span>
+<span class="font-headline-md text-headline-md font-bold text-primary">Chatori Jeeb</span>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="A professional high-fidelity portrait of a smiling young adult in a modern, brightly lit urban office setting. The person has a warm, friendly expression, wearing premium casual attire. The lighting is soft and even, emphasizing a clean and premium lifestyle aesthetic consistent with a high-end service application. The background is slightly blurred to maintain focus on the individual." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBT768aZ6KWODDUQauxGfPZyLwAwgd_oXSeVfVfezPxrTMMvRIoowmoD_poO79aLh4EMl0kC8zWqAy6MZ0p8W6OBDvR291UzGoj-sGbY4iwuKEJV6EFhDGGnRkoF7eLfwtZYUPmzDpOE681tcYp8zdEAlVjFkMsNQx73F2nuKcn34CrCHs33wUptwvliAoV8cZdinKEU8MmeVBBKYKPZjOqr7NP5j83rkK_hkRkkDRJqbK3yrAa82LOA_JRX6jNgl2tbDDrmB6Mdss"/>
+</div>
+</header>
+<!-- Membership / Reward Section (Chatori Coins) -->
+<section class="mt-lg px-container-margin">
+<div class="bg-inverse-surface rounded-lg p-md relative overflow-hidden flex items-center justify-between shadow-lg">
+<div class="relative z-10">
+<div class="flex items-center gap-xs mb-xs">
+<span class="material-symbols-outlined text-primary-container" data-icon="stars" style="font-variation-settings: 'FILL' 1;">stars</span>
+<p class="font-label-lg text-label-lg text-surface-container-lowest uppercase tracking-widest">Club Member</p>
+</div>
+<h2 class="font-headline-md text-headline-md text-white">2,450 Chatori Coins</h2>
+<p class="font-label-sm text-label-sm text-secondary-fixed-dim mt-xs">Use coins for extra discounts at checkout</p>
+</div>
+<div class="relative z-10 bg-primary-container text-on-primary-container px-sm py-xs rounded-full font-label-lg shadow-sm">
+                        Redeem
+                    </div>
+<!-- Background aesthetic element -->
+<div class="absolute -right-8 -top-8 w-32 h-32 bg-primary opacity-20 rounded-full blur-2xl"></div>
+</div>
+</section>
+<!-- Featured Offer (Horizontal Card) -->
+<section class="mt-lg px-container-margin">
+<div class="relative w-full aspect-[16/9] rounded-lg overflow-hidden group shadow-md hover:shadow-xl transition-all duration-300">
+<img alt="Weekend Feast" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="A top-down, high-fidelity food photography shot of a lavish weekend feast spread on a rustic wooden table. The spread includes steaming gourmet pizzas, artisanal burgers, and colorful fresh salads. The lighting is warm and golden, creating an indulgent and premium mood. Deep shadows and rich textures highlight the freshness of the ingredients, perfectly aligning with a luxury food delivery brand's visual identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0AtyPbIIKhoXU7bFphS0O9gbUzEQV0sk7nbGqSvW7Ls0_YBfJPFt8xYE_T3jnZgZC0AGGNEYVDW8iXO8hK5lZkKX3H8vG5w7DTLa4VZ8oqjwz4sHM5vkp9uxjMw10KUCsKiKA5o4VgihdZzCfpZp4cVZc7qmq7xNrN6oSV5FXYzMaBEIZgwzmm6Shm-Y0vgKr1RTVkMgmdD9aM0fCJ5hf5kHp5hjA4bCpsu1yOdRQZI6juuYd2LpuxxsgI8-Qd8cOzpuP6T8Ctns"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-md">
+<div class="bg-primary text-on-secondary-fixed px-sm py-xs rounded-full w-fit font-label-lg mb-xs">Weekend Feast</div>
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-white leading-tight">Flat 60% OFF</h3>
+<p class="text-white/80 font-body-md text-body-md">On all premium dining orders this weekend</p>
+</div>
+</div>
+</section>
+<!-- Free Delivery Promo -->
+<section class="mt-md px-container-margin">
+<div class="bg-primary-container/10 border border-primary-container/30 rounded-lg p-md flex items-center gap-md offer-card-glow">
+<div class="w-14 h-14 bg-primary-container rounded-full flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-primary-container text-[32px]" data-icon="local_shipping" style="font-variation-settings: 'FILL' 1;">local_shipping</span>
+</div>
+<div>
+<h4 class="font-headline-md text-[18px] text-on-primary-container">Free Delivery on first 3 orders</h4>
+<p class="font-body-md text-label-sm text-on-surface-variant">Applicable for all new Chatori Jeeb users.</p>
+</div>
+</div>
+</section>
+<!-- Coupon Grid -->
+<section class="mt-lg px-container-margin">
+<div class="flex justify-between items-center mb-md">
+<h2 class="font-headline-md text-headline-md text-on-surface">Available Coupons</h2>
+<span class="text-primary font-label-lg">View All</span>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<!-- Coupon 1 -->
+<div class="bg-white p-md rounded-lg border border-surface-variant shadow-sm hover:border-primary transition-colors group cursor-pointer relative overflow-hidden" onclick="copyCode('CHATORI50')">
+<div class="bg-surface-container-low w-fit px-xs py-1 rounded text-[10px] font-bold uppercase text-secondary mb-xs">Best Seller</div>
+<p class="font-headline-md text-[20px] text-primary mb-xs">50% OFF</p>
+<p class="font-label-sm text-secondary mb-md">Up to ₹150 discount</p>
+<div class="border-t-2 border-dashed border-surface-variant pt-sm flex justify-between items-center">
+<span class="font-label-lg font-bold text-on-surface tracking-wider" id="code1">CHATORI50</span>
+<span class="material-symbols-outlined text-secondary text-sm" data-icon="content_copy">content_copy</span>
+</div>
+</div>
+<!-- Coupon 2 -->
+<div class="bg-white p-md rounded-lg border border-surface-variant shadow-sm hover:border-primary transition-colors group cursor-pointer relative overflow-hidden" onclick="copyCode('FREEMEAL')">
+<div class="bg-surface-container-low w-fit px-xs py-1 rounded text-[10px] font-bold uppercase text-secondary mb-xs">New Launch</div>
+<p class="font-headline-md text-[20px] text-primary mb-xs">FREE Item</p>
+<p class="font-label-sm text-secondary mb-md">On orders above ₹499</p>
+<div class="border-t-2 border-dashed border-surface-variant pt-sm flex justify-between items-center">
+<span class="font-label-lg font-bold text-on-surface tracking-wider" id="code2">FREEMEAL</span>
+<span class="material-symbols-outlined text-secondary text-sm" data-icon="content_copy">content_copy</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Cashbacks Section -->
+<section class="mt-lg px-container-margin">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-md">Bank &amp; Wallet Offers</h2>
+<div class="space-y-sm">
+<div class="flex items-center gap-md bg-white p-sm rounded-lg border border-surface-variant">
+<div class="w-12 h-12 bg-surface-container rounded-lg flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="account_balance">account_balance</span>
+</div>
+<div class="flex-grow">
+<p class="font-label-lg text-on-surface">15% Cashback on HDFC Credit Cards</p>
+<p class="font-label-sm text-secondary">Up to ₹200 on orders over ₹1200</p>
+</div>
+<span class="material-symbols-outlined text-secondary" data-icon="chevron_right">chevron_right</span>
+</div>
+<div class="flex items-center gap-md bg-white p-sm rounded-lg border border-surface-variant">
+<div class="w-12 h-12 bg-surface-container rounded-lg flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="payments">payments</span>
+</div>
+<div class="flex-grow">
+<p class="font-label-lg text-on-surface">Flat ₹50 Amazon Pay Cashback</p>
+<p class="font-label-sm text-secondary">Instant credit to your wallet</p>
+</div>
+<span class="material-symbols-outlined text-secondary" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+</section>
+</div>
+<!-- Bottom Navigation Bar (JSON Rule Applied) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-4 pt-2 bg-surface shadow-[0px_-10px_30px_rgba(0,0,0,0.04)] rounded-t-lg max-w-[420px] left-1/2 -translate-x-1/2">
+<div class="flex flex-col items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="font-label-sm text-label-sm">Search</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+<span class="font-label-sm text-label-sm">Orders</span>
+</div>
+<!-- ACTIVE STATE: Offers -->
+<div class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 active:scale-90 duration-150 ease-in-out">
+<span class="material-symbols-outlined" data-icon="local_offer" style="font-variation-settings: 'FILL' 1;">local_offer</span>
+<span class="font-label-sm text-label-sm font-bold">Offers</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</div>
+</nav>
+<!-- Floating Notification -->
+<div class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-inverse-surface text-white px-md py-sm rounded-full font-label-lg flex items-center gap-sm opacity-0 translate-y-4 transition-all duration-300 pointer-events-none z-50" id="toast">
+<span class="material-symbols-outlined text-primary-container" data-icon="check_circle">check_circle</span>
+            Code copied to clipboard!
+        </div>
+</div>
+<script>
+        function copyCode(code) {
+            // Simple visual feedback
+            const toast = document.getElementById('toast');
+            toast.classList.remove('opacity-0', 'translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4');
+                toast.classList.remove('opacity-100', 'translate-y-0');
+            }, 2000);
+            
+            // Log for functional check
+            console.log('Copied code:', code);
+        }
+
+        // Micro-interaction: Scroll reveal for cards
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100', 'translate-y-0');
+                    entry.target.classList.remove('opacity-0', 'translate-y-8');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section').forEach(section => {
+            section.classList.add('transition-all', 'duration-700', 'opacity-0', 'translate-y-8');
+            observer.observe(section);
+        });
+    </script>
+</body></html>

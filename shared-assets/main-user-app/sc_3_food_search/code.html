@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Montserrat:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "inverse-surface": "#2f3131",
+            "on-secondary-fixed": "#1a1c1c",
+            "on-tertiary-container": "#555555",
+            "on-background": "#1a1c1c",
+            "background": "#f9f9f9",
+            "secondary-fixed": "#e2e2e2",
+            "surface-tint": "#785900",
+            "outline-variant": "#d4c5ab",
+            "surface-container-lowest": "#ffffff",
+            "inverse-on-surface": "#f1f1f1",
+            "on-error": "#ffffff",
+            "tertiary-fixed": "#e2e2e2",
+            "secondary-fixed-dim": "#c6c6c7",
+            "tertiary-container": "#cbcbcb",
+            "on-primary-fixed": "#261a00",
+            "inverse-primary": "#fabd00",
+            "on-secondary-container": "#616363",
+            "secondary": "#5d5f5f",
+            "primary": "#785900",
+            "surface-dim": "#dadada",
+            "error-container": "#ffdad6",
+            "primary-container": "#ffc107",
+            "on-primary-container": "#6d5100",
+            "surface-container-low": "#f3f3f3",
+            "surface": "#f9f9f9",
+            "on-primary-fixed-variant": "#5b4300",
+            "outline": "#827660",
+            "surface-container": "#eeeeee",
+            "on-primary": "#ffffff",
+            "on-tertiary-fixed-variant": "#474747",
+            "on-error-container": "#93000a",
+            "on-tertiary": "#ffffff",
+            "tertiary-fixed-dim": "#c6c6c6",
+            "surface-variant": "#e2e2e2",
+            "tertiary": "#5e5e5e",
+            "surface-container-high": "#e8e8e8",
+            "primary-fixed-dim": "#fabd00",
+            "surface-container-highest": "#e2e2e2",
+            "on-tertiary-fixed": "#1b1b1b",
+            "on-surface": "#1a1c1c",
+            "error": "#ba1a1a",
+            "on-secondary": "#ffffff",
+            "secondary-container": "#dfe0e0",
+            "surface-bright": "#f9f9f9",
+            "on-surface-variant": "#4f4632",
+            "primary-fixed": "#ffdf9e",
+            "on-secondary-fixed-variant": "#454747"
+          },
+          "borderRadius": {
+            "DEFAULT": "1rem",
+            "lg": "2rem",
+            "xl": "3rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "base": "8px",
+            "gutter": "16px",
+            "md": "24px",
+            "xs": "4px",
+            "sm": "12px",
+            "lg": "32px",
+            "xl": "48px",
+            "container-margin": "20px"
+          },
+          "fontFamily": {
+            "display-lg": ["Montserrat"],
+            "headline-lg": ["Montserrat"],
+            "body-lg": ["Inter"],
+            "headline-md": ["Montserrat"],
+            "headline-lg-mobile": ["Montserrat"],
+            "label-sm": ["Inter"],
+            "label-lg": ["Inter"],
+            "body-md": ["Inter"]
+          },
+          "fontSize": {
+            "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+            "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+            "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+            "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+            "headline-lg-mobile": ["28px", {"lineHeight": "34px", "fontWeight": "700"}],
+            "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+            "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+            "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body { background-color: #ffffff; overflow-x: hidden; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .mockup-shadow { box-shadow: 0 40px 100px -20px rgba(0,0,0,0.15); }
+    .shimmer {
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+      background-size: 200% 100%;
+      animation: shimmer 2s infinite linear;
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .amber-glow {
+      box-shadow: 0 0 20px rgba(255, 193, 7, 0.2);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex items-center justify-center min-h-screen p-10 bg-white">
+<!-- Marketing Frame Wrapper -->
+<div class="relative w-full max-w-[1200px] flex flex-col md:flex-row items-center gap-20">
+<!-- Text Content Column -->
+<div class="flex-1 space-y-md text-center md:text-left">
+<h1 class="font-display-lg text-display-lg text-on-background">
+        Find Cravings Instantly
+      </h1>
+<p class="font-body-lg text-body-lg text-secondary max-w-md">
+        Search dishes, restaurants, cuisines, and trending foods easily.
+      </p>
+<!-- Visual Accent -->
+<div class="flex gap-xs justify-center md:justify-start pt-base">
+<div class="w-12 h-1.5 rounded-full bg-primary-container"></div>
+<div class="w-4 h-1.5 rounded-full bg-primary-container/30"></div>
+<div class="w-4 h-1.5 rounded-full bg-primary-container/10"></div>
+</div>
+</div>
+<!-- UI Mockup Canvas -->
+<div class="relative w-[375px] h-[780px] bg-background rounded-[3rem] border-[12px] border-on-secondary-fixed mockup-shadow overflow-hidden flex flex-col">
+<!-- Top App Bar (Shared Component Logic) -->
+<header class="bg-surface z-20 flex justify-between items-center w-full px-container-margin py-base max-w-7xl mx-auto shadow-sm sticky top-0">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed-dim" data-icon="location_on">location_on</span>
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">Chatori Jeeb</span>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="A professional studio portrait of a young adult with a friendly expression, captured with soft, high-key lighting that emphasizes a clean and premium corporate aesthetic. The background is a minimalist, out-of-focus soft gray that ensures the subject remains the central focus. The image style is polished and high-fidelity, aligning with a modern lifestyle brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAWazrEVRdHLWVgXeQXiMkKtG9hOc-SJ5VcLJn2r8pOmPEKpmcWPKcgKiqw87B_fXntBKpamkljZgT91ugdszSn1s_37Y01V__DyXrWp2qfNbM76sg2hLs1dMpaiLAn2VQNvUMs4jFZo25JQWas5NpWRLFHr65mWfLyGJWS-8vXU8wtut1fdzBF-jUgjcWpOVcnCg23Jo0LlrSB-tM0diZwTwIHsoeRA_aAGBXQwQaPbW5_9sqJMgYXnhGAw7WYd0lHq_z-lKbr9g"/>
+</div>
+</header>
+<!-- Main Search Screen Content -->
+<main class="flex-1 overflow-y-auto px-container-margin pt-md pb-xl">
+<!-- Search Bar Section -->
+<div class="relative mb-lg">
+<div class="bg-surface-container-low rounded-lg p-sm flex items-center gap-sm amber-glow border border-primary/20">
+<span class="material-symbols-outlined text-primary" data-icon="search">search</span>
+<span class="font-body-md text-body-md text-on-surface">Paneer Butter Masala</span>
+<div class="w-0.5 h-6 bg-primary animate-pulse ml-[-4px]"></div>
+<span class="material-symbols-outlined text-secondary ml-auto" data-icon="mic">mic</span>
+</div>
+</div>
+<!-- Suggestion List (Active Typing State) -->
+<div class="space-y-sm mb-lg">
+<div class="flex items-center gap-sm py-xs transition-transform active:scale-95">
+<span class="material-symbols-outlined text-outline" data-icon="history">history</span>
+<p class="font-body-md text-body-md text-on-surface-variant flex-1">Paneer Tikka Roll</p>
+<span class="material-symbols-outlined text-outline text-[18px]" data-icon="north_west">north_west</span>
+</div>
+<div class="flex items-center gap-sm py-xs border-b border-surface-variant/50 pb-sm">
+<span class="material-symbols-outlined text-primary" data-icon="trending_up">trending_up</span>
+<div class="flex-1">
+<p class="font-body-md text-body-md text-on-surface">Paneer Butter Masala <span class="text-secondary opacity-60">in Curries</span></p>
+<p class="font-label-sm text-label-sm text-secondary">Best rated at "The Royal Kitchen"</p>
+</div>
+<span class="material-symbols-outlined text-outline text-[18px]" data-icon="north_west">north_west</span>
+</div>
+</div>
+<!-- Filter Chips Section -->
+<div class="flex gap-sm overflow-x-auto no-scrollbar mb-lg -mx-container-margin px-container-margin">
+<div class="flex-shrink-0 px-4 py-1.5 rounded-full bg-on-background text-on-primary font-label-lg text-label-lg flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="tune">tune</span>
+            Rating 4.0+
+          </div>
+<div class="flex-shrink-0 px-4 py-1.5 rounded-full bg-white border border-outline-variant text-on-surface-variant font-label-lg text-label-lg flex items-center gap-1">
+<div class="w-3 h-3 rounded-sm border border-green-600 flex items-center justify-center"><div class="w-1 h-1 rounded-full bg-green-600"></div></div>
+            Veg
+          </div>
+<div class="flex-shrink-0 px-4 py-1.5 rounded-full bg-white border border-outline-variant text-on-surface-variant font-label-lg text-label-lg flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="bolt">bolt</span>
+            Fast Delivery
+          </div>
+</div>
+<!-- Trending Now Bento Grid -->
+<section class="mb-lg">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-md">Trending Now</h2>
+<div class="grid grid-cols-2 gap-sm">
+<!-- Large Card -->
+<div class="col-span-2 relative h-40 rounded-lg overflow-hidden group">
+<img alt="Pizza" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A close-up, high-fidelity photograph of a gourmet pepperoni pizza with melted mozzarella cheese bubbling and stretching. The lighting is warm and cinematic, emphasizing the golden-brown crust and fresh herbs. The image captures a sense of indulgence and premium quality, set against a dark, rustic wooden tabletop for a sophisticated food delivery app vibe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbfCjriYKLb0m6e2UbuYf6wUQ4GP9c_3_hRmv8vH8j0dNejleTbQq1tSkOUzyjPnEAve7hhecOxKuB5_1KVRBbaRq_2GjSzyhHDU220VAEzdGys_idlHMq-RUlX5uY1OuWjWpJob-tbcmvp0LFSy0_ykXJo2AGcVTA_g-RSKXNwXvo8Js7aqOl_eI5BMHCKPDISI7KeixdSx0c4yptowmKYNtjc2IM2jEvNoxEKVn90EifPCE7SaM0OxQeIJT0cS4RRP9yBICty0w"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+<div class="absolute bottom-sm left-sm flex items-center gap-sm">
+<div class="bg-primary-container p-2 rounded-full">
+<span class="material-symbols-outlined text-on-primary-container" data-icon="local_pizza">local_pizza</span>
+</div>
+<div>
+<p class="font-headline-md text-label-lg text-white">Classic Pizzas</p>
+<p class="font-label-sm text-label-sm text-white/70">Starting at ₹199</p>
+</div>
+</div>
+</div>
+<!-- Smaller Cards -->
+<div class="bg-surface-container rounded-lg p-sm flex flex-col items-center justify-center gap-xs">
+<div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-primary text-[28px]" data-icon="ramen_dining">ramen_dining</span>
+</div>
+<p class="font-label-lg text-label-lg text-on-surface-variant">Chinese</p>
+</div>
+<div class="bg-surface-container rounded-lg p-sm flex flex-col items-center justify-center gap-xs">
+<div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-primary text-[28px]" data-icon="ice_cream">icecream</span>
+</div>
+<p class="font-label-lg text-label-lg text-on-surface-variant">Sweets</p>
+</div>
+</div>
+</section>
+<!-- Discovery Suggestions -->
+<section>
+<div class="flex justify-between items-center mb-sm">
+<h3 class="font-label-lg text-label-lg text-secondary uppercase tracking-wider">Top Cuisines</h3>
+<span class="text-primary font-label-sm text-label-sm">View all</span>
+</div>
+<div class="flex gap-md overflow-x-auto no-scrollbar py-base">
+<div class="flex flex-col items-center gap-xs">
+<div class="w-16 h-16 rounded-full border-2 border-primary-container p-1">
+<img alt="Indian" class="w-full h-full object-cover rounded-full" data-alt="A vibrant and colorful top-down shot of various North Indian curries and naan bread, styled for a luxury culinary magazine. The warm yellows and oranges of the spices pop against a neutral stone background. High-key, natural morning light creates soft shadows, evoking a fresh and appetizing atmosphere consistent with a high-end food delivery service." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4yH1zG3mALfRBVHb04U5fBVw_ZGJw8bY7e-5T9ulkVrKVaGyscb7ld2EOe3ISo-JdYaVjGIHj5KX_Sld0bGpjS6NWKEG0f3LAzRyARVv5vOU3-N2W-hdbPZsK7oRn1heiIhFXiGd_AOZBRvPTqNAyOE6FHrV_1fcGX8a5ObEOCPpVgLCrg77VtqjJm8cWIEsVECjYRmf-aNtSROP_vTtffbagiPTaL0c8dym6-htZ38JgNMrAEqpvFKwX173403fAUpog8AKIanc"/>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface">Indian</span>
+</div>
+<div class="flex flex-col items-center gap-xs">
+<div class="w-16 h-16 rounded-full border-2 border-transparent p-1">
+<img alt="Continental" class="w-full h-full object-cover rounded-full grayscale opacity-60" data-alt="An elegantly plated continental dish featuring grilled chicken breast with a light balsamic glaze and roasted seasonal vegetables. The styling is minimalist and modern, with a clean white ceramic plate providing high contrast. The mood is sophisticated and healthy, using bright, clear lighting that suggests a premium dining experience." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJO8kQ_DyY9_XwlCbqaEb7l-P7Lm-cUHR4mKrju1SOzlmoDLxKoVq1EuZiYYHVyIJLNX91XpAocmw65zOrEAOQ66t5ox2fS8Z8Xt4SIBKGIzkUwAsqqy7z2Mn9t4c9W7fWQwekGBUpMhVXgFKAlWdgjoGedwzmTl4F8lnhv7wknI98D02bwi09ZLUEp_BBnExZyoVwzm7AxJ1tKowloy-AarY2Y9KFbg1YMBNtiNAlKCxD-dA2hDMDQq8t0EQ61oY4iXjzbrV5r-0"/>
+</div>
+<span class="font-label-sm text-label-sm text-secondary">Continental</span>
+</div>
+<div class="flex flex-col items-center gap-xs">
+<div class="w-16 h-16 rounded-full border-2 border-transparent p-1">
+<img alt="Italian" class="w-full h-full object-cover rounded-full grayscale opacity-60" data-alt="A close-up of freshly prepared pasta carbonara with a creamy sauce and crispy pancetta, topped with a dusting of parmesan and black pepper. The lighting is soft and golden, highlighting the texture of the sauce and the silkiness of the pasta. The overall aesthetic is warm, inviting, and high-end, perfect for a curated lifestyle food application." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUYdefPjcHEbTrrNm34w2iSwA5zoEr39Bp0Wj2j8ey6E_EIrCYaBLfd52Ob0EfRRAoOHAEV7AS5xW79xtpfcbxzli0p1Ii9hs2eC3umhGXCsM6Ns93cOyMNVwf59ioJZB3hGKVP5dn9_1TCjYjX-YiQIe9y5i-BN898dSCcutkl_u4TsB0T5Z2EJXZkVlyxZhd32lMlcS4Jf3_KIYEjE_JjKK182B8Q1Wfnp1MamgYqwk4qxp9oR0-hT4fu4Upf-OD-5DaihaUSSs"/>
+</div>
+<span class="font-label-sm text-label-sm text-secondary">Italian</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Nav Bar (Shared Component Logic) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-4 pt-2 bg-surface dark:bg-inverse-surface shadow-[0px_-10px_30px_rgba(0,0,0,0.04)]">
+<div class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-primary-container dark:bg-primary-container text-on-primary-container rounded-full px-4 py-1 scale-90 duration-150 ease-in-out">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="font-label-sm text-label-sm">Search</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+<span class="font-label-sm text-label-sm">Orders</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim">
+<span class="material-symbols-outlined" data-icon="local_offer">local_offer</span>
+<span class="font-label-sm text-label-sm">Offers</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</div>
+</nav>
+</div>
+</div>
+<script>
+    // Micro-interactions for search focus
+    const searchBar = document.querySelector('.amber-glow');
+    if (searchBar) {
+      searchBar.addEventListener('touchstart', () => {
+        searchBar.style.transform = 'scale(0.98)';
+        searchBar.style.transition = 'transform 0.2s ease';
+      });
+      searchBar.addEventListener('touchend', () => {
+        searchBar.style.transform = 'scale(1)';
+      });
+    }
+
+    // Smooth horizontal scroll behavior
+    const scrollers = document.querySelectorAll('.no-scrollbar');
+    scrollers.forEach(scroller => {
+      let isDown = false;
+      let startX;
+      let scrollLeft;
+
+      scroller.addEventListener('mousedown', (e) => {
+        isDown = true;
+        startX = e.pageX - scroller.offsetLeft;
+        scrollLeft = scroller.scrollLeft;
+      });
+      scroller.addEventListener('mouseleave', () => {
+        isDown = false;
+      });
+      scroller.addEventListener('mouseup', () => {
+        isDown = false;
+      });
+      scroller.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - scroller.offsetLeft;
+        const walk = (x - startX) * 2;
+        scroller.scrollLeft = scrollLeft - walk;
+      });
+    });
+  </script>
+</body></html>

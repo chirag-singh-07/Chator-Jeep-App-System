@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-error-container": "#93000a",
+                    "on-primary-container": "#6d5100",
+                    "on-secondary": "#ffffff",
+                    "surface-dim": "#dadada",
+                    "on-tertiary-container": "#545656",
+                    "surface-container-highest": "#e2e2e2",
+                    "primary": "#785900",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "on-primary": "#ffffff",
+                    "on-secondary-fixed-variant": "#474746",
+                    "on-tertiary-fixed-variant": "#454747",
+                    "error-container": "#ffdad6",
+                    "on-primary-fixed": "#261a00",
+                    "surface": "#f9f9f9",
+                    "inverse-surface": "#2f3131",
+                    "error": "#ba1a1a",
+                    "tertiary-container": "#cacbcb",
+                    "surface-container": "#eeeeee",
+                    "outline-variant": "#d4c5ab",
+                    "inverse-primary": "#fabd00",
+                    "on-secondary-fixed": "#1c1b1b",
+                    "tertiary-fixed-dim": "#c6c6c7",
+                    "surface-bright": "#f9f9f9",
+                    "inverse-on-surface": "#f0f1f1",
+                    "tertiary": "#5d5f5f",
+                    "primary-fixed-dim": "#fabd00",
+                    "on-surface-variant": "#4f4632",
+                    "primary-container": "#ffc107",
+                    "background": "#f9f9f9",
+                    "surface-container-high": "#e8e8e8",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-container": "#636262",
+                    "surface-container-low": "#f3f3f4",
+                    "surface-container-lowest": "#ffffff",
+                    "on-surface": "#1a1c1c",
+                    "on-tertiary-fixed": "#1a1c1c",
+                    "secondary": "#5f5e5e",
+                    "secondary-container": "#e2dfde",
+                    "primary-fixed": "#ffdf9e",
+                    "tertiary-fixed": "#e2e2e2",
+                    "on-background": "#1a1c1c",
+                    "surface-variant": "#e2e2e2",
+                    "outline": "#827660",
+                    "surface-tint": "#785900",
+                    "secondary-fixed": "#e5e2e1",
+                    "on-error": "#ffffff",
+                    "on-primary-fixed-variant": "#5b4300"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "64px",
+                    "section-gap": "80px",
+                    "base": "8px",
+                    "margin-mobile": "24px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "display-lg-mobile": ["Inter"],
+                    "label-lg": ["Inter"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .yellow-glow {
+            box-shadow: 0px 0px 20px rgba(255, 193, 7, 0.4);
+        }
+        .android-frame {
+            box-shadow: 0 50px 100px -20px rgba(0,0,0,0.15), 0 30px 60px -30px rgba(0,0,0,0.2);
+            border: 12px solid #1a1c1c;
+            border-radius: 48px;
+        }
+        .pulse-rider {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .map-gradient {
+            background: linear-gradient(180deg, rgba(249, 249, 249, 0) 0%, rgba(249, 249, 249, 1) 90%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md overflow-x-hidden">
+<!-- Top AppBar (Simplified for Marketing) -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-margin-mobile h-16 bg-surface/60 backdrop-blur-xl border-b border-outline-variant/30">
+<div class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-on-surface tracking-tight">Chatori Jeeb</div>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden border-2 border-primary">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="A professional close-up portrait of a friendly Indian restaurant manager in a modern kitchen setting. The lighting is warm and cinematic, highlighting the vibrant textures of the environment. The overall aesthetic is clean and premium, consistent with a high-end corporate food-tech application." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwr5NbmirJPJsjphpiGkUPU_SdO9ics-TVqUzx5WCsCPqlzm5cOPqe9ExPyeVXndRQZj2c4AfZWDvJ0-BGK9G-fF7zNbnQlXV6poCVvH5azn0TZ_s_60t6Kldranc4PmejaM3gWtZsJDsRrKILrPCFyRR8ow0c2q22x9OJyP0yhoAxwHtwv8qUl8FisxZK1j40MSqeEM0O59GsOhw_hvIOapLCkfi-4gPsCEYfF1-0e9MMnYH43Zj7ANxeGuaEgUnFCLnAyts4oWk6"/>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-section-gap px-margin-mobile max-w-[1280px] mx-auto flex flex-col items-center">
+<!-- Marketing Headline Cluster -->
+<div class="text-center mb-12 max-w-2xl">
+<h1 class="font-display-lg-mobile text-display-lg-mobile text-on-background mb-4">
+                Track Deliveries Live
+            </h1>
+<p class="font-body-lg text-body-lg text-secondary leading-relaxed">
+                Monitor rider status and customer delivery progress in real-time with our precision tracking dashboard.
+            </p>
+</div>
+<!-- Phone Mockup Container -->
+<div class="relative w-full max-w-[360px] mx-auto android-frame bg-surface overflow-hidden aspect-[9/19.5]">
+<!-- Android Status Bar -->
+<div class="h-8 w-full flex items-center justify-between px-6 pt-2 text-on-surface-variant">
+<span class="text-[12px] font-bold">12:30</span>
+<div class="flex gap-1">
+<span class="material-symbols-outlined text-[14px]">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-[14px]">wifi</span>
+<span class="material-symbols-outlined text-[14px]">battery_full</span>
+</div>
+</div>
+<!-- In-App Header -->
+<div class="px-6 py-4 flex items-center gap-3">
+<div class="p-2 rounded-full hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-on-surface">arrow_back</span>
+</div>
+<h2 class="font-headline-md-mobile text-headline-md-mobile">Live Tracking</h2>
+</div>
+<!-- Content Area (The Map) -->
+<div class="relative h-[65%] w-full bg-surface-container-low overflow-hidden">
+<!-- Map Placeholder Image -->
+<img class="w-full h-full object-cover opacity-80" data-alt="A stylized, minimalist satellite map view of a modern urban city layout in New Delhi, featuring clean white and light gray streets. Soft golden sunlight highlights the intersections, creating a premium light-mode aesthetic. The map is designed to look functional yet beautiful, serving as a background for a delivery tracking interface." data-location="New Delhi" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFgdKLhFoXClZfO2kd_13YOFRJf-JgV7KbEZ4nRZUwBbQmZ9nTARlhb8lL0I91vw3XhDXQ9OJ9X7uu87Yr-4l1ekbT2gytGo1P8CjMbwqOi58Em08DQPIIfMsy7jcNG77a2UbkpY5uRG7rOKdheJ-F_yJICF--kTEU1WAfqcf63VOHv1Zawy27US8hEJo5orOgU5wBna0OmuQRn-wHdIA18NTkrK4cUqeSwPWaJGd0VN7t-l1tYDApOQY0OL3lmMsEKvCBlA5rlI_M"/>
+<!-- Map Overlay Gradient -->
+<div class="absolute inset-0 map-gradient"></div>
+<!-- Rider Icon & Path -->
+<div class="absolute top-[40%] left-[30%] flex flex-col items-center">
+<div class="bg-primary p-2 rounded-full shadow-lg pulse-rider yellow-glow">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">delivery_dining</span>
+</div>
+<div class="mt-2 bg-on-surface text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
+                        Amit Kumar
+                    </div>
+</div>
+<!-- Destination Icon -->
+<div class="absolute bottom-[20%] right-[25%] flex flex-col items-center">
+<div class="bg-error p-2 rounded-full shadow-lg">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">location_on</span>
+</div>
+<div class="mt-2 bg-surface text-on-surface text-[10px] px-2 py-0.5 rounded-full border border-outline-variant shadow-sm font-bold">
+                        Customer Home
+                    </div>
+</div>
+<!-- ETA Badge -->
+<div class="absolute top-4 right-4 glass-panel px-4 py-2 rounded-xl border border-white/40 shadow-lg flex flex-col items-center">
+<span class="text-label-sm text-secondary uppercase tracking-widest">ETA</span>
+<span class="font-headline-md-mobile text-primary">12 Mins</span>
+</div>
+</div>
+<!-- Bottom Tracking Panel (Bento-ish Sheet) -->
+<div class="absolute bottom-0 left-0 w-full glass-panel border-t border-white/50 rounded-t-[32px] p-6 pb-8 shadow-2xl z-20">
+<!-- Drag Handle -->
+<div class="w-12 h-1.5 bg-outline-variant/30 rounded-full mx-auto mb-6"></div>
+<!-- Rider Profile Card -->
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-2xl bg-primary-fixed overflow-hidden border-2 border-white shadow-sm">
+<img alt="Amit Kumar" class="w-full h-full object-cover" data-alt="A warm, approachable portrait of a delivery partner named Amit Kumar wearing a professional uniform. The photography is bright and clean with a soft-focus background of an urban street at golden hour. The image conveys trust and efficiency within a high-performance SaaS ecosystem." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtbWswQrGTel69HSXKZXjuIU0FsCA4_Xl9suYc4KNonTmqZidETsOxKzzjqnxNXhetipIPbqaWV_rk82_QhrSxQKBRr0zxJNRwmv7eXBvGN1JaolS4A5reqcWA3R86U74Awpls63fpAFLWAr99xDzwQMQgai_zibhOOP1CtlOUmT4GjC4FSCmmTYLT2kQOoUEbsJGS3otzQ0J690NFOZVs3MyXpFmZOsi2M9KotZnGhlSxqwEsFXoTsWxCH3tAFDn3tAYJTPgd5kjL"/>
+</div>
+<div>
+<h3 class="font-label-lg text-on-surface">Amit Kumar</h3>
+<p class="text-label-sm text-secondary">Verified Partner • 4.9 ★</p>
+</div>
+</div>
+<div class="flex gap-2">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center cursor-pointer active:scale-95 transition-transform">
+<span class="material-symbols-outlined">call</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center cursor-pointer active:scale-95 transition-transform">
+<span class="material-symbols-outlined">chat_bubble</span>
+</div>
+</div>
+</div>
+<!-- Tracking Timeline -->
+<div class="space-y-4">
+<div class="flex items-start gap-4">
+<div class="mt-1 flex flex-col items-center">
+<div class="w-6 h-6 rounded-full bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] text-on-primary-container font-bold">check</span>
+</div>
+<div class="w-0.5 h-8 bg-primary-container"></div>
+</div>
+<div>
+<p class="font-label-lg text-on-surface">Order Picked Up</p>
+<p class="text-label-sm text-secondary">12:25 PM • Main Kitchen</p>
+</div>
+</div>
+<div class="flex items-start gap-4">
+<div class="mt-1 flex flex-col items-center">
+<div class="w-6 h-6 rounded-full border-2 border-primary-container bg-surface flex items-center justify-center pulse-rider">
+<div class="w-2.5 h-2.5 rounded-full bg-primary"></div>
+</div>
+<div class="w-0.5 h-8 bg-surface-container-highest"></div>
+</div>
+<div>
+<p class="font-label-lg text-primary font-bold">Arriving in 1.2 km</p>
+<p class="text-label-sm text-secondary">Near Sector 44 Market</p>
+</div>
+</div>
+<div class="flex items-start gap-4 opacity-50">
+<div class="mt-1 flex flex-col items-center">
+<div class="w-6 h-6 rounded-full border-2 border-surface-container-highest bg-surface"></div>
+</div>
+<div>
+<p class="font-label-lg text-on-surface">Delivered</p>
+<p class="text-label-sm text-secondary">Est. 12:42 PM</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Contextual Suppression Logic Applied) -->
+<!-- Not rendered as this is a specific 'Transactional/Live View' marketing screen -->
+<script>
+        // Micro-interaction for the "Call" and "Chat" buttons
+        document.querySelectorAll('.active\\:scale-95').forEach(button => {
+            button.addEventListener('mousedown', () => {
+                button.style.opacity = '0.8';
+            });
+            button.addEventListener('mouseup', () => {
+                button.style.opacity = '1';
+            });
+        });
+
+        // Subtle parallax/tilt effect for the phone mockup
+        const phone = document.querySelector('.android-frame');
+        document.addEventListener('mousemove', (e) => {
+            const xAxis = (window.innerWidth / 2 - e.pageX) / 50;
+            const yAxis = (window.innerHeight / 2 - e.pageY) / 50;
+            phone.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+        });
+    </script>
+</body></html>

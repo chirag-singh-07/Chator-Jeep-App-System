@@ -2,6 +2,8 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Apple, Smartphone, Star } from "lucide-react";
 import mock from "@/assets/app-mockup-1.png";
+import { UserApkButton } from "@/components/download/UserApkButton";
+import { RestaurantApkButton } from "@/components/download/RestaurantApkButton";
 
 export const AppDownload = () => {
   return (
@@ -55,6 +57,19 @@ export const AppDownload = () => {
                   </div>
                 </Link>
               </motion.div>
+            </div>
+
+            <div className="mt-8 rounded-3xl border border-foreground/10 bg-foreground/5 p-4 md:p-5">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-widest text-primary-foreground/80">Direct APK downloads</div>
+                  <p className="mt-1 text-sm text-primary-foreground/75">Prefer installing from our website? Grab the Android APKs below.</p>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <UserApkButton compact />
+                <RestaurantApkButton compact />
+              </div>
             </div>
 
             <div className="mt-10 flex items-center gap-6 text-sm">

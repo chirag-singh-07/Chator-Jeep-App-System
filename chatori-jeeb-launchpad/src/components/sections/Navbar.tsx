@@ -49,7 +49,7 @@ export const Navbar = () => {
     >
       <nav className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         <a href="#" className="flex items-center gap-3 font-extrabold text-xl tracking-tighter">
-          <img src="/icons/chatori-jeeb-logo.png" alt="Chatori Jeeb logo" className="h-10 w-10 object-contain shadow-glow rounded-xl" />
+          <img src="/icons/main-app-logo.png" alt="Chatori Jeeb logo" className="h-10 w-10 object-contain shadow-glow rounded-xl" />
           <span>CHATORI <span className="text-primary-deep">JEEB</span></span>
         </a>
 

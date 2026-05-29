@@ -7,7 +7,7 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:160634269949:android:2317837bd3fe139e944e94",
+        "mobilesdk_app_id": "1:160634269949:android:f35a6d687af14ad0944e94",
         "android_client_info": {
           "package_name": "com.chatorijeeb.deliveryapp"
         }
@@ -26,9 +26,9 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:160634269949:android:692ca42bd49c2374944e94",
+        "mobilesdk_app_id": "1:160634269949:android:acf5c621fd09ed03944e94",
         "android_client_info": {
-          "package_name": "com.chatorijeeb.userapp"
+          "package_name": "com.chatorijeeb.restaurantapp"
         }
       },
       "oauth_client": [],

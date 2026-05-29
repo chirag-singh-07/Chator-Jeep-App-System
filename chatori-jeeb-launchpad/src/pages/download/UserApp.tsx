@@ -1,7 +1,9 @@
 import { DownloadLayout } from "@/components/download/DownloadLayout";
 import { StoreButtons } from "@/components/download/StoreButtons";
-import { PhoneMockup } from "@/components/download/PhoneMockup";
 import { ShoppingBag, MapPin, Utensils, Zap, Star } from "lucide-react";
+import userHomeScreen from "@/assets/screenshots/user-home.png";
+import userRestaurantDetails from "@/assets/screenshots/user-restaurant-details.png";
+import userLiveTracking from "@/assets/screenshots/user-live-tracking.png";
 
 const features = [
   { Icon: ShoppingBag, title: "Easy ordering", text: "A few taps to your favourite meal." },
@@ -11,9 +13,9 @@ const features = [
 ];
 
 const screens = [
-  { title: "Browse", text: "Curated home feed personalised for your cravings." },
-  { title: "Menu", text: "Beautiful menus with photos, ratings and offers." },
-  { title: "Track", text: "Live map tracking until your food arrives." },
+  { title: "Browse", text: "Curated home feed personalised for your cravings.", src: userHomeScreen },
+  { title: "Menu", text: "Beautiful menus with photos, ratings and offers.", src: userRestaurantDetails },
+  { title: "Track", text: "Live map tracking until your food arrives.", src: userLiveTracking },
 ];
 
 const reviews = [
@@ -36,9 +38,12 @@ const UserApp = () => {
             <p className="mt-4 text-sm text-muted-foreground">Available on iOS and Android. Free to download.</p>
           </div>
           <div className="flex justify-center md:justify-end">
-            <div className="animate-fade-in">
-              <PhoneMockup label="User app preview" />
-            </div>
+            <img
+              src={userHomeScreen}
+              alt="Chatori Jeeb user app home screen"
+              loading="lazy"
+              className="animate-fade-in w-full max-w-[320px] rounded-[2rem] shadow-elegant"
+            />
           </div>
         </div>
       }
@@ -67,9 +72,12 @@ const UserApp = () => {
         <div className="mt-8 grid md:grid-cols-3 gap-10">
           {screens.map((s, i) => (
             <div key={s.title} className="text-center" style={{ animationDelay: `${i * 100}ms` }}>
-              <div className="animate-fade-in">
-                <PhoneMockup label={`${s.title} screen`} />
-              </div>
+              <img
+                src={s.src}
+                alt={`${s.title} screen`}
+                loading="lazy"
+                className="animate-fade-in w-full max-w-[320px] mx-auto rounded-[2rem] shadow-elegant"
+              />
               <h3 className="mt-5 font-bold text-lg">{s.title}</h3>
               <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">{s.text}</p>
             </div>

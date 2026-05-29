@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Chatori Jeeb - Favorites &amp; Orders</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-tab-indicator {
+            view-transition-name: active-tab;
+        }
+        .soft-glow {
+            box-shadow: 0px 10px 30px rgba(120, 89, 0, 0.08);
+        }
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#2f3131",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "on-tertiary-container": "#555555",
+                        "on-background": "#1a1c1c",
+                        "background": "#f9f9f9",
+                        "secondary-fixed": "#e2e2e2",
+                        "surface-tint": "#785900",
+                        "outline-variant": "#d4c5ab",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#f1f1f1",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed": "#e2e2e2",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "tertiary-container": "#cbcbcb",
+                        "on-primary-fixed": "#261a00",
+                        "inverse-primary": "#fabd00",
+                        "on-secondary-container": "#616363",
+                        "secondary": "#5d5f5f",
+                        "primary": "#785900",
+                        "surface-dim": "#dadada",
+                        "error-container": "#ffdad6",
+                        "primary-container": "#ffc107",
+                        "on-primary-container": "#6d5100",
+                        "surface-container-low": "#f3f3f3",
+                        "surface": "#f9f9f9",
+                        "on-primary-fixed-variant": "#5b4300",
+                        "outline": "#827660",
+                        "surface-container": "#eeeeee",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#474747",
+                        "on-error-container": "#93000a",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed-dim": "#c6c6c6",
+                        "surface-variant": "#e2e2e2",
+                        "tertiary": "#5e5e5e",
+                        "surface-container-high": "#e8e8e8",
+                        "primary-fixed-dim": "#fabd00",
+                        "surface-container-highest": "#e2e2e2",
+                        "on-tertiary-fixed": "#1b1b1b",
+                        "on-surface": "#1a1c1c",
+                        "error": "#ba1a1a",
+                        "on-secondary": "#ffffff",
+                        "secondary-container": "#dfe0e0",
+                        "surface-bright": "#f9f9f9",
+                        "on-surface-variant": "#4f4632",
+                        "primary-fixed": "#ffdf9e",
+                        "on-secondary-fixed-variant": "#454747"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "gutter": "16px",
+                        "md": "24px",
+                        "xs": "4px",
+                        "sm": "12px",
+                        "lg": "32px",
+                        "xl": "48px",
+                        "container-margin": "20px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Montserrat"],
+                        "headline-lg": ["Montserrat"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Montserrat"],
+                        "headline-lg-mobile": ["Montserrat"],
+                        "label-sm": ["Inter"],
+                        "label-lg": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "34px", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-white min-h-screen flex flex-col items-center overflow-x-hidden">
+<!-- Marketing Frame Background -->
+<main class="w-full max-w-[430px] min-h-screen bg-white flex flex-col pt-xl px-container-margin relative">
+<!-- Marketing Copy -->
+<header class="mb-lg z-10">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-xs leading-tight">
+                Reorder Your Favorites Anytime
+            </h1>
+<p class="font-body-md text-body-md text-secondary max-w-[320px]">
+                Save favorite restaurants and reorder meals in seconds.
+            </p>
+</header>
+<!-- UI Mockup Canvas (The Phone Mockup) -->
+<section class="flex-grow bg-background rounded-t-[40px] shadow-2xl overflow-hidden flex flex-col border-x-8 border-t-8 border-surface-container relative">
+<!-- Top App Bar (Shared Component) -->
+<nav class="bg-surface flex justify-between items-center w-full px-container-margin py-base shadow-sm sticky top-0 z-30">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="location_on">location_on</span>
+<span class="font-headline-md text-headline-md font-bold text-primary">Chatori Jeeb</span>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A high-end professional headshot of a young male food critic with a friendly expression. The background is a soft-focus modern restaurant interior with warm, ambient lighting. The lighting is crisp and clear, highlighting his features in a premium, light-mode corporate aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMDCsXwudW1U77TeEBdYxoVzfcOWT0m85la-BJ0GBiNLT94ubt2EFKKqfJQKc6bFDHnWdyZzcKDaqFSmip0z_n66fYc2nLfLo4-1xlIHPfXVkrKlz1TDoFvOWLddt3m2xm0BdcZcFq-7c7Z3Nnq-6Ykt9syJqs1O80c6iMfLp7FaEWWiQIfzIxI2jeuf44ynUdeqVkEFrnpxkSHGRnOt6cVpVkxxbVEF-016v8KKY_jETz_IY8BIfpzUdkoySy4S3ljzdC7tdwRMA"/>
+</div>
+</nav>
+<!-- Custom Tab Navigation -->
+<div class="px-container-margin mt-md">
+<div class="bg-surface-container rounded-full p-1 flex items-center relative">
+<button class="flex-1 py-3 rounded-full text-center z-10 transition-colors font-label-lg text-label-lg text-primary font-bold" id="btn-orders" onclick="switchTab('orders')">
+                        My Orders
+                    </button>
+<button class="flex-1 py-3 rounded-full text-center z-10 transition-colors font-label-lg text-label-lg text-secondary" id="btn-favorites" onclick="switchTab('favorites')">
+                        Favorites
+                    </button>
+<!-- Animated Slider -->
+<div class="absolute h-[calc(100%-8px)] w-[calc(50%-4px)] bg-white rounded-full shadow-sm transition-all duration-300 ease-out left-1" id="tab-slider"></div>
+</div>
+</div>
+<!-- Scrollable Content Area -->
+<div class="flex-grow overflow-y-auto px-container-margin py-lg pb-xl">
+<!-- Orders Tab Content -->
+<div class="space-y-md" id="orders-content">
+<div class="group bg-white p-md rounded-lg shadow-[0px_10px_30px_rgba(0,0,0,0.04)] transition-transform active:scale-[0.98]">
+<div class="flex gap-md mb-sm">
+<img class="w-20 h-20 rounded-md object-cover" data-alt="A close-up, appetizing photo of a gourmet Italian wood-fired pizza with melted mozzarella, fresh basil, and ripe cherry tomatoes. The pizza sits on a rustic dark stone surface, illuminated by a warm, golden glow from the side. The overall aesthetic is premium, clean, and highly indulgent, fitting for a luxury food delivery app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFLCguX0BJ2ATDLXyQOx6tRG8nyU084Tu0pwn8ytH3fnRHf6ihXXDX2ixOTfXs9iClg25uDJgev8yNfKxLqqvtZhosu0bV6emW2k7upILn_AjnDPsK-WowhMnEEEtAxNJ4j3IhV0Tx8yjg3Yvy2ws3eDE8UJOEeR8iRiEwgjEc86bswyNWjLWHrknZZoemMiGBH8YLT9Gedh4Dyayk-1OmViIMrCH2PreJt50C6ITve2KQBZNRJo0sW6oYjuuolyG-ma4G5BISfNI"/>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<h3 class="font-headline-md text-headline-md text-on-surface">La Pinoz Pizza</h3>
+<span class="bg-primary-container/20 text-on-primary-container text-[10px] px-2 py-0.5 rounded-full font-bold">DELIVERED</span>
+</div>
+<p class="font-body-md text-body-md text-secondary text-sm mt-1">2x Margherita, 1x Coke</p>
+<p class="font-label-sm text-label-sm text-outline-variant mt-1">Yesterday, 8:45 PM • ₹450</p>
+</div>
+</div>
+<button class="w-full bg-primary-container text-on-primary-container font-label-lg text-label-lg py-3 rounded-full flex items-center justify-center gap-2 hover:bg-primary-container-highest transition-colors active:scale-95 duration-150">
+<span class="material-symbols-outlined text-[18px]" data-icon="rebase_edit">rebase_edit</span>
+                            Reorder
+                        </button>
+</div>
+<div class="group bg-white p-md rounded-lg shadow-[0px_10px_30px_rgba(0,0,0,0.04)] transition-transform active:scale-[0.98]">
+<div class="flex gap-md mb-sm">
+<img class="w-20 h-20 rounded-md object-cover" data-alt="A beautifully plated luxury sushi set on a clean white porcelain plate, featuring fresh salmon nigiri and vibrant dragon rolls. The background is a minimalist, light-gray wooden table with soft morning light streaming in. The mood is sophisticated and emphasizes the freshness of the ingredients in a modern corporate style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpkmk_G4Mk4T3s9eISZib3tdxUZX2REeKzRXcN3JbkjgP8vXBrhitiJVhgcEOzg_7MluFNRkGoLuJVs23lBEzcAlJKbOUlN7fzPg2B5vR7ZcKtUUMF6RU66FFHzXUDDIN3A9mNbGFlw4G1-D1LmJckOmvrb_aw_Vz0X0R5FcVO-HQr0k28-L7E2cglB65U7cWbBAl-jNuFzylpqH05vsqTq_TAaiSFLlYRHfxO_Luaf_UMCgoiTV7cYi3MqZ3YXkA9tzeMeEZpNmM"/>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<h3 class="font-headline-md text-headline-md text-on-surface">Sushi Yama</h3>
+<span class="bg-primary-container/20 text-on-primary-container text-[10px] px-2 py-0.5 rounded-full font-bold">DELIVERED</span>
+</div>
+<p class="font-body-md text-body-md text-secondary text-sm mt-1">1x Salmon Platter, 1x Miso Soup</p>
+<p class="font-label-sm text-label-sm text-outline-variant mt-1">12 Oct, 1:20 PM • ₹1,200</p>
+</div>
+</div>
+<button class="w-full bg-primary-container text-on-primary-container font-label-lg text-label-lg py-3 rounded-full flex items-center justify-center gap-2 hover:bg-primary-container-highest transition-colors active:scale-95 duration-150">
+<span class="material-symbols-outlined text-[18px]" data-icon="rebase_edit">rebase_edit</span>
+                            Reorder
+                        </button>
+</div>
+</div>
+<!-- Favorites Tab Content (Hidden by default) -->
+<div class="hidden grid grid-cols-2 gap-md" id="favorites-content">
+<div class="flex flex-col gap-2 group">
+<div class="relative w-full aspect-square rounded-lg overflow-hidden shadow-sm">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A professional food photography shot of a crispy, golden-brown South Indian Dosa served with multiple bowls of colorful chutneys and sambar on a traditional banana leaf. The lighting is bright and airy, highlighting the texture of the dosa. The composition is balanced and elegant, reflecting a premium dining experience." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvVR9Tugi1JOcyQo9MXLlgqk8OZsXW7xA7q2VO1n0B0eTEt98mzV2aGqTt0UV5pzIUM-h5PLXsqp3fMHe83UAUa9rLjmKDyanRXlmU1WHe6HNOYyD8w7vNXpur0zYZHB1kKtvkjCPWChw1zqGzExDnLOO0aid8KIy55jC0ozXk9gfMbk7HUuCAW7pexF_oNdkWcnEFYDliEph6WAZvxh7MYJ1cYW4sKorCwvDCBG7ZBXASc4MQTzHVef8w7Ynpyyjw3Y4XOa7sAus"/>
+<div class="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full text-error shadow-sm backdrop-blur-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+<div>
+<h4 class="font-label-lg text-label-lg text-on-surface">Dosa Plaza</h4>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-[14px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-sm text-label-sm text-secondary">4.5 • 25-30 min</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-2 group">
+<div class="relative w-full aspect-square rounded-lg overflow-hidden shadow-sm">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A high-fidelity shot of a massive, juicy gourmet burger with layers of melting cheese, fresh lettuce, and crispy bacon, served in a modern restaurant setting. The burger is presented on a clean white plate with a side of golden fries. The atmosphere is warm and inviting, using a sophisticated yellow and white lighting scheme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsmxaWvGbEzq9fWDJQ6yntCT2h9KQyqihPMHhRhTzQ959Cw7mj7VIvT5UKRTAeX4f3fM2h7FaD16a1bbFrEOUl5q-bI8F6F2PMMbjABBZwbOuHUoUE-iuPrkpVV5Xc9WVP_jd6n4_LiF5eStQc6KliQe_JnIPEOuUXFdCCUSyS03vaTGFA4G_fkHw1JAtdxVvV9xkm1j47Ccji19ADAU3qw0DG9VjQRwICQqmlH9ZWHD7ou9NMaFUGNKUBiX0RwRPsctufyfPpov0"/>
+<div class="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full text-error shadow-sm backdrop-blur-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+<div>
+<h4 class="font-label-lg text-label-lg text-on-surface">Burger Singh</h4>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-[14px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-sm text-label-sm text-secondary">4.2 • 35-40 min</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-2 group">
+<div class="relative w-full aspect-square rounded-lg overflow-hidden shadow-sm">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A vibrant and healthy power bowl filled with colorful vegetables, quinoa, and grilled avocado, presented in a minimalist ceramic bowl. The lighting is soft and natural, emphasizing the freshness of the organic ingredients. The aesthetic is clean, modern, and high-end, focusing on wellness and luxury food choices." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTqv2mCJSY474mqyp6dC01jDpxxuaniTV5XBc68FjE5NsrTivo6g28VRw2bYjSwsKCu3DijsuH71esw8-AFqtAcwgT58sjbndcP81NARiRJDQqM8tJe5-He5bUzIu66nbFTMUrnq3eHpgrc6-OCq9ykvTz-1InOX-Vx7m2AXQ-tZckbJFNt7vbc-H6GzJRjbsQ1UzBdQEWsL5s7u2TWTh-tjznhROPcT3I4P08clNg1I7SBrVUZmuXy0z3G1vOP3KF3CmMIrI8DQ0"/>
+<div class="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full text-error shadow-sm backdrop-blur-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+<div>
+<h4 class="font-label-lg text-label-lg text-on-surface">The Health Bowl</h4>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-[14px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-sm text-label-sm text-secondary">4.8 • 15-20 min</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-2 group">
+<div class="relative w-full aspect-square rounded-lg overflow-hidden shadow-sm">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Authentic Cantonese Dim Sum baskets steaming on a minimalist table, filled with delicate shrimp dumplings and bao buns. The steam is visible, creating a sense of warmth and freshness. The setting is clean and high-end, with a soft white and neutral color palette that highlights the culinary artistry." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyUMzztW_iAph4iT7DDB2Is5_fWzjSu6Fpucks40AxyFO1wiyoyqat9TTfNbg0vCDm07NnrmbMbamvYNneQVt3Q8lpwVs94NvjOI6lKyjblXZT9DMHgwW0Wew-AhxPd4RiSNtXShAEShu8ZKFrx4-NLPJJpRa7bbx6dlq1ARiRXIzkKBlyhl-cpj_iGoRY0WlcD_iPHPdMNFCQG951qJUysjVoh_-IAYrnpsdLLETq716Y2ZP4Ylc3q6JwgLcW5FJmt4HIk7C90TE"/>
+<div class="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full text-error shadow-sm backdrop-blur-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+<div>
+<h4 class="font-label-lg text-label-lg text-on-surface">Dim Sum Garden</h4>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-[14px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-sm text-label-sm text-secondary">4.6 • 20-25 min</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation (Shared Component) -->
+<nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-[calc(100%-16px)] max-w-[414px] bg-surface z-50 flex justify-around items-center px-4 pb-4 pt-2 shadow-lg rounded-t-lg">
+<a class="flex flex-col items-center justify-center text-secondary hover:bg-surface-container-highest transition-all px-4 py-1" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary hover:bg-surface-container-highest transition-all px-4 py-1" href="#">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="font-label-sm text-label-sm">Search</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 scale-90 duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_bag" style="font-variation-settings: 'FILL' 1;">shopping_bag</span>
+<span class="font-label-sm text-label-sm font-bold">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary hover:bg-surface-container-highest transition-all px-4 py-1" href="#">
+<span class="material-symbols-outlined" data-icon="local_offer">local_offer</span>
+<span class="font-label-sm text-label-sm">Offers</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary hover:bg-surface-container-highest transition-all px-4 py-1" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</nav>
+</section>
+</main>
+<script>
+        function switchTab(tab) {
+            const ordersBtn = document.getElementById('btn-orders');
+            const favsBtn = document.getElementById('btn-favorites');
+            const ordersContent = document.getElementById('orders-content');
+            const favsContent = document.getElementById('favorites-content');
+            const slider = document.getElementById('tab-slider');
+
+            if (tab === 'orders') {
+                ordersBtn.classList.add('text-primary', 'font-bold');
+                ordersBtn.classList.remove('text-secondary');
+                favsBtn.classList.add('text-secondary');
+                favsBtn.classList.remove('text-primary', 'font-bold');
+                
+                ordersContent.classList.remove('hidden');
+                favsContent.classList.add('hidden');
+                
+                slider.style.left = '4px';
+            } else {
+                favsBtn.classList.add('text-primary', 'font-bold');
+                favsBtn.classList.remove('text-secondary');
+                ordersBtn.classList.add('text-secondary');
+                ordersBtn.classList.remove('text-primary', 'font-bold');
+                
+                favsContent.classList.remove('hidden');
+                ordersContent.classList.add('hidden');
+                
+                slider.style.left = 'calc(50% + 0px)';
+            }
+        }
+
+        // Initialize micro-interactions
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.style.transform = 'scale(0.95)';
+                setTimeout(() => btn.style.transform = 'scale(1)', 150);
+            });
+        });
+    </script>
+</body></html>
