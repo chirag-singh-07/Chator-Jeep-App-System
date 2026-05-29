@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { adminService } from "@/services/admin.service";
 
-export type PaymentStatus = "PAID" | "UNPAID" | "REFUNDED" | "PENDING" | "FAILED";
+export type PaymentStatus = "PAID" | "UNPAID" | "REFUNDED" | "PENDING" | "FAILED" | "COMPLETED";
 export type PaymentMethod = "COD" | "ONLINE" | "WALLET" | "PARTIAL_WALLET";
 
 export interface PaymentRecord {

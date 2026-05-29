@@ -181,7 +181,7 @@ export default function HomeScreen() {
           >
             <View style={styles.locIndicator}>
               <Image
-                source={require('../../assets/images/icon.png')}
+                source={require('../../assets/Main-App-logo.png')}
                 style={{ width: 28, height: 28, borderRadius: 8, resizeMode: 'contain' }}
               />
             </View>

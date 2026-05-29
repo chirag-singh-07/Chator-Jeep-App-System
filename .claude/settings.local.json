@@ -5,7 +5,9 @@
       "Bash(xargs grep -l \"location\\\\|coordinates\")",
       "Bash(xargs grep -l \"restaurant\\\\|Restaurant\")",
       "Bash(xargs grep -l \"createRestaurant\\\\|addRestaurant\\\\|location\")",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(xargs grep -l \"Image\\\\|require\\(\")",
+      "Bash(npm install *)"
     ]
   }
 }

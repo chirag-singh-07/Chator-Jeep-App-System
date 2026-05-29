@@ -50,7 +50,7 @@ export const AppLoadingScreen = ({ onFinish }: { onFinish?: () => void }) => {
       <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
         <View style={styles.iconCircle}>
           <Image
-            source={require("../assets/images/icon.png")}
+            source={require("../assets/Main-App-logo.png")}
             style={styles.logoImage}
           />
         </View>

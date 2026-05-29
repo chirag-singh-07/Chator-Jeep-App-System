@@ -190,7 +190,7 @@ export function AnalyticsSalesPage() {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
                     <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{fontSize: 11}} />
-                    <YAxis axisLine={false} tickLine={false} tick={{fontSize: 11}} tickFormatter={(v) => `Rs ${(v/1000).toFixed(0)}k`} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fontSize: 11}} tickFormatter={(v: number) => `Rs ${(v/1000).toFixed(0)}k`} />
                     <Tooltip
                       contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                       formatter={(value: number) => [formatCurrency(value), "Revenue"]}

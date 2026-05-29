@@ -34,7 +34,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@/components/ui/tooltip-primitive";
 import { usePaymentsStore, type PaymentRecord } from "@/stores/usePaymentsStore";
 import { formatCurrency } from "@/lib/format";
 
@@ -84,7 +84,7 @@ function PaymentDetailsModal({ payment, open, onClose }: { payment: PaymentRecor
     return labels[method] || method;
   };
 
-  const getGatewayLabel = (gateway?: string) => {
+  const getGatewayLabel = (gateway?: string | null | undefined) => {
     const labels: Record<string, string> = {
       RAZORPAY: "Razorpay",
       PHONEPE: "PhonePe",
@@ -283,7 +283,7 @@ function RefundModal({ order, open, onClose, onSubmit }: {
 }
 
 export function PaymentsPage() {
-  const [searchParams, setSearchParams] = useStateSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [columns, setColumns] = useState<Record<ColumnKey, boolean>>(columnDefaults);
   const [selectedPayment, setSelectedPayment] = useState<PaymentRecord | null>(null);
   const [refundOrder, setRefundOrder] = useState<PaymentRecord | null>(null);

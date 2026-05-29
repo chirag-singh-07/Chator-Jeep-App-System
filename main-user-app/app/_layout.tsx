@@ -1,12 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useAuthStore } from "@/store/useAuthStore";
 import { SocketProvider } from "@/context/SocketContext";
 import { useNotifications } from "@/hooks/useNotifications";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AppLoadingScreen } from "@/components/AppLoadingScreen";
-import { useState } from "react";
-
 function AuthGate() {
   const { isAuthenticated, hasHydrated } = useAuthStore();
   const segments = useSegments();
