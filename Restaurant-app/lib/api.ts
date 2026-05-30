@@ -2,24 +2,35 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
+// Multiple API endpoints for redundancy
+const API_ENDPOINTS = [
+  "https://api.chatorijeeb.com/api/v1",
+  "http://89.116.20.144:5001/api/v1",
+  "https://chator-jeep-app-system-api.onrender.com/api/v1",
+];
+
+const normalizeUrl = (url: string) => {
+  const cleaned = url.trim().replace(/^["']|["']$/g, "").replace(/\/+$/, "");
+  return cleaned.endsWith("/api/v1") ? cleaned : `${cleaned}/api/v1`;
+};
+
 const getBaseUrl = () => {
   const envUrl = process.env.EXPO_PUBLIC_API_URL;
   if (envUrl) {
-    return envUrl.endsWith("/api/v1") ? envUrl : `${envUrl}/api/v1`;
+    return normalizeUrl(envUrl);
   }
-  return Platform.select({
-    ios: "http://localhost:5000/api/v1",
-    android: "http://10.0.2.2:5000/api/v1",
-    default: "http://localhost:5000/api/v1",
-  });
+  return normalizeUrl(API_ENDPOINTS[0]);
 };
+
+// Fallback URLs for when primary fails
+export const FALLBACK_API_URLS = API_ENDPOINTS.map(normalizeUrl);
 
 export const API_URL = getBaseUrl();
 console.log("🌐 [API Config] Base URL initialized as:", API_URL);
 
 export const apiClient = axios.create({
   baseURL: API_URL,
-  timeout: 20000, // 20s – covers Render free-tier cold-start wake-up
+  timeout: 20000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -35,11 +46,11 @@ apiClient.interceptors.request.use(
     } catch (e) {
       console.error("Error reading token from storage", e);
     }
-    
+
     // LOG: Request details
     const fullUrl = `${config.baseURL}${config.url}`;
     console.log(`🚀 [API Request] ${config.method?.toUpperCase()} ${fullUrl}`, config.params || "", config.data || "");
-    
+
     return config;
   },
   (error) => {
@@ -58,8 +69,27 @@ apiClient.interceptors.response.use(
     const status = error.response?.status;
     const config = error.config;
 
-    // Auto-retry ONCE on network errors (Render cold-start wake-up)
+    // Try fallback URLs on network errors
     const isNetworkError = !status && (error.code === "ECONNABORTED" || error.message === "Network Error");
+    if (isNetworkError && config && !config._fallbackTried) {
+      for (const fallbackUrl of FALLBACK_API_URLS) {
+        if (fallbackUrl !== config.baseURL) {
+          config._fallbackTried = true;
+          const originalBaseURL = config.baseURL;
+          config.baseURL = fallbackUrl;
+          console.warn(`🔄 [API Fallback] Trying: ${fallbackUrl}`);
+          try {
+            return await apiClient(config);
+          } catch (retryError) {
+            console.warn(`❌ [API Fallback Failed] ${fallbackUrl}`);
+            config.baseURL = originalBaseURL;
+            continue;
+          }
+        }
+      }
+    }
+
+    // Auto-retry ONCE on network errors (cold-start wake-up)
     if (isNetworkError && !config?._retried && config) {
       config._retried = true;
       console.warn(`🔄 [API Retry] Server waking up. Retrying in 3s: ${config.url}`);
@@ -68,7 +98,7 @@ apiClient.interceptors.response.use(
     }
 
     console.warn(
-      `⚠️ [API Error] ${status || "Network/Timeout"} ${config?.url}`, 
+      `⚠️ [API Error] ${status || "Network/Timeout"} ${config?.url}`,
       {
         message: error.message,
         data: error.response?.data,

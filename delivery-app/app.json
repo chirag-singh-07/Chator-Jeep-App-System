@@ -4,7 +4,7 @@
     "slug": "delivery-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/delivery-app-logo.png",
+    "icon": "./assets/icons/ios-icon-1024x1024.png",
     "scheme": "deliveryapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
@@ -23,10 +23,10 @@
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#E6B94D",
-        "foregroundImage": "./assets/delivery-app-logo.png",
+        "foregroundImage": "./assets/icons/android-icon-512x512.png",
         "dark": {
           "backgroundColor": "#1a1a1a",
-          "foregroundImage": "./assets/delivery-app-logo.png"
+          "foregroundImage": "./assets/icons/android-icon-512x512.png"
         }
       },
       "permissions": [
@@ -42,7 +42,7 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/delivery-app-logo.png"
+      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       "expo-router",
@@ -50,13 +50,13 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/delivery-app-logo.png",
+          "image": "./assets/icons/ios-icon-1024x1024.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#072dd6ff",
           "dark": {
             "backgroundColor": "#1a1a1a",
-            "image": "./assets/delivery-app-logo.png"
+            "image": "./assets/icons/ios-icon-1024x1024.png"
           }
         }
       ],

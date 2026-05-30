@@ -35,6 +35,10 @@ app.get("/health", (_req, res) => {
   res.status(200).json({ ok: true });
 });
 
+app.get("/", (_req, res) => {
+  res.status(200).json({ ok: true, message: "Chator Jeep App Backend is running", version: "1.0.0", author: "Chirag Singh", documentation: "/api/v1/docs", Date: new Date() });
+});
+
 app.use("/api/v1", routes);
 app.use(errorMiddleware);
 

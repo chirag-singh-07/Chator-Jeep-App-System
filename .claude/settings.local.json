@@ -7,7 +7,15 @@
       "Bash(xargs grep -l \"createRestaurant\\\\|addRestaurant\\\\|location\")",
       "Bash(npm run *)",
       "Bash(xargs grep -l \"Image\\\\|require\\(\")",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(cd c:/food-order-system/Restaurant-app && mkdir -p assets/icons assets/images)",
+      "Bash(npm list *)",
+      "Bash(node scripts/generate-icons.js)",
+      "Bash(npx expo *)",
+      "Bash(keytool -genkey -v -keystore release.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000 -storepass chatorijeeb123 -keypass chatorijeeb123 -dname \"CN=Chatori Jeeb, OU=Dev, O=Chatori Jeeb, L=India, ST=Delhi, C=IN\")"
+    ],
+    "additionalDirectories": [
+      "c:\\food-order-system\\Restaurant-app\\assets"
     ]
   }
 }

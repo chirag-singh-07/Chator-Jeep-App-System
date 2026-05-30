@@ -34,6 +34,10 @@ yarn-error.*
 .env*.local
 keystore.properties
 
+# Keystore files (keep these secure!)
+*.keystore
+*.jks
+
 # typescript
 *.tsbuildinfo
 
