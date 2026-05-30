@@ -88,6 +88,8 @@ app.get("/", (_req, res) => {
   });
 });
 
+
+
 app.use("/api/v1", routes);
 app.use(errorMiddleware);
 
