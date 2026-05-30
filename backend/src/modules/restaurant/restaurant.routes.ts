@@ -5,180 +5,658 @@ import * as ctrl from "./restaurant.controller";
 
 const router = Router();
 
-// Public
-/** GET /api/v1/restaurants - List all active restaurants */
+// ============================================
+// PUBLIC ROUTES
+// ============================================
+
+/**
+ * @openapi
+ * /api/v1/restaurants:
+ *   get:
+ *     tags:
+ *       - Restaurants
+ *     summary: List all active restaurants
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by restaurant name
+ *       - in: query
+ *         name: cuisine
+ *         schema:
+ *           type: string
+ *         description: Filter by cuisine type
+ *     responses:
+ *       200:
+ *         description: List of active restaurants
+ */
 router.get("/", ctrl.listRestaurants);
 
-/** GET /api/v1/restaurants/menu/popular - List popular items across all restaurants */
+/**
+ * @openapi
+ * /api/v1/restaurants/menu/popular:
+ *   get:
+ *     tags:
+ *       - Restaurants
+ *     summary: List popular items across all restaurants
+ *     responses:
+ *       200:
+ *         description: List of popular menu items
+ */
 router.get("/menu/popular", ctrl.listPopularItems);
 
-
-
-/** POST /api/v1/restaurants/reviews - Submit a review */
+/**
+ * @openapi
+ * /api/v1/restaurants/reviews:
+ *   post:
+ *     tags:
+ *       - Restaurants
+ *     summary: Submit a review for an order
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - orderId
+ *               - rating
+ *             properties:
+ *               orderId:
+ *                 type: string
+ *               rating:
+ *                 type: number
+ *                 minimum: 1
+ *                 maximum: 5
+ *               comment:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Review submitted
+ */
 router.post("/reviews", authMiddleware, ctrl.createReview);
 
-/** POST /api/v1/restaurants/register - Restaurant owner signs up */
+/**
+ * @openapi
+ * /api/v1/restaurants/register:
+ *   post:
+ *     tags:
+ *       - Restaurants
+ *     summary: Register a new restaurant (Kitchen Partner)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - phone
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Restaurant registered
+ */
 router.post("/register", ctrl.registerRestaurant);
 
-/** POST /api/v1/restaurants/register/precheck - Validate before payment */
+/**
+ * @openapi
+ * /api/v1/restaurants/register/precheck:
+ *   post:
+ *     tags:
+ *       - Restaurants
+ *     summary: Validate restaurant registration before payment
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Validation result
+ */
 router.post("/register/precheck", ctrl.precheckRestaurantRegistration);
 
-/** POST /api/v1/restaurants/login - Restaurant owner logs in */
+/**
+ * @openapi
+ * /api/v1/restaurants/login:
+ *   post:
+ *     tags:
+ *       - Restaurants
+ *     summary: Restaurant owner login
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ */
 router.post("/login", ctrl.loginRestaurant);
 
-// Restaurant User (authenticated)
-/** GET /api/v1/restaurants/me/status - Check verification status */
-router.get(
-  "/me/status",
-  authMiddleware,
-  roleMiddleware(["KITCHEN"]), // Still using KITCHEN role internally
-  ctrl.getMyStatus
-);
+// ============================================
+// RESTAURANT USER ROUTES (Authenticated Kitchen)
+// ============================================
 
-/** GET /api/v1/restaurants/me/menu - List this restaurant's menu items */
-router.get(
-  "/me/menu",
-  authMiddleware,
-  roleMiddleware(["KITCHEN"]),
-  ctrl.listMyMenu
-);
+/**
+ * @openapi
+ * /api/v1/restaurants/me/status:
+ *   get:
+ *     tags:
+ *       - Restaurants
+ *     summary: Get restaurant verification status
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Restaurant status
+ */
+router.get("/me/status", authMiddleware, roleMiddleware(["KITCHEN"]), ctrl.getMyStatus);
 
-/** POST /api/v1/restaurants/me/menu - Add menu item during onboarding or after activation */
-router.post(
-  "/me/menu",
-  authMiddleware,
-  roleMiddleware(["KITCHEN"]),
-  ctrl.addMenuItem
-);
+/**
+ * @openapi
+ * /api/v1/restaurants/me/menu:
+ *   get:
+ *     tags:
+ *       - Menu
+ *     summary: Get restaurant's menu items
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of menu items
+ */
+router.get("/me/menu", authMiddleware, roleMiddleware(["KITCHEN"]), ctrl.listMyMenu);
 
-/** PATCH /api/v1/restaurants/me/menu/:id - Update menu item */
-router.patch(
-  "/me/menu/:id",
-  authMiddleware,
-  roleMiddleware(["KITCHEN"]),
-  ctrl.updateMenuItem
-);
+/**
+ * @openapi
+ * /api/v1/restaurants/me/menu:
+ *   post:
+ *     tags:
+ *       - Menu
+ *     summary: Add a menu item
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - price
+ *               - category
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *               discountPrice:
+ *                 type: number
+ *               category:
+ *                 type: string
+ *               imageUrl:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Menu item added
+ */
+router.post("/me/menu", authMiddleware, roleMiddleware(["KITCHEN"]), ctrl.addMenuItem);
 
-/** DELETE /api/v1/restaurants/me/menu/:id - Delete menu item */
-router.delete(
-  "/me/menu/:id",
-  authMiddleware,
-  roleMiddleware(["KITCHEN"]),
-  ctrl.deleteMenuItem
-);
+/**
+ * @openapi
+ * /api/v1/restaurants/me/menu/{id}:
+ *   patch:
+ *     tags:
+ *       - Menu
+ *     summary: Update a menu item
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *               discountPrice:
+ *                 type: number
+ *               isAvailable:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Menu item updated
+ */
+router.patch("/me/menu/:id", authMiddleware, roleMiddleware(["KITCHEN"]), ctrl.updateMenuItem);
 
-/** PATCH /api/v1/restaurants/me/menu/:id/stock - Toggle stock */
-router.patch(
-  "/me/menu/:id/stock",
-  authMiddleware,
-  roleMiddleware(["KITCHEN"]),
-  ctrl.updateMenuItemStock
-);
+/**
+ * @openapi
+ * /api/v1/restaurants/me/menu/{id}:
+ *   delete:
+ *     tags:
+ *       - Menu
+ *     summary: Delete a menu item
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Menu item deleted
+ */
+router.delete("/me/menu/:id", authMiddleware, roleMiddleware(["KITCHEN"]), ctrl.deleteMenuItem);
 
-/** PATCH /api/v1/restaurants/me/branding - Update logo and banner */
-router.patch(
-  "/me/branding",
-  authMiddleware,
-  roleMiddleware(["KITCHEN"]),
-  ctrl.updateMyBranding
-);
+/**
+ * @openapi
+ * /api/v1/restaurants/me/menu/{id}/stock:
+ *   patch:
+ *     tags:
+ *       - Menu
+ *     summary: Toggle menu item stock availability
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - isAvailable
+ *             properties:
+ *               isAvailable:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Stock toggled
+ */
+router.patch("/me/menu/:id/stock", authMiddleware, roleMiddleware(["KITCHEN"]), ctrl.updateMenuItemStock);
 
-/** PATCH /api/v1/restaurants/me/legal-docs - Update legal documents */
-router.patch(
-  "/me/legal-docs",
-  authMiddleware,
-  roleMiddleware(["KITCHEN"]),
-  ctrl.updateMyLegalDocs
-);
+/**
+ * @openapi
+ * /api/v1/restaurants/me/branding:
+ *   patch:
+ *     tags:
+ *       - Restaurants
+ *     summary: Update restaurant logo and banner
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               logo:
+ *                 type: string
+ *               banner:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Branding updated
+ */
+router.patch("/me/branding", authMiddleware, roleMiddleware(["KITCHEN"]), ctrl.updateMyBranding);
 
-/** PATCH /api/v1/restaurants/me/status - Toggle restaurant open/closed */
-router.patch(
-  "/me/status",
-  authMiddleware,
-  roleMiddleware(["KITCHEN"]),
-  ctrl.updateMyOpenStatus
-);
+/**
+ * @openapi
+ * /api/v1/restaurants/me/legal-docs:
+ *   patch:
+ *     tags:
+ *       - Restaurants
+ *     summary: Update legal documents
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               fssaiNumber:
+ *                 type: string
+ *               gstNumber:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Legal docs updated
+ */
+router.patch("/me/legal-docs", authMiddleware, roleMiddleware(["KITCHEN"]), ctrl.updateMyLegalDocs);
 
+/**
+ * @openapi
+ * /api/v1/restaurants/me/status:
+ *   patch:
+ *     tags:
+ *       - Restaurants
+ *     summary: Toggle restaurant open/closed status
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - isOpen
+ *             properties:
+ *               isOpen:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Status toggled
+ */
+router.patch("/me/status", authMiddleware, roleMiddleware(["KITCHEN"]), ctrl.updateMyOpenStatus);
 
+// ============================================
+// ADMIN ROUTES
+// ============================================
 
-// Admin Routes
-/** GET /api/v1/restaurants/admin/all - List all restaurants with filters */
-router.get(
-  "/admin/all",
-  authMiddleware,
-  roleMiddleware(["ADMIN"]),
-  ctrl.adminListRestaurants
-);
+/**
+ * @openapi
+ * /api/v1/restaurants/admin/all:
+ *   get:
+ *     tags:
+ *       - Admin
+ *     summary: List all restaurants with filters
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [PENDING, APPROVED, REJECTED, FLAGGED]
+ *     responses:
+ *       200:
+ *         description: List of restaurants
+ */
+router.get("/admin/all", authMiddleware, roleMiddleware(["ADMIN"]), ctrl.adminListRestaurants);
 
-/** GET /api/v1/restaurants/admin/menu - List all menu items across restaurants */
-router.get(
-  "/admin/menu",
-  authMiddleware,
-  roleMiddleware(["ADMIN"]),
-  ctrl.adminListMenuItems
-);
+/**
+ * @openapi
+ * /api/v1/restaurants/admin/menu:
+ *   get:
+ *     tags:
+ *       - Admin
+ *     summary: List all menu items across restaurants
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of menu items
+ */
+router.get("/admin/menu", authMiddleware, roleMiddleware(["ADMIN"]), ctrl.adminListMenuItems);
 
-/** POST /api/v1/restaurants/admin/create - Admin creates a new restaurant */
-router.post(
-  "/admin/create",
-  authMiddleware,
-  roleMiddleware(["ADMIN"]),
-  ctrl.adminCreateRestaurant
-);
+/**
+ * @openapi
+ * /api/v1/restaurants/admin/create:
+ *   post:
+ *     tags:
+ *       - Admin
+ *     summary: Create a new restaurant (Admin)
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Restaurant created
+ */
+router.post("/admin/create", authMiddleware, roleMiddleware(["ADMIN"]), ctrl.adminCreateRestaurant);
 
+/**
+ * @openapi
+ * /api/v1/restaurants/admin/{id}:
+ *   get:
+ *     tags:
+ *       - Admin
+ *     summary: Get restaurant details
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Restaurant details
+ */
+router.get("/admin/:id", authMiddleware, roleMiddleware(["ADMIN"]), ctrl.adminGetRestaurant);
 
-/** GET /api/v1/restaurants/admin/:id - Full restaurant detail for review */
-router.get(
-  "/admin/:id",
-  authMiddleware,
-  roleMiddleware(["ADMIN"]),
-  ctrl.adminGetRestaurant
-);
+/**
+ * @openapi
+ * /api/v1/restaurants/admin/{id}/approve:
+ *   patch:
+ *     tags:
+ *       - Admin
+ *     summary: Approve a restaurant
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Restaurant approved
+ */
+router.patch("/admin/:id/approve", authMiddleware, roleMiddleware(["ADMIN"]), ctrl.adminApprove);
 
-/** PATCH /api/v1/restaurants/admin/:id/approve - Approve restaurant as ACTIVE */
-router.patch(
-  "/admin/:id/approve",
-  authMiddleware,
-  roleMiddleware(["ADMIN"]),
-  ctrl.adminApprove
-);
+/**
+ * @openapi
+ * /api/v1/restaurants/admin/{id}/reject:
+ *   patch:
+ *     tags:
+ *       - Admin
+ *     summary: Reject a restaurant
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reason:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Restaurant rejected
+ */
+router.patch("/admin/:id/reject", authMiddleware, roleMiddleware(["ADMIN"]), ctrl.adminReject);
 
-/** PATCH /api/v1/restaurants/admin/:id/reject - Reject restaurant as REJECTED */
-router.patch(
-  "/admin/:id/reject",
-  authMiddleware,
-  roleMiddleware(["ADMIN"]),
-  ctrl.adminReject
-);
+/**
+ * @openapi
+ * /api/v1/restaurants/admin/{id}/flag:
+ *   patch:
+ *     tags:
+ *       - Admin
+ *     summary: Flag a restaurant
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reason:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Restaurant flagged
+ */
+router.patch("/admin/:id/flag", authMiddleware, roleMiddleware(["ADMIN"]), ctrl.adminFlag);
 
-/** PATCH /api/v1/restaurants/admin/:id/flag - Flag restaurant as FLAGGED */
-router.patch(
-  "/admin/:id/flag",
-  authMiddleware,
-  roleMiddleware(["ADMIN"]),
-  ctrl.adminFlag
-);
+/**
+ * @openapi
+ * /api/v1/restaurants/admin/{id}:
+ *   delete:
+ *     tags:
+ *       - Admin
+ *     summary: Delete a restaurant
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Restaurant deleted
+ */
+router.delete("/admin/:id", authMiddleware, roleMiddleware(["ADMIN"]), ctrl.adminDeleteRestaurant);
 
-/** DELETE /api/v1/restaurants/admin/:id - Delete restaurant and all its assets */
-router.delete(
-  "/admin/:id",
-  authMiddleware,
-  roleMiddleware(["ADMIN"]),
-  ctrl.adminDeleteRestaurant
-);
+/**
+ * @openapi
+ * /api/v1/restaurants/admin/{id}/stats:
+ *   get:
+ *     tags:
+ *       - Admin
+ *     summary: Get restaurant performance statistics
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Restaurant stats
+ */
+router.get("/admin/:id/stats", authMiddleware, roleMiddleware(["ADMIN"]), ctrl.adminGetRestaurantStats);
 
-/** GET /api/v1/restaurants/admin/:id/stats - Performance analytics for a restaurant */
-router.get(
-  "/admin/:id/stats",
-  authMiddleware,
-  roleMiddleware(["ADMIN"]),
-  ctrl.adminGetRestaurantStats
-);
-
-/** GET /api/v1/restaurants/:id - Get restaurant details */
+/**
+ * @openapi
+ * /api/v1/restaurants/{id}:
+ *   get:
+ *     tags:
+ *       - Restaurants
+ *     summary: Get restaurant details by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Restaurant details
+ */
 router.get("/:id", ctrl.getRestaurant);
 
-/** GET /api/v1/restaurants/:restaurantId/menu - Public menu for a restaurant */
+/**
+ * @openapi
+ * /api/v1/restaurants/{restaurantId}/menu:
+ *   get:
+ *     tags:
+ *       - Menu
+ *     summary: Get public menu for a restaurant
+ *     parameters:
+ *       - in: path
+ *         name: restaurantId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Restaurant menu
+ */
 router.get("/:restaurantId/menu", ctrl.listRestaurantMenu);
 
 export default router;
