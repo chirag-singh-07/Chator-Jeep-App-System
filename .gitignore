@@ -30,3 +30,4 @@ ios
 *.njsproj
 *.sln
 *.sw?
+google-services.json
