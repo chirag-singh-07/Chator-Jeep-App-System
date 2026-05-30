@@ -10,6 +10,7 @@ import routes from "./routes";
 import { errorMiddleware } from "./common/middleware/error.middleware";
 
 const app = express();
+app.set("trust proxy", 1);
 
 // Swagger configuration
 const swaggerOptions = {
