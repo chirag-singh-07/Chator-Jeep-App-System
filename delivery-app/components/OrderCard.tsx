@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { DeliveryOrder } from "@/types";
 import { formatCurrency } from "@/lib/format";
 import { StatusPill } from "./StatusPill";
+import { Colors, Spacing, Radius } from "../constants/Colors";
 
 export function OrderCard({
   order,
@@ -64,10 +65,10 @@ export function OrderCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#E2E8F0",
+    backgroundColor: Colors.light.white,
+    borderColor: Colors.light.border,
     borderWidth: 1,
-    borderRadius: 24,
+    borderRadius: Radius.xl,
     padding: 18,
     gap: 6,
   },
@@ -80,24 +81,24 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   title: {
-    color: "#0F172A",
+    color: Colors.light.text,
     fontSize: 17,
     fontWeight: "800",
   },
   subtitle: {
-    color: "#334155",
+    color: Colors.light.textMuted,
     fontSize: 14,
     fontWeight: "600",
   },
   addressLabel: {
-    color: "#64748B",
+    color: Colors.light.textMuted,
     fontSize: 12,
     fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 0.8,
   },
   addressText: {
-    color: "#475569",
+    color: Colors.light.textMuted,
     fontSize: 14,
     lineHeight: 20,
   },
@@ -108,12 +109,12 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   metricLabel: {
-    color: "#64748B",
+    color: Colors.light.textMuted,
     fontSize: 12,
     fontWeight: "600",
   },
   metricValue: {
-    color: "#0F172A",
+    color: Colors.light.primary,
     fontSize: 16,
     fontWeight: "800",
   },
@@ -122,7 +123,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   itemText: {
-    color: "#475569",
+    color: Colors.light.textMuted,
     fontSize: 13,
   },
 });

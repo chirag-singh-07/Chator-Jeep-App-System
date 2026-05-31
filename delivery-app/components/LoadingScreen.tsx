@@ -1,6 +1,7 @@
 // Delivery App Loading Screen Component
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { Logo } from './Logo';
+import { Colors } from '../constants/Colors';
 
 export const LoadingScreen = () => {
   return (
@@ -9,14 +10,14 @@ export const LoadingScreen = () => {
         <View style={styles.logoContainer}>
           <Logo size="xl" />
         </View>
-        
+
         <View style={styles.textContainer}>
           <Text style={styles.title}>Chatori Jeeb</Text>
           <Text style={styles.subtitle}>Delivery Partner</Text>
         </View>
 
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#EA580C" />
+          <ActivityIndicator size="large" color={Colors.light.secondary} />
         </View>
       </View>
     </View>
@@ -26,7 +27,7 @@ export const LoadingScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FCD34D',
+    backgroundColor: Colors.light.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -47,11 +48,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: Colors.light.secondary,
   },
   subtitle: {
     fontSize: 16,
-    color: '#4B5563',
+    color: Colors.light.secondary,
+    opacity: 0.8,
   },
   loaderContainer: {
     marginTop: 20,

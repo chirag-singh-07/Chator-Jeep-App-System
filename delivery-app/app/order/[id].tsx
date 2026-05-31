@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   },
   mainAction: {
     height: 64,
-    ...Shadows.gold,
+    ...Shadows.blue,
   },
   otpSection: {
     gap: Spacing.sm,

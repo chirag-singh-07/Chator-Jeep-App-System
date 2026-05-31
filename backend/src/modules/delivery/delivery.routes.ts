@@ -12,6 +12,7 @@ import {
   updateAvailabilitySchema,
   updateDeliveryStatusSchema,
   updateLocationSchema,
+  adminCreateDeliveryPartnerSchema,
 } from "./delivery.validation";
 
 const router = Router();
@@ -276,6 +277,71 @@ router.get("/admin/partners", authMiddleware, roleMiddleware([ROLES.ADMIN]), con
  *         description: Partner status updated
  */
 router.patch("/admin/partners/:partnerId/status", authMiddleware, roleMiddleware([ROLES.ADMIN]), controller.adminUpdatePartnerStatus);
+
+/**
+ * @openapi
+ * /api/v1/delivery/admin/partners/create:
+ *   post:
+ *     tags:
+ *       - Admin
+ *     summary: Create a new delivery partner with user account
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *               - phone
+ *               - vehicleType
+ *               - vehicleFuelType
+ *               - bikeNumber
+ *               - drivingLicense
+ *               - payoutMethod
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               profilePhoto:
+ *                 type: string
+ *               vehicleType:
+ *                 type: string
+ *                 enum: [Bike, Cycle, Car]
+ *               vehicleFuelType:
+ *                 type: string
+ *                 enum: [Petrol, EV]
+ *               bikeNumber:
+ *                 type: string
+ *               drivingLicense:
+ *                 type: string
+ *               documents:
+ *                 type: object
+ *               address:
+ *                 type: object
+ *               payoutMethod:
+ *                 type: string
+ *                 enum: [UPI, BANK_ACCOUNT]
+ *               upiId:
+ *                 type: string
+ *               bankDetails:
+ *                 type: object
+ *               autoApprove:
+ *                 type: boolean
+ *     responses:
+ *       201:
+ *         description: Delivery partner created successfully
+ */
+router.post("/admin/partners/create", authMiddleware, roleMiddleware([ROLES.ADMIN]), validate(adminCreateDeliveryPartnerSchema), controller.adminCreatePartner);
 
 /**
  * @openapi

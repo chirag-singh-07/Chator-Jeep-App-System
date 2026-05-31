@@ -9,8 +9,8 @@ interface ScreenContainerProps extends PropsWithChildren {
   style?: StyleProp<ViewStyle>;
 }
 
-export function ScreenContainer({ 
-  children, 
+export function ScreenContainer({
+  children,
   withSafeArea = false,
   backgroundColor = Colors.light.background,
   style,
@@ -19,9 +19,9 @@ export function ScreenContainer({
 
   return (
     <View style={[styles.outer, { backgroundColor }]}>
-      <StatusBar 
-        barStyle="light-content" 
-        backgroundColor={Colors.light.background}
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={"black"}
         translucent={Platform.OS === 'android'}
       />
       <Container style={[styles.container, style]}>

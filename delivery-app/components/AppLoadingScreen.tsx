@@ -44,7 +44,7 @@ export const AppLoadingScreen = ({ onFinish }: { onFinish?: () => void }) => {
       <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
         <View style={styles.iconCircle}>
           <Image
-            source={require("../assets/icons/delivery-app-logo.png")}
+            source={require("../assets/delivery-app-logo.png")}
             style={styles.logoImage}
           />
         </View>
@@ -70,9 +70,10 @@ const styles = StyleSheet.create({
     zIndex: 9999,
   },
   logoImage: {
-    width: 90,
-    height: 90,
-    resizeMode: 'contain',
+    width: 140,
+    height: 140,
+    resizeMode: 'cover',
+    borderRadius: 70,
   },
   logoContainer: {
     alignItems: 'center',

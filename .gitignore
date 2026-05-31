@@ -16,7 +16,7 @@ dist-ssr
 android
 
 ios
-
+.txt
 *.local
 .env
 

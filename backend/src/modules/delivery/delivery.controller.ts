@@ -64,3 +64,8 @@ export const adminListAllPartners = asyncHandler(async (req: AuthenticatedReques
   const partners = await service.listAllPartners();
   res.status(200).json(partners);
 });
+
+export const adminCreatePartner = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const partner = await service.adminCreateDeliveryPartner(req.body);
+  res.status(201).json(partner);
+});

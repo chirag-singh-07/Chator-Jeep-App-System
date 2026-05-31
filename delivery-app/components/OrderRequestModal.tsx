@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { formatCurrency } from "@/lib/format";
+import { Colors, Spacing, Radius } from "../constants/Colors";
 
 interface OrderRequestModalProps {
   request: any;
@@ -26,7 +27,7 @@ export const OrderRequestModal = ({
 
   useEffect(() => {
     if (!request) return;
-    
+
     const interval = setInterval(() => {
       setTimer((prev: number) => {
         if (prev <= 1) {
@@ -67,12 +68,12 @@ export const OrderRequestModal = ({
 
           <View style={styles.body}>
             <View style={styles.row}>
-              <Ionicons name="restaurant-outline" size={20} color="#666" />
+              <Ionicons name="restaurant-outline" size={20} color={Colors.light.textMuted} />
               <Text style={styles.restaurantName}>{request.restaurantName}</Text>
             </View>
 
             <View style={styles.row}>
-              <Ionicons name="location-outline" size={20} color="#666" />
+              <Ionicons name="location-outline" size={20} color={Colors.light.textMuted} />
               <Text style={styles.address}>{request.pickupAddress}</Text>
             </View>
 
@@ -105,7 +106,7 @@ export const OrderRequestModal = ({
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={Colors.light.white} />
               ) : (
                 <Text style={styles.acceptText}>Accept</Text>
               )}
@@ -124,10 +125,10 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   content: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
+    backgroundColor: Colors.light.white,
+    borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl,
+    padding: Spacing.lg,
     paddingBottom: 40,
   },
   header: {
@@ -139,21 +140,21 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.light.text,
   },
   timerCircle: {
     width: 50,
     height: 50,
     borderRadius: 25,
     borderWidth: 3,
-    borderColor: "#ffc107",
+    borderColor: Colors.light.primary,
     justifyContent: "center",
     alignItems: "center",
   },
   timerText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: Colors.light.text,
   },
   body: {
     marginBottom: 24,
@@ -167,19 +168,19 @@ const styles = StyleSheet.create({
   restaurantName: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#333",
+    color: Colors.light.text,
   },
   address: {
     fontSize: 14,
-    color: "#666",
+    color: Colors.light.textMuted,
     flex: 1,
   },
   statsRow: {
     flexDirection: "row",
     marginTop: 16,
     padding: 16,
-    backgroundColor: "#f8f9fa",
-    borderRadius: 12,
+    backgroundColor: Colors.light.surface,
+    borderRadius: Radius.md,
     justifyContent: "space-around",
   },
   stat: {
@@ -187,16 +188,16 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: "#888",
+    color: Colors.light.textMuted,
     marginBottom: 4,
   },
   statValue: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#333",
+    color: Colors.light.text,
   },
   earnings: {
-    color: "#28a745",
+    color: Colors.light.success,
   },
   footer: {
     flexDirection: "row",
@@ -205,26 +206,26 @@ const styles = StyleSheet.create({
   rejectButton: {
     flex: 1,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: Colors.light.border,
     alignItems: "center",
   },
   rejectText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#666",
+    color: Colors.light.textMuted,
   },
   acceptButton: {
     flex: 2,
     padding: 16,
-    borderRadius: 12,
-    backgroundColor: "#28a745",
+    borderRadius: Radius.md,
+    backgroundColor: Colors.light.success,
     alignItems: "center",
   },
   acceptText: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#fff",
+    color: Colors.light.white,
   },
 });

@@ -16,6 +16,8 @@ import { signAccessToken, signRefreshToken } from "../../common/utils/jwt";
 import { NotificationService } from "../notification/notification.service";
 import { addEarningsToRestaurant } from "../restaurant/restaurant.service";
 import { Types } from "mongoose";
+import { hashPassword } from "../../common/utils/hash";
+import { findUserByEmail, createUser } from "../auth/auth.repository";
 
 const roundAmount = (value: number) =>
   Math.round((value + Number.EPSILON) * 100) / 100;
@@ -422,6 +424,68 @@ export const updatePartnerStatus = async (
 
 export const listAllPartners = async () => {
   return DeliveryPartner.find().sort({ createdAt: -1 });
+};
+
+export const adminCreateDeliveryPartner = async (input: {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  profilePhoto?: string;
+  vehicleType: string;
+  vehicleFuelType: string;
+  bikeNumber: string;
+  drivingLicense: string;
+  documents?: any;
+  address?: any;
+  payoutMethod: string;
+  upiId?: string;
+  bankDetails?: any;
+  autoApprove?: boolean;
+}) => {
+  const normalizedEmail = input.email.trim().toLowerCase();
+  const normalizedPhone = input.phone.trim();
+
+  // Check if email already exists
+  const existingUser = await findUserByEmail(normalizedEmail);
+  if (existingUser) {
+    throw new AppError("Email already registered", 409);
+  }
+
+  // Hash password
+  const password = await hashPassword(input.password);
+
+  // Create user account with DELIVERY role
+  const user = await createUser({
+    name: input.name.trim(),
+    email: normalizedEmail,
+    password,
+    phone: normalizedPhone,
+    role: ROLES.DELIVERY,
+  });
+
+  // Create delivery partner profile
+  const partner = await repo.createDeliveryPartner({
+    userId: user._id as any,
+    fullName: input.name.trim(),
+    phoneNumber: normalizedPhone,
+    email: normalizedEmail,
+    profilePhoto: input.profilePhoto,
+    vehicleType: input.vehicleType as any,
+    vehicleFuelType: input.vehicleFuelType as any,
+    bikeNumber: input.bikeNumber.toUpperCase(),
+    drivingLicense: input.drivingLicense.toUpperCase(),
+    documents: input.documents,
+    address: input.address,
+    payoutMethod: input.payoutMethod as any,
+    upiId: input.upiId,
+    bankDetails: input.bankDetails,
+    status: input.autoApprove ? "approved" : "pending",
+    isOnline: false,
+    isAvailable: false,
+  });
+
+  return partner;
 };
 
 export const listAssignedOrders = async (riderId: string) => {

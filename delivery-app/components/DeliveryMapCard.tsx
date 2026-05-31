@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import { DeliveryOrder } from "@/types";
+import { Colors, Radius } from "../constants/Colors";
 
 export function DeliveryMapCard({ order }: { order: DeliveryOrder }) {
   const riderLocation = order.currentLocation?.coordinates;
@@ -35,14 +36,14 @@ export function DeliveryMapCard({ order }: { order: DeliveryOrder }) {
           <Marker
             coordinate={{ latitude: riderLocation[1], longitude: riderLocation[0] }}
             title="Your live location"
-            pinColor="#F59E0B"
+            pinColor={Colors.light.primary}
           />
         ) : null}
         <Marker
           coordinate={{ latitude: pickup[1], longitude: pickup[0] }}
           title="Pickup"
           description={order.route.pickupAddress}
-          pinColor="#2563EB"
+          pinColor="#16A34A"
         />
         <Marker
           coordinate={{ latitude: drop[1], longitude: drop[0] }}
@@ -58,13 +59,13 @@ export function DeliveryMapCard({ order }: { order: DeliveryOrder }) {
             { latitude: pickup[1], longitude: pickup[0] },
             { latitude: drop[1], longitude: drop[0] },
           ]}
-          strokeColor="#F59E0B"
+          strokeColor={Colors.light.primary}
           strokeWidth={4}
         />
       </MapView>
       <View style={styles.legend}>
         <Text style={styles.title}>Live route overview</Text>
-        <Text style={styles.text}>Amber = rider, blue = pickup, green = customer destination.</Text>
+        <Text style={styles.text}>Yellow = rider, green = pickup/destination.</Text>
       </View>
     </View>
   );
@@ -73,10 +74,10 @@ export function DeliveryMapCard({ order }: { order: DeliveryOrder }) {
 const styles = StyleSheet.create({
   container: {
     overflow: "hidden",
-    borderRadius: 24,
-    backgroundColor: "#FFFFFF",
+    borderRadius: Radius.xl,
+    backgroundColor: Colors.light.white,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: Colors.light.border,
   },
   map: {
     width: "100%",
@@ -89,19 +90,19 @@ const styles = StyleSheet.create({
   },
   fallback: {
     padding: 18,
-    borderRadius: 24,
+    borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
-    backgroundColor: "#FFFFFF",
+    borderColor: Colors.light.border,
+    backgroundColor: Colors.light.white,
     gap: 6,
   },
   title: {
-    color: "#0F172A",
+    color: Colors.light.text,
     fontSize: 16,
     fontWeight: "800",
   },
   text: {
-    color: "#475569",
+    color: Colors.light.textMuted,
     fontSize: 13,
     lineHeight: 18,
   },

@@ -11,7 +11,7 @@ interface StatTileProps {
 
 export function StatTile({ label, value, tone, icon }: StatTileProps) {
   const accentColor = toneColors[tone];
-  
+
   return (
     <View style={[styles.card, { borderColor: accentColor }]}>
       <View style={styles.header}>
@@ -30,7 +30,7 @@ export function StatTile({ label, value, tone, icon }: StatTileProps) {
 const toneColors = {
   amber: Colors.light.primary,
   green: Colors.light.success,
-  blue: '#3B82F6',
+  blue: Colors.light.primary,
   slate: Colors.light.border,
 };
 

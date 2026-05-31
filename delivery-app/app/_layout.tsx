@@ -1,15 +1,29 @@
 import { Stack, router, useRootNavigationState, useSegments } from "expo-router";
-import { ThemeProvider, DarkTheme } from "@react-navigation/native";
+import { ThemeProvider, DefaultTheme } from "@react-navigation/native";
 import { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { SocketProvider } from "@/components/SocketProvider";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useLiveLocationSync } from "@/hooks/useLiveLocationSync";
+import { Colors } from "@/constants/Colors";
 
 import { useNotifications } from "@/hooks/useNotifications";
 import { AppLoadingScreen } from "@/components/AppLoadingScreen";
 import { useState } from "react";
+
+const LightTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: Colors.light.primary,
+    background: Colors.light.background,
+    card: Colors.light.surface,
+    text: Colors.light.text,
+    border: Colors.light.border,
+    notification: Colors.light.error,
+  },
+};
 
 export default function RootLayout() {
   const segments = useSegments();
@@ -36,9 +50,9 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <ThemeProvider value={DarkTheme}>
+      <ThemeProvider value={LightTheme}>
         <SocketProvider>
-          <View style={{ flex: 1, backgroundColor: "#000000" }}>
+          <View style={{ flex: 1, backgroundColor: Colors.light.background }}>
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="(auth)" />
               <Stack.Screen name="(tabs)" />

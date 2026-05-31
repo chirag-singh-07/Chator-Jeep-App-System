@@ -12,10 +12,20 @@
       "Bash(npm list *)",
       "Bash(node scripts/generate-icons.js)",
       "Bash(npx expo *)",
-      "Bash(keytool -genkey -v -keystore release.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000 -storepass chatorijeeb123 -keypass chatorijeeb123 -dname \"CN=Chatori Jeeb, OU=Dev, O=Chatori Jeeb, L=India, ST=Delhi, C=IN\")"
+      "Bash(keytool -genkey -v -keystore release.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000 -storepass chatorijeeb123 -keypass chatorijeeb123 -dname \"CN=Chatori Jeeb, OU=Dev, O=Chatori Jeeb, L=India, ST=Delhi, C=IN\")",
+      "Bash(sed -i 's/Shadows\\\\.gold/Shadows.blue/g' c:/food-order-system/delivery-app/app/\\\\\\(onboarding\\\\\\)/index.tsx c:/food-order-system/delivery-app/app/\\\\\\(tabs\\\\\\)/index.tsx c:/food-order-system/delivery-app/app/order/\\\\[id\\\\].tsx c:/food-order-system/delivery-app/app/wallet/request.tsx 2>/dev/null && echo \"Done\")",
+      "Bash(node -e \"console.log\\(JSON.stringify\\(require\\('expo-modules-autolinking'\\).resolve\\(null, '--platform', 'android', '--json'\\), null, 2\\)\\)\")",
+      "Bash(node -e \"const autolinking = require\\('expo-modules-autolinking'\\); console.log\\(JSON.stringify\\(autolinking.resolve\\(['--platform', 'android', '--json']\\), null, 2\\)\\)\")",
+      "Bash(npx expo-modules-autolinking *)",
+      "Bash(npm info *)",
+      "Read(//c/tmp/**)",
+      "Bash(curl -sL https://registry.npmjs.org/expo-location/-/expo-location-18.1.6.tgz -o expo-location-18.1.6.tgz)",
+      "Bash(tar -tzf expo-location-18.1.6.tgz)",
+      "Bash(tar -xzf expo-location-18.1.6.tgz)"
     ],
     "additionalDirectories": [
-      "c:\\food-order-system\\Restaurant-app\\assets"
+      "c:\\food-order-system\\Restaurant-app\\assets",
+      "c:\\food-order-system\\delivery-app\\app\\order"
     ]
   }
 }

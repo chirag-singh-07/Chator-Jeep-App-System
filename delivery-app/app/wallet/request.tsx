@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   activeTab: {
     backgroundColor: Colors.light.primary,
     borderColor: Colors.light.primary,
-    ...Shadows.gold,
+    ...Shadows.blue,
   },
   tabText: {
     fontSize: 14,
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
   },
   submitBtn: {
     height: 64,
-    ...Shadows.gold,
+    ...Shadows.blue,
   },
   footerNote: {
     textAlign: 'center',

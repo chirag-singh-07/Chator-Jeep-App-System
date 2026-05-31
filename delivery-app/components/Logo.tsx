@@ -19,7 +19,7 @@ export const Logo = ({ size = 'md', variant = 'default' }: LogoProps) => {
   return (
     <View style={[styles.container, logoSize]}>
       <Image
-        source={require('../assets/icons/delivery-app-logo.png')}
+        source={require('../assets/delivery-app-logo.png')}
         style={[logoSize, { resizeMode: 'contain' }]}
       />
     </View>

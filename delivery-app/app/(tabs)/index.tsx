@@ -21,7 +21,7 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { StatTile } from "@/components/StatTile";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
-import { formatCurrency, formatRelativeTime } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
 import { DeliveryOrder } from "@/types";
 import VerificationPending from "../(onboarding)/verification-pending";
 import { OrderRequestModal } from "@/components/OrderRequestModal";
@@ -162,7 +162,7 @@ export default function DashboardScreen() {
             value={Boolean(dashboard?.availability.isOnline)}
             onValueChange={handleAvailabilityChange}
             trackColor={{
-              false: "#333333",
+              false: Colors.light.secondary,
               true: Colors.light.primary,
             }}
             thumbColor={Colors.light.white}
@@ -318,7 +318,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.light.border,
     overflow: 'hidden',
-    ...Shadows.soft,
   },
   glowOverlay: {
     position: 'absolute',
@@ -355,7 +354,6 @@ const styles = StyleSheet.create({
   },
   statusDotActive: {
     backgroundColor: Colors.light.success,
-    ...Shadows.gold,
   },
   statusLabel: {
     fontSize: 10,
@@ -435,7 +433,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: Colors.light.border,
-    ...Shadows.soft,
   },
   payoutGradient: {
     padding: Spacing.lg,

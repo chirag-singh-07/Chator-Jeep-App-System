@@ -145,7 +145,7 @@ export default function OnboardingScreen() {
               <View style={styles.glowCircle} />
               {item.showLogo ? (
                 <Image
-                  source={require('../../assets/icons/delivery-app-logo.png')}
+                  source={require('../../assets/delivery-app-logo.png')}
                   style={styles.logoImage}
                 />
               ) : (
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
   },
   inactiveDot: {
     width: 8,
-    backgroundColor: '#333333',
+    backgroundColor: Colors.light.secondary,
   },
   buttonContainer: {
     width: '100%',
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: Spacing.sm,
-    ...Shadows.gold,
+    ...Shadows.blue,
   },
   startBtn: {
     backgroundColor: Colors.light.primary,

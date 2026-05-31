@@ -1,15 +1,16 @@
 import { StyleSheet, Text, View } from "react-native";
+import { Colors } from "../constants/Colors";
 
 const toneMap: Record<string, { backgroundColor: string; color: string }> = {
-  ASSIGNED: { backgroundColor: "#FEF3C7", color: "#B45309" },
-  PICKED_UP: { backgroundColor: "#DBEAFE", color: "#1D4ED8" },
-  DELIVERED: { backgroundColor: "#DCFCE7", color: "#15803D" },
-  PENDING: { backgroundColor: "#FEF3C7", color: "#B45309" },
-  APPROVED: { backgroundColor: "#DCFCE7", color: "#15803D" },
-  REJECTED: { backgroundColor: "#FEE2E2", color: "#B91C1C" },
-  PAID: { backgroundColor: "#DCFCE7", color: "#15803D" },
-  UNPAID: { backgroundColor: "#E2E8F0", color: "#334155" },
-  UNKNOWN: { backgroundColor: "#E2E8F0", color: "#334155" },
+  ASSIGNED: { backgroundColor: Colors.light.surfaceSecondary, color: Colors.light.secondary },
+  PICKED_UP: { backgroundColor: "#DCFCE7", color: Colors.light.success },
+  DELIVERED: { backgroundColor: "#DCFCE7", color: Colors.light.success },
+  PENDING: { backgroundColor: Colors.light.surfaceSecondary, color: Colors.light.secondary },
+  APPROVED: { backgroundColor: "#DCFCE7", color: Colors.light.success },
+  REJECTED: { backgroundColor: "#FEE2E2", color: Colors.light.error },
+  PAID: { backgroundColor: "#DCFCE7", color: Colors.light.success },
+  UNPAID: { backgroundColor: Colors.light.surface, color: Colors.light.textMuted },
+  UNKNOWN: { backgroundColor: Colors.light.surface, color: Colors.light.textMuted },
 };
 
 export function StatusPill({ label, status }: { label: string; status: string }) {

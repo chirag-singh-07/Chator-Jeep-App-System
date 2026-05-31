@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { Button } from "@/components/ui/button";
@@ -92,6 +93,9 @@ export function DeliveryAgentsPage() {
             Monitor and manage your fleet of delivery agents.
           </p>
         </div>
+        <Button asChild className="rounded-xl font-bold shadow-lg">
+          <Link to="/delivery/agents/new">+ Add Partner</Link>
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

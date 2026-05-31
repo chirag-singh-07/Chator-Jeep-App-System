@@ -104,3 +104,71 @@ export const registerDeliverySchema = z
 export const getOrderDetailSchema = z.object({
   params: z.object({ orderId: z.string().min(12) })
 });
+
+// Admin: Create delivery partner with user account
+export const adminCreateDeliveryPartnerSchema = z
+  .object({
+    body: z.object({
+      // User account details
+      name: z.string().trim().min(3, "Name must be at least 3 characters"),
+      email: z.string().trim().email("Please enter a valid email"),
+      password: z.string().trim().min(8, "Password must be at least 8 characters"),
+      phone: z.string().trim().regex(indianPhoneRegex, "Please enter a valid Indian mobile number"),
+      // Partner details
+      profilePhoto: z.string().trim().min(3).optional(),
+      vehicleType: z.enum(["Bike", "Cycle", "Car"]),
+      vehicleFuelType: z.enum(["Petrol", "EV"]),
+      bikeNumber: z.string().trim().toUpperCase().regex(vehicleNumberRegex),
+      drivingLicense: z.string().trim().toUpperCase().regex(dlRegex),
+      documents: z.object({
+        aadhaarNumber: z.string().trim().regex(/^\d{12}$/, "Please enter a valid 12-digit Aadhaar number"),
+        aadhaarPhoto: z.string().trim().min(3).optional(),
+        panNumber: z.string().trim().toUpperCase().regex(panRegex, "Please enter a valid PAN number"),
+        panPhoto: z.string().trim().min(3).optional(),
+        drivingLicenseNumber: z.string().trim().toUpperCase().regex(dlRegex),
+        drivingLicensePhoto: z.string().trim().min(3).optional(),
+        vehicleRcNumber: z.string().trim().toUpperCase().regex(vehicleNumberRegex),
+        vehicleRcPhoto: z.string().trim().min(3).optional(),
+        bikeInsurancePhoto: z.string().trim().min(3).optional(),
+        profilePhoto: z.string().trim().min(3).optional(),
+        livePhoto: z.string().trim().min(3).optional(),
+      }).optional(),
+      address: z.object({
+        buildingName: z.string().trim().min(2).optional(),
+        streetName: z.string().trim().min(2).optional(),
+        landmark: z.string().trim().optional().default(""),
+        area: z.string().trim().min(2).optional(),
+        state: z.string().trim().min(2).optional(),
+        district: z.string().trim().min(2).optional(),
+        city: z.string().trim().min(2).optional(),
+        pincode: z.string().trim().regex(/^\d{6}$/).optional(),
+      }).optional(),
+      payoutMethod: z.enum(["UPI", "BANK_ACCOUNT"]),
+      upiId: z.string().trim().optional(),
+      bankDetails: bankDetailsSchema.optional(),
+      // Admin options
+      autoApprove: z.boolean().optional().default(false),
+    }),
+  })
+  .superRefine((payload, ctx) => {
+    const body = payload.body;
+
+    if (body.payoutMethod === "UPI") {
+      if (!body.upiId || !upiRegex.test(body.upiId)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["body", "upiId"],
+          message: "A valid UPI ID is required when payout method is UPI",
+        });
+      }
+      return;
+    }
+
+    if (body.payoutMethod === "BANK_ACCOUNT" && !body.bankDetails) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["body", "bankDetails"],
+        message: "Bank details are required when payout method is BANK_ACCOUNT",
+      });
+    }
+  });
