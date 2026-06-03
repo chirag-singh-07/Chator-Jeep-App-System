@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icons/ios-icon-1024x1024.png",
     "scheme": "deliveryapp",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
@@ -23,11 +23,15 @@
     "android": {
       "package": "com.chatorijeeb.deliveryapp",
       "googleServicesFile": "./google-services.json",
+      "statusBar": {
+        "backgroundColor": "#000000",
+        "barStyle": "light-content"
+      },
       "adaptiveIcon": {
-        "backgroundColor": "#2563EB",
+        "backgroundColor": "#000000",
         "foregroundImage": "./assets/icons/android-icon-512x512.png",
         "dark": {
-          "backgroundColor": "#0F172A",
+          "backgroundColor": "#000000",
           "foregroundImage": "./assets/icons/android-icon-512x512.png"
         }
       },
@@ -55,9 +59,9 @@
           "image": "./assets/icons/ios-icon-1024x1024.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#2563EB",
+          "backgroundColor": "#000000",
           "dark": {
-            "backgroundColor": "#0F172A",
+            "backgroundColor": "#000000",
             "image": "./assets/icons/ios-icon-1024x1024.png"
           }
         }

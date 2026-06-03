@@ -35,6 +35,13 @@ const statusStyles: Record<string, string> = {
   Inactive: "bg-red-50 text-red-600 border-red-100 hover:bg-red-50",
   INACTIVE: "bg-red-100 text-red-700 border-red-200 hover:bg-red-100",
   inactive: "bg-red-50 text-red-600 border-red-100 hover:bg-red-50",
+  APPROVED: "bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100",
+  approved: "bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100",
+  PENDING: "bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100",
+  pending: "bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100",
+  BLOCKED: "bg-red-100 text-red-700 border-red-200 hover:bg-red-100",
+  blocked: "bg-red-100 text-red-700 border-red-200 hover:bg-red-100",
+  rejected: "bg-red-100 text-red-700 border-red-200 hover:bg-red-100",
 };
 
 export function StatusBadge({ value, className }: { value: StatusValue; className?: string }) {

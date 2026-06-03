@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, Radius, Shadows } from "../../constants/Colors";
@@ -22,7 +23,7 @@ import { ScreenContainer } from "@/components/ScreenContainer";
 import { ThemedInput } from "@/components/ThemedInput";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { ValidatedAddressField } from "@/components/ValidatedAddressField";
-import { apiClient } from "@/lib/api";
+import { API_URL } from "@/lib/api";
 import { useRegistrationStore, DocumentType, DocumentInfo } from "@/store/useRegistrationStore";
 import Animated, {
   FadeInRight,
@@ -35,6 +36,16 @@ type FuelType = "Petrol" | "EV";
 type PayoutMethod = "UPI" | "BANK_ACCOUNT";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+// Compatibility helper: some expo-image-picker versions export MediaType, others MediaTypeOptions
+const getImagePickerMediaTypeImages = () => {
+  // @ts-ignore
+  if (ImagePicker?.MediaType?.Images) return ImagePicker.MediaType.Images;
+  // @ts-ignore
+  if (ImagePicker?.MediaTypeOptions?.Images) return ImagePicker.MediaTypeOptions.Images;
+  // Fallback: undefined will let the picker decide
+  return undefined;
+};
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phoneRegex = /^[6-9]\d{9}$/;
@@ -202,7 +213,7 @@ export default function RegisterScreen() {
 
       // Launch image picker
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: getImagePickerMediaTypeImages(),
         allowsEditing: true,
         quality: 0.8,
         exif: false,
@@ -292,10 +303,11 @@ export default function RegisterScreen() {
   const appendImage = (formData: FormData, fieldName: string, asset: any) => {
     const extension = asset.uri.split(".").pop()?.toLowerCase() || "jpg";
     const mimeType = asset.type || `image/${extension === "jpg" ? "jpeg" : extension}`;
+    const uri = asset.uri.startsWith("file://") || asset.uri.startsWith("content://") ? asset.uri : `file://${asset.uri}`;
 
     formData.append(fieldName, {
-      uri: asset.uri,
-      name: `${fieldName}.${extension}`,
+      uri,
+      name: asset.fileName || `${fieldName}.${extension}`,
       type: mimeType,
     });
   };
@@ -328,14 +340,25 @@ export default function RegisterScreen() {
     appendImage(formData, "livePhoto", documents.livePhoto);
 
     try {
-      const response = await apiClient.post("/uploads/delivery-docs", formData, {
-        timeout: 60000,
+      const token = await AsyncStorage.getItem("delivery-token");
+      const response = await fetch(`${API_URL}/uploads/delivery-docs`, {
+        method: "POST",
+        body: formData,
+        headers: {
+          Authorization: token ? `Bearer ${token}` : "",
+        },
       });
 
-      return response.data.data as Record<string, { full?: string; medium?: string; thumbnail?: string }>;
+      const responseData = await response.json();
+      if (!response.ok) {
+        console.log("Upload error details:", responseData);
+        throw new Error(responseData?.message || "Failed to upload documents. Please try again.");
+      }
+
+      return responseData.data as Record<string, { full?: string; medium?: string; thumbnail?: string }>;
     } catch (error: any) {
-      console.log("Upload error details:", error.response?.data || error.message);
-      throw new Error(error.response?.data?.message || "Failed to upload documents. Please try again.");
+      console.log("Upload error details:", error.response?.data || error.message || error);
+      throw new Error(error?.message || "Failed to upload documents. Please try again.");
     }
   };
 

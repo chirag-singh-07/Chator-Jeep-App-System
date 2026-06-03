@@ -1,374 +1,282 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatusBadge } from "@/components/admin/status-badge";
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { useDeliveryPartnerStore, type PartnerStatus } from "@/stores/useDeliveryPartnerStore";
+import type { DeliveryPartner } from "@/types";
 import { Button } from "@/components/ui/button";
-import {
-  User,
-  Phone,
-  MapPin,
-  Star,
-  MoreVertical,
-  Bike,
-  Clock,
-  TrendingUp,
-  Mail,
-  CheckCircle,
-  XCircle,
-  FileText,
-  CreditCard,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  useDeliveryPartnerStore,
-  type PartnerStatus,
-} from "@/stores/useDeliveryPartnerStore";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { PartnerCard } from "@/components/delivery/partner-card";
+import { AnalyticsStrip } from "@/components/delivery/analytics-strip";
+import { StatusFilterTabs } from "@/components/delivery/status-filter-tabs";
+import { BulkActionBar } from "@/components/delivery/bulk-action-bar";
+import { PartnerDetailsPanel } from "@/components/delivery/partner-details-panel";
+import { Plus, Search, RotateCcw } from "lucide-react";
+
 
 export function DeliveryAgentsPage() {
   const { partners, isLoading, fetchPartners, updateStatus } =
     useDeliveryPartnerStore();
-  const [selectedPartner, setSelectedPartner] = useState<string | null>(null);
-  const [remarks, setRemarks] = useState("");
-  const [pendingStatus, setPendingStatus] = useState<PartnerStatus | null>(
-    null,
-  );
+  const [searchParams] = useSearchParams();
 
+  // State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState(searchParams.get("status") || "all");
+  const [selectedPartnerIds, setSelectedPartnerIds] = useState<string[]>([]);
+  const [bulkRemarks, setBulkRemarks] = useState("");
+  const [selectedPartner, setSelectedPartner] = useState<DeliveryPartner | null>(null);
+  const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
+  const [bulkLoading, setBulkLoading] = useState(false);
+
+  // Fetch partners on mount
   useEffect(() => {
-    fetchPartners();
-  }, [fetchPartners]);
+    if (partners.length === 0) {
+      fetchPartners();
+    }
+  }, []);
 
-  const handleStatusUpdate = async () => {
-    if (selectedPartner && pendingStatus) {
-      await updateStatus(selectedPartner, pendingStatus, remarks);
-      setSelectedPartner(null);
-      setRemarks("");
-      setPendingStatus(null);
+  // Filter partners based on search and status
+  const filteredPartners = useMemo(() => {
+    let filtered = partners;
+
+    // Filter by status tab
+    if (activeTab !== "all") {
+      if (activeTab === "high-risk") {
+        filtered = filtered.filter((p) => p.status === "blocked" || p.status === "rejected");
+      } else {
+        filtered = filtered.filter((p) => p.status === activeTab);
+      }
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (p) =>
+          p.fullName.toLowerCase().includes(query) ||
+          p.email.toLowerCase().includes(query) ||
+          p.phoneNumber.includes(query) ||
+          p.address?.city?.toLowerCase().includes(query)
+      );
+    }
+
+    return filtered;
+  }, [partners, activeTab, searchQuery]);
+
+  // Handle partner selection
+  const togglePartnerSelection = (id: string) => {
+    setSelectedPartnerIds((prev) =>
+      prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
+    );
+  };
+
+  const selectAll = () => {
+    setSelectedPartnerIds(
+      selectedPartnerIds.length === filteredPartners.length
+        ? []
+        : filteredPartners.map((p) => p._id)
+    );
+  };
+
+  // Bulk actions
+  const handleBulkUpdate = async (status: PartnerStatus) => {
+    if (selectedPartnerIds.length === 0) return;
+    setBulkLoading(true);
+
+    try {
+      for (const partnerId of selectedPartnerIds) {
+        await updateStatus(partnerId, status, bulkRemarks);
+      }
+      setSelectedPartnerIds([]);
+      setBulkRemarks("");
+      await fetchPartners();
+    } finally {
+      setBulkLoading(false);
     }
   };
 
-  const formatAddress = (partner: (typeof partners)[number]) =>
-    [
-      partner.address?.buildingName,
-      partner.address?.streetName,
-      partner.address?.landmark,
-      partner.address?.area,
-      partner.address?.city,
-      partner.address?.state,
-    ]
-      .filter(Boolean)
-      .join(", ");
+  // Handle details panel
+  const handleViewDetails = (partner: DeliveryPartner) => {
+    setSelectedPartner(partner);
+    setIsDetailsPanelOpen(true);
+  };
 
-  const documentLinks = (partner: (typeof partners)[number]) => [
-    { label: "Aadhaar", url: partner.documents?.aadhaarPhoto },
-    { label: "PAN", url: partner.documents?.panPhoto },
-    { label: "Driving License", url: partner.documents?.drivingLicensePhoto },
-    { label: "Vehicle RC", url: partner.documents?.vehicleRcPhoto },
-    { label: "Bike Insurance", url: partner.documents?.bikeInsurancePhoto },
-    { label: "Profile Selfie", url: partner.documents?.profilePhoto || partner.profilePhoto },
-    { label: "Live Photo", url: partner.documents?.livePhoto || partner.profilePhoto },
-  ];
+  const handleStatusChange = async (id: string, status: PartnerStatus, remarks?: string) => {
+    await updateStatus(id, status, remarks);
+    await fetchPartners();
+    setIsDetailsPanelOpen(false);
+    setSelectedPartner(null);
+  };
+
+  const handleUpdateStatus = async (id: string, status: PartnerStatus) => {
+    await updateStatus(id, status);
+    await fetchPartners();
+  };
+
+  // Stats
+  const stats = {
+    total: partners.length,
+    approved: partners.filter((p) => p.status === "approved").length,
+    pending: partners.filter((p) => p.status === "pending").length,
+    rejected: partners.filter((p) => p.status === "rejected").length,
+    blocked: partners.filter((p) => p.status === "blocked").length,
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Delivery Partners
-          </h1>
-          <p className="text-muted-foreground">
-            Monitor and manage your fleet of delivery agents.
-          </p>
-        </div>
-        <Button asChild className="rounded-xl font-bold shadow-lg">
-          <Link to="/delivery/agents/new">+ Add Partner</Link>
-        </Button>
-      </div>
+    <div className="min-h-screen bg-background">
+      {/* Top Navbar - Sticky */}
+      <div className="sticky top-0 z-30 border-b border-muted/10 bg-background/95 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-3">
+          {/* Left: Title and Badge */}
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-lg font-bold text-foreground">Delivery Fleet</h1>
+              <p className="text-xs text-muted-foreground">
+                {stats.total} partners • {stats.approved} active
+              </p>
+            </div>
+            <div className="hidden items-center gap-1.5 rounded-full bg-emerald-100/60 px-2.5 py-1 sm:flex">
+              <div className="h-2 w-2 rounded-full bg-emerald-600 animate-pulse" />
+              <span className="text-xs font-medium text-emerald-700">Live</span>
+            </div>
+          </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[
-          {
-            label: "Total Partners",
-            value: partners.length.toString(),
-            icon: Bike,
-            color: "text-emerald-600",
-            bg: "bg-emerald-100",
-          },
-          {
-            label: "Approved",
-            value: partners
-              .filter((p) => p.status === "approved")
-              .length.toString(),
-            icon: CheckCircle,
-            color: "text-blue-600",
-            bg: "bg-blue-100",
-          },
-          {
-            label: "Pending",
-            value: partners
-              .filter((p) => p.status === "pending")
-              .length.toString(),
-            icon: Clock,
-            color: "text-orange-600",
-            bg: "bg-orange-100",
-          },
-          {
-            label: "Rejected/Blocked",
-            value: partners
-              .filter((p) => ["rejected", "blocked"].includes(p.status))
-              .length.toString(),
-            icon: XCircle,
-            color: "text-destructive",
-            bg: "bg-destructive/10",
-          },
-        ].map((stat, i) => (
-          <Card key={i} className="rounded-3xl border-none shadow-lg">
-            <CardContent className="pt-6 flex items-center gap-4">
-              <div
-                className={`h-12 w-12 rounded-2xl ${stat.bg} flex items-center justify-center`}
-              >
-                <stat.icon className={`h-6 w-6 ${stat.color}`} />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground font-bold uppercase">
-                  {stat.label}
-                </p>
-                <p className="text-xl font-bold">{stat.value}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {partners.map((partner) => (
-          <Card
-            key={partner._id}
-            className="rounded-3xl border-none shadow-xl hover:shadow-2xl transition-all duration-300 group overflow-hidden"
-          >
-            <div
-              className={`h-2 w-full ${partner.status === "approved" ? "bg-emerald-500" : partner.status === "pending" ? "bg-orange-500" : "bg-destructive"}`}
-            />
-            <CardHeader className="pb-3 border-b border-muted/50">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-2xl bg-muted overflow-hidden">
-                    <img
-                      src={
-                        partner.profilePhoto ||
-                        `https://api.dicebear.com/7.x/avataaars/svg?seed=${partner.fullName}`
-                      }
-                      className="h-full w-full object-cover"
-                      alt={partner.fullName}
-                    />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">
-                      {partner.fullName}
-                    </CardTitle>
-                    <StatusBadge value={partner.status.toUpperCase()} />
-                  </div>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="rounded-xl h-8 w-8"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="rounded-xl">
-                    {partner.status === "pending" && (
-                      <>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setSelectedPartner(partner._id);
-                            setPendingStatus("approved");
-                          }}
-                        >
-                          Approve
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={() => {
-                            setSelectedPartner(partner._id);
-                            setPendingStatus("rejected");
-                          }}
-                        >
-                          Reject
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                    {partner.status === "approved" && (
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={() => {
-                          setSelectedPartner(partner._id);
-                          setPendingStatus("blocked");
-                        }}
-                      >
-                        Block
-                      </DropdownMenuItem>
-                    )}
-                    {partner.status === "blocked" && (
-                      <DropdownMenuItem
-                        className="text-emerald-600"
-                        onClick={() => {
-                          setSelectedPartner(partner._id);
-                          setPendingStatus("approved");
-                        }}
-                      >
-                        Unblock
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-4 space-y-3">
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <Mail className="h-4 w-4" />
-                <span>{partner.email}</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <Phone className="h-4 w-4" />
-                <span>{partner.phoneNumber}</span>
-              </div>
-              {partner.documents?.panNumber && (
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <CreditCard className="h-4 w-4" />
-                  <span>PAN: {partner.documents.panNumber}</span>
-                </div>
-              )}
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <Bike className="h-4 w-4" />
-                <span>
-                  {[
-                    partner.vehicleType,
-                    partner.vehicleFuelType,
-                    partner.bikeNumber,
-                  ]
-                    .filter(Boolean)
-                    .join(" • ")}
-                </span>
-              </div>
-              {partner.documents?.vehicleRcNumber && (
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <FileText className="h-4 w-4" />
-                  <span>RC: {partner.documents.vehicleRcNumber}</span>
-                </div>
-              )}
-              {formatAddress(partner) && (
-                <div className="flex items-start gap-3 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4 mt-0.5" />
-                  <span>{formatAddress(partner)}</span>
-                </div>
-              )}
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <CreditCard className="h-4 w-4" />
-                <span>
-                  {partner.payoutMethod === "UPI"
-                    ? `UPI: ${partner.upiId || "Not added"}`
-                    : `${partner.bankDetails?.bankName || "Bank"} • ${partner.bankDetails?.ifscCode || "IFSC pending"}`}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-2 pt-2">
-                {documentLinks(partner).map((doc) => (
-                  <a
-                    key={doc.label}
-                    href={doc.url || "#"}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={`rounded-xl border bg-muted/30 p-2 text-center text-xs font-bold transition ${
-                      doc.url
-                        ? "hover:bg-muted"
-                        : "pointer-events-none opacity-40"
-                    }`}
-                  >
-                    {doc.url ? (
-                      <img
-                        src={doc.url}
-                        alt={doc.label}
-                        className="mb-2 h-20 w-full rounded-lg object-cover"
-                      />
-                    ) : (
-                      <div className="mb-2 flex h-20 items-center justify-center rounded-lg bg-muted">
-                        <FileText className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                    )}
-                    {doc.label}
-                  </a>
-                ))}
-              </div>
-
-              {partner.adminRemarks && (
-                <div className="mt-2 p-2 bg-muted/50 rounded-lg text-xs italic">
-                  "{partner.adminRemarks}"
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <Dialog
-        open={!!selectedPartner}
-        onOpenChange={(open) => !open && setSelectedPartner(null)}
-      >
-        <DialogContent className="rounded-3xl">
-          <DialogHeader>
-            <DialogTitle>
-              {pendingStatus === "approved"
-                ? "Approve"
-                : pendingStatus === "rejected"
-                  ? "Reject"
-                  : "Block"}{" "}
-              Partner
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="remarks">Remarks (Optional)</Label>
+          {/* Center: Search */}
+          <div className="flex-1 max-w-md hidden sm:block">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                id="remarks"
-                placeholder="Add any internal remarks..."
-                value={remarks}
-                onChange={(e) => setRemarks(e.target.value)}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search partners..."
+                className="pl-9 rounded-full bg-muted/30 border-muted/20"
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSelectedPartner(null)}>
-              Cancel
-            </Button>
+
+          {/* Right: Actions */}
+          <div className="flex items-center gap-2">
             <Button
-              className={
-                pendingStatus === "approved"
-                  ? "bg-emerald-600 hover:bg-emerald-700"
-                  : "bg-destructive hover:bg-destructive/90"
-              }
-              onClick={handleStatusUpdate}
+              variant="outline"
+              size="sm"
+              onClick={() => fetchPartners()}
+              className="rounded-full"
             >
-              Confirm
+              <RotateCcw className="h-4 w-4" />
+              <span className="hidden sm:inline ml-2">Refresh</span>
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <Button size="sm" asChild className="rounded-full">
+              <Link to="/delivery/agents/new">
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline ml-2">Add Partner</span>
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="mx-auto max-w-7xl px-6 py-6">
+        {/* Analytics Strip */}
+        <AnalyticsStrip partners={partners} />
+
+        {/* Status Filter Tabs */}
+        <div className="mb-6">
+          <StatusFilterTabs
+            partners={partners}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+        </div>
+
+        {/* Partner Grid */}
+        <div className="space-y-4">
+          {selectedPartnerIds.length > 0 && (
+            <div className="flex items-center justify-between rounded-xl border border-primary/30 bg-primary/5 px-4 py-2 text-sm">
+              <span className="font-medium">
+                {selectedPartnerIds.length} partner{selectedPartnerIds.length !== 1 ? "s" : ""}{" "}
+                selected
+              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setSelectedPartnerIds([])}
+                className="rounded-lg"
+              >
+                Clear
+              </Button>
+            </div>
+          )}
+
+          {filteredPartners.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-muted/50 bg-muted/20 py-12 text-center">
+              <Search className="mx-auto mb-3 h-8 w-8 text-muted-foreground opacity-50" />
+              <p className="text-sm font-medium text-muted-foreground">
+                {isLoading ? "Loading partners..." : "No partners match your filters"}
+              </p>
+              {!isLoading && searchQuery && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => setSearchQuery("")}
+                  className="mt-2"
+                >
+                  Clear search
+                </Button>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {filteredPartners.map((partner) => (
+                  <PartnerCard
+                    key={partner._id}
+                    partner={partner}
+                    isSelected={selectedPartnerIds.includes(partner._id)}
+                    onSelect={togglePartnerSelection}
+                    onViewDetails={handleViewDetails}
+                    onUpdateStatus={handleUpdateStatus}
+                  />
+                ))}
+              </div>
+
+              {/* Results count */}
+              <div className="pt-4 text-center text-xs text-muted-foreground">
+                Showing {filteredPartners.length} of {partners.length} partners
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Bulk Action Bar */}
+      {selectedPartnerIds.length > 0 && (
+        <BulkActionBar
+          selectedCount={selectedPartnerIds.length}
+          remarks={bulkRemarks}
+          onRemarksChange={setBulkRemarks}
+          onApprove={() => handleBulkUpdate("approved")}
+          onReject={() => handleBulkUpdate("rejected")}
+          onSuspend={() => handleBulkUpdate("blocked")}
+          onExport={() => {
+            console.log("Export selected partners");
+          }}
+          onClose={() => setSelectedPartnerIds([])}
+          isLoading={bulkLoading}
+        />
+      )}
+
+      {/* Partner Details Panel */}
+      <PartnerDetailsPanel
+        partner={selectedPartner}
+        isOpen={isDetailsPanelOpen}
+        onClose={() => {
+          setIsDetailsPanelOpen(false);
+          setSelectedPartner(null);
+        }}
+        onUpdateStatus={handleStatusChange}
+        isLoading={bulkLoading}
+      />
     </div>
   );
 }

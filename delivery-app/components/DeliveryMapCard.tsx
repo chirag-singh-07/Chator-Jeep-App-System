@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   container: {
     overflow: "hidden",
     borderRadius: Radius.xl,
-    backgroundColor: Colors.light.white,
+    backgroundColor: Colors.light.surface,
     borderWidth: 1,
     borderColor: Colors.light.border,
   },
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.xl,
     borderWidth: 1,
     borderColor: Colors.light.border,
-    backgroundColor: Colors.light.white,
+    backgroundColor: Colors.light.surface,
     gap: 6,
   },
   title: {

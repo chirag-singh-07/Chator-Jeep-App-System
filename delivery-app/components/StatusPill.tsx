@@ -2,10 +2,10 @@ import { StyleSheet, Text, View } from "react-native";
 import { Colors } from "../constants/Colors";
 
 const toneMap: Record<string, { backgroundColor: string; color: string }> = {
-  ASSIGNED: { backgroundColor: Colors.light.surfaceSecondary, color: Colors.light.secondary },
+  ASSIGNED: { backgroundColor: Colors.light.surfaceSecondary, color: Colors.light.textMuted },
   PICKED_UP: { backgroundColor: "#DCFCE7", color: Colors.light.success },
   DELIVERED: { backgroundColor: "#DCFCE7", color: Colors.light.success },
-  PENDING: { backgroundColor: Colors.light.surfaceSecondary, color: Colors.light.secondary },
+  PENDING: { backgroundColor: Colors.light.surfaceSecondary, color: Colors.light.textMuted },
   APPROVED: { backgroundColor: "#DCFCE7", color: Colors.light.success },
   REJECTED: { backgroundColor: "#FEE2E2", color: Colors.light.error },
   PAID: { backgroundColor: "#DCFCE7", color: Colors.light.success },

@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   content: {
-    backgroundColor: Colors.light.white,
+    backgroundColor: Colors.light.surface,
     borderTopLeftRadius: Radius.xl,
     borderTopRightRadius: Radius.xl,
     padding: Spacing.lg,

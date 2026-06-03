@@ -2,11 +2,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { Platform } from "react-native";
 
-// Multiple API endpoints for redundancy
+// Single API endpoint for production
 const API_ENDPOINTS = [
   "https://api.chatorijeeb.com/api/v1",
-  "http://89.116.20.144:5001/api/v1",
-  "https://chator-jeep-app-system-api.onrender.com/api/v1",
 ];
 
 const normalizeUrl = (url: string) => {
@@ -22,9 +20,6 @@ const getBaseUrl = () => {
   return normalizeUrl(API_ENDPOINTS[0]);
 };
 
-// Fallback URLs for when primary fails
-export const FALLBACK_API_URLS = API_ENDPOINTS.map(normalizeUrl);
-
 export const API_URL = getBaseUrl();
 
 export const getSocketUrl = () => API_URL.replace(/\/api\/v1$/, "");
@@ -32,16 +27,23 @@ export const getSocketUrl = () => API_URL.replace(/\/api\/v1$/, "");
 export const apiClient = axios.create({
   baseURL: API_URL,
   timeout: 20000,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 apiClient.interceptors.request.use(
   async (config) => {
     const token = await AsyncStorage.getItem("delivery-token");
     if (token) {
+      config.headers = config.headers ?? {};
       config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    if (config.data instanceof FormData) {
+      config.headers = config.headers ?? {};
+      delete (config.headers as Record<string, string>)["Content-Type"];
+      delete (config.headers as Record<string, string>)["content-type"];
+    } else {
+      config.headers = config.headers ?? {};
+      (config.headers as Record<string, string>)["Content-Type"] = "application/json";
     }
 
     // LOG: Full URL + payload
@@ -66,27 +68,7 @@ apiClient.interceptors.response.use(
     const status = error.response?.status;
     const config = error.config;
 
-    // Try fallback URLs on network errors
     const isNetworkError = !status && (error.code === "ECONNABORTED" || error.message === "Network Error");
-    if (isNetworkError && config && !config._fallbackTried) {
-      for (const fallbackUrl of FALLBACK_API_URLS) {
-        if (fallbackUrl !== config.baseURL) {
-          config._fallbackTried = true;
-          const originalBaseURL = config.baseURL;
-          config.baseURL = fallbackUrl;
-          console.warn(`🔄 [API Fallback] Trying: ${fallbackUrl}`);
-          try {
-            return await apiClient(config);
-          } catch (retryError) {
-            console.warn(`❌ [API Fallback Failed] ${fallbackUrl}`);
-            config.baseURL = originalBaseURL;
-            continue;
-          }
-        }
-      }
-    }
-
-    // Auto-retry once on network errors (cold-start wake-up)
     if (isNetworkError && !config?._retried && config) {
       config._retried = true;
       console.warn(`🔄 [API Retry] Server may be waking up. Retrying in 3s: ${config.url}`);

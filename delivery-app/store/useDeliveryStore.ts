@@ -137,6 +137,16 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
       });
     } catch (error: any) {
       const status = error?.response?.status ?? null;
+      // If unauthorized, clear stored token and mark auth as logged out
+      if (status === 401) {
+        try {
+          await AsyncStorage.removeItem("delivery-token");
+        } catch (e) {
+          // ignore
+        }
+        useAuthStore.setState({ token: null, isAuthenticated: false, user: null });
+      }
+
       set({
         partnerProfile: null,
         isLoading: false,

@@ -62,6 +62,12 @@ export default function DashboardScreen() {
     }
   }, [initialProfileFetched, partnerProfile, profileFetchErrorStatus]);
 
+  useEffect(() => {
+    if (initialProfileFetched && !partnerProfile && profileFetchErrorStatus === 401) {
+      router.replace("/(auth)/login");
+    }
+  }, [initialProfileFetched, partnerProfile, profileFetchErrorStatus]);
+
   if (isLoading && !partnerProfile) {
     return (
       <ScreenContainer withSafeArea>

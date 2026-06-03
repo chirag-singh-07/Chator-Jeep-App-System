@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
   },
   inactiveDot: {
     width: 8,
-    backgroundColor: Colors.light.secondary,
+    backgroundColor: Colors.light.surfaceSecondary,
   },
   buttonContainer: {
     width: '100%',

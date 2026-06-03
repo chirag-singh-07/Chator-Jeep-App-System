@@ -22,6 +22,7 @@ import { AddonsPage } from "@/pages/addons-page";
 import { AnalyticsSalesPage } from "@/pages/analytics-sales-page";
 import { AnalyticsRevenuePage } from "@/pages/analytics-revenue-page";
 import { DeliveryAgentsPage } from "@/pages/delivery-agents-page";
+import { DeliveryAgentDetailPage } from "@/pages/delivery-agent-detail-page";
 import { DeliveryPartnerCreatePage } from "@/pages/delivery-partner-create-page";
 import { DeliveryPayoutsPage } from "@/pages/delivery-payouts-page";
 import { DeliveryTrackingPage } from "@/pages/delivery-tracking-page";
@@ -78,6 +79,7 @@ function App() {
         <Route path="/delivery" element={<Navigate to="/delivery/agents" replace />} />
         <Route path="/delivery/agents" element={<DeliveryAgentsPage />} />
         <Route path="/delivery/agents/new" element={<DeliveryPartnerCreatePage />} />
+        <Route path="/delivery/agents/:partnerId" element={<DeliveryAgentDetailPage />} />
         <Route path="/delivery/payouts" element={<DeliveryPayoutsPage />} />
         <Route path="/delivery/tracking" element={<DeliveryTrackingPage />} />
         

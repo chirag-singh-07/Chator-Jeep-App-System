@@ -65,7 +65,7 @@ export function OrderCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.light.white,
+    backgroundColor: Colors.light.surface,
     borderColor: Colors.light.border,
     borderWidth: 1,
     borderRadius: Radius.xl,
