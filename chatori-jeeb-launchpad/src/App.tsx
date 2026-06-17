@@ -11,6 +11,8 @@ import NotFound from "./pages/NotFound.tsx";
 const Legal = lazy(() => import("./pages/legal/Legal.tsx"));
 const Terms = lazy(() => import("./pages/legal/Terms.tsx"));
 const Privacy = lazy(() => import("./pages/legal/Privacy.tsx"));
+const DeliveryPrivacy = lazy(() => import("./pages/legal/DeliveryPrivacy.tsx"));
+const RestaurantPrivacy = lazy(() => import("./pages/legal/RestaurantPrivacy.tsx"));
 const Cookies = lazy(() => import("./pages/legal/Cookies.tsx"));
 const Licenses = lazy(() => import("./pages/legal/Licenses.tsx"));
 
@@ -48,6 +50,8 @@ const App = () => (
             <Route path="/legal" element={<Legal />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/delivery-privacy" element={<DeliveryPrivacy />} />
+            <Route path="/restaurant-privacy" element={<RestaurantPrivacy />} />
             <Route path="/cookies" element={<Cookies />} />
             <Route path="/licenses" element={<Licenses />} />
             <Route path="/support" element={<Support />} />

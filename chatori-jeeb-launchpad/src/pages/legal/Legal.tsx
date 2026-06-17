@@ -18,6 +18,18 @@ const pages = [
     icon: Shield,
   },
   {
+    title: "Delivery Partner Privacy",
+    desc: "How we handle data for our delivery partners.",
+    href: "/delivery-privacy",
+    icon: Shield,
+  },
+  {
+    title: "Restaurant Partner Privacy",
+    desc: "How we manage and protect data for our restaurant partners.",
+    href: "/restaurant-privacy",
+    icon: Shield,
+  },
+  {
     title: "Cookies Policy",
     desc: "How we use cookies and similar technologies on our website and apps.",
     href: "/cookies",
