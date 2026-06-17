@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:160634269949:android:692ca42bd49c2374944e94",
+        "mobilesdk_app_id": "1:160634269949:android:17e87d17300cddf0944e94",
         "android_client_info": {
-          "package_name": "com.chatorijeeb.userapp"
+          "package_name": "com.chatorijeeb.user"
         }
       },
       "oauth_client": [],

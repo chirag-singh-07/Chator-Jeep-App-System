@@ -22,7 +22,7 @@
       }
     },
     "android": {
-      "package": "com.chatorijeeb.deliveryapp",
+      "package": "com.chatorijeeb.delivery",
       "versionCode": 3,
       "googleServicesFile": "./google-services.json",
       "blockedPermissions": [

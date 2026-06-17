@@ -12,7 +12,7 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.chatorijeeb.userapp",
+      "package": "com.chatorijeeb.user",
       "googleServicesFile": "./google-services.json",
       "targetSdkVersion": 35,
       "adaptiveIcon": {
@@ -64,6 +64,12 @@
       "eas": {
         "projectId": "9e49a436-9112-40b5-915d-02d76fe5e203"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/9e49a436-9112-40b5-915d-02d76fe5e203"
     }
   }
 }
