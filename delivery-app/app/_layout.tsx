@@ -5,7 +5,6 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { SocketProvider } from "@/components/SocketProvider";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useLiveLocationSync } from "@/hooks/useLiveLocationSync";
 import { Colors } from "@/constants/Colors";
 
 import { useNotifications } from "@/hooks/useNotifications";
@@ -31,7 +30,6 @@ export default function RootLayout() {
   const { isAuthenticated, hasHydrated } = useAuthStore();
   const [isReady, setIsReady] = useState(false);
 
-  useLiveLocationSync();
   useNotifications();
 
   useEffect(() => {

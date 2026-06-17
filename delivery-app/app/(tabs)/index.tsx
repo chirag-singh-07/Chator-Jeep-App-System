@@ -11,7 +11,6 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import * as Location from "expo-location";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { DeliveryMapCard } from "@/components/DeliveryMapCard";
 import { OrderCard } from "@/components/OrderCard";
@@ -114,17 +113,7 @@ export default function DashboardScreen() {
   }
 
   const handleAvailabilityChange = async (nextValue: boolean) => {
-    let coords: [number, number] | undefined;
-
-    if (nextValue) {
-      const permission = await Location.requestForegroundPermissionsAsync();
-      if (permission.status === "granted") {
-        const position = await Location.getCurrentPositionAsync({});
-        coords = [position.coords.longitude, position.coords.latitude];
-      }
-    }
-
-    await toggleAvailability(nextValue, coords);
+    await toggleAvailability(nextValue);
   };
 
   return (

@@ -35,6 +35,18 @@ npm run reset-project
 
 This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
+## EAS Cloud builds
+
+This app is configured for EAS Cloud builds.
+
+```bash
+npm run eas-build:preview
+npm run eas-build:production
+npm run eas-submit:production
+```
+
+If you are enabling iOS push notifications, make sure the matching `GoogleService-Info.plist` is added to the Firebase iOS app for `com.chatorijeeb.deliveryapp`.
+
 ## Learn more
 
 To learn more about developing your project with Expo, look at the following resources:
