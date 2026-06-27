@@ -23,7 +23,12 @@
       "channel": "preview"
     },
     "production": {
-      "channel": "production"
+      "channel": "production",
+      "credentialsSource": "local",
+      "env": {
+        "JAVA_HOME": "/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home",
+        "ANDROID_HOME": "/Users/wefix/Library/Android/sdk"
+      }
     }
   },
   "submit": {

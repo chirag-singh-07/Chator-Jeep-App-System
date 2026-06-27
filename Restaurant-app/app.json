@@ -18,6 +18,7 @@
     },
     "android": {
       "package": "com.chatorijeeb.restaurant",
+      "versionCode": 3,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -62,6 +63,8 @@
             "useFrameworks": "static"
           },
           "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
             "kotlinVersion": "1.9.25",
             "usesCleartextTraffic": true
           }
