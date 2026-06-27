@@ -1,0 +1,3 @@
+how i can generate the local aab file 
+that support the OTA support too so can 
+update the UI and all the other thing so make that 
