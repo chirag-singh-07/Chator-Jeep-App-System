@@ -2,7 +2,7 @@
   "expo": {
     "name": "Chatori Jeeb Restaurant",
     "slug": "kitchen-app",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icons/ios-icon-1024x1024.png",
     "scheme": "kitchenapp",
@@ -18,7 +18,7 @@
     },
     "android": {
       "package": "com.chatorijeeb.restaurant",
-      "versionCode": 3,
+      "versionCode": 30,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
