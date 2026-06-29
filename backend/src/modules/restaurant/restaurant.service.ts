@@ -18,7 +18,7 @@ import {
 import { RESTAURANT_STATUS, RestaurantStatus, MenuItem, Restaurant } from "./restaurant.model";
 import Review from "./review.model";
 import { deleteUploadedFiles } from "../../common/services/upload.service";
-import { deleteRestaurantById } from "./restaurant.repository";
+import { deleteRestaurantById, listMenuByRestaurant } from "./restaurant.repository";
 import { Order } from "../order/order.model";
 import { consumeRestaurantRegistrationPayment } from "../payment/payment.service";
 import { User, IUser } from "../user/user.model";
@@ -294,59 +294,84 @@ export const adminDeleteRestaurant = async (id: string) => {
   const restaurant = await findRestaurantById(id);
   if (!restaurant) throw new AppError("Restaurant not found", 404);
 
-  // 1. Collect all S3 keys
-  const keysToDelete: string[] = [];
+  // Fetch all menu items so we can delete their images too
+  const menuItems = await listMenuByRestaurant(id);
 
-  // Helper to extract key from public URL
+  // 1. Collect all upload keys
+  const keysToDelete = new Set<string>();
+
+  // Helper to extract the directory or file key from public URL
   const extractKey = (url: string) => {
     if (!url) return null;
     try {
-      // Tigris URL: https://bucket.t3.tigrisfiles.io/key
-      // Or old style: https://bucket.t3.storage.dev/key
       if (url.includes(".io/")) return url.split(".io/")[1];
       if (url.includes(".dev/")) return url.split(".dev/")[1];
+      if (url.includes("/uploads/")) {
+         const fullKey = url.split("/uploads/")[1];
+         // For processed images (e.g., folder1/folder2/uuid/file.webp), we want to delete the parent 'uuid' folder
+         const parts = fullKey.split("/");
+         if (parts.length > 1) {
+             return parts.slice(0, -1).join("/");
+         }
+         return fullKey;
+      }
       return null;
     } catch (e) {
       return null;
     }
   };
 
-  // Extract from logoUrls (Record<string, string>)
-  if (restaurant.logoUrls) {
-    Object.values(restaurant.logoUrls).forEach((url) => {
-      const key = extractKey(url as string);
-      if (key) keysToDelete.push(key);
-    });
-  }
+  const extractFromMixed = (obj: any) => {
+    if (!obj) return;
+    if (typeof obj === "string") {
+      const key = extractKey(obj);
+      if (key) keysToDelete.add(key);
+    } else {
+      Object.values(obj).forEach(url => {
+        const key = extractKey(url as string);
+        if (key) keysToDelete.add(key);
+      });
+    }
+  };
 
-  // Extract from bannerUrls (Record<string, string>)
-  if (restaurant.bannerUrls) {
-    Object.values(restaurant.bannerUrls).forEach((url) => {
-      const key = extractKey(url as string);
-      if (key) keysToDelete.push(key);
-    });
-  }
-
-  // Extract from specific documents
-  if (restaurant.aadharCard?.key) keysToDelete.push(restaurant.aadharCard.key);
-  if (restaurant.panCard?.key) keysToDelete.push(restaurant.panCard.key);
-  if (restaurant.livePhoto?.key) keysToDelete.push(restaurant.livePhoto.key);
+  extractFromMixed(restaurant.logoUrls);
+  extractFromMixed(restaurant.bannerUrls);
+  extractFromMixed(restaurant.aadharCard);
+  extractFromMixed(restaurant.panCard);
+  extractFromMixed(restaurant.livePhoto);
 
   // Extract from documents array
   if (restaurant.documents && restaurant.documents.length > 0) {
     restaurant.documents.forEach((doc: any) => {
-      if (doc.key) keysToDelete.push(doc.key);
+      // Raw files use the full key
+      if (doc.key) keysToDelete.add(doc.key);
+      else {
+        const key = extractKey(doc.url);
+        // For raw files, it's just the file itself, but our extractKey might strip the filename if we aren't careful.
+        // Actually doc.key is always present for documents per upload.controller.ts, so we're safe.
+        if (key) keysToDelete.add(key);
+      }
     });
   }
 
-  // 2. Delete from S3
-  if (keysToDelete.length > 0) {
-    console.log(`Deleting ${keysToDelete.length} files from S3 for restaurant ${id}`);
+  // Extract from Menu Items
+  menuItems.forEach((item: any) => {
+      extractFromMixed(item.images);
+      if (item.imageUrl) {
+         const key = extractKey(item.imageUrl);
+         if (key) keysToDelete.add(key);
+      }
+  });
+
+  // 2. Delete from Filesystem/S3
+  const keysArray = Array.from(keysToDelete);
+  if (keysArray.length > 0) {
+    console.log(`Deleting ${keysArray.length} file paths from storage for restaurant ${id}`);
     try {
-      await deleteUploadedFiles(keysToDelete);
+      await deleteUploadedFiles(keysArray);
     } catch (err) {
-      console.warn("S3 Deletion failed during restaurant cleanup:", err);
-      // We continue even if S3 delete fails to ensure DB is cleaned up
+      console.warn("Storage Deletion failed during restaurant cleanup:", err);
+      // Continue to ensure DB is cleaned up
     }
   }
 
