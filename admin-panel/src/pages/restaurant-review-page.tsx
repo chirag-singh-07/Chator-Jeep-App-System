@@ -197,8 +197,14 @@ export function RestaurantReviewPage() {
 
   const getImgUrl = (obj: any, preference: 'full' | 'medium' | 'thumbnail' = 'medium') => {
     if (!obj) return '';
-    if (typeof obj === 'string') return obj;
-    return obj[preference] || obj.medium || obj.full || obj.thumbnail || obj.url || '';
+    let result = '';
+    if (typeof obj === 'string') {
+        result = obj;
+    } else {
+        result = obj[preference] || obj.medium || obj.full || obj.thumbnail || obj.url || '';
+    }
+    console.log(`🖼️ [Image URL Resolved]: ${result}`);
+    return result;
   };
 
   if (loading || !restaurant) {
