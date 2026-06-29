@@ -272,7 +272,7 @@ const parseCsvBoolean = (value?: string): boolean =>
 export default function MenuScreen() {
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [items, setItems] = useState<MenuItemRecord[]>([]);
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string | null>("all");
   const [menuLoading, setMenuLoading] = useState(true);
   const [showDishModal, setShowDishModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
@@ -314,10 +314,6 @@ export default function MenuScreen() {
 
       setCategories(nextCategories);
       setItems(nextItems);
-
-      if (nextCategories.length > 0 && !activeCategory) {
-        setActiveCategory(nextCategories[0]._id);
-      }
     } catch (error) {
       console.warn("Failed fetching menu data:", error);
       setCategories([]);
@@ -350,7 +346,7 @@ export default function MenuScreen() {
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
-      const matchesCategory = activeCategory
+      const matchesCategory = activeCategory && activeCategory !== "all"
         ? item.category === activeCategory || item.category === categories.find((c) => c._id === activeCategory)?.name
         : true;
       const searchValue = query.trim().toLowerCase();
@@ -726,6 +722,20 @@ export default function MenuScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.categoryScrollContent}
         >
+          <TouchableOpacity
+            style={[styles.categoryCard, activeCategory === "all" && styles.categoryCardActive]}
+            onPress={() => setActiveCategory("all")}
+          >
+            <View style={[styles.categoryCardImage, { backgroundColor: Colors.light.black }]} />
+            <View style={styles.categoryCardOverlay} />
+            <View style={styles.categoryCardContent}>
+              <Text style={styles.categoryEmoji}>🍽️</Text>
+              <Text style={styles.categoryCardTitle}>All Menu</Text>
+              <Text style={styles.categoryCardMeta}>
+                {items.length} {items.length === 1 ? "dish" : "dishes"}
+              </Text>
+            </View>
+          </TouchableOpacity>
           {categorySummaries.map((category) => {
             const selected = activeCategory === category._id;
             return (
