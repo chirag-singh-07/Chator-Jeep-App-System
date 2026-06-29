@@ -78,11 +78,17 @@ export function RestaurantDetailsPage() {
         </Button>
       </div>
 
-      {bannerUrl && (
-        <div className="relative w-full h-48 md:h-64 lg:h-80 rounded-2xl overflow-hidden mb-2 shadow-sm border">
-            <img src={bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+      {(bannerUrl || logoUrl) && (
+        <div className="relative w-full h-48 md:h-64 lg:h-80 rounded-2xl overflow-hidden mb-2 shadow-sm border bg-muted">
+            {bannerUrl ? (
+                <img src={bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+            ) : (
+                <div className="w-full h-full bg-muted-foreground/10 flex items-center justify-center">
+                    <span className="text-muted-foreground">No Banner Uploaded</span>
+                </div>
+            )}
             {logoUrl && (
-                <div className="absolute bottom-4 left-6 h-24 w-24 md:h-32 md:w-32 rounded-xl border-4 border-background overflow-hidden bg-background shadow-lg">
+                <div className="absolute bottom-4 left-6 h-24 w-24 md:h-32 md:w-32 rounded-xl border-4 border-background overflow-hidden bg-background shadow-lg flex items-center justify-center">
                     <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
                 </div>
             )}
@@ -203,30 +209,46 @@ export function RestaurantDetailsPage() {
                             </div>
                         </div>
                    )}
-                   {restaurant.documents && restaurant.documents.length > 0 ? (
-                       restaurant.documents.map((doc: any, i: number) => (
-                           <div key={i} className="flex items-center justify-between p-3 rounded-xl border bg-muted/20">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                                        {doc.url.match(/\.(jpeg|jpg|gif|png)$/i) ? <ImageIcon className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                   {(() => {
+                       const allDocs = [];
+                       if (restaurant.aadharCard) allDocs.push({ ...restaurant.aadharCard, label: "Aadhar Card" });
+                       if (restaurant.panCard) allDocs.push({ ...restaurant.panCard, label: "PAN Card" });
+                       if (restaurant.livePhoto) allDocs.push({ ...restaurant.livePhoto, label: "Live Photo" });
+                       if (restaurant.documents && restaurant.documents.length > 0) {
+                           allDocs.push(...restaurant.documents);
+                       }
+
+                       if (allDocs.length > 0) {
+                           return allDocs.map((doc: any, i: number) => (
+                               <div key={i} className="flex items-center justify-between p-3 rounded-xl border bg-muted/20">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                                            {doc.url?.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? <ImageIcon className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-sm">{doc.label}</p>
+                                            {doc.verifiedAt && <p className="text-xs text-green-600">Verified</p>}
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="font-medium text-sm">{doc.label}</p>
-                                        {doc.verifiedAt && <p className="text-xs text-green-600">Verified</p>}
-                                    </div>
-                                </div>
-                                <Button variant="ghost" size="sm" asChild>
-                                    <a href={doc.url} target="_blank" rel="noreferrer">
-                                        View <ExternalLink className="ml-2 w-3 h-3" />
-                                    </a>
-                                </Button>
-                           </div>
-                       ))
-                   ) : !restaurant.fssaiLicense ? (
-                       <div className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
-                         No documents uploaded.
-                       </div>
-                   ) : null}
+                                    <Button variant="ghost" size="sm" asChild>
+                                        <a href={doc.url} target="_blank" rel="noreferrer">
+                                            View <ExternalLink className="ml-2 w-3 h-3" />
+                                        </a>
+                                    </Button>
+                               </div>
+                           ));
+                       }
+
+                       if (!restaurant.fssaiLicense) {
+                           return (
+                               <div className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+                                 No documents uploaded.
+                               </div>
+                           );
+                       }
+                       
+                       return null;
+                   })()}
                </div>
             </CardContent>
         </Card>
