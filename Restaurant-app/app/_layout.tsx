@@ -24,26 +24,27 @@ export default function RootLayout() {
     const inAuthGroup = segments[0] === "(auth)";
     const inOnboarding = segments[0] === "(onboarding)";
     const authPage = segments[1] as string | undefined;
-    const isPublicAuthPage =
-      authPage === "login" ||
-      authPage === "register" ||
-      authPage === "forgot-password";
     
-    if (!isAuthenticated) {
-      // If not authenticated and not on login/register/onboarding, go to onboarding
-      if (!inAuthGroup && !inOnboarding) {
-        router.replace("/(onboarding)");
+    // Defer the navigation to ensure Root Layout is fully mounted
+    const timer = setTimeout(() => {
+      if (!isAuthenticated) {
+        // If not authenticated and not on login/register/onboarding, go to onboarding
+        if (!inAuthGroup && !inOnboarding) {
+          router.replace("/(onboarding)");
+        }
+      } else if (isAuthenticated && (inAuthGroup || inOnboarding)) {
+        // If authenticated but still in auth or onboarding, redirect based on status
+        if (user?.status === "REQUESTED" || user?.status === "PENDING") {
+          if (authPage !== "pending") router.replace("/(auth)/pending");
+        } else if (user?.status === "REJECTED") {
+          if (authPage !== "rejected") router.replace("/(auth)/rejected");
+        } else {
+          router.replace("/(tabs)");
+        }
       }
-    } else if (isAuthenticated && (inAuthGroup || inOnboarding)) {
-      // If authenticated but still in auth or onboarding, redirect based on status
-      if (user?.status === "REQUESTED" || user?.status === "PENDING") {
-        router.replace("/(auth)/pending");
-      } else if (user?.status === "REJECTED") {
-        router.replace("/(auth)/rejected");
-      } else {
-        router.replace("/(tabs)");
-      }
-    }
+    }, 1);
+
+    return () => clearTimeout(timer);
   }, [isAuthenticated, user?.status, segments, navigationState?.key]);
 
   return (

@@ -18,7 +18,7 @@
     },
     "android": {
       "package": "com.chatorijeeb.restaurant",
-      "versionCode": 30,
+      "versionCode": 31,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
