@@ -86,14 +86,10 @@ const createMenuDraft = (): OnboardingMenuItem => ({
 export default function RegisterScreen() {
   const [currentStep, setCurrentStep] = useState(0);
   const hasLoadedDraft = useRef(false);
-  const [uploadStatus, setUploadStatus] = useState<{
-    message: string;
-    isUploading: boolean;
-  }>({
-    message: "",
-    isUploading: false,
-  });
-  const { register, uploadBranding, uploadLegalDocs, isLoading } =
+  const [uploadStatus, setUploadStatus] = useState({ message: "", percent: 0 });
+  const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'failed' | 'success'>('idle');
+  const [uploadError, setUploadError] = useState("");
+  const { isAuthenticated, register, uploadBranding, uploadLegalDocs, isLoading } =
     useAuthStore();
 
   // Step 1: Account
@@ -296,7 +292,7 @@ export default function RegisterScreen() {
       mediaTypes: ["images"],
       allowsEditing: true,
       aspect: type === "logo" ? [1, 1] : [16, 9],
-      quality: 0.8,
+      quality: 0.2,
     });
 
     if (!result.canceled) {
@@ -311,7 +307,7 @@ export default function RegisterScreen() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsEditing: true,
-      quality: 0.8,
+      quality: 0.2,
     });
 
     if (!result.canceled) {
@@ -329,7 +325,7 @@ export default function RegisterScreen() {
       mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [4, 3],
-      quality: 0.85,
+      quality: 0.2,
     });
 
     if (!result.canceled) {
@@ -351,7 +347,7 @@ export default function RegisterScreen() {
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.7,
+        quality: 0.2,
       });
 
       if (!result.canceled) {
@@ -360,10 +356,10 @@ export default function RegisterScreen() {
     } catch (error) {
       // Fallback for simulator where camera is unavailable
       const fallbackResult = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.7,
+        quality: 0.2,
       });
 
       if (!fallbackResult.canceled) {
@@ -454,7 +450,7 @@ export default function RegisterScreen() {
     return decimal ? `${whole.slice(0, 5)}.${decimal.slice(0, 2)}` : whole.slice(0, 5);
   };
 
-  const uploadMenuImage = async (image: any) => {
+  const uploadMenuImage = async (image: any, onProgress?: (p: number) => void) => {
     if (!image?.uri) return {};
 
     const formData = new FormData();
@@ -469,6 +465,12 @@ export default function RegisterScreen() {
 
     const response = await apiClient.post("/uploads/single", formData, {
       headers: { "Content-Type": "multipart/form-data" },
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total && onProgress) {
+          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onProgress(percent);
+        }
+      }
     });
 
     return response.data.data.urls || {};
@@ -504,6 +506,81 @@ export default function RegisterScreen() {
       : `Please correct ${fieldLabel}: ${fieldError}`;
 
     Alert.alert("ADDRESS ERROR", message);
+  };
+
+  const executeUploads = async () => {
+    try {
+      setUploadState("uploading");
+
+      if (logo || banner) {
+        setUploadStatus({ message: "Uploading Brand Assets...", percent: 0 });
+        await uploadBranding(logo, banner, (p) => setUploadStatus(prev => ({ ...prev, percent: p })));
+      }
+
+      if (aadhar || pan || livePhoto) {
+        setUploadStatus({ message: "Uploading Legal Documents...", percent: 0 });
+        await uploadLegalDocs(
+          aadhar,
+          pan,
+          livePhoto,
+          [
+            { label: `FSSAI License (${fssaiLicense.trim()})`, file: fssaiDoc },
+            ...(gstDoc
+              ? [{
+                label: gstNumber.trim() ? `GST Registration (${gstNumber.trim()})` : "GST Registration",
+                file: gstDoc,
+              }]
+              : []),
+            { label: "Address Proof", file: addressProofDoc },
+            { label: "Electricity Bill / Rent Agreement / Property Tax Receipt", file: premisesProofDoc },
+          ],
+          (p) => setUploadStatus(prev => ({ ...prev, percent: p }))
+        );
+      }
+
+      const validMenuDrafts = getValidMenuDrafts();
+      for (const [index, item] of validMenuDrafts.entries()) {
+        setUploadStatus({ message: `Uploading Menu Item ${index + 1} of ${validMenuDrafts.length}...`, percent: 0 });
+        const imageUrls = await uploadMenuImage(item.image, (p) => setUploadStatus(prev => ({ ...prev, percent: p })));
+
+        setUploadStatus({ message: `Saving Menu Item ${index + 1}...`, percent: 100 });
+        await apiClient.post("/restaurants/me/menu", {
+          name: item.name,
+          price: Number(item.price),
+          category: item.category,
+          subcategory: item.subcategory || undefined,
+          shortDescription: item.shortDescription || undefined,
+          description: item.shortDescription || undefined,
+          imageUrl:
+            (imageUrls as any).medium ||
+            (imageUrls as any).full ||
+            (imageUrls as any).thumbnail ||
+            undefined,
+          images: Object.keys(imageUrls).length ? imageUrls : undefined,
+          isVeg: item.isVeg,
+          isAvailable: true,
+          showInMenu: true,
+          availabilitySlots: ["Lunch", "Dinner"],
+        });
+      }
+
+      await AsyncStorage.removeItem(REGISTER_DRAFT_KEY);
+      setUploadState("success");
+
+      setTimeout(() => {
+        setUploadState("idle");
+        router.replace("/(auth)/pending");
+      }, 2000);
+
+    } catch (error: any) {
+      setUploadState("failed");
+      const rawMsg: string = error?.message || error?.response?.data?.message || "";
+      if (rawMsg.toLowerCase().includes("too many")) {
+        setUploadError("Rate Limit Exceeded: You have attempted too many uploads. Please wait 15 minutes before trying again to prevent server abuse.");
+      } else {
+        setUploadError(rawMsg || "An error occurred during file upload. Please check your connection.");
+      }
+    }
   };
 
   const nextStep = async () => {
@@ -648,144 +725,60 @@ export default function RegisterScreen() {
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      try {
-        setUploadStatus({ message: "CREATING ACCOUNT...", isUploading: true });
-        const finalAddress = formatAddressLine(addressDraft);
-
-        await register({
-          email,
-          password,
-          ownerName: kitchenName,
-          restaurantName: kitchenName,
-          phone,
-          fssaiLicense: fssaiLicense.trim(),
-          cuisines: [foodType],
-          address: {
-            line1: finalAddress,
-            city: addressValidation.fields.city.value,
-            state: addressValidation.fields.state.value,
-            pinCode: addressValidation.fields.pinCode.value,
-          },
-          bankDetails: {
-            accountHolderName: bankAccountHolder.trim(),
-            accountNumber: bankAccountNumber.trim(),
-            ifscCode: bankIfsc.trim().toUpperCase(),
-            bankName: bankName.trim(),
-          },
-          termsAccepted,
-        });
-
-        if (logo || banner) {
-          setUploadStatus({
-            message: "UPLOADING BRAND ASSETS...",
-            isUploading: true,
-          });
-          await uploadBranding(logo, banner);
-        }
-
-        if (aadhar || pan || livePhoto) {
-          setUploadStatus({
-            message: "UPLOADING LEGAL DOCUMENTS...",
-            isUploading: true,
-          });
-          await uploadLegalDocs(
-            aadhar,
-            pan,
-            livePhoto,
-            [
-              { label: `FSSAI License (${fssaiLicense.trim()})`, file: fssaiDoc },
-              ...(gstDoc
-                ? [
-                    {
-                      label: gstNumber.trim()
-                        ? `GST Registration (${gstNumber.trim()})`
-                        : "GST Registration",
-                      file: gstDoc,
-                    },
-                  ]
-                : []),
-              { label: "Address Proof", file: addressProofDoc },
-              {
-                label: "Electricity Bill / Rent Agreement / Property Tax Receipt",
-                file: premisesProofDoc,
-              },
-            ],
-          );
-        }
-
-        setUploadStatus({
-          message: "ADDING MENU ITEMS...",
-          isUploading: true,
-        });
-        for (const item of getValidMenuDrafts()) {
-          const imageUrls = await uploadMenuImage(item.image);
-          await apiClient.post("/restaurants/me/menu", {
-            name: item.name,
-            price: Number(item.price),
-            category: item.category,
-            subcategory: item.subcategory || undefined,
-            shortDescription: item.shortDescription || undefined,
-            description: item.shortDescription || undefined,
-            imageUrl:
-              (imageUrls as any).medium ||
-              (imageUrls as any).full ||
-              (imageUrls as any).thumbnail ||
-              undefined,
-            images: Object.keys(imageUrls).length ? imageUrls : undefined,
-            isVeg: item.isVeg,
-            isAvailable: true,
-            showInMenu: true,
-            availabilitySlots: ["Lunch", "Dinner"],
-          });
-        }
-
-        await AsyncStorage.removeItem(REGISTER_DRAFT_KEY);
-        setUploadStatus({
-          message: "REGISTRATION COMPLETE",
-          isUploading: false,
-        });
-        Alert.alert(
-          "REGISTRATION SUCCESS",
-          "Your restaurant details were submitted successfully.",
-          [
-            {
-              text: "OPEN STATUS",
-              onPress: () => router.replace("/(auth)/pending"),
+      // If user isn't authenticated yet, create account first
+      if (!isAuthenticated) {
+        setUploadState("uploading");
+        setUploadStatus({ message: "Creating Account...", percent: 100 });
+        try {
+          const finalAddress = formatAddressLine(addressDraft);
+          await register({
+            email,
+            password,
+            ownerName: kitchenName,
+            restaurantName: kitchenName,
+            phone,
+            fssaiLicense: fssaiLicense.trim(),
+            cuisines: [foodType],
+            address: {
+              line1: finalAddress,
+              city: addressValidation.fields.city.value,
+              state: addressValidation.fields.state.value,
+              pinCode: addressValidation.fields.pinCode.value,
             },
-          ],
-        );
-      } catch (error: any) {
-        setUploadStatus({ message: "", isUploading: false });
+            bankDetails: {
+              accountHolderName: bankAccountHolder.trim(),
+              accountNumber: bankAccountNumber.trim(),
+              ifscCode: bankIfsc.trim().toUpperCase(),
+              bankName: bankName.trim(),
+            },
+            termsAccepted,
+          });
+        } catch (error: any) {
+          setUploadState("idle");
+          const rawMsg: string = error?.message || "";
+          let title = "REGISTRATION ERROR";
+          let description = "We could not submit your details. Please try again.";
 
-        const rawMsg: string = error?.message || "";
-        const lowerMsg = rawMsg.toLowerCase();
+          if (rawMsg.toLowerCase().includes("email already registered") || rawMsg.toLowerCase().includes("already registered")) {
+            title = "EMAIL ALREADY IN USE";
+            description = "This email is already registered with us.\n\nPlease use a different email, or go back to the login screen if this is your account.";
+          } else if (rawMsg.toLowerCase().includes("network") || rawMsg.toLowerCase().includes("timeout")) {
+            title = "CONNECTION FAILED";
+            description = "We couldn't reach our servers. Please check your internet connection and try again.";
+          } else if (rawMsg.toLowerCase().includes("phone")) {
+            title = "PHONE NUMBER ERROR";
+            description = "The phone number you entered is invalid or already in use. Please check and try again.";
+          } else if (rawMsg.length > 0) {
+            description = rawMsg;
+          }
 
-        // Map backend messages → user-friendly title + description
-        let title = "REGISTRATION ERROR";
-        let description = "We could not submit your details. Please try again.";
-
-        if (lowerMsg.includes("email already registered") || lowerMsg.includes("already registered")) {
-          title = "EMAIL ALREADY IN USE";
-          description = "This email is already registered with us.\n\nPlease use a different email, or go back to the login screen if this is your account.";
-        } else if (lowerMsg.includes("network") || lowerMsg.includes("timeout") || lowerMsg.includes("econnrefused")) {
-          title = "CONNECTION FAILED";
-          description = "We couldn't reach our servers. Please check your internet connection and try again.";
-        } else if (lowerMsg.includes("phone")) {
-          title = "PHONE NUMBER ERROR";
-          description = "The phone number you entered is invalid or already in use. Please check and try again.";
-        } else if (lowerMsg.includes("password")) {
-          title = "PASSWORD ERROR";
-          description = rawMsg;
-        } else if (lowerMsg.includes("upload") || lowerMsg.includes("image") || lowerMsg.includes("file")) {
-          title = "UPLOAD FAILED";
-          description = "Your account was created but we couldn't upload your documents. Please try uploading them again from your profile.";
-        } else if (rawMsg.length > 0) {
-          // Use the backend's message directly if it's meaningful
-          description = rawMsg;
+          Alert.alert(title, description, [{ text: "OK", style: "default" }]);
+          return;
         }
-
-        Alert.alert(title, description, [{ text: "OK", style: "default" }]);
       }
+
+      // If registration succeeds (or they were already authenticated), do uploads
+      await executeUploads();
     }
   };
 
@@ -819,15 +812,15 @@ export default function RegisterScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>PASSWORD</Text>
               <View style={styles.passwordInputRow}>
-              <TextInput
-                style={styles.passwordInput}
-                placeholder="••••••••"
-                placeholderTextColor="#666"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                maxLength={64}
-              />
+                <TextInput
+                  style={styles.passwordInput}
+                  placeholder="••••••••"
+                  placeholderTextColor="#666"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  maxLength={64}
+                />
                 <TouchableOpacity
                   accessibilityRole="button"
                   accessibilityLabel={
@@ -855,7 +848,7 @@ export default function RegisterScreen() {
                 <View style={{ flex: 1 }}>
                   <Text style={styles.termsTextDark}>I agree to the Terms & Conditions</Text>
                   <Text style={styles.termsSubTextDark}>
-                  Includes privacy policy, community guidelines, and commission policy.
+                    Includes privacy policy, community guidelines, and commission policy.
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -1540,7 +1533,7 @@ export default function RegisterScreen() {
             <TouchableOpacity
               style={styles.secondaryBtn}
               onPress={prevStep}
-              disabled={isLoading || uploadStatus.isUploading}
+              disabled={isLoading || uploadState !== 'idle'}
             >
               <Ionicons name="arrow-back" size={18} color="#FFF" />
               <Text style={styles.secondaryBtnText}>BACK TO EDIT DETAILS</Text>
@@ -1549,14 +1542,14 @@ export default function RegisterScreen() {
           <TouchableOpacity
             style={[
               styles.mainBtn,
-              (isLoading || uploadStatus.isUploading) && {
+              (isLoading || uploadState !== 'idle') && {
                 opacity: 0.6,
               },
             ]}
             onPress={nextStep}
-            disabled={isLoading || uploadStatus.isUploading}
+            disabled={isLoading || uploadState !== 'idle'}
           >
-            {isLoading || uploadStatus.isUploading ? (
+            {isLoading || uploadState !== 'idle' ? (
               <ActivityIndicator color="black" />
             ) : (
               <Text style={styles.mainBtnText}>
@@ -1568,20 +1561,135 @@ export default function RegisterScreen() {
           </TouchableOpacity>
         </View>
 
-        {uploadStatus.isUploading && (
-          <View style={styles.uploadOverlay}>
-            <View style={styles.uploadModal}>
-              <ActivityIndicator size="large" color={Colors.light.primary} />
-              <Text style={styles.uploadTitle}>{uploadStatus.message}</Text>
-            </View>
-          </View>
-        )}
       </KeyboardAvoidingView>
+      {/* Custom Upload Progress Modal */}
+      <Modal visible={uploadState !== "idle"} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.uploadModalContainer}>
+            {uploadState === "uploading" && (
+              <>
+                <ActivityIndicator size="large" color={Colors.light.primary} />
+                <Text style={styles.uploadModalTitle}>{uploadStatus.message}</Text>
+                <View style={styles.progressBarBg}>
+                  <View style={[styles.progressBarFill, { width: `${uploadStatus.percent}%` }]} />
+                </View>
+                <Text style={styles.uploadModalPercent}>{uploadStatus.percent}%</Text>
+              </>
+            )}
+            {uploadState === "success" && (
+              <>
+                <Ionicons name="checkmark-circle" size={60} color={Colors.light.primary} />
+                <Text style={styles.uploadModalTitle}>Registration Complete!</Text>
+                <Text style={styles.uploadModalSubtitle}>Redirecting...</Text>
+              </>
+            )}
+            {uploadState === "failed" && (
+              <>
+                <Ionicons name="close-circle" size={60} color="#FF3B30" />
+                <Text style={styles.uploadModalTitle}>Upload Failed</Text>
+                <Text style={styles.uploadModalError}>{uploadError}</Text>
+
+                <TouchableOpacity style={styles.modalRetryBtn} onPress={executeUploads}>
+                  <Ionicons name="refresh" size={20} color="#000" />
+                  <Text style={styles.modalRetryBtnText}>RETRY UPLOADS</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setUploadState("idle")}>
+                  <Text style={styles.modalCancelBtnText}>CANCEL</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  uploadModalContainer: {
+    width: "100%",
+    backgroundColor: "#1A1A1A",
+    borderRadius: 20,
+    padding: 30,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#333",
+  },
+  uploadModalTitle: {
+    color: "#FFF",
+    fontSize: 18,
+    fontWeight: "800",
+    marginTop: 20,
+    marginBottom: 10,
+    textAlign: "center",
+    letterSpacing: 0.5,
+  },
+  uploadModalSubtitle: {
+    color: "#888",
+    fontSize: 14,
+    marginTop: 5,
+  },
+  progressBarBg: {
+    width: "100%",
+    height: 12,
+    backgroundColor: "#333",
+    borderRadius: 6,
+    marginTop: 15,
+    overflow: "hidden",
+  },
+  progressBarFill: {
+    height: "100%",
+    backgroundColor: Colors.light.primary,
+    borderRadius: 6,
+  },
+  uploadModalPercent: {
+    color: Colors.light.primary,
+    fontSize: 16,
+    fontWeight: "900",
+    marginTop: 10,
+  },
+  uploadModalError: {
+    color: "#CCC",
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 25,
+    lineHeight: 22,
+  },
+  modalRetryBtn: {
+    flexDirection: "row",
+    backgroundColor: Colors.light.primary,
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    gap: 10,
+    marginBottom: 15,
+  },
+  modalRetryBtnText: {
+    color: "#000",
+    fontWeight: "900",
+    fontSize: 15,
+    letterSpacing: 1,
+  },
+  modalCancelBtn: {
+    paddingVertical: 12,
+  },
+  modalCancelBtnText: {
+    color: "#888",
+    fontWeight: "700",
+    fontSize: 14,
+  },
   container: { flex: 1, backgroundColor: "#000" },
   header: { flexDirection: "row", alignItems: "center", padding: 25 },
   backBtn: {
@@ -2128,12 +2236,12 @@ const styles = StyleSheet.create({
     marginTop: 20,
     textAlign: "center",
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.8)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  // modalOverlay: {
+  //   flex: 1,
+  //   backgroundColor: "rgba(0,0,0,0.8)",
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  // },
   modalContent: {
     width: "85%",
     maxHeight: "70%",

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Dimensions,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
@@ -33,8 +34,12 @@ export default function PendingVerificationScreen() {
       } else if (newStatus === 'REJECTED') {
         router.replace('/(auth)/rejected');
       }
-    } catch (e) {
+    } catch (e: any) {
       console.warn('Failed to refresh status:', e);
+      // Automatically log out if the user was deleted or token is invalid
+      if (e.response?.status === 401 || e.response?.status === 404) {
+        logout();
+      }
     } finally {
       setChecking(false);
     }
@@ -42,13 +47,8 @@ export default function PendingVerificationScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      // Check status once when the screen comes into focus
       checkStatus();
-      
-      const interval = setInterval(() => {
-        checkStatus();
-      }, 5000);
-      
-      return () => clearInterval(interval);
     }, [])
   );
 
@@ -61,6 +61,7 @@ export default function PendingVerificationScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
       {/* Animated top section */}
       <View style={styles.topSection}>
         <View style={styles.iconRing}>
@@ -140,12 +141,14 @@ export default function PendingVerificationScreen() {
         <Ionicons name="log-out-outline" size={18} color="#444" />
         <Text style={styles.logoutText}>SIGN OUT</Text>
       </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000', padding: 24 },
+  container: { flex: 1, backgroundColor: '#000' },
+  scrollContent: { padding: 24, flexGrow: 1 },
   topSection: { alignItems: 'center', marginTop: 40, marginBottom: 40 },
   iconRing: {
     height: 120,

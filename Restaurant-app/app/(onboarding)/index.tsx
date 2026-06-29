@@ -8,7 +8,7 @@ import {
   Dimensions, 
   SafeAreaView,
   StatusBar,
-  ImageBackground
+  ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Colors } from '@/constants/Colors';
@@ -131,7 +131,7 @@ export default function OnboardingScreen() {
         horizontal
         showsHorizontalScrollIndicator={false}
         renderItem={({ item }) => (
-          <View style={styles.slide}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.slide}>
             <Animated.View entering={FadeInUp.duration(1000)}>
               <View style={styles.iconContainer}>
                 <Ionicons name={item.icon as any} size={100} color={Colors.light.primary} />
@@ -141,7 +141,7 @@ export default function OnboardingScreen() {
               <Text style={styles.title}>{item.title}</Text>
               <Text style={styles.description}>{item.description}</Text>
             </Animated.View>
-          </View>
+          </ScrollView>
         )}
       />
       <Footer />
@@ -158,7 +158,8 @@ const styles = StyleSheet.create({
     width,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: 100,
+    paddingBottom: 20,
+    flexGrow: 1,
   },
   iconContainer: {
     height: 200,

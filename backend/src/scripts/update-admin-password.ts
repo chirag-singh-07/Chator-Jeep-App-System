@@ -4,46 +4,46 @@ import { connectDB } from "../config/db";
 import { User } from "../modules/user/user.model";
 import { ROLES } from "../common/constants";
 
-const ADMIN_EMAIL = "admin@gmail.com";
-const NEW_PASSWORD = "Lucky7600";
-
 const run = async (): Promise<void> => {
-  console.log("Connecting to database...");
   await connectDB();
 
-  console.log(`Hashing new password for ${ADMIN_EMAIL}...`);
-  const hashedPassword = await hashPassword(NEW_PASSWORD);
-
-  console.log("Searching for admin user...");
-  const admin = await User.findOne({ email: ADMIN_EMAIL });
-
-  if (admin) {
-    admin.password = hashedPassword;
-    // Ensure role is ADMIN just in case
-    admin.role = ROLES.ADMIN;
-    await admin.save();
-    console.log(`Successfully updated password for admin: ${ADMIN_EMAIL}`);
-  } else {
-    console.log(`Admin user ${ADMIN_EMAIL} not found. Creating new admin...`);
-    await User.create({
-      name: "Chatori Jeeb Admin",
-      email: ADMIN_EMAIL,
-      password: hashedPassword,
-      role: ROLES.ADMIN,
-      addresses: [],
-      phone: "9876543210"
-    });
-    console.log(`Successfully created admin user: ${ADMIN_EMAIL}`);
+  // Find the first admin user
+  const admin = await User.findOne({ role: ROLES.ADMIN }).exec();
+  if (!admin) {
+    console.log("❌ No Admin user found in the database. Run 'npm run create:admin' first.");
+    return;
   }
+
+  console.log("--- Admin Details ---");
+  console.log(`Name: ${admin.name}`);
+  console.log(`Email: ${admin.email}`);
+  console.log(`Phone: ${admin.phone || "N/A"}`);
+  console.log(`Status: ${admin.status}`);
+  console.log("---------------------");
+
+  // Use the password defined in the .env file
+  const newPassword = process.env.ADMIN_PASSWORD?.trim();
+
+  if (!newPassword) {
+    console.log("\n⚠️ To update the password, set ADMIN_PASSWORD in your .env file and run this script again.");
+    return;
+  }
+
+  console.log(`\nUpdating password to the value set in ADMIN_PASSWORD inside your .env file...`);
+  
+  // Hash and save the new password
+  admin.password = await hashPassword(newPassword);
+  await admin.save();
+
+  console.log("✅ Admin password updated successfully! You can now log into the admin panel.");
 };
 
 run()
   .catch((error: unknown) => {
     const message = error instanceof Error ? error.message : "Unknown error";
-    console.error(`Error updating admin password: ${message}`);
+    console.error(`Failed to update admin: ${message}`);
     process.exitCode = 1;
   })
   .finally(async () => {
     await mongoose.connection.close();
-    console.log("Database connection closed.");
   });

@@ -59,7 +59,7 @@ export default function RootLayout() {
         <Stack.Screen name="(auth)/forgot-password" />
         <Stack.Screen name="(auth)/pending" />
         <Stack.Screen name="(auth)/rejected" />
-        <Stack.Screen name="(onboarding)" />
+        <Stack.Screen name="(onboarding)/index" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="order/[id]" />
       </Stack>

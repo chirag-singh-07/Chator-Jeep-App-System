@@ -22,8 +22,8 @@ interface AuthState {
   register: (data: any) => Promise<void>;
   logout: () => Promise<void>;
   updateUserStatus: (status: string) => void;
-  uploadBranding: (logoJson: any, bannerJson: any) => Promise<void>;
-  uploadLegalDocs: (aadhar: any, pan: any, livePhoto: any, otherDocs: Array<{ label: string; file: any }>) => Promise<void>;
+  uploadBranding: (logoJson: any, bannerJson: any, onProgress?: (percent: number) => void) => Promise<void>;
+  uploadLegalDocs: (aadhar: any, pan: any, livePhoto: any, otherDocs: Array<{ label: string; file: any }>, onProgress?: (percent: number) => void) => Promise<void>;
 }
 
 const getApiErrorMessage = (error: any, fallback: string) =>
@@ -92,7 +92,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      uploadBranding: async (logo, banner) => {
+      uploadBranding: async (logo, banner, onProgress) => {
         set({ isLoading: true });
         console.log('--- STARTING BRANDING UPLOAD ---');
         try {
@@ -120,6 +120,12 @@ export const useAuthStore = create<AuthState>()(
           console.log('Sending request to /uploads/restaurant-brand...');
           const uploadRes = await apiClient.post('/uploads/restaurant-brand', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
+            onUploadProgress: (progressEvent) => {
+              if (progressEvent.total && onProgress) {
+                const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                onProgress(percentCompleted);
+              }
+            }
           });
 
           console.log('Upload response received:', uploadRes.data);
@@ -147,7 +153,7 @@ export const useAuthStore = create<AuthState>()(
         set({ user: null, token: null, isAuthenticated: false });
       },
 
-      uploadLegalDocs: async (aadhar, pan, livePhoto, otherDocs) => {
+      uploadLegalDocs: async (aadhar, pan, livePhoto, otherDocs, onProgress) => {
         set({ isLoading: true });
         console.log('--- STARTING LEGAL DOCS UPLOAD ---');
         try {
@@ -199,6 +205,12 @@ export const useAuthStore = create<AuthState>()(
           console.log('Sending request to /uploads/restaurant-legal...');
           const uploadRes = await apiClient.post('/uploads/restaurant-legal', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
+            onUploadProgress: (progressEvent) => {
+              if (progressEvent.total && onProgress) {
+                const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                onProgress(percentCompleted);
+              }
+            }
           });
 
           console.log('Documents upload response:', uploadRes.data);
