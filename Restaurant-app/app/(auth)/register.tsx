@@ -37,7 +37,7 @@ import {
 
 const { width, height } = Dimensions.get("window");
 
-const STEPS = ["Account", "Kitchen", "Brand", "Location", "Legal", "Menu", "Checkout"];
+const STEPS = ["Account", "Kitchen", "Brand", "Location", "Legal", "Menu"];
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const indianPhoneRegex = /^[6-9]\d{9}$/;
 const fssaiRegex = /^\d{14}$/;
@@ -150,11 +150,7 @@ export default function RegisterScreen() {
   const [menuCategories, setMenuCategories] = useState<MenuCategory[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [pricingPlan, setPricingPlan] = useState<any>(null);
-  const [paymentStatus, setPaymentStatus] = useState<"IDLE" | "PROCESSING" | "PAID" | "FAILED">("IDLE");
-  const [registrationPaymentId, setRegistrationPaymentId] = useState("");
-  const [paymentMessage, setPaymentMessage] = useState("");
-  const isPaymentProcessing = paymentStatus === "PROCESSING";
+
 
   useEffect(() => {
     const loadDraft = async () => {
@@ -193,11 +189,7 @@ export default function RegisterScreen() {
         setBankName(draft.bankName || "");
         setMenuDrafts(Array.isArray(draft.menuDrafts) && draft.menuDrafts.length ? draft.menuDrafts : [createMenuDraft()]);
         setTermsAccepted(Boolean(draft.termsAccepted));
-        if (draft.registrationPaymentId && draft.paymentStatus === "PAID") {
-          setRegistrationPaymentId(draft.registrationPaymentId);
-          setPaymentStatus("PAID");
-          setPaymentMessage(draft.paymentMessage || "Payment verified successfully. You can submit without paying again.");
-        }
+
       } catch (error) {
         console.warn("Failed to load restaurant registration draft", error);
       } finally {
@@ -242,9 +234,7 @@ export default function RegisterScreen() {
       bankName,
       menuDrafts,
       termsAccepted,
-      registrationPaymentId: paymentStatus === "PAID" ? registrationPaymentId : "",
-      paymentStatus: paymentStatus === "PAID" ? "PAID" : "IDLE",
-      paymentMessage: paymentStatus === "PAID" ? paymentMessage : "",
+
     };
 
     AsyncStorage.setItem(REGISTER_DRAFT_KEY, JSON.stringify(draft)).catch((error) => {
@@ -281,9 +271,6 @@ export default function RegisterScreen() {
     bankName,
     menuDrafts,
     termsAccepted,
-    registrationPaymentId,
-    paymentStatus,
-    paymentMessage,
   ]);
 
   useEffect(() => {
@@ -302,18 +289,7 @@ export default function RegisterScreen() {
     void fetchCategories();
   }, []);
 
-  useEffect(() => {
-    const fetchPricingPlan = async () => {
-      try {
-        const response = await apiClient.get("/payments/restaurant-registration/plan");
-        setPricingPlan(response.data.data);
-      } catch (error) {
-        console.warn("Failed to fetch registration pricing", error);
-      }
-    };
 
-    void fetchPricingPlan();
-  }, []);
 
   const pickImage = async (type: "logo" | "banner") => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -368,17 +344,31 @@ export default function RegisterScreen() {
         "PERMISSION DENIED",
         "Camera access is required for identity verification.",
       );
-      return;
+      // Don't return here if we want to allow fallback, but let's just proceed to try.
     }
 
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-    });
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
 
-    if (!result.canceled) {
-      setLivePhoto(result.assets[0]);
+      if (!result.canceled) {
+        setLivePhoto(result.assets[0]);
+      }
+    } catch (error) {
+      // Fallback for simulator where camera is unavailable
+      const fallbackResult = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+
+      if (!fallbackResult.canceled) {
+        setLivePhoto(fallbackResult.assets[0]);
+      }
     }
   };
 
@@ -538,6 +528,10 @@ export default function RegisterScreen() {
         );
         return;
       }
+      if (!termsAccepted) {
+        Alert.alert("TERMS REQUIRED", "Please accept the Terms & Conditions before continuing.");
+        return;
+      }
     } else if (currentStep === 1) {
       if (!kitchenName.trim()) {
         showMissingField("restaurant name");
@@ -649,20 +643,12 @@ export default function RegisterScreen() {
           return;
         }
       }
-    } else if (currentStep === 6) {
-      if (!termsAccepted) {
-        Alert.alert("TERMS REQUIRED", "Please accept the Terms & Conditions before payment.");
-        return;
-      }
     }
 
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       try {
-        await validateRegistrationBeforePayment();
-        const verifiedPayment = await collectRegistrationPayment();
-
         setUploadStatus({ message: "CREATING ACCOUNT...", isUploading: true });
         const finalAddress = formatAddressLine(addressDraft);
 
@@ -687,7 +673,6 @@ export default function RegisterScreen() {
             bankName: bankName.trim(),
           },
           termsAccepted,
-          registrationPaymentId: verifiedPayment.transactionId,
         });
 
         if (logo || banner) {
@@ -779,21 +764,9 @@ export default function RegisterScreen() {
         let title = "REGISTRATION ERROR";
         let description = "We could not submit your details. Please try again.";
 
-        if (
-          lowerMsg.includes("payment") ||
-          lowerMsg.includes("razorpay") ||
-          lowerMsg.includes("checkout") ||
-          lowerMsg.includes("cancelled") ||
-          lowerMsg.includes("canceled")
-        ) {
-          title = "PAYMENT FAILED";
-          description = rawMsg || "Payment could not be completed. Please try again.";
-        } else if (lowerMsg.includes("email already registered") || lowerMsg.includes("already registered")) {
+        if (lowerMsg.includes("email already registered") || lowerMsg.includes("already registered")) {
           title = "EMAIL ALREADY IN USE";
-          description =
-            paymentStatus === "PAID"
-              ? "This email is already registered. Your payment is verified and saved for this attempt. Change the email and tap submit again; you will not be charged again."
-              : "This email is already registered with us.\n\nPlease use a different email, or go back to the login screen if this is your account.";
+          description = "This email is already registered with us.\n\nPlease use a different email, or go back to the login screen if this is your account.";
         } else if (lowerMsg.includes("network") || lowerMsg.includes("timeout") || lowerMsg.includes("econnrefused")) {
           title = "CONNECTION FAILED";
           description = "We couldn't reach our servers. Please check your internet connection and try again.";
@@ -808,10 +781,7 @@ export default function RegisterScreen() {
           description = "Your account was created but we couldn't upload your documents. Please try uploading them again from your profile.";
         } else if (rawMsg.length > 0) {
           // Use the backend's message directly if it's meaningful
-          description =
-            paymentStatus === "PAID"
-              ? `${rawMsg}\n\nYour payment is verified and saved. Fix the issue and tap submit again; you will not be charged again.`
-              : rawMsg;
+          description = rawMsg;
         }
 
         Alert.alert(title, description, [{ text: "OK", style: "default" }]);
@@ -819,122 +789,7 @@ export default function RegisterScreen() {
     }
   };
 
-  const validateRegistrationBeforePayment = async () => {
-    if (registrationPaymentId && paymentStatus === "PAID") {
-      return;
-    }
 
-    await apiClient.post("/restaurants/register/precheck", {
-      email,
-      phone,
-      termsAccepted,
-    });
-  };
-
-  const collectRegistrationPayment = async () => {
-    if (registrationPaymentId && paymentStatus === "PAID") {
-      return { transactionId: registrationPaymentId };
-    }
-    if (paymentStatus === "PROCESSING") {
-      throw new Error("Payment is already being processed. Please wait for Razorpay to open.");
-    }
-
-    setPaymentStatus("PROCESSING");
-    setPaymentMessage("Opening secure payment gateway...");
-    try {
-      // Check both the JS wrapper and the native bridge before creating an order.
-      if (
-        !RazorpayCheckout ||
-        typeof RazorpayCheckout.open !== "function" ||
-        !NativeModules.RNRazorpayCheckout
-      ) {
-        throw new Error("Razorpay module is not available. Please install a fresh development/production build with native modules.");
-      }
-
-      const orderResponse = await apiClient.post("/payments/restaurant-registration/order", {
-        email,
-        restaurantName: kitchenName,
-      });
-      const paymentOrder = orderResponse.data.data;
-      const razorpayKey = paymentOrder.keyId || paymentOrder.key;
-      const amountInPaise = Math.round(Number(paymentOrder.amount) * 100);
-
-      if (!razorpayKey) {
-        throw new Error("Razorpay key is missing from payment order response.");
-      }
-      if (!paymentOrder.razorpayOrderId) {
-        throw new Error("Razorpay order id is missing from payment order response.");
-      }
-      if (!Number.isFinite(amountInPaise) || amountInPaise <= 0) {
-        throw new Error("Invalid registration payment amount.");
-      }
-
-      setPaymentMessage("Complete the payment in Razorpay to continue.");
-      const razorpayResult = await RazorpayCheckout.open({
-        key: razorpayKey,
-        amount: amountInPaise,
-        currency: paymentOrder.currency || "INR",
-        name: "Chatori Jeeb",
-        description: paymentOrder.plan?.name || "Restaurant registration",
-        order_id: paymentOrder.razorpayOrderId,
-        prefill: {
-          name: kitchenName,
-          email,
-          contact: phone,
-        },
-        theme: { color: Colors.light.primary },
-        notes: {
-          purpose: "RESTAURANT_REGISTRATION",
-          transactionId: paymentOrder.transactionId,
-        },
-      });
-
-      if (!razorpayResult?.razorpay_payment_id || !razorpayResult?.razorpay_signature) {
-        throw new Error("Payment was not completed. Please try again.");
-      }
-
-      const verifyResponse = await apiClient.post("/payments/restaurant-registration/verify", {
-        transactionId: paymentOrder.transactionId,
-        razorpayOrderId: razorpayResult.razorpay_order_id || paymentOrder.razorpayOrderId,
-        razorpayPaymentId: razorpayResult.razorpay_payment_id,
-        razorpaySignature: razorpayResult.razorpay_signature,
-      });
-
-      const verified = verifyResponse.data.data;
-      setRegistrationPaymentId(verified.transactionId);
-      setPaymentStatus("PAID");
-      setPaymentMessage("Payment verified successfully. Creating your account...");
-      return verified;
-    } catch (error: any) {
-      const message = getRegistrationPaymentErrorMessage(error);
-      setPaymentStatus("FAILED");
-      setPaymentMessage(message);
-      throw new Error(message);
-    }
-  };
-
-  const getRegistrationPaymentErrorMessage = (error: any) => {
-    const rawMessage = String(
-      error?.response?.data?.message ||
-        error?.description ||
-        error?.reason ||
-        error?.message ||
-        "",
-    );
-    const normalized = rawMessage.toLowerCase();
-    const code = error?.code ?? error?.error?.code;
-
-    if (
-      code === 0 ||
-      normalized.includes("cancel") ||
-      normalized.includes("close") ||
-      normalized.includes("dismiss")
-    ) {
-      return "Payment was cancelled. Please complete payment to submit registration.";
-    }
-
-    return rawMessage || "Payment could not be completed. Please try again.";
-  };
 
   const prevStep = () => {
     if (currentStep > 0) setCurrentStep(currentStep - 1);
@@ -985,6 +840,35 @@ export default function RegisterScreen() {
                     size={20}
                     color="#666"
                   />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={{ marginTop: 20 }}>
+              <TouchableOpacity
+                style={styles.termsRowDark}
+                onPress={() => setTermsAccepted((current) => !current)}
+              >
+                <View style={[styles.checkbox, termsAccepted && styles.checkboxActive]}>
+                  {termsAccepted && <Ionicons name="checkmark" size={18} color="#000" />}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.termsTextDark}>I agree to the Terms & Conditions</Text>
+                  <Text style={styles.termsSubTextDark}>
+                  Includes privacy policy, community guidelines, and commission policy.
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <View style={styles.legalLinksRow}>
+                <TouchableOpacity onPress={() => router.push("/legal/terms" as any)}>
+                  <Text style={styles.legalLink}>Terms</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => router.push("/legal/privacy" as any)}>
+                  <Text style={styles.legalLink}>Privacy</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => router.push("/legal/refund" as any)}>
+                  <Text style={styles.legalLink}>Policies</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -1206,7 +1090,7 @@ export default function RegisterScreen() {
               value={fssaiLicense}
               keyboardType="number-pad"
               maxLength={14}
-              onChangeText={(value) => setFssaiLicense(value.replace(/\D/g, ""))}
+              onChangeText={(value) => setFssaiLicense(value)}
             />
             <View style={[styles.docGrid, { marginTop: 15 }]}>
               <TouchableOpacity
@@ -1614,95 +1498,6 @@ export default function RegisterScreen() {
             </Modal>
           </View>
         );
-      case 6:
-        return (
-          <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>SECURE CHECKOUT</Text>
-            <Text style={styles.stepSub}>
-              Complete your one-time Chatori Jeeb kitchen registration payment.
-            </Text>
-
-            <View style={styles.checkoutCard}>
-              <View>
-                <Text style={styles.checkoutLabel}>REGISTRATION PLAN</Text>
-                <Text style={styles.checkoutTitle}>
-                  {pricingPlan?.name || "Chatori Jeeb Launch Offer"}
-                </Text>
-              </View>
-              <Text style={styles.checkoutOfferPrice}>
-                {"\u20B9"}{pricingPlan?.registrationFee || 299}
-              </Text>
-              <View style={styles.ecommercePriceMeta}>
-                <Text style={styles.checkoutMrp}>
-                  MRP {"\u20B9"}{pricingPlan?.originalRegistrationFee || 999}
-                </Text>
-                <View style={styles.offerBadge}>
-                  <Ionicons name="pricetag" size={14} color="#000" />
-                  <Text style={styles.offerBadgeText}>Launching Offer</Text>
-                </View>
-              </View>
-              <View style={styles.checkoutDivider} />
-              <Text style={styles.checkoutLine}>
-                Partner commission: {pricingPlan?.launchCommissionPercentage || pricingPlan?.normalCommissionPercentage || 10}%
-              </Text>
-              <Text style={styles.checkoutLine}>
-                Launching offer registration price.
-              </Text>
-              <Text style={styles.checkoutLine}>
-                Payment is verified securely with Razorpay before account creation.
-              </Text>
-              <View style={styles.nonRefundableBox}>
-                <Ionicons name="alert-circle" size={18} color="#F59E0B" />
-                <Text style={styles.nonRefundableText}>
-                  Registration fee is non-refundable once payment is successful.
-                </Text>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              style={styles.termsRowDark}
-              onPress={() => setTermsAccepted((current) => !current)}
-            >
-              <View style={[styles.checkbox, termsAccepted && styles.checkboxActive]}>
-                {termsAccepted && <Ionicons name="checkmark" size={18} color="#000" />}
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.termsTextDark}>I agree to the Terms & Conditions</Text>
-                <Text style={styles.termsSubTextDark}>
-                Includes privacy, refund, registration fee, non-refundable payment, and commission policy.
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            <View style={styles.legalLinksRow}>
-              <TouchableOpacity onPress={() => router.push("/legal/terms" as any)}>
-                <Text style={styles.legalLink}>Terms</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => router.push("/legal/privacy" as any)}>
-                <Text style={styles.legalLink}>Privacy</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => router.push("/legal/refund" as any)}>
-                <Text style={styles.legalLink}>Refund</Text>
-              </TouchableOpacity>
-            </View>
-
-            {paymentStatus === "FAILED" && (
-              <Text style={styles.errorText}>
-                {paymentMessage || "Payment failed. Review details and retry checkout."}
-              </Text>
-            )}
-            {paymentStatus === "PROCESSING" && (
-              <Text style={styles.paymentInfoText}>
-                {paymentMessage || "Opening secure payment gateway..."}
-              </Text>
-            )}
-            {paymentStatus === "PAID" && (
-              <Text style={styles.paymentSuccessText}>
-                {paymentMessage || "Payment verified successfully."}
-              </Text>
-            )}
-          </View>
-        );
       default:
         return null;
     }
@@ -1745,7 +1540,7 @@ export default function RegisterScreen() {
             <TouchableOpacity
               style={styles.secondaryBtn}
               onPress={prevStep}
-              disabled={isLoading || uploadStatus.isUploading || isPaymentProcessing}
+              disabled={isLoading || uploadStatus.isUploading}
             >
               <Ionicons name="arrow-back" size={18} color="#FFF" />
               <Text style={styles.secondaryBtnText}>BACK TO EDIT DETAILS</Text>
@@ -1754,23 +1549,19 @@ export default function RegisterScreen() {
           <TouchableOpacity
             style={[
               styles.mainBtn,
-              (isLoading || uploadStatus.isUploading || isPaymentProcessing) && {
+              (isLoading || uploadStatus.isUploading) && {
                 opacity: 0.6,
               },
             ]}
             onPress={nextStep}
-            disabled={isLoading || uploadStatus.isUploading || isPaymentProcessing}
+            disabled={isLoading || uploadStatus.isUploading}
           >
-            {isLoading || uploadStatus.isUploading || isPaymentProcessing ? (
+            {isLoading || uploadStatus.isUploading ? (
               <ActivityIndicator color="black" />
             ) : (
               <Text style={styles.mainBtnText}>
                 {currentStep === STEPS.length - 1
-                  ? paymentStatus === "FAILED"
-                    ? "RETRY PAYMENT"
-                    : paymentStatus === "PAID"
-                      ? "SUBMIT REGISTRATION"
-                    : "PAY & FINALIZE"
+                  ? "SUBMIT REGISTRATION"
                   : "NEXT SEQUENCE"}
               </Text>
             )}

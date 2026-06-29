@@ -73,18 +73,12 @@ export const registerRestaurant = async (input: {
   bannerUrls?: Record<string, string>;
   documents?: Array<{ label: string; key: string; url: string }>;
   termsAccepted?: boolean;
-  registrationPaymentId?: string;
 }) => {
   const { email, phone } = await validateRestaurantRegistrationInput(input);
-  if (!input.registrationPaymentId) throw new AppError("Verified registration payment is required", 402);
-
-  const payment = await consumeRestaurantRegistrationPayment(
-    input.registrationPaymentId,
-    "",
-  );
+  
   const activationTimestamp = new Date();
   const launchOfferExpiresAt = new Date(
-    activationTimestamp.getTime() + (payment.plan.offerWindowHours || 48) * 60 * 60 * 1000,
+    activationTimestamp.getTime() + 48 * 60 * 60 * 1000,
   );
 
   // 1. Create auth user with RESTAURANT role (mapped from KITCHEN for legacy code)
@@ -120,23 +114,22 @@ export const registerRestaurant = async (input: {
       termsAcceptedAt: new Date(),
       activationTimestamp,
       launchOfferExpiresAt,
-      currentCommissionPercentage: payment.plan.launchCommissionPercentage,
+      currentCommissionPercentage: 10,
       registrationPayment: {
-        transactionId: payment._id,
-        razorpayOrderId: payment.razorpayOrderId,
-        razorpayPaymentId: payment.razorpayPaymentId,
-        status: payment.status,
-        amount: payment.amount,
-        currency: payment.currency,
-        paidAt: payment.paidAt,
-        planName: payment.plan.name,
-        launchCommissionPercentage: payment.plan.launchCommissionPercentage,
-        normalCommissionPercentage: payment.plan.normalCommissionPercentage,
-        offerWindowHours: payment.plan.offerWindowHours,
+        transactionId: new mongoose.Types.ObjectId() as any,
+        razorpayOrderId: "FREE_REGISTRATION",
+        razorpayPaymentId: "FREE_REGISTRATION_" + Date.now(),
+        status: "COMPLETED",
+        amount: 0,
+        currency: "INR",
+        paidAt: new Date(),
+        planName: "Free Registration",
+        launchCommissionPercentage: 10,
+        normalCommissionPercentage: 10,
+        offerWindowHours: 48,
       },
     });
 
-    await consumeRestaurantRegistrationPayment(input.registrationPaymentId, restaurant._id.toString());
   } catch (error) {
     if (restaurant?._id) await Restaurant.findByIdAndDelete(restaurant._id).catch(() => null);
     if (user?._id) await User.findByIdAndDelete(user._id).catch(() => null);
@@ -174,9 +167,7 @@ export const loginRestaurant = async (email: string, password: string) => {
   if (!valid) throw new AppError("Invalid credentials", 401);
 
   const restaurant = await findRestaurantByOwner(user._id.toString());
-  if (!restaurant?.registrationPayment?.razorpayPaymentId || !restaurant.registrationPayment?.paidAt) {
-    throw new AppError("Registration payment required. Please complete payment before logging in.", 402);
-  }
+
 
   const payload: AuthPayload = { userId: user._id.toString(), role: user.role };
   const accessToken = signAccessToken(payload);

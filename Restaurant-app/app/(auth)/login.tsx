@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  ScrollView,
 } from "react-native";
 import { Alert, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
@@ -46,20 +47,6 @@ export default function LoginScreen() {
         router.replace("/(tabs)");
       }
     } catch (error: any) {
-      if (error?.paymentRequired) {
-        Alert.alert(
-          "Payment Required",
-          "This restaurant account was not completed with a successful payment. Please finish registration and pay the registration amount to continue.",
-          [
-            {
-              text: "Pay Now",
-              onPress: () => router.replace("/(auth)/register"),
-            },
-          ],
-        );
-        return;
-      }
-
       Alert.alert("Login Failed", getLoginErrorMessage(error));
     }
   };
@@ -70,96 +57,98 @@ export default function LoginScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <View style={styles.brandIcon}>
-              <Image
-                source={require("../../assets/resturant-app-logo.png")}
-                style={styles.brandLogo}
-              />
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
+          <View style={styles.content}>
+            <View style={styles.header}>
+              <View style={styles.brandIcon}>
+                <Image
+                  source={require("../../assets/resturant-app-logo.png")}
+                  style={styles.brandLogo}
+                />
+              </View>
+              <Text style={styles.title}>CHATORI JEEB</Text>
+              <Text style={styles.subtitle}>KITCHEN PARTNER PORTAL</Text>
             </View>
-            <Text style={styles.title}>CHATORI JEEB</Text>
-            <Text style={styles.subtitle}>KITCHEN PARTNER PORTAL</Text>
-          </View>
 
-          <View style={styles.formContainer}>
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>OFFICIAL EMAIL</Text>
-              <View style={styles.inputRow}>
-                <Ionicons name="mail" size={20} color="#666" />
-                <TextInput
-                  style={styles.input}
+            <View style={styles.formContainer}>
+              <View style={styles.inputWrapper}>
+                <Text style={styles.inputLabel}>OFFICIAL EMAIL</Text>
+                <View style={styles.inputRow}>
+                  <Ionicons name="mail" size={20} color="#666" />
+                  <TextInput
+                    style={styles.input}
                     placeholder="name@chatorijeeb.com"
-                  placeholderTextColor="#333"
-                  value={email}
-                  onChangeText={setEmail}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                />
-              </View>
-            </View>
-
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>SECURITY ACCESS KEY</Text>
-              <View style={styles.inputRow}>
-                <Ionicons name="lock-closed" size={20} color="#666" />
-                <TextInput
-                  style={styles.input}
-                  placeholder="••••••••"
-                  placeholderTextColor="#333"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
-                />
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  accessibilityLabel={
-                    showPassword ? "Hide password" : "Show password"
-                  }
-                  onPress={() => setShowPassword((current) => !current)}
-                >
-                  <Ionicons
-                    name={showPassword ? "eye-off-outline" : "eye-outline"}
-                    size={20}
-                    color="#666"
+                    placeholderTextColor="#333"
+                    value={email}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
                   />
-                </TouchableOpacity>
+                </View>
               </View>
+
+              <View style={styles.inputWrapper}>
+                <Text style={styles.inputLabel}>SECURITY ACCESS KEY</Text>
+                <View style={styles.inputRow}>
+                  <Ionicons name="lock-closed" size={20} color="#666" />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="••••••••"
+                    placeholderTextColor="#333"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                  />
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                    onPress={() => setShowPassword((current) => !current)}
+                  >
+                    <Ionicons
+                      name={showPassword ? "eye-off-outline" : "eye-outline"}
+                      size={20}
+                      color="#666"
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.loginButton, (isLoading || !email || !password) && { opacity: 0.6 }]}
+                onPress={handleLogin}
+                disabled={isLoading || !email || !password}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="black" />
+                ) : (
+                  <>
+                    <Text style={styles.loginButtonText}>AUTHENTICATE</Text>
+                    <Ionicons name="shield-checkmark" size={20} color="black" />
+                  </>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.forgotBtn}
+                onPress={() => router.push("/(auth)/forgot-password" as any)}
+              >
+                <Text style={styles.forgotText}>Forgot Password?</Text>
+              </TouchableOpacity>
             </View>
 
-            <TouchableOpacity
-              style={[styles.loginButton, (isLoading || !email || !password) && { opacity: 0.6 }]}
-              onPress={handleLogin}
-              disabled={isLoading || !email || !password}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="black" />
-              ) : (
-                <>
-                  <Text style={styles.loginButtonText}>AUTHENTICATE</Text>
-                  <Ionicons name="shield-checkmark" size={20} color="black" />
-                </>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.forgotBtn}
-              onPress={() => router.push("/(auth)/forgot-password" as any)}
-            >
-              <Text style={styles.forgotText}>Forgot Password?</Text>
-            </TouchableOpacity>
+            <View style={styles.footer}>
+              <Text style={styles.footerLabel}>WANT TO JOIN THE FLEET?</Text>
+              <TouchableOpacity
+                style={styles.registerBtn}
+                onPress={() => router.push("/(auth)/register")}
+              >
+                <Text style={styles.registerBtnText}>REGISTER NEW KITCHEN</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-
-          <View style={styles.footer}>
-            <Text style={styles.footerLabel}>WANT TO JOIN THE FLEET?</Text>
-            <TouchableOpacity 
-               style={styles.registerBtn}
-               onPress={() => router.push("/(auth)/register")}
-            >
-              <Text style={styles.registerBtnText}>REGISTER NEW KITCHEN</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

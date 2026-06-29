@@ -29,7 +29,7 @@ function fileFilter(
 export const uploadSingle = (fieldName: string) =>
   multer({
     storage: memoryStorage,
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+    limits: { fileSize: 5 * 1024 * 1024 }, // 10 MB
     fileFilter,
   }).single(fieldName);
 
@@ -37,7 +37,7 @@ export const uploadSingle = (fieldName: string) =>
 export const uploadMultiple = (fieldName: string, maxCount = 10) =>
   multer({
     storage: memoryStorage,
-    limits: { fileSize: 10 * 1024 * 1024 },
+    limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter,
   }).array(fieldName, maxCount);
 
@@ -45,6 +45,6 @@ export const uploadMultiple = (fieldName: string, maxCount = 10) =>
 export const uploadFields = (fields: { name: string; maxCount?: number }[]) =>
   multer({
     storage: memoryStorage,
-    limits: { fileSize: 10 * 1024 * 1024 },
+    limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter,
   }).fields(fields);

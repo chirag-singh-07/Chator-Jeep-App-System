@@ -39,10 +39,10 @@ export default function RefundScreen() {
             />
           </View>
 
-          <Text style={styles.title}>Refund & Commission Policy</Text>
+          <Text style={styles.title}>Commission Policy</Text>
 
           <Text style={styles.heroText}>
-            Please read our refund, commission, and payment terms carefully
+            Please read our commission terms carefully
             before registering your kitchen on the platform.
           </Text>
         </View>
@@ -51,19 +51,12 @@ export default function RefundScreen() {
         <View style={styles.card}>
           <View style={styles.row}>
             <Ionicons name="card-outline" size={20} color="#FFF" />
-            <Text style={styles.section}>Registration Payments</Text>
+            <Text style={styles.section}>Free Registration</Text>
           </View>
 
           <Text style={styles.body}>
-            Restaurant registration payments are securely processed through
-            Razorpay. If a payment fails or is cancelled, no restaurant account
-            will be created and the partner can retry checkout safely.
-          </Text>
-
-          <Text style={styles.body}>
-            Once a registration payment is completed successfully and the
-            kitchen account is activated, the registration fee becomes
-            non-refundable.
+            Registering a kitchen on Chatori Jeeb is completely free.
+            There are no upfront registration charges or hidden setup fees.
           </Text>
         </View>
 
@@ -71,70 +64,23 @@ export default function RefundScreen() {
         <View style={styles.card}>
           <View style={styles.row}>
             <Ionicons name="flash-outline" size={20} color="#FFD54F" />
-            <Text style={styles.section}>Launch Offer</Text>
+            <Text style={styles.section}>Commission Rates</Text>
           </View>
 
           <View style={styles.highlightBox}>
             <Text style={styles.highlightText}>
-              ₹299 Registration Fee
+              10% Commission
             </Text>
 
             <Text style={styles.highlightSub}>
-              10% commission for the first 48 hours after activation
+              Standard platform fee per completed order
             </Text>
           </View>
 
           <Text style={styles.body}>
-            This limited-time launch pricing is available only during the early
-            onboarding phase and may be discontinued anytime without prior
-            notice.
+            We charge a flat 10% commission on every order successfully
+            delivered through our platform.
           </Text>
-        </View>
-
-        {/* After Offer */}
-        <View style={styles.card}>
-          <View style={styles.row}>
-            <Ionicons name="time-outline" size={20} color="#8AB4FF" />
-            <Text style={styles.section}>After Launch Period</Text>
-          </View>
-
-          <Text style={styles.body}>
-            After the launch offer expires, the registration pricing will
-            automatically update to ₹499 per kitchen and the standard platform
-            commission will apply.
-          </Text>
-        </View>
-
-        {/* Refund Conditions */}
-        <View style={styles.card}>
-          <View style={styles.row}>
-            <Ionicons name="refresh-outline" size={20} color="#4ADE80" />
-            <Text style={styles.section}>Refund Eligibility</Text>
-          </View>
-
-          <View style={styles.bulletRow}>
-            <Ionicons name="ellipse" size={7} color="#666" />
-            <Text style={styles.bulletText}>
-              Duplicate payments caused by technical issues may be reviewed for
-              refunds.
-            </Text>
-          </View>
-
-          <View style={styles.bulletRow}>
-            <Ionicons name="ellipse" size={7} color="#666" />
-            <Text style={styles.bulletText}>
-              Failed transactions are usually reversed automatically by the bank
-              within 5-7 business days.
-            </Text>
-          </View>
-
-          <View style={styles.bulletRow}>
-            <Ionicons name="ellipse" size={7} color="#666" />
-            <Text style={styles.bulletText}>
-              Refund requests must include transaction details and registered
-              kitchen information.
-            </Text>
-          </View>
         </View>
 
         {/* Support */}

@@ -1,14 +1,12 @@
-import {
-  PutObjectCommand,
-  DeleteObjectCommand,
-  GetObjectCommand,
-  ListObjectsV2Command,
-} from "@aws-sdk/client-s3";
+import fs from "fs/promises";
+import path from "path";
 import { randomUUID } from "crypto";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import sharp from "sharp";
-import { s3Client, S3_BUCKET_NAME } from "../../config/s3";
 import { env } from "../../config/env";
+import { AppError } from "../errors/app-error";
+
+// ─── Constants ────────────────────────────────────────────────────────
+const UPLOADS_DIR = path.join(__dirname, "../../../../uploads");
 
 // ─── Image Processing Profiles ────────────────────────────────────────────────
 // Each profile defines target dimensions and quality to optimize storage & perf.
@@ -38,8 +36,8 @@ export type UploadFolder =
 // ─── Core Upload Function ──────────────────────────────────────────────────────
 
 /**
- * Processes an image buffer with Sharp, then uploads all requested profile
- * variants to S3. Returns a map of { profileKey -> public CDN URL }.
+ * Processes an image buffer with Sharp, then saves all requested profile
+ * variants to the local file system. Returns a map of { profileKey -> public URL }.
  */
 export async function processAndUpload(
   buffer: Buffer,
@@ -48,6 +46,10 @@ export async function processAndUpload(
 ): Promise<Record<ImageProfileKey, string>> {
   const baseKey = randomUUID();
   const urls: Partial<Record<ImageProfileKey, string>> = {};
+
+  // Ensure the directory exists
+  const targetDir = path.join(UPLOADS_DIR, folder, baseKey);
+  await fs.mkdir(targetDir, { recursive: true });
 
   await Promise.all(
     profiles.map(async (profileKey) => {
@@ -63,27 +65,14 @@ export async function processAndUpload(
         .webp({ quality: profile.quality, effort: 4 }) // effort 4 = good compression speed balance
         .toBuffer();
 
-      const s3Key = `${folder}/${baseKey}/${profileKey}.webp`;
+      const fileName = `${profileKey}.webp`;
+      const filePath = path.join(targetDir, fileName);
 
-      await s3Client.send(
-        new PutObjectCommand({
-          Bucket: S3_BUCKET_NAME,
-          Key: s3Key,
-          Body: processed,
-          ContentType: "image/webp",
-          ContentLength: processed.length,
-          // Cache 1 year – WebP images are content-addressed by uuid
-          CacheControl: "public, max-age=31536000, immutable",
-          Metadata: {
-            profile: profileKey,
-            originalSize: buffer.length.toString(),
-            processedSize: processed.length.toString(),
-          },
-        })
-      );
+      await fs.writeFile(filePath, processed);
 
+      const fileKey = `${folder}/${baseKey}/${fileName}`;
       // Construct the public URL
-      urls[profileKey] = buildPublicUrl(s3Key);
+      urls[profileKey] = buildPublicUrl(fileKey);
     })
   );
 
@@ -91,7 +80,7 @@ export async function processAndUpload(
 }
 
 /**
- * Uploads a raw file buffer to S3 without processing.
+ * Uploads a raw file buffer to the local file system without processing.
  * Useful for PDFs or non-image documents.
  */
 export async function uploadRawFile(
@@ -100,100 +89,109 @@ export async function uploadRawFile(
   fileName: string,
   contentType: string
 ): Promise<{ key: string; url: string }> {
-  const s3Key = `${folder}/${randomUUID()}-${fileName}`;
+  const fileUUID = randomUUID();
+  const targetDir = path.join(UPLOADS_DIR, folder);
+  await fs.mkdir(targetDir, { recursive: true });
 
-  await s3Client.send(
-    new PutObjectCommand({
-      Bucket: S3_BUCKET_NAME,
-      Key: s3Key,
-      Body: buffer,
-      ContentType: contentType,
-      ContentLength: buffer.length,
-      CacheControl: "public, max-age=31536000, immutable",
-    })
-  );
+  const finalFileName = `${fileUUID}-${fileName}`;
+  const filePath = path.join(targetDir, finalFileName);
 
-  return { key: s3Key, url: buildPublicUrl(s3Key) };
+  await fs.writeFile(filePath, buffer);
+
+  const fileKey = `${folder}/${finalFileName}`;
+  return { key: fileKey, url: buildPublicUrl(fileKey) };
 }
 
 /**
  * Generates a short-lived pre-signed upload URL for direct client-side uploads.
- * Clients upload directly to S3, then call the confirm endpoint.
+ * Not supported for local storage.
  */
 export async function generatePresignedUploadUrl(
   folder: UploadFolder,
   fileExtension: string = "jpg",
   expiresIn: number = 300 // 5 minutes
 ): Promise<{ uploadUrl: string; key: string }> {
-  const key = `${folder}/${randomUUID()}/original.${fileExtension}`;
-  const command = new PutObjectCommand({
-    Bucket: S3_BUCKET_NAME,
-    Key: key,
-    ContentType: `image/${fileExtension === "jpg" ? "jpeg" : fileExtension}`,
-  });
-
-  const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn });
-  return { uploadUrl, key };
+  throw new AppError("Presigned URLs are not supported when using local storage. Please use the multipart/form-data upload endpoints instead.", 501);
 }
 
 /**
  * Generates a short-lived pre-signed download URL for private assets.
+ * For local storage, we just return the public URL (or you can implement a token-based system).
  */
 export async function generatePresignedDownloadUrl(
   key: string,
   expiresIn: number = 3600
 ): Promise<string> {
-  const command = new GetObjectCommand({ Bucket: S3_BUCKET_NAME, Key: key });
-  return getSignedUrl(s3Client, command, { expiresIn });
+  return buildPublicUrl(key);
 }
 
 /**
  * Deletes all variant files uploaded under a base key prefix.
- * Pass the prefix e.g. "kitchens/logos/<uuid>" to delete all profile sizes.
  */
 export async function deleteUploadedFiles(keys: string[]): Promise<void> {
   await Promise.all(
-    keys.map((key) =>
-      s3Client.send(new DeleteObjectCommand({ Bucket: S3_BUCKET_NAME, Key: key }))
-    )
+    keys.map(async (key) => {
+      try {
+        const filePath = path.join(UPLOADS_DIR, key);
+        
+        const stat = await fs.stat(filePath);
+        if (stat.isDirectory()) {
+            await fs.rm(filePath, { recursive: true, force: true });
+        } else {
+            await fs.unlink(filePath);
+        }
+      } catch (err) {
+        console.error(`Failed to delete local file ${key}:`, err);
+      }
+    })
   );
 }
 
 /**
- * Lists all objects in the bucket, returning keys and public URLs.
+ * Lists all objects in the uploads directory recursively.
  */
 export async function listAllFiles(): Promise<Array<{ key: string; url: string; size?: number; lastModified?: Date }>> {
   try {
-    console.log("S3: Listing all files in bucket:", S3_BUCKET_NAME);
-    const command = new ListObjectsV2Command({
-      Bucket: S3_BUCKET_NAME,
-    });
+    const files: Array<{ key: string; url: string; size?: number; lastModified?: Date }> = [];
 
-    const response = await s3Client.send(command);
-    
-    if (!response.Contents) {
-      console.log("S3: No files found in bucket.");
-      return [];
+    async function walkDir(dir: string, baseDir: string) {
+      try {
+        const entries = await fs.readdir(dir, { withFileTypes: true });
+        for (const entry of entries) {
+          const fullPath = path.join(dir, entry.name);
+          if (entry.isDirectory()) {
+            await walkDir(fullPath, baseDir);
+          } else {
+            const stat = await fs.stat(fullPath);
+            // Construct the key relative to UPLOADS_DIR
+            const relativeKey = path.relative(baseDir, fullPath).split(path.sep).join('/');
+            files.push({
+              key: relativeKey,
+              url: buildPublicUrl(relativeKey),
+              size: stat.size,
+              lastModified: stat.mtime,
+            });
+          }
+        }
+      } catch (err) {
+        // Ignore if directory doesn't exist
+      }
     }
 
-    console.log(`S3: Found ${response.Contents.length} files.`);
-    return response.Contents.map((obj) => ({
-      key: obj.Key!,
-      url: buildPublicUrl(obj.Key!),
-      size: obj.Size,
-      lastModified: obj.LastModified,
-    }));
+    await walkDir(UPLOADS_DIR, UPLOADS_DIR);
+    return files;
   } catch (error) {
-    console.error("S3: Failed to list files:", error);
-    throw error; // Rethrow to be caught by the controller
+    console.error("Local Storage: Failed to list files:", error);
+    throw error;
   }
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function buildPublicUrl(key: string): string {
-  // Priority: Custom public domain > Tigris standard domain
-  const bucket = S3_BUCKET_NAME;
-  const domain = env.AWS_PUBLIC_DOMAIN || `${bucket}.t3.tigrisfiles.io`;
-  return `https://${domain}/${key}`;
+  // Use BACKEND_URL to serve the file
+  const domain = env.BACKEND_URL || "http://localhost:5000";
+  // ensure no double slashes between domain and uploads
+  const cleanDomain = domain.endsWith("/") ? domain.slice(0, -1) : domain;
+  return `${cleanDomain}/uploads/${key}`;
 }

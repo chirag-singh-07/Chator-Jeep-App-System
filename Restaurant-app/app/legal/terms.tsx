@@ -17,9 +17,9 @@ export default function TermsScreen() {
         <Text style={styles.title}>Chatori Jeeb Partner Terms</Text>
         <Text style={styles.body}>Restaurants must provide accurate ownership, FSSAI, tax, bank, menu, and address details. Chatori Jeeb may reject or suspend listings that are unsafe, misleading, duplicated, or non-compliant.</Text>
         <Text style={styles.section}>Commission Policy</Text>
-        <Text style={styles.body}>Launch partners pay a registration fee and receive 10% commission for the first 48 hours after activation. After that window, the configured standard commission applies automatically.</Text>
-        <Text style={styles.section}>Payments & Verification</Text>
-        <Text style={styles.body}>Registration payment is verified through Razorpay. A restaurant profile is created only after successful server-side payment verification. The registration fee is non-refundable after successful payment.</Text>
+        <Text style={styles.body}>Registration is free for all kitchen partners. Chatori Jeeb charges a flat 10% commission on every successfully delivered order. Standard platform commissions apply automatically.</Text>
+        <Text style={styles.section}>Verification</Text>
+        <Text style={styles.body}>A restaurant profile is reviewed and activated by our operations team. Partners must provide valid FSSAI and legal documentation before going live.</Text>
         <Text style={styles.section}>Operations</Text>
         <Text style={styles.body}>Partners are responsible for food quality, packaging, preparation time, order acceptance, and regulatory compliance.</Text>
       </ScrollView>

@@ -62,9 +62,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: any) {
           set({ isLoading: false });
           const msg = getApiErrorMessage(error, 'Login failed. Please check your credentials.');
-          const loginError = new Error(msg) as Error & { paymentRequired?: boolean };
-          loginError.paymentRequired = error?.response?.status === 402;
-          throw loginError;
+          throw new Error(msg);
         }
       },
 
