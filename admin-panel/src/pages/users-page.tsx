@@ -76,7 +76,9 @@ export function UsersPage() {
       key: "action",
       label: "Ops",
       render: (row) => {
-        const canApprove = row.status === "PENDING" && (row.role === "DELIVERY" || row.role === "KITCHEN" || row.role === "RESTAURANT");
+        // Show approve button for these roles regardless of User status, 
+        // as their specific partner/restaurant profile might still be pending.
+        const canApprove = row.role === "DELIVERY" || row.role === "KITCHEN" || row.role === "RESTAURANT";
         
         return (
           <div className="flex items-center gap-2">

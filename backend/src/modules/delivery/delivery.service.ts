@@ -386,10 +386,10 @@ export const registerDeliveryPartner = async (userId: string, data: any) => {
     isAvailable: false,
   });
 
-  // Update User Role to DELIVERY
+  // Update User Role to DELIVERY and set status to PENDING
   const user = await User.findByIdAndUpdate(
     userId,
-    { role: ROLES.DELIVERY },
+    { role: ROLES.DELIVERY, status: "PENDING" },
     { new: true },
   );
   if (!user) throw new AppError("User not found", 404);
