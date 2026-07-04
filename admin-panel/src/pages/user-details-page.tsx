@@ -14,13 +14,16 @@ import {
   ExternalLink,
   Loader2,
   Lock,
-  MessageSquare
+  MessageSquare,
+  CheckCircle,
+  FileText
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { adminService } from "@/services/admin.service";
+import { useUsersStore } from "@/stores/useUsersStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +31,7 @@ export function UserDetailsPage() {
   const { userId } = useParams();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { approveUser } = useUsersStore();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -93,6 +97,21 @@ export function UserDetailsPage() {
           </Link>
         </Button>
         <div className="flex gap-3">
+          {(user.role === "DELIVERY" || user.role === "KITCHEN" || user.role === "RESTAURANT") && (
+            <Button 
+              variant="outline" 
+              className="rounded-2xl h-12 px-6 font-bold hover:bg-green-500/10 hover:text-green-600 hover:border-green-500/30 text-green-500 border-green-500/20 transition-all"
+              onClick={async () => {
+                await approveUser(user._id);
+                // Refresh local state to reflect approved status
+                if (user.partnerProfile) {
+                   setUser({ ...user, partnerProfile: { ...user.partnerProfile, status: "approved" } });
+                }
+              }}
+            >
+              <CheckCircle className="size-4 mr-2" /> Approve User
+            </Button>
+          )}
           <Button variant="outline" className="rounded-2xl h-12 px-6 font-bold hover:bg-red-500/5 hover:text-red-500 hover:border-red-500/30 transition-all">
             <Lock className="size-4 mr-2" /> Deactivate account
           </Button>
@@ -233,6 +252,38 @@ export function UserDetailsPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Delivery Documents Section */}
+            {user.role === "DELIVERY" && user.partnerProfile?.documents && (
+              <Card className="rounded-[40px] border-none shadow-2xl shadow-primary/5 bg-card overflow-hidden">
+                <CardHeader className="bg-muted/30 border-b border-border/50 flex flex-row items-center justify-between pb-6">
+                  <div>
+                    <CardTitle className="text-xl font-black italic uppercase italic">Verification Documents</CardTitle>
+                    <CardDescription className="text-xs font-bold text-muted-foreground/50 uppercase tracking-widest mt-1">Uploaded KYC files</CardDescription>
+                  </div>
+                  <div className="size-10 rounded-2xl bg-primary/10 flex items-center justify-center">
+                    <FileText className="size-5 text-primary" />
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-8">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                    {Object.entries(user.partnerProfile.documents)
+                      .filter(([key, val]) => typeof val === "string" && val.startsWith("http"))
+                      .map(([key, url]) => (
+                        <div key={key} className="flex flex-col gap-2">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{key.replace(/([A-Z])/g, ' $1').trim()}</p>
+                          <a href={url as string} target="_blank" rel="noopener noreferrer" className="block w-full aspect-video rounded-2xl overflow-hidden border border-border/20 group relative cursor-zoom-in">
+                            <img src={url as string} alt={key} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                              <ExternalLink className="size-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                          </a>
+                        </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>

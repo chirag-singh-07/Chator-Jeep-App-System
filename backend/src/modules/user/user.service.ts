@@ -44,7 +44,24 @@ export const adminGetUser = async (userId: string) => {
   if (!user) {
     throw new AppError("User not found", 404);
   }
-  return user;
+
+  let partnerProfile = null;
+  let restaurantProfile = null;
+
+  if (user.role === ROLES.DELIVERY) {
+    partnerProfile = await DeliveryPartner.findOne({ userId });
+  } else if (user.role === ROLES.KITCHEN) {
+    restaurantProfile = await Restaurant.findOne({ ownerId: userId });
+  }
+
+  // Convert mongoose doc to plain object so we can add properties
+  const userObj = user.toObject();
+  
+  return {
+    ...userObj,
+    partnerProfile,
+    restaurantProfile
+  };
 };
 
 export const adminApproveUser = async (userId: string) => {
