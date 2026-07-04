@@ -27,7 +27,7 @@ export const adminDeleteUser = asyncHandler(async (req: AuthenticatedRequest, re
 });
 
 export const adminApproveUser = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const result = await service.adminApproveUser(req.params.id);
+  const result = await service.adminApproveUser(req.params.id as string);
   res.status(200).json({ success: true, ...result });
 });
 

@@ -60,7 +60,7 @@ export const adminApproveUser = async (userId: string) => {
       { new: true }
     );
     if (!partner) throw new AppError("Delivery partner profile not found", 404);
-  } else if (user.role === ROLES.KITCHEN || user.role === ROLES.RESTAURANT) {
+  } else if (user.role === ROLES.KITCHEN) {
     const restaurant = await Restaurant.findOneAndUpdate(
       { ownerId: userId },
       { isApproved: true, status: "active" },
