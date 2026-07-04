@@ -26,6 +26,7 @@ import { adminService } from "@/services/admin.service";
 import { useUsersStore } from "@/stores/useUsersStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export function UserDetailsPage() {
   const { userId } = useParams();
@@ -102,10 +103,15 @@ export function UserDetailsPage() {
               variant="outline" 
               className="rounded-2xl h-12 px-6 font-bold hover:bg-green-500/10 hover:text-green-600 hover:border-green-500/30 text-green-500 border-green-500/20 transition-all"
               onClick={async () => {
-                await approveUser(user._id);
-                // Refresh local state to reflect approved status
-                if (user.partnerProfile) {
-                   setUser({ ...user, partnerProfile: { ...user.partnerProfile, status: "approved" } });
+                try {
+                  await approveUser(user._id);
+                  // Refresh local state to reflect approved status
+                  if (user.partnerProfile) {
+                     setUser({ ...user, partnerProfile: { ...user.partnerProfile, status: "approved" } });
+                  }
+                  toast.success("User approved successfully!");
+                } catch (error: any) {
+                  toast.error(error.message || "Failed to approve user.");
                 }
               }}
             >
