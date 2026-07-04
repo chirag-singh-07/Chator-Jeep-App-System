@@ -166,4 +166,25 @@ router.get("/admin/:id", authMiddleware, roleMiddleware(["ADMIN"]), controller.a
  */
 router.delete("/admin/:id", authMiddleware, roleMiddleware(["ADMIN"]), controller.adminDeleteUser);
 
+/**
+ * @openapi
+ * /api/v1/users/admin/{id}/approve:
+ *   patch:
+ *     tags:
+ *       - Admin
+ *     summary: Approve a pending user (Delivery/Restaurant)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User approved successfully
+ */
+router.patch("/admin/:id/approve", authMiddleware, roleMiddleware(["ADMIN"]), controller.adminApproveUser);
+
 export default router;

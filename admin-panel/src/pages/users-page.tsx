@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Search, RotateCcw, Trash2 } from "lucide-react";
+import { Plus, Search, RotateCcw, Trash2, CheckCircle } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { DataTable, type DataColumn } from "@/components/admin/data-table";
 import { FilterBar } from "@/components/admin/filter-bar";
@@ -26,6 +26,7 @@ export function UsersPage() {
     filters, 
     setFilters, 
     fetchUsers,
+    approveUser,
     deleteUser
   } = useUsersStore();
 
@@ -74,25 +75,43 @@ export function UsersPage() {
     {
       key: "action",
       label: "Ops",
-      render: (row) => (
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" asChild className="hover:bg-primary/10 hover:text-primary rounded-xl">
-            <Link to={`/users/${row._id}`}>View</Link>
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="hover:bg-destructive/10 hover:text-destructive rounded-xl text-muted-foreground"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setDeleteUserId(row._id);
-            }}
-          >
-            <Trash2 className="size-4" />
-          </Button>
-        </div>
-      )
+      render: (row) => {
+        const canApprove = row.status === "PENDING" && (row.role === "DELIVERY" || row.role === "KITCHEN" || row.role === "RESTAURANT");
+        
+        return (
+          <div className="flex items-center gap-2">
+            {canApprove && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="hover:bg-green-500/10 hover:text-green-600 text-green-500 rounded-xl"
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  await approveUser(row._id);
+                }}
+              >
+                <CheckCircle className="size-4" />
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" asChild className="hover:bg-primary/10 hover:text-primary rounded-xl">
+              <Link to={`/users/${row._id}`}>View</Link>
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="hover:bg-destructive/10 hover:text-destructive rounded-xl text-muted-foreground"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setDeleteUserId(row._id);
+              }}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </div>
+        );
+      }
     }
   ];
 

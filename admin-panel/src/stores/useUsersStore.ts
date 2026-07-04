@@ -17,6 +17,7 @@ interface UsersState {
   createAdmin: (data: any) => Promise<any>;
   createDelivery: (data: any) => Promise<any>;
   updateUserStatus: (id: string, status: string) => Promise<void>;
+  approveUser: (id: string) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
 }
 
@@ -91,6 +92,21 @@ export const useUsersStore = create<UsersState>((set, get) => ({
     // Implementation for updating user status
     // For now we just refresh the list
     await get().fetchUsers();
+  },
+
+  approveUser: async (id: string) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await adminService.approveUser(id);
+      if (response.success) {
+        await get().fetchUsers();
+      } else {
+        throw new Error(response.message || "Failed to approve user");
+      }
+    } catch (err: any) {
+      set({ error: err.message || "An error occurred", loading: false });
+      throw err;
+    }
   },
 
   deleteUser: async (id: string) => {

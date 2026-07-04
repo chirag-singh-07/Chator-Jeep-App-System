@@ -2,6 +2,9 @@ import { AppError } from "../../common/errors/app-error";
 import { findUserById, listUsers, createUser, findUserByEmail, deleteUserById } from "./user.repository";
 import { Role, ROLES } from "../../common/constants";
 import { hashPassword } from "../../common/utils/hash";
+import { DeliveryPartner } from "../delivery/delivery.model";
+import { Restaurant } from "../restaurant/restaurant.model";
+import { User } from "./user.model";
 
 export const getMyProfile = async (userId: string) => {
   const user = await findUserById(userId);
@@ -42,6 +45,36 @@ export const adminGetUser = async (userId: string) => {
     throw new AppError("User not found", 404);
   }
   return user;
+};
+
+export const adminApproveUser = async (userId: string) => {
+  const user = await findUserById(userId);
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  if (user.role === ROLES.DELIVERY) {
+    const partner = await DeliveryPartner.findOneAndUpdate(
+      { userId },
+      { status: "approved" },
+      { new: true }
+    );
+    if (!partner) throw new AppError("Delivery partner profile not found", 404);
+  } else if (user.role === ROLES.KITCHEN || user.role === ROLES.RESTAURANT) {
+    const restaurant = await Restaurant.findOneAndUpdate(
+      { ownerId: userId },
+      { isApproved: true, status: "active" },
+      { new: true }
+    );
+    if (!restaurant) throw new AppError("Restaurant profile not found", 404);
+  } else {
+    throw new AppError("Only Delivery and Kitchen users can be approved", 400);
+  }
+
+  // Update the main user record
+  await User.findByIdAndUpdate(userId, { status: "ACTIVE" });
+  
+  return { message: "User approved successfully" };
 };
 
 export const adminDeleteUser = async (userId: string) => {

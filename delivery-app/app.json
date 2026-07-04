@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icons/ios-icon-1024x1024.png",
     "scheme": "deliveryapp",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "light",
     "newArchEnabled": false,
     "ios": {
       "bundleIdentifier": "com.chatorijeeb.deliveryapp",

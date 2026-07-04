@@ -53,7 +53,7 @@ export function ThemedInput({
         )}
         <TextInput
           style={[styles.input, style]}
-          placeholderTextColor={Colors.light.textMuted}
+          placeholderTextColor={Colors.light.textDim}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           {...props}
@@ -84,16 +84,16 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   label: {
-    color: Colors.light.textDim,
+    color: Colors.light.text,
     fontSize: 14,
     fontWeight: '600',
     marginBottom: Spacing.sm,
-    marginLeft: Spacing.xs,
+    marginLeft: 2,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.surface,
+    backgroundColor: Colors.light.surfaceSecondary,
     borderWidth: 1.5,
     borderColor: Colors.light.border,
     borderRadius: Radius.md,
@@ -102,10 +102,16 @@ const styles = StyleSheet.create({
   },
   inputFocused: {
     borderColor: Colors.light.primary,
-    backgroundColor: Colors.light.surfaceSecondary,
+    backgroundColor: '#FFFFFF',
+    shadowColor: Colors.light.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 2,
   },
   inputError: {
     borderColor: Colors.light.error,
+    backgroundColor: '#FEF2F2',
   },
   icon: {
     marginRight: Spacing.sm,
@@ -115,6 +121,7 @@ const styles = StyleSheet.create({
     color: Colors.light.text,
     fontSize: 16,
     height: '100%',
+    fontWeight: '500',
   },
   rightIconButton: {
     height: '100%',
@@ -126,6 +133,7 @@ const styles = StyleSheet.create({
     color: Colors.light.error,
     fontSize: 12,
     marginTop: Spacing.xs,
-    marginLeft: Spacing.xs,
+    marginLeft: 2,
+    fontWeight: '500',
   },
 });

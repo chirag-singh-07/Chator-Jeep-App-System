@@ -20,8 +20,8 @@ export function ScreenContainer({
   return (
     <View style={[styles.outer, { backgroundColor }]}>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor={"black"}
+        barStyle="dark-content"
+        backgroundColor={Colors.light.background}
         translucent={Platform.OS === 'android'}
       />
       <Container style={[styles.container, style]}>

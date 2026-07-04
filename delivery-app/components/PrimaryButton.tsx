@@ -36,14 +36,14 @@ export function PrimaryButton({
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={variant === "primary" ? Colors.light.black : Colors.light.primary} />
+        <ActivityIndicator color={variant === "primary" ? "#FFFFFF" : Colors.light.primary} />
       ) : (
         <>
           {typeof icon === "string" ? (
             <Ionicons 
               name={icon as any} 
               size={20} 
-              color={variant === "primary" ? Colors.light.black : Colors.light.primary} 
+              color={variant === "primary" ? "#FFFFFF" : Colors.light.primary} 
               style={{ marginRight: Spacing.sm }}
             />
           ) : icon}
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   primaryText: {
-    color: Colors.light.black,
+    color: '#FFFFFF',
   },
   secondaryText: {
     color: Colors.light.text,

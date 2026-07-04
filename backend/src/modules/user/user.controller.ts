@@ -26,6 +26,11 @@ export const adminDeleteUser = asyncHandler(async (req: AuthenticatedRequest, re
   res.status(200).json({ success: true, ...result });
 });
 
+export const adminApproveUser = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const result = await service.adminApproveUser(req.params.id);
+  res.status(200).json({ success: true, ...result });
+});
+
 export const adminCreateAdmin = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const user = await service.adminCreateUser(req.body, ROLES.ADMIN);
   res.status(201).json({ success: true, message: "Admin user created successfully", data: user });

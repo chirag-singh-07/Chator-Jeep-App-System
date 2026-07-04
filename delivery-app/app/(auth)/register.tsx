@@ -12,6 +12,7 @@ import {
   Image,
   TextInput,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
@@ -19,12 +20,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, Radius, Shadows } from "../../constants/Colors";
-import { ScreenContainer } from "@/components/ScreenContainer";
 import { ThemedInput } from "@/components/ThemedInput";
-import { PrimaryButton } from "@/components/PrimaryButton";
 import { ValidatedAddressField } from "@/components/ValidatedAddressField";
 import { API_URL } from "@/lib/api";
 import { useRegistrationStore, DocumentType, DocumentInfo } from "@/store/useRegistrationStore";
+import { useDeliveryStore } from "@/store/useDeliveryStore";
+import { LinearGradient } from "expo-linear-gradient";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
 import Animated, {
   FadeInRight,
   FadeOutLeft,
@@ -37,20 +40,18 @@ type PayoutMethod = "UPI" | "BANK_ACCOUNT";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-// Compatibility helper: some expo-image-picker versions export MediaType, others MediaTypeOptions
 const getImagePickerMediaTypeImages = () => {
   // @ts-ignore
   if (ImagePicker?.MediaType?.Images) return ImagePicker.MediaType.Images;
   // @ts-ignore
   if (ImagePicker?.MediaTypeOptions?.Images) return ImagePicker.MediaTypeOptions.Images;
-  // Fallback: undefined will let the picker decide
   return undefined;
 };
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phoneRegex = /^[6-9]\d{9}$/;
 const aadhaarRegex = /^\d{12}$/;
-const dlRegex = /^[A-Z]{2}\d{2}\s?\d{11}$/;
+const dlRegex = /^[A-Z]{2}[A-Z0-9]{11,14}$/;
 const panRegex = /^[A-Z]{5}\d{4}[A-Z]$/;
 const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
@@ -59,11 +60,21 @@ const vehicleNumberRegex = /^[A-Z]{2}\d{1,2}[A-Z]{1,3}\d{4}$/;
 const normalizeVehicleNumber = (value: string) =>
   value.replace(/\s|-/g, "").toUpperCase();
 
+// Upload progress item
+type UploadItem = {
+  key: string;
+  label: string;
+  progress: number; // 0–100
+  done: boolean;
+  error?: boolean;
+};
+
+const STEP_LABELS = ["Personal", "Documents", "Address", "Payout"];
+
 export default function RegisterScreen() {
   const router = useRouter();
   const { register: authRegister, requestOtp: requestOtpAuth, user, isAuthenticated } = useAuthStore();
 
-  // Registration store
   const {
     currentStep,
     formData,
@@ -86,6 +97,12 @@ export default function RegisterScreen() {
     uri: null,
     title: "",
   });
+  // Upload progress modal
+  const [uploadModal, setUploadModal] = useState<{ visible: boolean; items: UploadItem[] }>({
+    visible: false,
+    items: [],
+  });
+
   const landmarkRef = useRef<TextInput>(null);
   const stateRef = useRef<TextInput>(null);
   const districtRef = useRef<TextInput>(null);
@@ -104,28 +121,17 @@ export default function RegisterScreen() {
   };
 
   const addressValidation = useMemo(() => {
-    const fields = {
-      fullAddress: { value: addressDraft.fullAddress, touched: true },
-      landmark: { value: addressDraft.landmark, touched: true },
-      state: { value: addressDraft.state, touched: true },
-      district: { value: addressDraft.district, touched: true },
-      city: { value: addressDraft.city, touched: true },
-      pinCode: { value: addressDraft.pinCode, touched: true },
-    };
-
     const isValid =
       addressDraft.fullAddress.trim().length >= 5 &&
       addressDraft.state.trim().length >= 2 &&
       addressDraft.district.trim().length >= 2 &&
       addressDraft.city.trim().length >= 2 &&
       /^\d{6}$/.test(addressDraft.pinCode.trim());
-
-    return { isValid, fields };
+    return { isValid };
   }, [addressDraft]);
 
   useEffect(() => {
     if (!isCompletingProfile || !user) return;
-
     updateFormField("name", user.name || "");
     updateFormField("email", user.email || "");
     updateFormField("phone", user.phone || "");
@@ -133,31 +139,6 @@ export default function RegisterScreen() {
       updateBankField("accountHolderName", user.name);
     }
   }, [isCompletingProfile, user]);
-
-  // Check for existing documents on app reopen
-  useEffect(() => {
-    if (hasHydrated) {
-      checkExistingDocuments();
-    }
-  }, [hasHydrated]);
-
-  const checkExistingDocuments = async () => {
-    // Check if local files still exist
-    for (const docType of Object.keys(documents) as DocumentType[]) {
-      const doc = documents[docType];
-      if (doc && doc.uri && doc.exists) {
-        try {
-          const fileInfo = await FileSystem.getInfoAsync(doc.uri);
-          if (!fileInfo.exists) {
-            clearDocument(docType);
-          }
-        } catch {
-          // File doesn't exist, clear it
-          clearDocument(docType);
-        }
-      }
-    }
-  };
 
   const validation = useMemo(() => {
     const personal =
@@ -201,37 +182,18 @@ export default function RegisterScreen() {
 
   const pickDocumentPhoto = async (key: DocumentType) => {
     try {
-      // Request permission first
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert(
-          "Permission Required",
-          "Please allow photo library access to upload documents."
-        );
+        Alert.alert("Permission Required", "Please allow photo library access to upload documents.");
         return;
       }
-
-      // Launch image picker
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: getImagePickerMediaTypeImages(),
         allowsEditing: true,
         quality: 0.8,
         exif: false,
       });
-
-      // Check if user cancelled
-      if (result.canceled) {
-        console.log("User cancelled image picker");
-        return;
-      }
-
-      // Check if we have assets
-      if (!result.assets || result.assets.length === 0) {
-        console.log("No image selected");
-        Alert.alert("Error", "No image was selected. Please try again.");
-        return;
-      }
-
+      if (result.canceled || !result.assets || result.assets.length === 0) return;
       const asset = result.assets[0];
       setDocument(key, {
         uri: asset.uri,
@@ -243,121 +205,172 @@ export default function RegisterScreen() {
         exists: true,
       });
     } catch (error: any) {
-      console.error("Image picker error:", error?.message || error);
       Alert.alert("Error", "Failed to pick image. Please try again.");
     }
   };
 
   const captureLivePhoto = async () => {
     try {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert(
-          "Camera Permission Required",
-          "Please allow camera access to capture your live photo."
-        );
-        return;
+      // Check if the camera is actually available (not available on iOS Simulator)
+      const isCameraAvailable = await ImagePicker.getCameraPermissionsAsync()
+        .then(() => true)
+        .catch(() => false);
+
+      const cameraStatus = await ImagePicker.requestCameraPermissionsAsync();
+      const canUseCamera = cameraStatus.status === "granted" && isCameraAvailable;
+
+      if (canUseCamera) {
+        // Try launching camera
+        try {
+          const result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+          });
+          if (result.canceled || !result.assets || result.assets.length === 0) return;
+          const asset = result.assets[0];
+          setDocument("livePhoto", {
+            uri: asset.uri,
+            fileName: asset.fileName || "live.jpg",
+            type: asset.mimeType || "image/jpeg",
+            fileSize: asset.fileSize,
+            width: asset.width,
+            height: asset.height,
+            exists: true,
+          });
+          return;
+        } catch {
+          // Camera failed (e.g. iOS Simulator) — fall through to gallery
+        }
       }
 
-      const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-
-      if (result.canceled) {
-        console.log("User cancelled camera");
-        return;
-      }
-
-      if (!result.assets || result.assets.length === 0) {
-        console.log("No photo captured");
-        Alert.alert("Error", "No photo was captured. Please try again.");
-        return;
-      }
-
-      const asset = result.assets[0];
-      setDocument("livePhoto", {
-        uri: asset.uri,
-        fileName: asset.fileName || "live.jpg",
-        type: asset.mimeType || "image/jpeg",
-        fileSize: asset.fileSize,
-        width: asset.width,
-        height: asset.height,
-        exists: true,
-      });
+      // Fallback: use gallery (for iOS Simulator or when camera is unavailable)
+      Alert.alert(
+        "Camera Not Available",
+        "Camera is not available on this device (e.g. iOS Simulator). Please select a photo from your gallery instead.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Choose from Gallery",
+            onPress: async () => {
+              const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+              if (status !== "granted") {
+                Alert.alert("Permission Required", "Please allow photo library access.");
+                return;
+              }
+              const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: getImagePickerMediaTypeImages(),
+                allowsEditing: true,
+                aspect: [1, 1],
+                quality: 0.8,
+              });
+              if (result.canceled || !result.assets || result.assets.length === 0) return;
+              const asset = result.assets[0];
+              setDocument("livePhoto", {
+                uri: asset.uri,
+                fileName: asset.fileName || "live.jpg",
+                type: asset.mimeType || "image/jpeg",
+                fileSize: asset.fileSize,
+                width: asset.width,
+                height: asset.height,
+                exists: true,
+              });
+            },
+          },
+        ]
+      );
     } catch (error: any) {
-      console.error("Camera error:", error?.message || error);
       Alert.alert("Error", "Failed to capture photo. Please try again.");
     }
   };
 
-  const openPreview = (uri: string, title: string) => {
-    setPreviewModal({ visible: true, uri, title });
-  };
 
-  const closePreview = () => {
-    setPreviewModal({ visible: false, uri: null, title: "" });
-  };
+  const openPreview = (uri: string, title: string) => setPreviewModal({ visible: true, uri, title });
+  const closePreview = () => setPreviewModal({ visible: false, uri: null, title: "" });
 
-  const appendImage = (formData: FormData, fieldName: string, asset: any) => {
+  const appendImage = (fd: FormData, fieldName: string, asset: any) => {
     const extension = asset.uri.split(".").pop()?.toLowerCase() || "jpg";
     const mimeType = asset.type || `image/${extension === "jpg" ? "jpeg" : extension}`;
-    const uri = asset.uri.startsWith("file://") || asset.uri.startsWith("content://") ? asset.uri : `file://${asset.uri}`;
-
-    formData.append(fieldName, {
-      uri,
-      name: asset.fileName || `${fieldName}.${extension}`,
-      type: mimeType,
-    });
+    const uri = asset.uri.startsWith("file://") || asset.uri.startsWith("content://")
+      ? asset.uri
+      : `file://${asset.uri}`;
+    fd.append(fieldName, { uri, name: asset.fileName || `${fieldName}.${extension}`, type: mimeType } as any);
   };
 
-  const uploadDeliveryDocuments = async () => {
-    const requiredDocs: DocumentType[] = [
-      "aadhaarPhoto",
-      "panPhoto",
-      "drivingLicensePhoto",
-      "vehicleRcPhoto",
-      "bikeInsurancePhoto",
-      "profilePhoto",
-      "livePhoto",
+  // Upload documents with progress simulation
+  const uploadDeliveryDocumentsWithProgress = async (): Promise<Record<string, { full?: string; medium?: string; thumbnail?: string }>> => {
+    const docEntries: { key: string; label: string; docType: DocumentType }[] = [
+      { key: "aadhaarPhoto", label: "Aadhaar Card", docType: "aadhaarPhoto" },
+      { key: "panPhoto", label: "PAN Card", docType: "panPhoto" },
+      { key: "drivingLicensePhoto", label: "Driving License", docType: "drivingLicensePhoto" },
+      { key: "vehicleRcPhoto", label: "Vehicle RC", docType: "vehicleRcPhoto" },
+      { key: "bikeInsurancePhoto", label: "Bike Insurance", docType: "bikeInsurancePhoto" },
+      { key: "profilePhoto", label: "Profile Photo", docType: "profilePhoto" },
+      { key: "livePhoto", label: "Live Photo", docType: "livePhoto" },
     ];
 
-    for (const docType of requiredDocs) {
+    // Validate all docs present
+    for (const { label, docType } of docEntries) {
       const doc = documents[docType];
       if (!doc || !doc.uri || !doc.exists) {
-        throw new Error(`Please upload ${docType.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
+        throw new Error(`Please upload ${label}`);
       }
     }
 
-    const formData = new FormData();
-    appendImage(formData, "aadhaarPhoto", documents.aadhaarPhoto);
-    appendImage(formData, "panPhoto", documents.panPhoto);
-    appendImage(formData, "drivingLicensePhoto", documents.drivingLicensePhoto);
-    appendImage(formData, "vehicleRcPhoto", documents.vehicleRcPhoto);
-    appendImage(formData, "bikeInsurancePhoto", documents.bikeInsurancePhoto);
-    appendImage(formData, "profilePhoto", documents.profilePhoto);
-    appendImage(formData, "livePhoto", documents.livePhoto);
+    // Initialize progress modal
+    const initialItems: UploadItem[] = docEntries.map(({ key, label }) => ({
+      key,
+      label,
+      progress: 0,
+      done: false,
+    }));
+    setUploadModal({ visible: true, items: initialItems });
+
+    const fd = new FormData();
+    for (const { key, docType } of docEntries) {
+      appendImage(fd, key, documents[docType]);
+    }
+
+    // Simulate incremental progress while fetching
+    const progressInterval = setInterval(() => {
+      setUploadModal((prev) => ({
+        ...prev,
+        items: prev.items.map((item) =>
+          item.done ? item : { ...item, progress: Math.min(item.progress + Math.random() * 15, 85) }
+        ),
+      }));
+    }, 400);
 
     try {
       const token = await AsyncStorage.getItem("delivery-token");
       const response = await fetch(`${API_URL}/uploads/delivery-docs`, {
         method: "POST",
-        body: formData,
+        body: fd,
         headers: {
           Authorization: token ? `Bearer ${token}` : "",
         },
       });
 
+      clearInterval(progressInterval);
       const responseData = await response.json();
+
       if (!response.ok) {
-        console.log("Upload error details:", responseData);
+        setUploadModal((prev) => ({
+          ...prev,
+          items: prev.items.map((item) => ({ ...item, progress: 0, error: true })),
+        }));
         throw new Error(responseData?.message || "Failed to upload documents. Please try again.");
       }
 
+      // Mark all done
+      setUploadModal((prev) => ({
+        ...prev,
+        items: prev.items.map((item) => ({ ...item, progress: 100, done: true })),
+      }));
+
       return responseData.data as Record<string, { full?: string; medium?: string; thumbnail?: string }>;
     } catch (error: any) {
-      console.log("Upload error details:", error.response?.data || error.message || error);
+      clearInterval(progressInterval);
       throw new Error(error?.message || "Failed to upload documents. Please try again.");
     }
   };
@@ -373,12 +386,11 @@ export default function RegisterScreen() {
       Alert.alert("Invalid Email", "Please enter a valid email to receive the OTP.");
       return;
     }
-
     setLoading(true);
     try {
       await requestOtpAuth(formData.email.trim(), "register");
       setOtpSent(true);
-      Alert.alert("OTP Sent", "Please check your email for the verification code.");
+      Alert.alert("OTP Sent ✅", "Please check your email for the verification code.");
     } catch (error: any) {
       Alert.alert("Error", error.message);
     } finally {
@@ -386,7 +398,7 @@ export default function RegisterScreen() {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!isCurrentStepValid) {
       const messages: Record<number, string> = {
         1: "Enter a valid name, email, Indian phone number, OTP/password, and vehicle number.",
@@ -398,8 +410,37 @@ export default function RegisterScreen() {
       return;
     }
 
+    // FIX: Register (verify OTP) at step 1 → step 2 transition so OTP doesn't expire
+    if (currentStep === 1 && !isCompletingProfile) {
+      setLoading(true);
+      try {
+        await authRegister({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          password: formData.password,
+          phone: formData.phone.trim(),
+          otp: formData.otp.trim(),
+        });
+        setStep(2);
+      } catch (error: any) {
+        Alert.alert("Registration Error", error.message);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     if (currentStep < 4) {
       setStep(currentStep + 1);
+      return;
+    }
+
+    // On final step, ensure ALL previous steps are valid before submitting
+    if (!validation.personal || !validation.documents || !validation.address || !validation.payout) {
+      Alert.alert(
+        "Missing Details",
+        "Some details are missing from previous steps (like your phone number or documents). Please go back and ensure all steps are fully completed."
+      );
       return;
     }
 
@@ -408,6 +449,11 @@ export default function RegisterScreen() {
 
   const handleBack = () => {
     if (currentStep > 1) {
+      // If already authenticated (step 1 done), don't go back past step 2
+      if (currentStep === 2 && isAuthenticated && !isCompletingProfile) {
+        Alert.alert("Warning", "Going back will not undo your account creation. Continue from step 2.");
+        return;
+      }
       setStep(currentStep - 1);
     } else {
       router.replace("/(auth)/login");
@@ -417,17 +463,7 @@ export default function RegisterScreen() {
   const handleRegister = async () => {
     setLoading(true);
     try {
-      if (!isCompletingProfile) {
-        await authRegister({
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          password: formData.password,
-          phone: formData.phone.trim(),
-          otp: formData.otp.trim(),
-        });
-      }
-
-      const uploadedDocs = await uploadDeliveryDocuments();
+      const uploadedDocs = await uploadDeliveryDocumentsWithProgress();
       const getUploadedUrl = (urls: { full?: string; medium?: string; thumbnail?: string }) =>
         urls.full || urls.medium || urls.thumbnail || "";
 
@@ -441,67 +477,97 @@ export default function RegisterScreen() {
             }
           : undefined;
 
-      const { useDeliveryStore } = await import("@/store/useDeliveryStore");
       const deliveryRegister = useDeliveryStore.getState().register;
 
-      await deliveryRegister({
-        fullName: formData.name.trim(),
-        phoneNumber: formData.phone.trim(),
-        email: formData.email.trim(),
-        vehicleType: formData.vehicleType,
-        vehicleFuelType: formData.fuelType,
-        bikeNumber: normalizeVehicleNumber(formData.bikeNumber),
-        profilePhoto: getUploadedUrl(uploadedDocs.profilePhoto || {}),
-        drivingLicense: formData.drivingLicenseNumber.trim().toUpperCase(),
-        documents: {
-          aadhaarNumber: formData.aadhaarNumber.trim(),
-          aadhaarPhoto: getUploadedUrl(uploadedDocs.aadhaarPhoto || {}),
-          panNumber: formData.panNumber.trim().toUpperCase(),
-          panPhoto: getUploadedUrl(uploadedDocs.panPhoto || {}),
-          drivingLicenseNumber: formData.drivingLicenseNumber.trim().toUpperCase(),
-          drivingLicensePhoto: getUploadedUrl(uploadedDocs.drivingLicensePhoto || {}),
-          vehicleRcNumber: normalizeVehicleNumber(formData.bikeNumber),
-          vehicleRcPhoto: getUploadedUrl(uploadedDocs.vehicleRcPhoto || {}),
-          bikeInsurancePhoto: getUploadedUrl(uploadedDocs.bikeInsurancePhoto || {}),
+      try {
+        await deliveryRegister({
+          fullName: formData.name.trim(),
+          phoneNumber: formData.phone.trim(),
+          email: formData.email.trim(),
+          vehicleType: formData.vehicleType,
+          vehicleFuelType: formData.fuelType,
+          bikeNumber: normalizeVehicleNumber(formData.bikeNumber),
           profilePhoto: getUploadedUrl(uploadedDocs.profilePhoto || {}),
-          livePhoto: getUploadedUrl(uploadedDocs.livePhoto || {}),
-        },
-        address: {
-          buildingName: addressValidation.fields.fullAddress.value,
-          streetName: addressDraft.fullAddress,
-          landmark: addressValidation.fields.landmark.value,
-          area: addressValidation.fields.city.value,
-          state: addressValidation.fields.state.value,
-          district: addressValidation.fields.district.value,
-          city: addressValidation.fields.city.value,
-          pincode: addressValidation.fields.pinCode.value,
-        },
-        payoutMethod: formData.payoutMethod,
-        upiId: formData.payoutMethod === "UPI" ? formData.upiId.trim() : undefined,
-        bankDetails,
-        termsAccepted: formData.termsAccepted,
-      });
+          drivingLicense: formData.drivingLicenseNumber.trim().toUpperCase(),
+          documents: {
+            aadhaarNumber: formData.aadhaarNumber.trim(),
+            aadhaarPhoto: getUploadedUrl(uploadedDocs.aadhaarPhoto || {}),
+            panNumber: formData.panNumber.trim().toUpperCase(),
+            panPhoto: getUploadedUrl(uploadedDocs.panPhoto || {}),
+            drivingLicenseNumber: formData.drivingLicenseNumber.trim().toUpperCase(),
+            drivingLicensePhoto: getUploadedUrl(uploadedDocs.drivingLicensePhoto || {}),
+            vehicleRcNumber: normalizeVehicleNumber(formData.bikeNumber),
+            vehicleRcPhoto: getUploadedUrl(uploadedDocs.vehicleRcPhoto || {}),
+            bikeInsurancePhoto: getUploadedUrl(uploadedDocs.bikeInsurancePhoto || {}),
+            profilePhoto: getUploadedUrl(uploadedDocs.profilePhoto || {}),
+            livePhoto: getUploadedUrl(uploadedDocs.livePhoto || {}),
+          },
+          address: {
+            buildingName: addressDraft.fullAddress,
+            streetName: addressDraft.fullAddress,
+            landmark: addressDraft.landmark,
+            area: addressDraft.city,
+            state: addressDraft.state,
+            district: addressDraft.district,
+            city: addressDraft.city,
+            pincode: addressDraft.pinCode,
+          },
+          payoutMethod: formData.payoutMethod,
+          upiId: formData.payoutMethod === "UPI" ? formData.upiId.trim() : undefined,
+          bankDetails,
+          termsAccepted: formData.termsAccepted,
+        });
+      } catch (deliveryError: any) {
+        const msg: string = deliveryError?.message || "";
+        // If the delivery profile is already created (e.g. user retried after a partial failure),
+        // treat it as success and send them to the verification-pending screen.
+        if (
+          msg.toLowerCase().includes("already registered") ||
+          msg.toLowerCase().includes("already exists")
+        ) {
+          console.log("[Register] Delivery partner already registered — treating as success.");
+        } else {
+          // Real error — bubble it up
+          throw deliveryError;
+        }
+      }
 
       clearAllData();
-      Alert.alert("Success!", "Registration submitted for verification.");
-      router.replace("/(onboarding)/verification-pending");
+
+      // Auto-close progress modal and navigate after short delay
+      setTimeout(() => {
+        setUploadModal({ visible: false, items: [] });
+        router.replace("/(onboarding)/verification-pending");
+      }, 1500);
     } catch (error: any) {
-      Alert.alert("Registration Error", error.message);
+      setUploadModal((prev) => ({ ...prev, visible: false }));
+      const msg = error?.message || "Something went wrong. Please try again.";
+      Alert.alert("Submission Error", msg);
     } finally {
       setLoading(false);
     }
   };
 
+
+  // ─── Render helpers ────────────────────────────────────────────────────────
+
   const renderOption = (label: string, active: boolean, onPress: () => void, icon?: keyof typeof Ionicons.glyphMap) => (
     <TouchableOpacity key={label} style={[styles.optionPill, active && styles.optionPillActive]} onPress={onPress}>
-      {icon && <Ionicons name={icon} size={18} color={active ? Colors.light.black : Colors.light.primary} />}
+      {icon && <Ionicons name={icon} size={18} color={active ? "#FFFFFF" : Colors.light.primary} />}
       <Text style={[styles.optionText, active && styles.optionTextActive]}>{label}</Text>
     </TouchableOpacity>
   );
 
-  const renderPhotoTile = (title: string, subtitle: string, doc: any, onPress: () => void, onClear: () => void, icon: keyof typeof Ionicons.glyphMap, showCamera = false) => {
+  const renderPhotoTile = (
+    title: string,
+    subtitle: string,
+    doc: any,
+    onPress: () => void,
+    onClear: () => void,
+    icon: keyof typeof Ionicons.glyphMap,
+    showCamera = false
+  ) => {
     const hasImage = doc && doc.uri && doc.exists;
-
     return (
       <View style={styles.photoTileWrapper}>
         <TouchableOpacity
@@ -511,42 +577,37 @@ export default function RegisterScreen() {
         >
           {hasImage ? (
             <>
-              <Image
-                source={{ uri: doc.uri }}
-                style={styles.photoPreview}
-              />
+              <Image source={{ uri: doc.uri }} style={styles.photoPreview} />
               <View style={styles.photoOverlay}>
                 <TouchableOpacity
                   style={styles.overlayBtn}
-                  onPress={(e) => {
-                    e.stopPropagation?.();
-                    openPreview(doc.uri, title);
-                  }}
+                  onPress={(e) => { e.stopPropagation?.(); openPreview(doc.uri, title); }}
                 >
-                  <Ionicons name="eye-outline" size={16} color={Colors.light.white} />
+                  <Ionicons name="eye-outline" size={16} color="#FFFFFF" />
+                  <Text style={styles.overlayBtnText}>View</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.overlayBtn}
-                  onPress={(e) => {
-                    e.stopPropagation?.();
-                    onClear();
-                  }}
+                  onPress={(e) => { e.stopPropagation?.(); onClear(); }}
                 >
-                  <Ionicons name="trash-outline" size={16} color={Colors.light.error} />
+                  <Ionicons name="trash-outline" size={16} color="#FCA5A5" />
+                  <Text style={[styles.overlayBtnText, { color: "#FCA5A5" }]}>Remove</Text>
                 </TouchableOpacity>
               </View>
               <View style={styles.uploadedBadge}>
-                <Ionicons name="checkmark-circle" size={14} color={Colors.light.success} />
+                <Ionicons name="checkmark-circle" size={22} color={Colors.light.success} />
               </View>
             </>
           ) : (
             <View style={styles.photoPlaceholder}>
-              <Ionicons name={showCamera ? "camera-outline" : icon} size={32} color={Colors.light.primary} />
+              <View style={styles.photoIconCircle}>
+                <Ionicons name={showCamera ? "camera-outline" : icon} size={28} color={Colors.light.primary} />
+              </View>
               <Text style={styles.photoTitle}>{title}</Text>
               <Text style={styles.photoSubtitle}>{subtitle}</Text>
               <View style={styles.uploadHint}>
-                <Ionicons name="cloud-upload-outline" size={16} color={Colors.light.primary} />
-                <Text style={styles.uploadHintText}>Tap to upload</Text>
+                <Ionicons name="cloud-upload-outline" size={14} color={Colors.light.primary} />
+                <Text style={styles.uploadHintText}>{showCamera ? "Open camera" : "Tap to upload"}</Text>
               </View>
             </View>
           )}
@@ -561,7 +622,7 @@ export default function RegisterScreen() {
         return (
           <Animated.View key="step1" entering={FadeInRight} exiting={FadeOutLeft} style={styles.stepContainer}>
             <Text style={styles.stepTitle}>Personal & Vehicle</Text>
-            <Text style={styles.stepSubtitle}>Enter your account details and the bike you will use for deliveries.</Text>
+            <Text style={styles.stepSubtitle}>Enter your account details and the vehicle you'll use for deliveries.</Text>
 
             <ThemedInput
               label="Full Name"
@@ -590,13 +651,22 @@ export default function RegisterScreen() {
                       containerStyle={{ marginBottom: 0 }}
                     />
                   </View>
-                  <TouchableOpacity style={[styles.otpBtn, otpSent && styles.otpBtnSent]} onPress={handleSendOtp} disabled={loading}>
-                    <Text style={styles.otpBtnText}>{otpSent ? "Resend" : "Get OTP"}</Text>
+                  <TouchableOpacity
+                    style={[styles.otpBtn, otpSent && styles.otpBtnSent]}
+                    onPress={handleSendOtp}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <ActivityIndicator size="small" color={Colors.light.primary} />
+                    ) : (
+                      <Text style={styles.otpBtnText}>{otpSent ? "Resend" : "Get OTP"}</Text>
+                    )}
                   </TouchableOpacity>
                 </View>
+
                 <ThemedInput
                   label="Verification Code (OTP)"
-                  placeholder="Enter 6-digit code"
+                  placeholder="Enter 6-digit code from email"
                   icon="shield-checkmark-outline"
                   keyboardType="numeric"
                   maxLength={6}
@@ -608,7 +678,7 @@ export default function RegisterScreen() {
 
             <ThemedInput
               label="Phone Number"
-              placeholder="10 digit number"
+              placeholder="10-digit mobile number"
               icon="call-outline"
               keyboardType="phone-pad"
               maxLength={10}
@@ -627,7 +697,7 @@ export default function RegisterScreen() {
                 maxLength={64}
                 rightIcon={showPassword ? "eye-off-outline" : "eye-outline"}
                 rightIconAccessibilityLabel={showPassword ? "Hide password" : "Show password"}
-                onRightIconPress={() => setShowPassword((current) => !current)}
+                onRightIconPress={() => setShowPassword((c) => !c)}
               />
             )}
 
@@ -638,7 +708,7 @@ export default function RegisterScreen() {
               )}
             </View>
 
-            <Text style={styles.groupLabel}>Bike Fuel Type</Text>
+            <Text style={styles.groupLabel}>Fuel Type</Text>
             <View style={styles.optionRow}>
               {(["Petrol", "EV"] as FuelType[]).map((type) =>
                 renderOption(type, formData.fuelType === type, () => updateFormField("fuelType", type), type === "EV" ? "flash-outline" : "flame-outline")
@@ -646,7 +716,7 @@ export default function RegisterScreen() {
             </View>
 
             <ThemedInput
-              label="Bike Number"
+              label="Vehicle Number"
               placeholder="GJ01AB1234"
               icon="barcode-outline"
               autoCapitalize="characters"
@@ -668,48 +738,65 @@ export default function RegisterScreen() {
         return (
           <Animated.View key="step2" entering={FadeInRight} exiting={FadeOutLeft} style={styles.stepContainer}>
             <Text style={styles.stepTitle}>Documents</Text>
-            <Text style={styles.stepSubtitle}>Add identity, tax, vehicle, payout, and live photo verification details.</Text>
+            <Text style={styles.stepSubtitle}>Upload identity, vehicle, and verification documents below.</Text>
 
-            <ThemedInput
-              label="Aadhaar Number"
-              placeholder="12 digit Aadhaar number"
-              icon="id-card-outline"
-              keyboardType="numeric"
-              maxLength={12}
-              value={formData.aadhaarNumber}
-              onChangeText={(text) => updateFormField("aadhaarNumber", text.replace(/\D/g, ""))}
-            />
-            {renderPhotoTile("Aadhaar Card Photo", "Tap to upload", documents.aadhaarPhoto, () => pickDocumentPhoto("aadhaarPhoto"), () => clearDocument("aadhaarPhoto"), "image-outline")}
+            <View style={styles.docSection}>
+              <View style={styles.docSectionHeader}>
+                <Ionicons name="person-circle-outline" size={20} color={Colors.light.primary} />
+                <Text style={styles.docSectionTitle}>Identity Documents</Text>
+              </View>
 
-            <ThemedInput
-              label="PAN Number"
-              placeholder="ABCDE1234F"
-              icon="card-outline"
-              autoCapitalize="characters"
-              maxLength={10}
-              value={formData.panNumber}
-              onChangeText={(text) => updateFormField("panNumber", text.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 10))}
-            />
-            {renderPhotoTile("PAN Card Photo", "Tap to upload", documents.panPhoto, () => pickDocumentPhoto("panPhoto"), () => clearDocument("panPhoto"), "image-outline")}
+              <ThemedInput
+                label="Aadhaar Number"
+                placeholder="12-digit Aadhaar number"
+                icon="id-card-outline"
+                keyboardType="numeric"
+                maxLength={12}
+                value={formData.aadhaarNumber}
+                onChangeText={(text) => updateFormField("aadhaarNumber", text.replace(/\D/g, ""))}
+              />
+              {renderPhotoTile("Aadhaar Card Photo", "Front side of Aadhaar", documents.aadhaarPhoto, () => pickDocumentPhoto("aadhaarPhoto"), () => clearDocument("aadhaarPhoto"), "image-outline")}
 
-            <ThemedInput
-              label="Driving License Number"
-              placeholder="GJ0120231234567"
-              icon="card-outline"
-              autoCapitalize="characters"
-              maxLength={16}
-              value={formData.drivingLicenseNumber}
-              onChangeText={(text) => updateFormField("drivingLicenseNumber", text.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 16))}
-            />
-            {renderPhotoTile("Driving License Photo", "Tap to upload", documents.drivingLicensePhoto, () => pickDocumentPhoto("drivingLicensePhoto"), () => clearDocument("drivingLicensePhoto"), "image-outline")}
+              <ThemedInput
+                label="PAN Number"
+                placeholder="ABCDE1234F"
+                icon="card-outline"
+                autoCapitalize="characters"
+                maxLength={10}
+                value={formData.panNumber}
+                onChangeText={(text) => updateFormField("panNumber", text.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 10))}
+              />
+              {renderPhotoTile("PAN Card Photo", "Clear photo of PAN card", documents.panPhoto, () => pickDocumentPhoto("panPhoto"), () => clearDocument("panPhoto"), "image-outline")}
 
-            {renderPhotoTile("Vehicle RC", `${formData.fuelType} ${formData.vehicleType} registration`, documents.vehicleRcPhoto, () => pickDocumentPhoto("vehicleRcPhoto"), () => clearDocument("vehicleRcPhoto"), "document-text-outline")}
+              <ThemedInput
+                label="Driving License Number"
+                placeholder="GJ0120231234567"
+                icon="card-outline"
+                autoCapitalize="characters"
+                maxLength={15}
+                value={formData.drivingLicenseNumber}
+                onChangeText={(text) => updateFormField("drivingLicenseNumber", text.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 15))}
+              />
+              {renderPhotoTile("Driving License Photo", "Front side of license", documents.drivingLicensePhoto, () => pickDocumentPhoto("drivingLicensePhoto"), () => clearDocument("drivingLicensePhoto"), "image-outline")}
+            </View>
 
-            {renderPhotoTile("Bike Insurance", "Valid insurance document", documents.bikeInsurancePhoto, () => pickDocumentPhoto("bikeInsurancePhoto"), () => clearDocument("bikeInsurancePhoto"), "shield-checkmark-outline")}
+            <View style={styles.docSection}>
+              <View style={styles.docSectionHeader}>
+                <Ionicons name="bicycle-outline" size={20} color={Colors.light.primary} />
+                <Text style={styles.docSectionTitle}>Vehicle Documents</Text>
+              </View>
+              {renderPhotoTile("Vehicle RC", `${formData.fuelType} ${formData.vehicleType} registration`, documents.vehicleRcPhoto, () => pickDocumentPhoto("vehicleRcPhoto"), () => clearDocument("vehicleRcPhoto"), "document-text-outline")}
+              {renderPhotoTile("Bike Insurance", "Valid insurance document", documents.bikeInsurancePhoto, () => pickDocumentPhoto("bikeInsurancePhoto"), () => clearDocument("bikeInsurancePhoto"), "shield-checkmark-outline")}
+            </View>
 
-            {renderPhotoTile("Passport-size Photo / Selfie", "Tap to upload", documents.profilePhoto, () => pickDocumentPhoto("profilePhoto"), () => clearDocument("profilePhoto"), "person-circle-outline")}
-
-            {renderPhotoTile("One Live Photo", "Open camera to capture", documents.livePhoto, captureLivePhoto, () => clearDocument("livePhoto"), "camera-outline", true)}
+            <View style={styles.docSection}>
+              <View style={styles.docSectionHeader}>
+                <Ionicons name="camera-outline" size={20} color={Colors.light.primary} />
+                <Text style={styles.docSectionTitle}>Photo Verification</Text>
+              </View>
+              {renderPhotoTile("Profile Photo / Selfie", "Clear passport-size photo", documents.profilePhoto, () => pickDocumentPhoto("profilePhoto"), () => clearDocument("profilePhoto"), "person-circle-outline")}
+              {renderPhotoTile("Live Photo", "Open camera to capture now", documents.livePhoto, captureLivePhoto, () => clearDocument("livePhoto"), "camera-outline", true)}
+            </View>
           </Animated.View>
         );
 
@@ -717,7 +804,7 @@ export default function RegisterScreen() {
         return (
           <Animated.View key="step3" entering={FadeInRight} exiting={FadeOutLeft} style={styles.stepContainer}>
             <Text style={styles.stepTitle}>Address Info</Text>
-            <Text style={styles.stepSubtitle}>Type every address detail manually for verification.</Text>
+            <Text style={styles.stepSubtitle}>Type all address details manually for verification purposes.</Text>
 
             <ValidatedAddressField
               label="Full Address / House No / Street"
@@ -803,7 +890,7 @@ export default function RegisterScreen() {
         return (
           <Animated.View key="step4" entering={FadeInRight} exiting={FadeOutLeft} style={styles.stepContainer}>
             <Text style={styles.stepTitle}>Payout Details</Text>
-            <Text style={styles.stepSubtitle}>Choose UPI or bank details for delivery payouts.</Text>
+            <Text style={styles.stepSubtitle}>Choose how you'd like to receive your delivery earnings.</Text>
 
             <View style={styles.optionRow}>
               {renderOption("UPI ID", formData.payoutMethod === "UPI", () => updateFormField("payoutMethod", "UPI"), "qr-code-outline")}
@@ -859,9 +946,12 @@ export default function RegisterScreen() {
               </>
             )}
 
-            <TouchableOpacity style={styles.termsRow} onPress={() => updateFormField("termsAccepted", !formData.termsAccepted)}>
+            <TouchableOpacity
+              style={styles.termsRow}
+              onPress={() => updateFormField("termsAccepted", !formData.termsAccepted)}
+            >
               <View style={[styles.checkbox, formData.termsAccepted && styles.checkboxActive]}>
-                {formData.termsAccepted && <Ionicons name="checkmark" size={18} color={Colors.light.black} />}
+                {formData.termsAccepted && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}
               </View>
               <Text style={styles.termsText}>I agree to the Terms & Conditions for delivery partners.</Text>
             </TouchableOpacity>
@@ -874,45 +964,101 @@ export default function RegisterScreen() {
   };
 
   return (
-    <ScreenContainer withSafeArea>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
-        <View style={styles.container}>
-          <View style={styles.progressHeader}>
+    <View style={styles.container}>
+      <StatusBar style="light" backgroundColor={Colors.light.primary} />
+
+      {/* Header gradient */}
+      <LinearGradient
+        colors={[Colors.light.primaryLight, Colors.light.primaryDark]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.header}
+      >
+        <SafeAreaView edges={["top"]} style={styles.headerInner}>
+          <View style={styles.headerRow}>
             <TouchableOpacity onPress={handleBack} style={styles.backBtn}>
-              <Ionicons name="arrow-back" size={24} color={Colors.light.text} />
+              <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
             </TouchableOpacity>
-            <View style={styles.progressBarWrapper}>
-              <View style={styles.progressBar}>
-                <Animated.View layout={Layout.springify()} style={[styles.progressFill, { width: `${(currentStep / 4) * 100}%` }]} />
-              </View>
-              <Text style={styles.stepIndicator}>Step {currentStep} of 4</Text>
+            <View style={styles.stepsIndicator}>
+              {STEP_LABELS.map((label, idx) => {
+                const step = idx + 1;
+                const isActive = currentStep === step;
+                const isDone = currentStep > step;
+                return (
+                  <View key={step} style={styles.stepDot}>
+                    <View style={[
+                      styles.stepDotCircle,
+                      isActive && styles.stepDotActive,
+                      isDone && styles.stepDotDone,
+                    ]}>
+                      {isDone
+                        ? <Ionicons name="checkmark" size={12} color="#FFFFFF" />
+                        : <Text style={[styles.stepDotText, isActive && styles.stepDotTextActive]}>{step}</Text>
+                      }
+                    </View>
+                    {idx < STEP_LABELS.length - 1 && (
+                      <View style={[styles.stepConnector, isDone && styles.stepConnectorDone]} />
+                    )}
+                  </View>
+                );
+              })}
             </View>
+            <Text style={styles.stepLabel}>Step {currentStep} / 4</Text>
           </View>
+          <Text style={styles.headerStepName}>{STEP_LABELS[currentStep - 1]}</Text>
+        </SafeAreaView>
+      </LinearGradient>
 
-          <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-            {renderStep()}
-          </ScrollView>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {renderStep()}
+        </ScrollView>
 
-          <View style={styles.footer}>
-            <PrimaryButton
-              label={currentStep === 4 ? "Submit for Verification" : "Continue"}
-              onPress={handleNext}
-              loading={loading}
-              disabled={loading || !isCurrentStepValid}
-              style={styles.mainBtn}
-            />
-          </View>
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={[styles.continueBtn, (!isCurrentStepValid || loading) && styles.continueBtnDisabled]}
+            onPress={handleNext}
+            disabled={!isCurrentStepValid || loading}
+            activeOpacity={0.85}
+          >
+            <LinearGradient
+              colors={
+                !isCurrentStepValid || loading
+                  ? ["#B0C4FF", "#B0C4FF"]
+                  : [Colors.light.primaryLight, Colors.light.primaryDark]
+              }
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.continueBtnGradient}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <>
+                  <Text style={styles.continueBtnText}>
+                    {currentStep === 4 ? "Submit for Verification" : "Continue"}
+                  </Text>
+                  <Ionicons name={currentStep === 4 ? "checkmark-circle-outline" : "arrow-forward"} size={20} color="#FFFFFF" />
+                </>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
 
       {/* Image Preview Modal */}
       <Modal visible={previewModal.visible} transparent animationType="fade" onRequestClose={closePreview}>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={styles.previewModalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{previewModal.title}</Text>
               <TouchableOpacity onPress={closePreview} style={styles.modalCloseBtn}>
-                <Ionicons name="close" size={24} color={Colors.light.text} />
+                <Ionicons name="close" size={22} color={Colors.light.text} />
               </TouchableOpacity>
             </View>
             {previewModal.uri && (
@@ -924,61 +1070,602 @@ export default function RegisterScreen() {
           </View>
         </View>
       </Modal>
-    </ScreenContainer>
+
+      {/* Upload Progress Modal */}
+      <Modal visible={uploadModal.visible} transparent animationType="slide" onRequestClose={() => {}}>
+        <View style={styles.uploadModalOverlay}>
+          <View style={styles.uploadModalContent}>
+            <View style={styles.uploadModalHeader}>
+              <View style={styles.uploadModalIcon}>
+                <Ionicons name="cloud-upload-outline" size={28} color={Colors.light.primary} />
+              </View>
+              <Text style={styles.uploadModalTitle}>Uploading Documents</Text>
+              <Text style={styles.uploadModalSubtitle}>Please wait while we securely upload your files...</Text>
+            </View>
+
+            <View style={styles.uploadItemsList}>
+              {uploadModal.items.map((item) => (
+                <View key={item.key} style={styles.uploadItem}>
+                  <View style={styles.uploadItemLeft}>
+                    <View style={[
+                      styles.uploadItemIcon,
+                      item.done && styles.uploadItemIconDone,
+                      item.error && styles.uploadItemIconError,
+                    ]}>
+                      <Ionicons
+                        name={item.error ? "alert-circle-outline" : item.done ? "checkmark" : "document-outline"}
+                        size={16}
+                        color={item.error ? "#EF4444" : item.done ? "#FFFFFF" : Colors.light.primary}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.uploadItemLabel}>{item.label}</Text>
+                      <View style={styles.progressBarOuter}>
+                        <View style={[
+                          styles.progressBarInner,
+                          { width: `${item.progress}%` },
+                          item.done && styles.progressBarDone,
+                          item.error && styles.progressBarError,
+                        ]} />
+                      </View>
+                    </View>
+                  </View>
+                  <Text style={[
+                    styles.uploadItemPct,
+                    item.done && styles.uploadItemPctDone,
+                    item.error && styles.uploadItemPctError,
+                  ]}>
+                    {item.error ? "Error" : item.done ? "Done" : `${Math.round(item.progress)}%`}
+                  </Text>
+                </View>
+              ))}
+            </View>
+
+            {uploadModal.items.every((i) => i.done) && (
+              <View style={styles.uploadDoneRow}>
+                <Ionicons name="checkmark-circle" size={24} color={Colors.light.success} />
+                <Text style={styles.uploadDoneText}>All documents uploaded successfully!</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: Spacing.lg },
-  progressHeader: { flexDirection: "row", alignItems: "center", marginTop: Spacing.md, gap: Spacing.md, marginBottom: Spacing.xl },
-  backBtn: { width: 44, height: 44, borderRadius: Radius.lg, backgroundColor: Colors.light.surface, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: Colors.light.border },
-  progressBarWrapper: { flex: 1, gap: 6 },
-  progressBar: { height: 6, backgroundColor: Colors.light.surface, borderRadius: 3, overflow: "hidden" },
-  progressFill: { height: "100%", backgroundColor: Colors.light.primary },
-  stepIndicator: { fontSize: 12, fontWeight: "700", color: Colors.light.textDim, textTransform: "uppercase", letterSpacing: 1 },
-  content: { flex: 1 },
-  scrollContent: { paddingBottom: Spacing.xl },
-  stepContainer: { flex: 1 },
-  stepTitle: { fontSize: 30, fontWeight: "900", color: Colors.light.text, marginBottom: Spacing.xs },
-  stepSubtitle: { fontSize: 16, color: Colors.light.textDim, lineHeight: 24, marginBottom: Spacing.xl },
-  otpInputGroup: { flexDirection: "row", alignItems: "flex-end", gap: Spacing.sm, marginBottom: Spacing.md },
-  otpBtn: { height: 56, paddingHorizontal: Spacing.lg, backgroundColor: Colors.light.surfaceSecondary, borderRadius: Radius.md, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: Colors.light.primary },
-  otpBtnSent: { borderColor: Colors.light.success, opacity: 0.8 },
-  otpBtnText: { color: Colors.light.primary, fontWeight: "800", fontSize: 13 },
-  groupLabel: { color: Colors.light.textDim, fontSize: 14, fontWeight: "700", marginBottom: Spacing.sm, marginLeft: Spacing.xs },
-  optionRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm, marginBottom: Spacing.md },
-  optionPill: { minHeight: 46, paddingHorizontal: Spacing.md, borderRadius: Radius.md, borderWidth: 1.5, borderColor: Colors.light.border, backgroundColor: Colors.light.surface, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: Spacing.xs },
-  optionPillActive: { backgroundColor: Colors.light.primary, borderColor: Colors.light.primary },
-  optionText: { color: Colors.light.text, fontWeight: "800", fontSize: 14 },
-  optionTextActive: { color: Colors.light.black },
-  photoTileWrapper: { marginBottom: Spacing.md },
-  photoTile: { height: 160, borderRadius: Radius.lg, borderWidth: 2, borderStyle: "dashed", borderColor: Colors.light.border, backgroundColor: Colors.light.surface, overflow: "hidden" },
-  photoTileWithImage: { borderStyle: "solid" },
-  photoPreview: { width: "100%", height: "100%" },
-  photoPlaceholder: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: Spacing.md },
-  photoTitle: { color: Colors.light.text, fontSize: 15, fontWeight: "900", marginTop: Spacing.sm, textAlign: "center" },
-  photoSubtitle: { color: Colors.light.textMuted, fontSize: 12, fontWeight: "600", marginTop: 4, textAlign: "center" },
-  uploadHint: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: Spacing.sm },
-  uploadHintText: { color: Colors.light.primary, fontSize: 12, fontWeight: "700" },
-  photoOverlay: { position: "absolute", left: 0, right: 0, bottom: 0, minHeight: 42, backgroundColor: "rgba(0,0,0,0.72)", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: Spacing.md, paddingHorizontal: Spacing.md },
-  overlayBtn: { padding: Spacing.sm },
-  uploadedBadge: { position: "absolute", top: Spacing.sm, right: Spacing.sm, backgroundColor: Colors.light.surface, borderRadius: Radius.full, padding: 4 },
-  termsRow: { flexDirection: "row", alignItems: "center", gap: Spacing.md, marginTop: Spacing.sm, paddingVertical: Spacing.md },
-  checkbox: { width: 26, height: 26, borderRadius: 6, borderWidth: 1.5, borderColor: Colors.light.border, backgroundColor: Colors.light.surface, alignItems: "center", justifyContent: "center" },
-  checkboxActive: { backgroundColor: Colors.light.primary, borderColor: Colors.light.primary },
-  termsText: { flex: 1, color: Colors.light.textDim, fontSize: 14, lineHeight: 20, fontWeight: "600" },
-  footer: { paddingBottom: Spacing.xl, paddingTop: Spacing.md },
-  mainBtn: { ...Shadows.yellow },
-  loginLinkContainer: { flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: Spacing.lg, gap: Spacing.xs },
-  loginLinkText: { color: Colors.light.textDim, fontSize: 14 },
-  loginLinkAction: { color: Colors.light.primary, fontSize: 14, fontWeight: "700" },
-  // Modal styles
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.9)", alignItems: "center", justifyContent: "center", padding: Spacing.lg },
-  modalContent: { width: "100%", maxHeight: "80%", backgroundColor: Colors.light.surface, borderRadius: Radius.xl, overflow: "hidden" },
-  modalHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.light.border },
-  modalTitle: { color: Colors.light.text, fontSize: 18, fontWeight: "900" },
-  modalCloseBtn: { padding: Spacing.xs },
-  previewImage: { width: SCREEN_WIDTH - 48, height: SCREEN_WIDTH - 48 },
-  modalDoneBtn: { padding: Spacing.md, alignItems: "center", borderTopWidth: 1, borderTopColor: Colors.light.border },
-  modalDoneText: { color: Colors.light.primary, fontSize: 16, fontWeight: "800" },
+  container: {
+    flex: 1,
+    backgroundColor: Colors.light.background,
+  },
+  // ── Header ─────────────────────────────────────────────
+  header: {
+    paddingBottom: 20,
+  },
+  headerInner: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: 8,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    gap: Spacing.md,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepsIndicator: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  stepDot: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  stepDotCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: "rgba(255,255,255,0.25)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepDotActive: {
+    backgroundColor: "#FFFFFF",
+  },
+  stepDotDone: {
+    backgroundColor: Colors.light.success,
+  },
+  stepDotText: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  stepDotTextActive: {
+    color: Colors.light.primary,
+  },
+  stepConnector: {
+    flex: 1,
+    height: 2,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    marginHorizontal: 3,
+  },
+  stepConnectorDone: {
+    backgroundColor: Colors.light.success,
+  },
+  stepLabel: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  headerStepName: {
+    color: "#FFFFFF",
+    fontSize: 20,
+    fontWeight: "800",
+    letterSpacing: 0.3,
+  },
+  // ── Scroll content ──────────────────────────────────────
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xxl,
+  },
+  stepContainer: {
+    flex: 1,
+  },
+  stepTitle: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: Colors.light.text,
+    marginBottom: Spacing.xs,
+  },
+  stepSubtitle: {
+    fontSize: 14,
+    color: Colors.light.textMuted,
+    lineHeight: 22,
+    marginBottom: Spacing.xl,
+    fontWeight: "500",
+  },
+  // ── OTP row ─────────────────────────────────────────────
+  otpInputGroup: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  otpBtn: {
+    height: 56,
+    paddingHorizontal: Spacing.md,
+    backgroundColor: Colors.light.surface,
+    borderRadius: Radius.md,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: Colors.light.primary,
+    minWidth: 80,
+  },
+  otpBtnSent: {
+    borderColor: Colors.light.success,
+  },
+  otpBtnText: {
+    color: Colors.light.primary,
+    fontWeight: "800",
+    fontSize: 13,
+  },
+  // ── Option pills ────────────────────────────────────────
+  groupLabel: {
+    color: Colors.light.text,
+    fontSize: 14,
+    fontWeight: "700",
+    marginBottom: Spacing.sm,
+  },
+  optionRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  optionPill: {
+    minHeight: 46,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.full,
+    borderWidth: 1.5,
+    borderColor: Colors.light.border,
+    backgroundColor: Colors.light.surface,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  optionPillActive: {
+    backgroundColor: Colors.light.primary,
+    borderColor: Colors.light.primary,
+  },
+  optionText: {
+    color: Colors.light.text,
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  optionTextActive: {
+    color: "#FFFFFF",
+  },
+  // ── Document sections ───────────────────────────────────
+  docSection: {
+    marginBottom: Spacing.xl,
+    backgroundColor: Colors.light.surface,
+    borderRadius: Radius.xl,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    ...Shadows.card,
+  },
+  docSectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: Spacing.md,
+    paddingBottom: Spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.border,
+  },
+  docSectionTitle: {
+    color: Colors.light.text,
+    fontWeight: "800",
+    fontSize: 15,
+  },
+  // ── Photo tiles ─────────────────────────────────────────
+  photoTileWrapper: {
+    marginBottom: Spacing.md,
+  },
+  photoTile: {
+    height: 140,
+    borderRadius: Radius.lg,
+    borderWidth: 2,
+    borderStyle: "dashed",
+    borderColor: Colors.light.border,
+    backgroundColor: Colors.light.surfaceSecondary,
+    overflow: "hidden",
+  },
+  photoTileWithImage: {
+    borderStyle: "solid",
+    borderColor: Colors.light.primary,
+    borderWidth: 2,
+  },
+  photoPreview: {
+    width: "100%",
+    height: "100%",
+  },
+  photoPlaceholder: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: Spacing.md,
+    gap: 6,
+  },
+  photoIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.light.overlay,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+  },
+  photoTitle: {
+    color: Colors.light.text,
+    fontSize: 14,
+    fontWeight: "800",
+    textAlign: "center",
+  },
+  photoSubtitle: {
+    color: Colors.light.textMuted,
+    fontSize: 12,
+    fontWeight: "500",
+    textAlign: "center",
+  },
+  uploadHint: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  uploadHintText: {
+    color: Colors.light.primary,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  photoOverlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    minHeight: 44,
+    backgroundColor: "rgba(13,27,75,0.82)",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.xl,
+    paddingHorizontal: Spacing.md,
+  },
+  overlayBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    padding: 6,
+  },
+  overlayBtnText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  uploadedBadge: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    backgroundColor: "#FFFFFF",
+    borderRadius: Radius.full,
+    padding: 2,
+    ...Shadows.soft,
+  },
+  // ── Payout terms ────────────────────────────────────────
+  termsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.md,
+    marginTop: Spacing.sm,
+    paddingVertical: Spacing.md,
+  },
+  checkbox: {
+    width: 26,
+    height: 26,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: Colors.light.border,
+    backgroundColor: Colors.light.surface,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkboxActive: {
+    backgroundColor: Colors.light.primary,
+    borderColor: Colors.light.primary,
+  },
+  termsText: {
+    flex: 1,
+    color: Colors.light.textMuted,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: "500",
+  },
+  // ── Login link ──────────────────────────────────────────
+  loginLinkContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: Spacing.lg,
+    gap: Spacing.xs,
+  },
+  loginLinkText: {
+    color: Colors.light.textMuted,
+    fontSize: 14,
+  },
+  loginLinkAction: {
+    color: Colors.light.primary,
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  // ── Footer / CTA ────────────────────────────────────────
+  footer: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.xl,
+    paddingTop: Spacing.md,
+    backgroundColor: Colors.light.background,
+    borderTopWidth: 1,
+    borderTopColor: Colors.light.border,
+  },
+  continueBtn: {
+    borderRadius: Radius.full,
+    overflow: "hidden",
+    ...Shadows.blue,
+  },
+  continueBtnDisabled: {
+    opacity: 0.65,
+  },
+  continueBtnGradient: {
+    height: 58,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.sm,
+  },
+  continueBtnText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "800",
+    letterSpacing: 0.3,
+  },
+  // ── Preview modal ───────────────────────────────────────
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.88)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: Spacing.lg,
+  },
+  previewModalContent: {
+    width: "100%",
+    maxHeight: "80%",
+    backgroundColor: Colors.light.surface,
+    borderRadius: Radius.xl,
+    overflow: "hidden",
+    ...Shadows.blue,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.border,
+  },
+  modalTitle: {
+    color: Colors.light.text,
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  modalCloseBtn: {
+    padding: Spacing.xs,
+  },
+  previewImage: {
+    width: SCREEN_WIDTH - 48,
+    height: SCREEN_WIDTH - 48,
+  },
+  modalDoneBtn: {
+    padding: Spacing.md,
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: Colors.light.border,
+  },
+  modalDoneText: {
+    color: Colors.light.primary,
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  // ── Upload progress modal ───────────────────────────────
+  uploadModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(13,27,75,0.7)",
+    justifyContent: "flex-end",
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xxl,
+  },
+  uploadModalContent: {
+    backgroundColor: Colors.light.surface,
+    borderRadius: Radius.xl,
+    padding: Spacing.xl,
+    ...Shadows.blue,
+  },
+  uploadModalHeader: {
+    alignItems: "center",
+    marginBottom: Spacing.xl,
+  },
+  uploadModalIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.light.overlay,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+  },
+  uploadModalTitle: {
+    fontSize: 20,
+    fontWeight: "900",
+    color: Colors.light.text,
+    marginBottom: 4,
+  },
+  uploadModalSubtitle: {
+    fontSize: 13,
+    color: Colors.light.textMuted,
+    textAlign: "center",
+    fontWeight: "500",
+  },
+  uploadItemsList: {
+    gap: Spacing.md,
+  },
+  uploadItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: Spacing.sm,
+  },
+  uploadItemLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    flex: 1,
+  },
+  uploadItemIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.light.surfaceSecondary,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+  },
+  uploadItemIconDone: {
+    backgroundColor: Colors.light.success,
+    borderColor: Colors.light.success,
+  },
+  uploadItemIconError: {
+    backgroundColor: "#FEE2E2",
+    borderColor: "#FCA5A5",
+  },
+  uploadItemLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: Colors.light.text,
+    marginBottom: 4,
+  },
+  progressBarOuter: {
+    height: 5,
+    backgroundColor: Colors.light.surfaceSecondary,
+    borderRadius: Radius.full,
+    overflow: "hidden",
+  },
+  progressBarInner: {
+    height: "100%",
+    backgroundColor: Colors.light.primary,
+    borderRadius: Radius.full,
+  },
+  progressBarDone: {
+    backgroundColor: Colors.light.success,
+  },
+  progressBarError: {
+    backgroundColor: Colors.light.error,
+  },
+  uploadItemPct: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: Colors.light.textMuted,
+    minWidth: 36,
+    textAlign: "right",
+  },
+  uploadItemPctDone: {
+    color: Colors.light.success,
+  },
+  uploadItemPctError: {
+    color: Colors.light.error,
+  },
+  uploadDoneRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginTop: Spacing.xl,
+    padding: Spacing.md,
+    backgroundColor: "#F0FDF4",
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: "#BBF7D0",
+  },
+  uploadDoneText: {
+    color: Colors.light.success,
+    fontWeight: "700",
+    fontSize: 14,
+  },
 });

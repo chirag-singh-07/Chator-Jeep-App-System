@@ -24,6 +24,11 @@ export const adminService = {
     return response.data;
   },
 
+  approveUser: async (id: string) => {
+    const response = await apiClient.patch(`/users/admin/${id}/approve`);
+    return response.data;
+  },
+
   createAdmin: async (data: any) => {
     const response = await apiClient.post("/users/admin/create", data);
     return response.data;
