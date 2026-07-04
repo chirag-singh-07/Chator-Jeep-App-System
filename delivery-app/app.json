@@ -13,13 +13,15 @@
       "googleServicesFile": "./GoogleService-Info.plist",
       "supportsTablet": true,
       "UIBackgroundModes": [
+        "location",
         "location"
       ],
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Allow location access to share live rider position during active deliveries.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Allow location access to keep rider tracking accurate during delivery, even when the app is in the background.",
         "NSCameraUsageDescription": "Allow camera access to capture live photos for document verification.",
-        "NSPhotoLibraryUsageDescription": "Allow photo library access to upload documents and images."
+        "NSPhotoLibraryUsageDescription": "Allow photo library access to upload documents and images.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
