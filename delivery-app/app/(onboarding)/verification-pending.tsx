@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing, ScrollView, Alert, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Colors, Spacing, Radius, Shadows } from "@/constants/Colors";
@@ -11,6 +12,7 @@ import { StatusBar } from "expo-status-bar";
 export default function VerificationPending() {
   const profile = useDeliveryStore((state) => state.partnerProfile);
   const fetchProfile = useDeliveryStore((state) => state.fetchProfile);
+  const isLoading = useDeliveryStore((state) => state.isLoading);
   const logout = useAuthStore((state) => state.logout);
 
   const isRejected = profile?.status === "rejected";
@@ -39,7 +41,11 @@ export default function VerificationPending() {
   }, [isRejected]);
 
   return (
-    <View style={styles.container}>
+    <ScrollView 
+      style={styles.container} 
+      contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
+      showsVerticalScrollIndicator={false}
+    >
       <StatusBar style="light" backgroundColor={Colors.light.primary} />
 
       {/* Top gradient banner */}
@@ -125,8 +131,17 @@ export default function VerificationPending() {
 
         {/* Actions */}
         <TouchableOpacity
-          style={styles.refreshButton}
-          onPress={() => fetchProfile()}
+          style={[styles.refreshButton, isLoading && { opacity: 0.7 }]}
+          disabled={isLoading}
+          onPress={async () => {
+            await fetchProfile();
+            const currentProfile = useDeliveryStore.getState().partnerProfile;
+            if (currentProfile?.status === "approved") {
+              Alert.alert("Approved!", "Your account has been verified. Welcome to Chatori Jeeb!");
+            } else if (currentProfile?.status === "pending") {
+              Alert.alert("Status: Pending", "Your account is still under review. Please check back later.");
+            }
+          }}
           activeOpacity={0.85}
         >
           <LinearGradient
@@ -135,17 +150,27 @@ export default function VerificationPending() {
             end={{ x: 1, y: 1 }}
             style={styles.refreshGradient}
           >
-            <Ionicons name="refresh-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.refreshText}>Refresh Status</Text>
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <Ionicons name="refresh-outline" size={20} color="#FFFFFF" />
+            )}
+            <Text style={styles.refreshText}>{isLoading ? "Checking..." : "Check Status"}</Text>
           </LinearGradient>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={() => logout()}>
+        <TouchableOpacity 
+          style={styles.logoutButton} 
+          onPress={async () => {
+            await logout();
+            router.replace("/(auth)/login");
+          }}
+        >
           <Ionicons name="log-out-outline" size={18} color={Colors.light.error} />
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 

@@ -7,6 +7,7 @@ import {
   Text,
   View,
   ActivityIndicator,
+  Alert
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -113,7 +114,11 @@ export default function DashboardScreen() {
   }
 
   const handleAvailabilityChange = async (nextValue: boolean) => {
-    await toggleAvailability(nextValue);
+    try {
+      await toggleAvailability(nextValue);
+    } catch (error: any) {
+      Alert.alert("Toggle Failed", error?.response?.data?.message || error.message || "Could not change availability");
+    }
   };
 
   return (

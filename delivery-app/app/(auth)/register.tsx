@@ -946,15 +946,28 @@ export default function RegisterScreen() {
               </>
             )}
 
-            <TouchableOpacity
-              style={styles.termsRow}
-              onPress={() => updateFormField("termsAccepted", !formData.termsAccepted)}
-            >
-              <View style={[styles.checkbox, formData.termsAccepted && styles.checkboxActive]}>
-                {formData.termsAccepted && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}
+            <View style={styles.termsRow}>
+              <TouchableOpacity
+                style={styles.checkboxContainer}
+                onPress={() => updateFormField("termsAccepted", !formData.termsAccepted)}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.checkbox, formData.termsAccepted && styles.checkboxActive]}>
+                  {formData.termsAccepted && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}
+                </View>
+              </TouchableOpacity>
+              <View style={styles.termsTextContainer}>
+                <Text style={styles.termsText}>I agree to the </Text>
+                <TouchableOpacity onPress={() => router.push("/terms")}>
+                  <Text style={styles.termsLink}>Terms & Conditions</Text>
+                </TouchableOpacity>
+                <Text style={styles.termsText}> and </Text>
+                <TouchableOpacity onPress={() => router.push("/privacy")}>
+                  <Text style={styles.termsLink}>Privacy Policy</Text>
+                </TouchableOpacity>
+                <Text style={styles.termsText}> for delivery partners.</Text>
               </View>
-              <Text style={styles.termsText}>I agree to the Terms & Conditions for delivery partners.</Text>
-            </TouchableOpacity>
+            </View>
           </Animated.View>
         );
 
@@ -1138,6 +1151,50 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.light.background,
+  },
+  // ── Form & Terms ────────────────────────────────────────
+  termsRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginTop: Spacing.xl,
+    paddingHorizontal: Spacing.xs,
+  },
+  checkboxContainer: {
+    paddingRight: Spacing.sm,
+    paddingTop: 2,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: Radius.sm,
+    borderWidth: 2,
+    borderColor: Colors.light.border,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.light.surface,
+  },
+  checkboxActive: {
+    backgroundColor: Colors.light.primary,
+    borderColor: Colors.light.primary,
+  },
+  termsTextContainer: {
+    flex: 1,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+  },
+  termsText: {
+    color: Colors.light.textDim,
+    fontSize: 13,
+    lineHeight: 20,
+    fontWeight: "500",
+  },
+  termsLink: {
+    color: Colors.light.primary,
+    fontSize: 13,
+    fontWeight: "700",
+    textDecorationLine: "underline",
+    lineHeight: 20,
   },
   // ── Header ─────────────────────────────────────────────
   header: {
@@ -1417,35 +1474,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.full,
     padding: 2,
     ...Shadows.soft,
-  },
-  // ── Payout terms ────────────────────────────────────────
-  termsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.md,
-    marginTop: Spacing.sm,
-    paddingVertical: Spacing.md,
-  },
-  checkbox: {
-    width: 26,
-    height: 26,
-    borderRadius: 6,
-    borderWidth: 1.5,
-    borderColor: Colors.light.border,
-    backgroundColor: Colors.light.surface,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  checkboxActive: {
-    backgroundColor: Colors.light.primary,
-    borderColor: Colors.light.primary,
-  },
-  termsText: {
-    flex: 1,
-    color: Colors.light.textMuted,
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: "500",
   },
   // ── Login link ──────────────────────────────────────────
   loginLinkContainer: {

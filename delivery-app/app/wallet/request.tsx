@@ -19,7 +19,7 @@ export default function RequestPayoutScreen() {
   const [bankName, setBankName] = useState("");
 
   const canSubmit = useMemo(() => {
-    if (!Number(amount) || Number(amount) <= 0) return false;
+    if (!Number(amount) || Number(amount) < 5000) return false;
     if (method === "UPI") return upiId.trim().length > 2;
     return (
       accountHolderName.trim().length > 1 &&
@@ -92,6 +92,9 @@ export default function RequestPayoutScreen() {
               icon="cash-outline"
               containerStyle={styles.amountInput}
             />
+            {amount.length > 0 && Number(amount) < 5000 && (
+              <Text style={styles.errorText}>Minimum withdrawal amount is ₹5,000</Text>
+            )}
           </View>
 
           <View style={styles.section}>
@@ -244,6 +247,12 @@ const styles = StyleSheet.create({
     height: 72,
     fontSize: 32,
     fontWeight: '900',
+  },
+  errorText: {
+    color: Colors.light.error,
+    fontSize: 13,
+    marginTop: Spacing.sm,
+    fontWeight: '600',
   },
   methodContainer: {
     flexDirection: 'row',

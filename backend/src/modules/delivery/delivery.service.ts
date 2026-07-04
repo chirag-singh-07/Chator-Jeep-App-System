@@ -112,7 +112,7 @@ const emitDeliveryUpdate = (
 };
 
 const getRelatedRooms = (delivery: any, order: any) => {
-  const rooms = [`rider_${delivery.riderId.toString()}`, "admin"];
+  const rooms = [`rider_${delivery.userId?.toString()}`, "admin"];
 
   if (order?.userId) {
     rooms.push(`user_${order.userId.toString()}`);
@@ -570,13 +570,13 @@ export const updateAvailability = async (
 ) => {
   const current = await repo.findDeliveryByRiderId(riderId);
 
-  if (!input.isOnline && current?.orderId) {
+  if (!input.isOnline && current?.currentOrderId) {
     throw new AppError("Cannot go offline during an active delivery", 400);
   }
 
   const payload: Record<string, unknown> = {
     isOnline: input.isOnline,
-    isAvailable: input.isOnline && !current?.orderId,
+    isAvailable: input.isOnline && !current?.currentOrderId,
   };
 
   if (input.coordinates) {
@@ -594,8 +594,8 @@ export const updateAvailability = async (
     throw new AppError("Unable to update availability", 400);
   }
 
-  const order = updated.orderId
-    ? await getOrderById(updated.orderId.toString())
+  const order = updated.currentOrderId
+    ? await getOrderById(updated.currentOrderId.toString())
     : null;
   const response = {
     isOnline: updated.isOnline,

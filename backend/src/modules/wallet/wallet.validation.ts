@@ -22,7 +22,7 @@ export const createWithdrawalSchema = z.object({
 
 export const createDeliveryPayoutSchema = z.object({
   body: z.object({
-    amount: z.number().positive(),
+    amount: z.number().min(5000, "Minimum withdrawal amount is ₹5,000"),
     paymentMethod: z.union([bankMethodSchema, upiMethodSchema]),
   }),
 });

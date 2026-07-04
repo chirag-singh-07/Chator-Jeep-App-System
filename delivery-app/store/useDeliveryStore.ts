@@ -238,21 +238,28 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
   },
 
   toggleAvailability: async (isOnline, coordinates) => {
-    const response = await apiClient.patch("/delivery/availability", {
-      isOnline,
-      coordinates,
-    });
-    set((state) => ({
-      dashboard: state.dashboard
-        ? {
-            ...state.dashboard,
-            availability: {
-              ...state.dashboard.availability,
-              ...response.data,
-            },
-          }
-        : state.dashboard,
-    }));
+    try {
+      const response = await apiClient.patch("/delivery/availability", {
+        isOnline,
+        coordinates,
+      });
+      // Backend returns { success: true, data: { isOnline, isAvailable, ... } }
+      const updatedAvailability = response.data?.data || response.data;
+      
+      set((state) => ({
+        dashboard: state.dashboard
+          ? {
+              ...state.dashboard,
+              availability: {
+                ...state.dashboard.availability,
+                ...updatedAvailability,
+              },
+            }
+          : state.dashboard,
+      }));
+    } catch (error: any) {
+      throw error;
+    }
   },
 
   acceptOrder: async (orderId) => {

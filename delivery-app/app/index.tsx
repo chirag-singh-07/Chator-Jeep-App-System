@@ -2,10 +2,12 @@ import { Redirect } from "expo-router";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export default function IndexScreen() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, hasHydrated } = useAuthStore();
   
-  // Logic to check if user has seen onboarding could be added here
-  // For now, redirect to onboarding if not authenticated
+  if (!hasHydrated) {
+    return null; // Wait for hydration to complete
+  }
+
   if (isAuthenticated) {
     return <Redirect href="/(tabs)" />;
   }
