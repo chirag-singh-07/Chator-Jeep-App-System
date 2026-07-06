@@ -1,5 +1,5 @@
 import { Stack, router, useRootNavigationState, useSegments } from "expo-router";
-import { ThemeProvider, DefaultTheme } from "@react-navigation/native";
+import { ThemeProvider, DefaultTheme } from "expo-router/react-navigation";
 import { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";

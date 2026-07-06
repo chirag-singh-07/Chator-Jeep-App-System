@@ -30,11 +30,13 @@
     "production": {
       "autoIncrement": true,
       "channel": "production",
+      "credentialsSource": "local",
       "android": {
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.chatorijeeb.com"
+        "EXPO_PUBLIC_API_URL": "https://api.chatorijeeb.com",
+        "EXPO_ROUTER_DISABLE_RN_NAVIGATION_CHECK": "1"
       }
     }
   },

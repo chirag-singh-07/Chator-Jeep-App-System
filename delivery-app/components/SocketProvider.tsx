@@ -1,7 +1,7 @@
 import { PropsWithChildren, useEffect, useRef } from "react";
 import { Alert, Vibration } from "react-native";
 import { io, Socket } from "socket.io-client";
-import { Audio } from "expo-av";
+import { useAudioPlayer } from "expo-audio";
 import * as Haptics from "expo-haptics";
 import { getSocketUrl } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -21,6 +21,7 @@ export function SocketProvider({ children }: PropsWithChildren) {
   const fetchWalletOverview = useWalletStore(
     (state: ReturnType<typeof useWalletStore.getState>) => state.fetchWalletOverview
   );
+  const notificationPlayer = useAudioPlayer(require("../assets/audios/order-incoming-sound.wav"));
 
   useEffect(() => {
     if (!isAuthenticated || !token || !user?.id) {
@@ -42,18 +43,9 @@ export function SocketProvider({ children }: PropsWithChildren) {
 
     const setActiveRequest = useDeliveryStore.getState().setActiveRequest;
 
-    const playNotificationSound = async () => {
+    const playNotificationSound = () => {
       try {
-        const { sound } = await Audio.Sound.createAsync(
-          require("../assets/audios/order-incoming-sound.wav")
-        );
-        await sound.playAsync();
-        // Unload after playing
-        sound.setOnPlaybackStatusUpdate(async (status) => {
-          if (status.isLoaded && status.didJustFinish) {
-            await sound.unloadAsync();
-          }
-        });
+        notificationPlayer.play();
       } catch (error) {
         console.log("Error playing sound:", error);
       }
@@ -93,7 +85,7 @@ export function SocketProvider({ children }: PropsWithChildren) {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [fetchWalletOverview, isAuthenticated, mergeRealtimeDelivery, token, user?.id]);
+  }, [fetchWalletOverview, isAuthenticated, mergeRealtimeDelivery, notificationPlayer, token, user?.id]);
 
   return children;
 }

@@ -77,7 +77,7 @@ export default function LoginScreen() {
 
       {/* Form Card */}
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.formContainer}
       >
         <ScrollView

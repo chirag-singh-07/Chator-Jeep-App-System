@@ -7,7 +7,7 @@
     "icon": "./assets/icons/ios-icon-1024x1024.png",
     "scheme": "deliveryapp",
     "userInterfaceStyle": "light",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "ios": {
       "bundleIdentifier": "com.chatorijeeb.deliveryapp",
       "googleServicesFile": "./GoogleService-Info.plist",
@@ -79,12 +79,11 @@
             "useFrameworks": "static"
           },
           "android": {
-            "kotlinVersion": "1.9.25",
-            "usesCleartextTraffic": true,
-            "targetSdkVersion": 35
+            "usesCleartextTraffic": true
           }
         }
-      ]
+      ],
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true,
