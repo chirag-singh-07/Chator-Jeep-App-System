@@ -83,7 +83,7 @@ export default function LoginScreen() {
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+          keyboardShouldPersistTaps="always"
         >
           {/* Welcome card */}
           <View style={styles.welcomeCard}>
@@ -271,6 +271,8 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     backgroundColor: Colors.light.background,
     overflow: 'hidden',
+    zIndex: 10,
+    elevation: 10,
   },
   scrollContent: {
     paddingHorizontal: Spacing.lg,

@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   },
   inputError: { borderColor: Colors.light.error },
   inputValid: { borderColor: Colors.light.success },
-  input: { flex: 1, color: Colors.light.text, fontSize: 16, height: "100%" },
+  input: { flex: 1, color: Colors.light.text, fontSize: 16, padding: 0, margin: 0, textAlignVertical: "center" },
   error: {
     color: Colors.light.error,
     fontSize: 12,

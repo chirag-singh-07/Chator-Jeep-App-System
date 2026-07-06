@@ -54,9 +54,15 @@ export function ThemedInput({
         <TextInput
           style={[styles.input, style]}
           placeholderTextColor={Colors.light.textDim}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
           {...props}
+          onFocus={(e) => {
+            setIsFocused(true);
+            props.onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setIsFocused(false);
+            props.onBlur?.(e);
+          }}
         />
         {rightIcon && (
           <TouchableOpacity
@@ -103,11 +109,6 @@ const styles = StyleSheet.create({
   inputFocused: {
     borderColor: Colors.light.primary,
     backgroundColor: '#FFFFFF',
-    shadowColor: Colors.light.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 2,
   },
   inputError: {
     borderColor: Colors.light.error,
@@ -120,8 +121,10 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.light.text,
     fontSize: 16,
-    height: '100%',
+    padding: 0,
+    margin: 0,
     fontWeight: '500',
+    textAlignVertical: 'center',
   },
   rightIconButton: {
     height: '100%',
