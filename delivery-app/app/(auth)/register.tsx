@@ -288,13 +288,26 @@ export default function RegisterScreen() {
   const openPreview = (uri: string, title: string) => setPreviewModal({ visible: true, uri, title });
   const closePreview = () => setPreviewModal({ visible: false, uri: null, title: "" });
 
-  const appendImage = (fd: FormData, fieldName: string, asset: any) => {
+  const appendImage = async (fd: FormData, fieldName: string, asset: any) => {
     const extension = asset.uri.split(".").pop()?.toLowerCase() || "jpg";
     const mimeType = asset.type || `image/${extension === "jpg" ? "jpeg" : extension}`;
     const uri = asset.uri.startsWith("file://") || asset.uri.startsWith("content://")
       ? asset.uri
       : `file://${asset.uri}`;
-    fd.append(fieldName, { uri, name: asset.fileName || `${fieldName}.${extension}`, type: mimeType } as any);
+    const fileName = asset.fileName || `${fieldName}.${extension}`;
+
+    try {
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      if (typeof File !== 'undefined') {
+        const file = new File([blob], fileName, { type: mimeType });
+        fd.append(fieldName, file);
+      } else {
+        fd.append(fieldName, blob, fileName);
+      }
+    } catch (e) {
+      fd.append(fieldName, { uri, name: fileName, type: mimeType } as any);
+    }
   };
 
   // Upload documents with progress simulation
@@ -328,7 +341,7 @@ export default function RegisterScreen() {
 
     const fd = new FormData();
     for (const { key, docType } of docEntries) {
-      appendImage(fd, key, documents[docType]);
+      await appendImage(fd, key, documents[docType]);
     }
 
     // Simulate incremental progress while fetching
