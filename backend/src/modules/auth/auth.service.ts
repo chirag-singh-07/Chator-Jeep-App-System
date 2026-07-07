@@ -59,7 +59,8 @@ export const register = async (input: {
     user: { 
       id: user._id.toString(), 
       name: user.name, 
-      email: user.email, 
+      email: user.email,
+      phone: user.phone,
       role: user.role 
     } 
   };
@@ -89,7 +90,8 @@ export const login = async (input: {
     user: { 
       id: user._id.toString(), 
       name: user.name, 
-      email: user.email, 
+      email: user.email,
+      phone: user.phone,
       role: user.role 
     } 
   };
@@ -118,7 +120,8 @@ export const loginWithOtp = async (input: {
     user: { 
       id: user._id.toString(), 
       name: user.name, 
-      email: user.email, 
+      email: user.email,
+      phone: user.phone,
       role: user.role 
     } 
   };

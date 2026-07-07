@@ -132,9 +132,9 @@ export default function RegisterScreen() {
 
   useEffect(() => {
     if (!isCompletingProfile || !user) return;
-    updateFormField("name", user.name || "");
-    updateFormField("email", user.email || "");
-    updateFormField("phone", user.phone || "");
+    if (user.name) updateFormField("name", user.name);
+    if (user.email) updateFormField("email", user.email);
+    if (user.phone) updateFormField("phone", user.phone);
     if (formData.bankDetails.accountHolderName === "" && user.name) {
       updateBankField("accountHolderName", user.name);
     }
@@ -1023,7 +1023,7 @@ export default function RegisterScreen() {
       </LinearGradient>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior="padding"
         style={styles.formContainer}
       >
         <ScrollView
@@ -1154,6 +1154,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.light.background,
+  },
+  formContainer: {
+    flex: 1,
+    marginTop: -20,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    backgroundColor: Colors.light.background,
+    overflow: 'hidden',
   },
   // ── Form & Terms ────────────────────────────────────────
   termsRow: {
