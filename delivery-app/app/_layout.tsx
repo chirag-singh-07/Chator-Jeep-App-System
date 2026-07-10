@@ -39,9 +39,9 @@ export default function RootLayout() {
 
     const inAuthGroup = segments[0] === "(auth)";
     const inOnboardingGroup = segments[0] === "(onboarding)";
-    const isRegistering = segments[1] === "register";
+    const isLegalScreen = ["terms", "privacy", "legal"].includes(segments[0]);
 
-    if (!isAuthenticated && !inAuthGroup && !inOnboardingGroup) {
+    if (!isAuthenticated && !inAuthGroup && !inOnboardingGroup && !isLegalScreen) {
       router.replace("/(auth)/login");
     }
   }, [hasHydrated, isAuthenticated, navigationState?.key, segments]);

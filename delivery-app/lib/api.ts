@@ -27,6 +27,7 @@ export const getSocketUrl = () => API_URL.replace(/\/api\/v1$/, "");
 export const apiClient = axios.create({
   baseURL: API_URL,
   timeout: 20000,
+  adapter: 'xhr', // Force XHR instead of fetch to bypass Expo's WinterCG fetch FormData limits
 });
 
 apiClient.interceptors.request.use(
@@ -37,7 +38,8 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    if (config.data instanceof FormData) {
+    const isFormData = config.data instanceof FormData || (config.data && typeof config.data.getParts === "function");
+    if (isFormData) {
       config.headers = config.headers ?? {};
       delete (config.headers as Record<string, string>)["Content-Type"];
       delete (config.headers as Record<string, string>)["content-type"];

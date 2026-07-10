@@ -14,6 +14,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from "react-native";
+
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -22,7 +23,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, Radius, Shadows } from "../../constants/Colors";
 import { ThemedInput } from "@/components/ThemedInput";
 import { ValidatedAddressField } from "@/components/ValidatedAddressField";
-import { API_URL } from "@/lib/api";
+import { API_URL, apiClient } from "@/lib/api";
 import { useRegistrationStore, DocumentType, DocumentInfo } from "@/store/useRegistrationStore";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { LinearGradient } from "expo-linear-gradient";
@@ -288,26 +289,17 @@ export default function RegisterScreen() {
   const openPreview = (uri: string, title: string) => setPreviewModal({ visible: true, uri, title });
   const closePreview = () => setPreviewModal({ visible: false, uri: null, title: "" });
 
-  const appendImage = async (fd: FormData, fieldName: string, asset: any) => {
+  const appendImage = (fd: any, fieldName: string, asset: any) => {
     const extension = asset.uri.split(".").pop()?.toLowerCase() || "jpg";
     const mimeType = asset.type || `image/${extension === "jpg" ? "jpeg" : extension}`;
     const uri = asset.uri.startsWith("file://") || asset.uri.startsWith("content://")
       ? asset.uri
       : `file://${asset.uri}`;
     const fileName = asset.fileName || `${fieldName}.${extension}`;
-
-    try {
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      if (typeof File !== 'undefined') {
-        const file = new File([blob], fileName, { type: mimeType });
-        fd.append(fieldName, file);
-      } else {
-        fd.append(fieldName, blob, fileName);
-      }
-    } catch (e) {
-      fd.append(fieldName, { uri, name: fileName, type: mimeType } as any);
-    }
+    
+    // Using standard React Native format for FormData uploads
+    // fetch + standard FormData handles this perfectly!
+    fd.append(fieldName, { uri, name: fileName, type: mimeType } as any);
   };
 
   // Upload documents with progress simulation
@@ -341,7 +333,7 @@ export default function RegisterScreen() {
 
     const fd = new FormData();
     for (const { key, docType } of docEntries) {
-      await appendImage(fd, key, documents[docType]);
+      appendImage(fd, key, documents[docType]);
     }
 
     // Simulate incremental progress while fetching
@@ -358,21 +350,18 @@ export default function RegisterScreen() {
       const token = await AsyncStorage.getItem("delivery-token");
       const response = await fetch(`${API_URL}/uploads/delivery-docs`, {
         method: "POST",
-        body: fd,
         headers: {
-          Authorization: token ? `Bearer ${token}` : "",
+          Authorization: `Bearer ${token}`,
         },
+        body: fd as any,
       });
 
       clearInterval(progressInterval);
+      
       const responseData = await response.json();
-
+      
       if (!response.ok) {
-        setUploadModal((prev) => ({
-          ...prev,
-          items: prev.items.map((item) => ({ ...item, progress: 0, error: true })),
-        }));
-        throw new Error(responseData?.message || "Failed to upload documents. Please try again.");
+        throw new Error(responseData.message || "Failed to upload documents. Please try again.");
       }
 
       // Mark all done
@@ -384,7 +373,11 @@ export default function RegisterScreen() {
       return responseData.data as Record<string, { full?: string; medium?: string; thumbnail?: string }>;
     } catch (error: any) {
       clearInterval(progressInterval);
-      throw new Error(error?.message || "Failed to upload documents. Please try again.");
+      setUploadModal((prev) => ({
+        ...prev,
+        items: prev.items.map((item) => ({ ...item, progress: 0, error: true })),
+      }));
+      throw new Error(error?.response?.data?.message || error?.message || "Failed to upload documents. Please try again.");
     }
   };
 
