@@ -120,9 +120,7 @@ export default function RegisterScreen() {
   const stateRef = useRef<TextInput>(null);
   const districtRef = useRef<TextInput>(null);
   const cityRef = useRef<TextInput>(null);
-  const pinCodeRef = useRef<TextInput>(null);
-
-  const isCompletingProfile = isAuthenticated && Boolean(user);
+    const pinCodeRef = useRef<TextInput>(null);
 
   const addressDraft = {
     fullAddress: formData.address.streetName,
