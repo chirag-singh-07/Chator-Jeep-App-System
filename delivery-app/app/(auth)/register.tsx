@@ -74,7 +74,8 @@ const STEP_LABELS = ["Personal", "Documents", "Address", "Payout"];
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const { register: authRegister, requestOtp: requestOtpAuth, user, isAuthenticated } = useAuthStore();
+  const { register: authRegister, requestOtp: requestOtpAuth, user, isAuthenticated, hasHydrated: hasHydratedAuth } = useAuthStore();
+  const isCompletingProfile = isAuthenticated && Boolean(user);
 
   const {
     currentStep,
@@ -89,6 +90,17 @@ export default function RegisterScreen() {
     clearAllData,
     hasHydrated,
   } = useRegistrationStore();
+
+  // If the user's token was cleared (e.g., they logged out or session expired)
+  // but they still had a later step persisted, reset them to Step 1 so they can
+  // re-verify their OTP and get a new token.
+  useEffect(() => {
+    if (hasHydratedAuth && hasHydrated) {
+      if (!isAuthenticated && currentStep > 1) {
+        setStep(1);
+      }
+    }
+  }, [isAuthenticated, currentStep, hasHydratedAuth, hasHydrated]);
 
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
@@ -366,6 +378,11 @@ export default function RegisterScreen() {
         xhr.onload = () => {
           try {
             const res = JSON.parse(xhr.responseText);
+            if (xhr.status === 401) {
+              useAuthStore.setState({ token: null, isAuthenticated: false, user: null });
+              reject(new Error("Your session has expired. Please log in again."));
+              return;
+            }
             if (xhr.status >= 200 && xhr.status < 300) {
               resolve(res);
             } else {
