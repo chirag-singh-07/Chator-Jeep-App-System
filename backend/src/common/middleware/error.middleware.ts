@@ -9,9 +9,16 @@ export const errorMiddleware = (
   _next: NextFunction
 ): void => {
   if (err instanceof ZodError) {
+    const formattedErrors: Record<string, string[]> = {};
+    err.issues.forEach((issue) => {
+      const path = issue.path.join(".");
+      if (!formattedErrors[path]) formattedErrors[path] = [];
+      formattedErrors[path].push(issue.message);
+    });
+
     res.status(400).json({
       message: "Validation failed",
-      errors: err.flatten().fieldErrors
+      errors: formattedErrors
     });
     return;
   }
