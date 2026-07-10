@@ -347,7 +347,13 @@ export default function RegisterScreen() {
     }, 400);
 
     try {
-      const token = await AsyncStorage.getItem("delivery-token");
+      // Get the token synchronously from the auth store, which is the source of truth
+      // and avoids any AsyncStorage read delays or race conditions.
+      const token = useAuthStore.getState().token;
+      
+      if (!token) {
+        throw new Error("Your session expired or token is missing. Please restart the app or log in again to continue.");
+      }
 
       // Use native XMLHttpRequest directly to completely bypass Expo's fetch
       // and Axios formatting bugs, which fixes the "Unsupported FormDataPart"
@@ -355,9 +361,7 @@ export default function RegisterScreen() {
       const responseData = await new Promise<any>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open("POST", `${API_URL}/uploads/delivery-docs`);
-        if (token) {
-          xhr.setRequestHeader("Authorization", `Bearer ${token}`);
-        }
+        xhr.setRequestHeader("Authorization", `Bearer ${token}`);
         
         xhr.onload = () => {
           try {
