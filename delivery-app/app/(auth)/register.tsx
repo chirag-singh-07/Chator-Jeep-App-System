@@ -347,12 +347,39 @@ export default function RegisterScreen() {
     }, 400);
 
     try {
-      const response = await apiClient.post("/uploads/delivery-docs", fd, {
-        transformRequest: (data) => data, // Bypass Axios's stringify
+      const token = await AsyncStorage.getItem("delivery-token");
+
+      // Use native XMLHttpRequest directly to completely bypass Expo's fetch
+      // and Axios formatting bugs, which fixes the "Unsupported FormDataPart"
+      // and "Network Error" issues.
+      const responseData = await new Promise<any>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", `${API_URL}/uploads/delivery-docs`);
+        if (token) {
+          xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+        }
+        
+        xhr.onload = () => {
+          try {
+            const res = JSON.parse(xhr.responseText);
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve(res);
+            } else {
+              reject(new Error(res.message || "Failed to upload documents"));
+            }
+          } catch (e) {
+            reject(new Error("Failed to parse server response"));
+          }
+        };
+
+        xhr.onerror = () => {
+          reject(new Error("Network error occurred while uploading documents. Please check your connection."));
+        };
+
+        xhr.send(fd as any);
       });
 
       clearInterval(progressInterval);
-      const responseData = response.data;
 
       // Mark all done
       setUploadModal((prev) => ({
