@@ -347,22 +347,12 @@ export default function RegisterScreen() {
     }, 400);
 
     try {
-      const token = await AsyncStorage.getItem("delivery-token");
-      const response = await fetch(`${API_URL}/uploads/delivery-docs`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: fd as any,
+      const response = await apiClient.post("/uploads/delivery-docs", fd, {
+        transformRequest: (data) => data, // Bypass Axios's stringify
       });
 
       clearInterval(progressInterval);
-      
-      const responseData = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(responseData.message || "Failed to upload documents. Please try again.");
-      }
+      const responseData = response.data;
 
       // Mark all done
       setUploadModal((prev) => ({
