@@ -564,8 +564,7 @@ export default function RegisterScreen() {
         // If the delivery profile is already created (e.g. user retried after a partial failure),
         // treat it as success and send them to the verification-pending screen.
         if (
-          msg.toLowerCase().includes("already registered") ||
-          msg.toLowerCase().includes("already exists")
+          msg === "Delivery partner already registered"
         ) {
           console.log("[Register] Delivery partner already registered — treating as success.");
         } else {
@@ -1107,18 +1106,7 @@ export default function RegisterScreen() {
             </LinearGradient>
           </TouchableOpacity>
 
-          {currentStep === 4 && (
-            <TouchableOpacity
-              style={{ marginTop: 15, padding: 12, alignItems: 'center', backgroundColor: '#ffebee', borderRadius: 12, borderWidth: 1, borderColor: '#ffcdd2' }}
-              onPress={async () => {
-                await AsyncStorage.clear();
-                clearAllData();
-                Alert.alert("Cleared", "Local storage data cleared. You can restart the app now.");
-              }}
-            >
-              <Text style={{ color: '#d32f2f', fontWeight: '700', fontSize: 15 }}>[DEV] Clear All Local Data</Text>
-            </TouchableOpacity>
-          )}
+
         </View>
       </KeyboardAvoidingView>
 

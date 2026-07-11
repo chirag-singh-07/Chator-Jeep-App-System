@@ -290,6 +290,85 @@ export function UserDetailsPage() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Restaurant Documents Section */}
+            {(user.role === "KITCHEN" || user.role === "RESTAURANT") && user.restaurantProfile && (
+              <Card className="rounded-[40px] border-none shadow-2xl shadow-primary/5 bg-card overflow-hidden">
+                <CardHeader className="bg-muted/30 border-b border-border/50 flex flex-row items-center justify-between pb-6">
+                  <div>
+                    <CardTitle className="text-xl font-black italic uppercase italic">Restaurant Documents</CardTitle>
+                    <CardDescription className="text-xs font-bold text-muted-foreground/50 uppercase tracking-widest mt-1">Uploaded KYC & Licenses</CardDescription>
+                  </div>
+                  <div className="size-10 rounded-2xl bg-primary/10 flex items-center justify-center">
+                    <FileText className="size-5 text-primary" />
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-8">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                    {/* Render FSSAI License */}
+                    {typeof user.restaurantProfile.fssaiLicense === "string" && user.restaurantProfile.fssaiLicense.startsWith("http") && (
+                        <div className="flex flex-col gap-2">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">FSSAI License</p>
+                          <a href={user.restaurantProfile.fssaiLicense} target="_blank" rel="noopener noreferrer" className="block w-full aspect-video rounded-2xl overflow-hidden border border-border/20 group relative cursor-zoom-in">
+                            <img src={user.restaurantProfile.fssaiLicense} alt="FSSAI" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                              <ExternalLink className="size-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                          </a>
+                        </div>
+                    )}
+                    {/* Render Aadhar */}
+                    {user.restaurantProfile.aadharCard?.url && (
+                        <div className="flex flex-col gap-2">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Aadhaar Card</p>
+                          <a href={user.restaurantProfile.aadharCard.url} target="_blank" rel="noopener noreferrer" className="block w-full aspect-video rounded-2xl overflow-hidden border border-border/20 group relative cursor-zoom-in">
+                            <img src={user.restaurantProfile.aadharCard.url} alt="Aadhaar" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                              <ExternalLink className="size-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                          </a>
+                        </div>
+                    )}
+                    {/* Render PAN */}
+                    {user.restaurantProfile.panCard?.url && (
+                        <div className="flex flex-col gap-2">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">PAN Card</p>
+                          <a href={user.restaurantProfile.panCard.url} target="_blank" rel="noopener noreferrer" className="block w-full aspect-video rounded-2xl overflow-hidden border border-border/20 group relative cursor-zoom-in">
+                            <img src={user.restaurantProfile.panCard.url} alt="PAN" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                              <ExternalLink className="size-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                          </a>
+                        </div>
+                    )}
+                    {/* Render Live Photo */}
+                    {user.restaurantProfile.livePhoto?.url && (
+                        <div className="flex flex-col gap-2">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Live Photo</p>
+                          <a href={user.restaurantProfile.livePhoto.url} target="_blank" rel="noopener noreferrer" className="block w-full aspect-video rounded-2xl overflow-hidden border border-border/20 group relative cursor-zoom-in">
+                            <img src={user.restaurantProfile.livePhoto.url} alt="Live Photo" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                              <ExternalLink className="size-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                          </a>
+                        </div>
+                    )}
+                    {/* Render Other Documents Array */}
+                    {Array.isArray(user.restaurantProfile.documents) && user.restaurantProfile.documents.map((doc: any, i: number) => (
+                        <div key={i} className="flex flex-col gap-2">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{doc.label || "Document"}</p>
+                          <a href={doc.url} target="_blank" rel="noopener noreferrer" className="block w-full aspect-video rounded-2xl overflow-hidden border border-border/20 group relative cursor-zoom-in">
+                            <img src={doc.url} alt={doc.label || "Document"} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                              <ExternalLink className="size-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                          </a>
+                        </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
