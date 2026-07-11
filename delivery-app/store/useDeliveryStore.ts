@@ -182,7 +182,19 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
       });
     } catch (error: any) {
       set({ isLoading: false });
-      throw new Error(error?.response?.data?.message || "Registration failed");
+      
+      let errMsg = error?.response?.data?.message || "Registration failed";
+      
+      // If there are detailed Zod validation errors, append them to the message
+      const fieldErrors = error?.response?.data?.errors;
+      if (fieldErrors && typeof fieldErrors === "object") {
+        const details = Object.entries(fieldErrors)
+          .map(([field, errs]: [string, any]) => `${field.replace("body.", "")}: ${errs.join(", ")}`)
+          .join("\n");
+        errMsg += `\n\nDetails:\n${details}`;
+      }
+      
+      throw new Error(errMsg);
     }
   },
 

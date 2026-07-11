@@ -26,7 +26,7 @@
     },
     "android": {
       "package": "com.chatorijeeb.delivery",
-      "versionCode": 3,
+      "versionCode": 4,
       "googleServicesFile": "./google-services.json",
       "blockedPermissions": [
         "android.permission.ACCESS_COARSE_LOCATION",
@@ -79,11 +79,13 @@
             "useFrameworks": "static"
           },
           "android": {
+            "compileSdkVersion": 36,
             "usesCleartextTraffic": true
           }
         }
       ],
-      "expo-audio"
+      "expo-audio",
+      "./plugins/with16kbPageSize.js"
     ],
     "experiments": {
       "typedRoutes": true,

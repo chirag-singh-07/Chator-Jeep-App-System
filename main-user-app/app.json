@@ -14,7 +14,7 @@
     "android": {
       "package": "com.chatorijeeb.user",
       "googleServicesFile": "./google-services.json",
-      "targetSdkVersion": 35,
+      "versionCode": 12,
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/icons/android-icon-512x512.png",
@@ -48,10 +48,13 @@
         {
           "android": {
             "kotlinVersion": "1.9.25",
-            "usesCleartextTraffic": false
+            "usesCleartextTraffic": false,
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35
           }
         }
-      ]
+      ],
+      "./plugins/with16kbPageSize.js"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -514,8 +514,8 @@ export default function RegisterScreen() {
           ? {
               accountHolderName: formData.bankDetails.accountHolderName.trim(),
               bankName: formData.bankDetails.bankName.trim(),
-              accountNumber: formData.bankDetails.accountNumber.trim(),
-              ifscCode: formData.bankDetails.ifscCode.trim().toUpperCase(),
+              accountNumber: formData.bankDetails.accountNumber.replace(/\D/g, ""),
+              ifscCode: formData.bankDetails.ifscCode.replace(/[^A-Za-z0-9]/g, "").toUpperCase(),
             }
           : undefined;
 
@@ -524,19 +524,19 @@ export default function RegisterScreen() {
       try {
         await deliveryRegister({
           fullName: formData.name.trim(),
-          phoneNumber: formData.phone.trim(),
+          phoneNumber: formData.phone.replace(/\D/g, "").slice(-10),
           email: formData.email.trim(),
           vehicleType: formData.vehicleType,
           vehicleFuelType: formData.fuelType,
           bikeNumber: normalizeVehicleNumber(formData.bikeNumber),
           profilePhoto: getUploadedUrl(uploadedDocs.profilePhoto || {}),
-          drivingLicense: formData.drivingLicenseNumber.trim().toUpperCase(),
+          drivingLicense: formData.drivingLicenseNumber.replace(/[^A-Za-z0-9]/g, "").toUpperCase(),
           documents: {
-            aadhaarNumber: formData.aadhaarNumber.trim(),
+            aadhaarNumber: formData.aadhaarNumber.replace(/\D/g, ""),
             aadhaarPhoto: getUploadedUrl(uploadedDocs.aadhaarPhoto || {}),
-            panNumber: formData.panNumber.trim().toUpperCase(),
+            panNumber: formData.panNumber.replace(/[^A-Za-z0-9]/g, "").toUpperCase(),
             panPhoto: getUploadedUrl(uploadedDocs.panPhoto || {}),
-            drivingLicenseNumber: formData.drivingLicenseNumber.trim().toUpperCase(),
+            drivingLicenseNumber: formData.drivingLicenseNumber.replace(/[^A-Za-z0-9]/g, "").toUpperCase(),
             drivingLicensePhoto: getUploadedUrl(uploadedDocs.drivingLicensePhoto || {}),
             vehicleRcNumber: normalizeVehicleNumber(formData.bikeNumber),
             vehicleRcPhoto: getUploadedUrl(uploadedDocs.vehicleRcPhoto || {}),
@@ -1106,6 +1106,19 @@ export default function RegisterScreen() {
               )}
             </LinearGradient>
           </TouchableOpacity>
+
+          {currentStep === 4 && (
+            <TouchableOpacity
+              style={{ marginTop: 15, padding: 12, alignItems: 'center', backgroundColor: '#ffebee', borderRadius: 12, borderWidth: 1, borderColor: '#ffcdd2' }}
+              onPress={async () => {
+                await AsyncStorage.clear();
+                clearAllData();
+                Alert.alert("Cleared", "Local storage data cleared. You can restart the app now.");
+              }}
+            >
+              <Text style={{ color: '#d32f2f', fontWeight: '700', fontSize: 15 }}>[DEV] Clear All Local Data</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </KeyboardAvoidingView>
 

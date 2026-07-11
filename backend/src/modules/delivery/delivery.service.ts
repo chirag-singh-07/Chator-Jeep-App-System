@@ -359,6 +359,16 @@ export const registerDeliveryPartner = async (userId: string, data: any) => {
   const existing = await repo.findDeliveryByRiderId(userId);
   if (existing) throw new AppError("Delivery partner already registered", 400);
 
+  if (data.phoneNumber) {
+    const existingPhone = await DeliveryPartner.findOne({ phoneNumber: data.phoneNumber });
+    if (existingPhone) throw new AppError("Phone number already registered by another delivery partner", 409);
+  }
+
+  if (data.email) {
+    const existingEmail = await DeliveryPartner.findOne({ email: data.email });
+    if (existingEmail) throw new AppError("Email already registered by another delivery partner", 409);
+  }
+
   const partner = await repo.createDeliveryPartner({
     userId: new Types.ObjectId(userId) as any,
     fullName: data.fullName,
