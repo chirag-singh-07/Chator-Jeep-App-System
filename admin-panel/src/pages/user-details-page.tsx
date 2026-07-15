@@ -273,21 +273,33 @@ export function UserDetailsPage() {
                 </CardHeader>
                 <CardContent className="pt-8">
                   {user.partnerProfile?.documents && Object.keys(user.partnerProfile.documents).length > 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                      {Object.entries(user.partnerProfile.documents)
-                        .filter(([key, val]) => typeof val === "string" && val.startsWith("http"))
-                        .map(([key, url]) => (
-                          <div key={key} className="flex flex-col gap-2">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{key.replace(/([A-Z])/g, ' $1').trim()}</p>
-                            <a href={url as string} target="_blank" rel="noopener noreferrer" className="block w-full aspect-video rounded-2xl overflow-hidden border border-border/20 group relative cursor-zoom-in">
-                              <img src={url as string} alt={key} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                                <ExternalLink className="size-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                              </div>
-                            </a>
-                          </div>
-                      ))}
-                    </div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                        {Object.entries(user.partnerProfile.documents)
+                          .map(([key, val]) => {
+                            if (typeof val !== "string" || !val) return null;
+                            const formattedKey = key.replace(/([A-Z])/g, ' $1').trim();
+                            if (val.startsWith("http")) {
+                              return (
+                                <div key={key} className="flex flex-col gap-2">
+                                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{formattedKey}</p>
+                                  <a href={val} target="_blank" rel="noopener noreferrer" className="block w-full aspect-video rounded-2xl overflow-hidden border border-border/20 group relative cursor-zoom-in">
+                                    <img src={val} alt={key} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                      <ExternalLink className="size-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </div>
+                                  </a>
+                                </div>
+                              );
+                            } else {
+                              return (
+                                <div key={key} className="flex flex-col justify-center gap-1 p-4 rounded-2xl bg-secondary/10 border border-border/10">
+                                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{formattedKey}</p>
+                                  <p className="text-sm font-bold truncate">{val}</p>
+                                </div>
+                              );
+                            }
+                        })}
+                      </div>
                   ) : (
                     <div className="p-8 text-center border-2 border-dashed border-secondary/20 rounded-[24px]">
                       <p className="text-sm font-black uppercase tracking-widest text-muted-foreground/40">No Documents Uploaded</p>

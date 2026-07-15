@@ -86,7 +86,7 @@ const deliveryPartnerSchema = new Schema<IDeliveryPartner>(
     bikeNumber: { type: String, uppercase: true, trim: true },
     drivingLicense: { type: String },
     documents: {
-      aadhaarNumber: { type: String, trim: true, select: false },
+      aadhaarNumber: { type: String, trim: true },
       aadhaarPhoto: { type: String, trim: true },
       panNumber: { type: String, trim: true, uppercase: true },
       panPhoto: { type: String, trim: true },
