@@ -763,9 +763,9 @@ export default function RegisterScreen() {
               placeholder="GJ01AB1234"
               icon="barcode-outline"
               autoCapitalize="characters"
-              maxLength={10}
+              maxLength={11}
               value={formData.bikeNumber}
-              onChangeText={(text) => updateFormField("bikeNumber", normalizeVehicleNumber(text).slice(0, 10))}
+              onChangeText={(text) => updateFormField("bikeNumber", normalizeVehicleNumber(text).slice(0, 11))}
               error={formData.bikeNumber.length > 0 && !vehicleNumberRegex.test(normalizeVehicleNumber(formData.bikeNumber)) ? "Invalid vehicle number (e.g. GJ01AB1234)" : undefined}
             />
 
@@ -819,9 +819,9 @@ export default function RegisterScreen() {
                 placeholder="GJ0120231234567"
                 icon="card-outline"
                 autoCapitalize="characters"
-                maxLength={15}
+                maxLength={16}
                 value={formData.drivingLicenseNumber}
-                onChangeText={(text) => updateFormField("drivingLicenseNumber", text.replace(/[^a-zA-Z0-9\s]/g, "").toUpperCase().slice(0, 15))}
+                onChangeText={(text) => updateFormField("drivingLicenseNumber", text.replace(/[^a-zA-Z0-9\s]/g, "").toUpperCase().slice(0, 16))}
                 error={formData.drivingLicenseNumber.length > 0 && !dlRegex.test(formData.drivingLicenseNumber.trim().toUpperCase()) ? "Invalid format (e.g. GJ01 20231234567)" : undefined}
               />
               {renderPhotoTile("Driving License Photo", "Front side of license", documents.drivingLicensePhoto, () => pickDocumentPhoto("drivingLicensePhoto"), () => clearDocument("drivingLicensePhoto"), "image-outline")}
