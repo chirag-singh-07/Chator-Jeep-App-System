@@ -52,7 +52,7 @@ const getImagePickerMediaTypeImages = () => {
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phoneRegex = /^[6-9]\d{9}$/;
 const aadhaarRegex = /^\d{12}$/;
-const dlRegex = /^[A-Z]{2}[A-Z0-9]{11,14}$/;
+const dlRegex = /^[A-Z]{2}\d{2}\s?\d{11}$/;
 const panRegex = /^[A-Z]{5}\d{4}[A-Z]$/;
 const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
@@ -672,6 +672,7 @@ export default function RegisterScreen() {
               value={formData.name}
               maxLength={60}
               onChangeText={(text) => updateFormField("name", text.replace(/[^a-zA-Z\s.'-]/g, "").slice(0, 60))}
+              error={formData.name.length > 0 && formData.name.trim().length <= 2 ? "Name must be at least 3 characters" : undefined}
             />
 
             {isCompletingProfile ? (
@@ -725,6 +726,7 @@ export default function RegisterScreen() {
               maxLength={10}
               value={formData.phone}
               onChangeText={(text) => updateFormField("phone", text.replace(/\D/g, ""))}
+              error={formData.phone.length > 0 && !phoneRegex.test(formData.phone.trim()) ? "Enter a valid 10-digit number" : undefined}
             />
 
             {!isCompletingProfile && (
@@ -764,6 +766,7 @@ export default function RegisterScreen() {
               maxLength={10}
               value={formData.bikeNumber}
               onChangeText={(text) => updateFormField("bikeNumber", normalizeVehicleNumber(text).slice(0, 10))}
+              error={formData.bikeNumber.length > 0 && !vehicleNumberRegex.test(normalizeVehicleNumber(formData.bikeNumber)) ? "Invalid vehicle number (e.g. GJ01AB1234)" : undefined}
             />
 
             <View style={styles.loginLinkContainer}>
@@ -795,6 +798,7 @@ export default function RegisterScreen() {
                 maxLength={12}
                 value={formData.aadhaarNumber}
                 onChangeText={(text) => updateFormField("aadhaarNumber", text.replace(/\D/g, ""))}
+                error={formData.aadhaarNumber.length > 0 && !aadhaarRegex.test(formData.aadhaarNumber.trim()) ? "Aadhaar must be 12 digits" : undefined}
               />
               {renderPhotoTile("Aadhaar Card Photo", "Front side of Aadhaar", documents.aadhaarPhoto, () => pickDocumentPhoto("aadhaarPhoto"), () => clearDocument("aadhaarPhoto"), "image-outline")}
 
@@ -806,6 +810,7 @@ export default function RegisterScreen() {
                 maxLength={10}
                 value={formData.panNumber}
                 onChangeText={(text) => updateFormField("panNumber", text.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 10))}
+                error={formData.panNumber.length > 0 && !panRegex.test(formData.panNumber.trim().toUpperCase()) ? "Invalid PAN format" : undefined}
               />
               {renderPhotoTile("PAN Card Photo", "Clear photo of PAN card", documents.panPhoto, () => pickDocumentPhoto("panPhoto"), () => clearDocument("panPhoto"), "image-outline")}
 
@@ -816,7 +821,8 @@ export default function RegisterScreen() {
                 autoCapitalize="characters"
                 maxLength={15}
                 value={formData.drivingLicenseNumber}
-                onChangeText={(text) => updateFormField("drivingLicenseNumber", text.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 15))}
+                onChangeText={(text) => updateFormField("drivingLicenseNumber", text.replace(/[^a-zA-Z0-9\s]/g, "").toUpperCase().slice(0, 15))}
+                error={formData.drivingLicenseNumber.length > 0 && !dlRegex.test(formData.drivingLicenseNumber.trim().toUpperCase()) ? "Invalid format (e.g. GJ01 20231234567)" : undefined}
               />
               {renderPhotoTile("Driving License Photo", "Front side of license", documents.drivingLicensePhoto, () => pickDocumentPhoto("drivingLicensePhoto"), () => clearDocument("drivingLicensePhoto"), "image-outline")}
             </View>
@@ -947,6 +953,7 @@ export default function RegisterScreen() {
                 maxLength={80}
                 value={formData.upiId}
                 onChangeText={(text) => updateFormField("upiId", text.trim().slice(0, 80))}
+                error={formData.upiId.length > 0 && !upiRegex.test(formData.upiId.trim()) ? "Invalid UPI ID" : undefined}
               />
             ) : (
               <>
@@ -957,6 +964,7 @@ export default function RegisterScreen() {
                   maxLength={80}
                   value={formData.bankDetails.accountHolderName}
                   onChangeText={(text) => updateBankField("accountHolderName", text.replace(/[^a-zA-Z\s.'-]/g, "").slice(0, 80))}
+                  error={formData.bankDetails.accountHolderName.length > 0 && formData.bankDetails.accountHolderName.trim().length < 3 ? "Name must be at least 3 characters" : undefined}
                 />
                 <ThemedInput
                   label="Bank Name"
@@ -965,6 +973,7 @@ export default function RegisterScreen() {
                   maxLength={60}
                   value={formData.bankDetails.bankName}
                   onChangeText={(text) => updateBankField("bankName", text.replace(/[^a-zA-Z\s.'-]/g, "").slice(0, 60))}
+                  error={formData.bankDetails.bankName.length > 0 && formData.bankDetails.bankName.trim().length < 3 ? "Bank name must be at least 3 characters" : undefined}
                 />
                 <ThemedInput
                   label="Account Number"
@@ -974,6 +983,7 @@ export default function RegisterScreen() {
                   maxLength={18}
                   value={formData.bankDetails.accountNumber}
                   onChangeText={(text) => updateBankField("accountNumber", text.replace(/\D/g, "").slice(0, 18))}
+                  error={formData.bankDetails.accountNumber.length > 0 && !/^\d{9,18}$/.test(formData.bankDetails.accountNumber.trim()) ? "Invalid account number (9-18 digits)" : undefined}
                 />
                 <ThemedInput
                   label="IFSC Code"
@@ -983,6 +993,7 @@ export default function RegisterScreen() {
                   maxLength={11}
                   value={formData.bankDetails.ifscCode}
                   onChangeText={(text) => updateBankField("ifscCode", text.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 11))}
+                  error={formData.bankDetails.ifscCode.length > 0 && !ifscRegex.test(formData.bankDetails.ifscCode.trim().toUpperCase()) ? "Invalid IFSC code (e.g. SBIN0123456)" : undefined}
                 />
               </>
             )}
