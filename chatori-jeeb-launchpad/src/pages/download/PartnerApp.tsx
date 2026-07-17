@@ -64,7 +64,7 @@ const PartnerApp = () => {
       hero={
         <div className="grid md:grid-cols-2 gap-10 items-center">
           <div>
-            <StoreButtons />
+            <StoreButtons androidUrl="https://play.google.com/store/apps/details?id=com.chatorijeeb.delivery" />
             <p className="mt-4 text-sm text-muted-foreground">Sign up takes less than 5 minutes.</p>
           </div>
           <div className="flex justify-center md:justify-end">
@@ -125,7 +125,7 @@ const PartnerApp = () => {
       <section className="mt-20 rounded-3xl bg-gradient-primary text-primary-foreground p-10 md:p-14 text-center shadow-elegant">
         <h2 className="text-3xl md:text-4xl font-extrabold">Ready to ride with us?</h2>
         <p className="mt-3 opacity-90 max-w-xl mx-auto">Download the partner app and start earning on your schedule today.</p>
-        <div className="mt-6"><StoreButtons align="center" /></div>
+        <div className="mt-6"><StoreButtons align="center" androidUrl="https://play.google.com/store/apps/details?id=com.chatorijeeb.delivery" /></div>
       </section>
     </DownloadLayout>
   );

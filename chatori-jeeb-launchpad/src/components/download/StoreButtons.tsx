@@ -1,12 +1,19 @@
 import { Apple, Play } from "lucide-react";
 
-type Props = { className?: string; align?: "start" | "center" };
+type Props = { 
+  className?: string; 
+  align?: "start" | "center";
+  androidUrl?: string;
+  iosUrl?: string;
+};
 
-export const StoreButtons = ({ className = "", align = "start" }: Props) => {
+export const StoreButtons = ({ className = "", align = "start", androidUrl = "#", iosUrl = "#" }: Props) => {
   return (
     <div className={`flex flex-col sm:flex-row gap-3 ${align === "center" ? "justify-center" : ""} ${className}`}>
       <a
-        href="#"
+        href={iosUrl}
+        target={iosUrl !== "#" ? "_blank" : undefined}
+        rel={iosUrl !== "#" ? "noreferrer" : undefined}
         aria-label="Download on the App Store"
         className="group inline-flex items-center gap-3 rounded-2xl bg-foreground text-background px-5 py-3 hover:scale-[1.03] transition-transform shadow-soft"
       >
@@ -17,7 +24,9 @@ export const StoreButtons = ({ className = "", align = "start" }: Props) => {
         </div>
       </a>
       <a
-        href="#"
+        href={androidUrl}
+        target={androidUrl !== "#" ? "_blank" : undefined}
+        rel={androidUrl !== "#" ? "noreferrer" : undefined}
         aria-label="Get it on Google Play"
         className="group inline-flex items-center gap-3 rounded-2xl bg-foreground text-background px-5 py-3 hover:scale-[1.03] transition-transform shadow-soft"
       >

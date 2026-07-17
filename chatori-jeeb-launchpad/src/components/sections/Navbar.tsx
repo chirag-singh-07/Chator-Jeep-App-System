@@ -70,7 +70,9 @@ export const Navbar = () => {
         </ul>
 
         <div className="hidden lg:flex items-center gap-3">
-          <Button variant="ghost" size="sm">Sign In</Button>
+          <Button asChild variant="ghost" size="sm">
+            <a href="#download">Sign In</a>
+          </Button>
           <Button asChild variant="hero" size="sm">
             <Link to="/app/user">Order Now</Link>
           </Button>

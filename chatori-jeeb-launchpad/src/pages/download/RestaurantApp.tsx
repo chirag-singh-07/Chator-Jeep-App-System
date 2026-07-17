@@ -35,7 +35,7 @@ const RestaurantApp = () => {
       hero={
         <div className="grid md:grid-cols-2 gap-10 items-center">
           <div>
-            <StoreButtons />
+            <StoreButtons androidUrl="https://play.google.com/store/apps/details?id=com.chatorijeeb.restaurant" />
             <div className="mt-4">
               <RestaurantApkButton />
             </div>

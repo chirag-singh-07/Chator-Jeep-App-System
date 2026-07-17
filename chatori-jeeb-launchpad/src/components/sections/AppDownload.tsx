@@ -81,15 +81,40 @@ export const AppDownload = () => {
             <div className="mt-8 rounded-3xl border border-foreground/10 bg-foreground/5 p-4 md:p-5">
               <div className="flex flex-col gap-1">
                 <div className="text-xs font-bold uppercase tracking-widest text-primary-foreground/80">
-                  Direct Android downloads
+                  Available on Google Play
                 </div>
                 <p className="text-sm text-primary-foreground/75">
-                  Prefer installing from our website? Grab the APKs below for Android devices.
+                  Get the official Chatori Jeeb apps for Android directly from the Play Store.
                 </p>
               </div>
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <UserApkButton compact />
-                <RestaurantApkButton compact />
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                <a href="https://play.google.com/store/apps/details?id=com.chatorijeeb.user" target="_blank" rel="noreferrer" className="group flex items-center gap-3 rounded-2xl bg-foreground/10 px-4 py-3 hover:bg-foreground/20 transition-all hover:-translate-y-0.5">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20 text-primary-deep">
+                    <UtensilsCrossed className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase opacity-70">Download</div>
+                    <div className="text-sm font-bold">User App</div>
+                  </div>
+                </a>
+                <a href="https://play.google.com/store/apps/details?id=com.chatorijeeb.restaurant" target="_blank" rel="noreferrer" className="group flex items-center gap-3 rounded-2xl bg-foreground/10 px-4 py-3 hover:bg-foreground/20 transition-all hover:-translate-y-0.5">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20 text-primary-deep">
+                    <Store className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase opacity-70">Download</div>
+                    <div className="text-sm font-bold">Restaurant</div>
+                  </div>
+                </a>
+                <a href="https://play.google.com/store/apps/details?id=com.chatorijeeb.delivery" target="_blank" rel="noreferrer" className="group flex items-center gap-3 rounded-2xl bg-foreground/10 px-4 py-3 hover:bg-foreground/20 transition-all hover:-translate-y-0.5">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20 text-primary-deep">
+                    <Bike className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase opacity-70">Download</div>
+                    <div className="text-sm font-bold">Partner</div>
+                  </div>
+                </a>
               </div>
             </div>
 

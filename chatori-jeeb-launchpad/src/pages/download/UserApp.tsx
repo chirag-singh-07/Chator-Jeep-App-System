@@ -34,7 +34,7 @@ const UserApp = () => {
       hero={
         <div className="grid md:grid-cols-2 gap-10 items-center">
           <div>
-            <StoreButtons />
+            <StoreButtons androidUrl="https://play.google.com/store/apps/details?id=com.chatorijeeb.user" />
             <p className="mt-4 text-sm text-muted-foreground">Available on iOS and Android. Free to download.</p>
           </div>
           <div className="flex justify-center md:justify-end">
@@ -103,7 +103,7 @@ const UserApp = () => {
       <section className="mt-20 rounded-3xl bg-gradient-primary text-primary-foreground p-10 md:p-14 text-center shadow-elegant">
         <h2 className="text-3xl md:text-4xl font-extrabold">Hungry already?</h2>
         <p className="mt-3 opacity-90 max-w-xl mx-auto">Download the Chatori Jeeb app and get your first order delivered in minutes.</p>
-        <div className="mt-6"><StoreButtons align="center" /></div>
+        <div className="mt-6"><StoreButtons align="center" androidUrl="https://play.google.com/store/apps/details?id=com.chatorijeeb.user" /></div>
       </section>
     </DownloadLayout>
   );
