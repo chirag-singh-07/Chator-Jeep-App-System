@@ -1,0 +1,29 @@
+# Environment Variables
+
+## Current State
+Names identified from `.env.example`:
+
+- `NODE_ENV`
+- `PORT`
+- `MONGO_URI`
+- `REDIS_URL`
+- `REDIS_USERNAME`
+- `REDIS_PASSWORD`
+- `REDIS_REQUIRED`
+- `JWT_ACCESS_SECRET`
+- `JWT_REFRESH_SECRET`
+- `JWT_ACCESS_EXPIRES_IN`
+- `JWT_REFRESH_EXPIRES_IN`
+- `CORS_ORIGIN`
+- `ADMIN_NAME`
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
+- `ADMIN_PHONE`
+- `BACKEND_URL`
+- `RAZORPAY_KEY_ID`
+- `RAZORPAY_KEY_SECRET`
+- `RAZORPAY_ACCOUNT_NUMBER`
+- `FIREBASE_SERVICE_ACCOUNT`
+
+## Implementation Notes
+Secrets are omitted.
