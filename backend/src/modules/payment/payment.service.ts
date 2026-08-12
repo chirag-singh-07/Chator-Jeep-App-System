@@ -3,6 +3,7 @@ import { AppError } from "../../common/errors/app-error";
 import { getSetting } from "../system/system.service";
 import { createRazorpayOrder, verifyRazorpayPayment, verifyRazorpayWebhookSignature } from "./razorpay.service";
 import { PaymentTransaction } from "./payment.model";
+import { handleRazorpayWebhookForOrder } from "../order/order.service";
 
 export const getPaymentInfo = () => ({
   activeGateway: "RAZORPAY",
@@ -169,6 +170,17 @@ export const handleRazorpayWebhook = async (rawBody: string, signature: string, 
 
   if (!orderId) return { received: true };
 
+  const isFoodOrder = await handleRazorpayWebhookForOrder(orderId, paymentId, event, payload?.payload?.payment?.entity?.error_description);
+  if (isFoodOrder) {
+    console.log("[payment] razorpay webhook processed for food order", { event, orderId, paymentId });
+    return { received: true };
+  }
+
+  const transaction = await PaymentTransaction.findOne({ razorpayOrderId: orderId });
+  if (transaction && transaction.status === "PAID" && (event === "payment.captured" || event === "payment.authorized")) {
+    return { received: true }; // Idempotent
+  }
+
   const update =
     event === "payment.failed"
       ? { status: "FAILED", failedAt: new Date(), failureReason: payload?.payload?.payment?.entity?.error_description }
@@ -178,7 +190,7 @@ export const handleRazorpayWebhook = async (rawBody: string, signature: string, 
 
   if (update) {
     await PaymentTransaction.findOneAndUpdate({ razorpayOrderId: orderId }, update);
-    console.log("[payment] razorpay webhook processed", { event, orderId, paymentId });
+    console.log("[payment] razorpay webhook processed for registration", { event, orderId, paymentId });
   }
 
   return { received: true };

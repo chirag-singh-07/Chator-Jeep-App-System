@@ -1,1 +1,0 @@
-how i make a local apk file so i can test that in phone simulater so make that 

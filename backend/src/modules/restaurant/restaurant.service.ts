@@ -22,6 +22,7 @@ import { deleteRestaurantById, listMenuByRestaurant } from "./restaurant.reposit
 import { Order } from "../order/order.model";
 import { consumeRestaurantRegistrationPayment } from "../payment/payment.service";
 import { User, IUser } from "../user/user.model";
+import { isRedisEnabled, redisConnection } from "../../config/redis";
 
 const indianPhoneRegex = /^[6-9]\d{9}$/;
 
@@ -520,7 +521,11 @@ export const addMenuItem = async (userId: string, body: any) => {
     throw new AppError(`Restaurant cannot manage menu while status is ${restaurant.status}`, 403);
   }
   
-  return MenuItem.create({ restaurantId: restaurant._id, ...body });
+  const item = await MenuItem.create({ restaurantId: restaurant._id, ...body });
+  if (isRedisEnabled && redisConnection) {
+    await redisConnection.del(`menu:${restaurant._id.toString()}`);
+  }
+  return item;
 };
 
 export const listMyMenu = async (userId: string) => {
@@ -541,6 +546,9 @@ export const updateMenuItem = async (userId: string, itemId: string, body: any) 
   );
   
   if (!item) throw new AppError("Menu item not found", 404);
+  if (isRedisEnabled && redisConnection) {
+    await redisConnection.del(`menu:${restaurant._id.toString()}`);
+  }
   return item;
 };
 
@@ -551,6 +559,9 @@ export const deleteMenuItem = async (userId: string, itemId: string) => {
   const item = await MenuItem.findOneAndDelete({ _id: itemId, restaurantId: restaurant._id });
   
   if (!item) throw new AppError("Menu item not found", 404);
+  if (isRedisEnabled && redisConnection) {
+    await redisConnection.del(`menu:${restaurant._id.toString()}`);
+  }
   return true;
 };
 
@@ -565,6 +576,9 @@ export const updateMenuItemStock = async (userId: string, itemId: string, isAvai
   );
   
   if (!item) throw new AppError("Menu item not found", 404);
+  if (isRedisEnabled && redisConnection) {
+    await redisConnection.del(`menu:${restaurant._id.toString()}`);
+  }
   return item;
 };
 
@@ -586,7 +600,22 @@ export const addEarningsToRestaurant = async (restaurantId: string, amount: numb
 };
 
 export const listRestaurantMenu = async (restaurantId: string) => {
-  return MenuItem.find({ restaurantId, isAvailable: true, showInMenu: true }).exec();
+  const cacheKey = `menu:${restaurantId}`;
+  
+  if (isRedisEnabled && redisConnection) {
+    const cached = await redisConnection.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  }
+
+  const menu = await MenuItem.find({ restaurantId, isAvailable: true, showInMenu: true }).exec();
+  
+  if (isRedisEnabled && redisConnection) {
+    await redisConnection.set(cacheKey, JSON.stringify(menu), "EX", 3600); // Cache for 1 hour
+  }
+  
+  return menu;
 };
 
 export const updateRestaurantBranding = async (
@@ -657,29 +686,41 @@ export const listRestaurants = async (query: {
     const latitude = parseFloat(query.lat);
     const longitude = parseFloat(query.lng);
 
-    // First try geo query for restaurants WITH location coordinates
-    const geoFilter = {
-      ...filter,
-      location: {
-        $near: {
-          $geometry: { type: "Point", coordinates: [longitude, latitude] },
-          $maxDistance: 15000, // 15km
-        },
-      },
-    };
+    // Tiered Radius Search: 5km -> 8km -> 10km
+    const radii = [5000, 8000, 10000];
+    let geoResults: any[] = [];
+    let geoTotal = 0;
 
     try {
-      const geoResults = await Restaurant.find(geoFilter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .exec();
+      for (const maxDistance of radii) {
+        const geoFilter = {
+          ...filter,
+          location: {
+            $near: {
+              $geometry: { type: "Point", coordinates: [longitude, latitude] },
+              $maxDistance: maxDistance,
+            },
+          },
+        };
 
-      total = await Restaurant.countDocuments(geoFilter).exec();
+        geoTotal = await Restaurant.countDocuments(geoFilter).exec();
+        if (geoTotal > 0) {
+          geoResults = await Restaurant.find(geoFilter)
+            .skip(skip)
+            .limit(limit)
+            .exec();
+          
+          // If we found enough results for this page, or we've found all there is in this radius
+          if (geoResults.length >= limit || geoTotal < limit) {
+            break;
+          }
+        }
+      }
 
       // If we found restaurants with geo query, return them
       if (geoResults.length > 0) {
         restaurants = geoResults;
+        total = geoTotal;
       } else {
         // No results with geo query - try to find restaurants in the same city/area
         // First, try to find restaurants without strict location (they may not have coordinates set)

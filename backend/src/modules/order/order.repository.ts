@@ -1,8 +1,8 @@
-import { Types } from "mongoose";
+import { Types, ClientSession } from "mongoose";
 import { IOrder, Order } from "./order.model";
 
-export const createOrder = (payload: Partial<IOrder>): Promise<IOrder> =>
-  Order.create(payload);
+export const createOrder = (payload: Partial<IOrder>, session?: ClientSession): Promise<IOrder> =>
+  Order.create([payload], { session }).then((docs) => docs[0]);
 
 export const getOrderById = (orderId: string): Promise<IOrder | null> =>
   Order.findById(orderId)
@@ -11,20 +11,36 @@ export const getOrderById = (orderId: string): Promise<IOrder | null> =>
     .lean()
     .exec() as any;
 
-export const listOrdersByUser = (userId: string): Promise<IOrder[]> =>
-  Order.find({ userId: new Types.ObjectId(userId) })
-    .populate("restaurantId", "name logoUrls")
-    .populate("deliveryId", "fullName phoneNumber profilePhoto vehicleType status")
-    .sort({ createdAt: -1 })
-    .lean()
-    .exec() as any;
+export const listOrdersByUser = async (userId: string, page: number = 1, limit: number = 20) => {
+  const skip = (page - 1) * limit;
+  const [orders, total] = await Promise.all([
+    Order.find({ userId: new Types.ObjectId(userId) })
+      .populate("restaurantId", "name logoUrls")
+      .populate("deliveryId", "fullName phoneNumber profilePhoto vehicleType status")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean()
+      .exec(),
+    Order.countDocuments({ userId: new Types.ObjectId(userId) }).exec(),
+  ]);
+  return { orders, total };
+};
 
-export const listOrdersByRestaurant = (restaurantId: string): Promise<IOrder[]> =>
-  Order.find({ restaurantId: new Types.ObjectId(restaurantId) })
-    .populate("userId", "name phone")
-    .sort({ createdAt: -1 })
-    .lean()
-    .exec() as any;
+export const listOrdersByRestaurant = async (restaurantId: string, page: number = 1, limit: number = 20) => {
+  const skip = (page - 1) * limit;
+  const [orders, total] = await Promise.all([
+    Order.find({ restaurantId: new Types.ObjectId(restaurantId) })
+      .populate("userId", "name phone")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean()
+      .exec(),
+    Order.countDocuments({ restaurantId: new Types.ObjectId(restaurantId) }).exec(),
+  ]);
+  return { orders, total };
+};
 
 export const adminListOrders = async (
   status?: string,
@@ -51,8 +67,12 @@ export const adminListOrders = async (
   return { orders: orders as any[], total };
 };
 
-export const updateOrder = (orderId: string, payload: Partial<IOrder>): Promise<IOrder | null> =>
-  Order.findByIdAndUpdate(orderId, payload, { new: true })
+export const updateOrder = (
+  orderId: string,
+  payload: Partial<IOrder>,
+  session?: ClientSession
+): Promise<IOrder | null> =>
+  Order.findByIdAndUpdate(orderId, payload, { new: true, session })
     .populate("restaurantId", "name logoUrls")
     .populate("deliveryId", "fullName phoneNumber profilePhoto vehicleType status")
     .lean()

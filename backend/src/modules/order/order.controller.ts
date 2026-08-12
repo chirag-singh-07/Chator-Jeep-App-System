@@ -12,8 +12,10 @@ export const createOrder = asyncHandler(async (req: AuthenticatedRequest, res: R
 });
 
 export const listMyOrders = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const orders = await service.listMyOrders(req.user!.userId);
-  res.status(200).json({ success: true, data: orders });
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const result = await service.listMyOrders(req.user!.userId, page, limit);
+  res.status(200).json({ success: true, ...result });
 });
 
 export const getOrderDetail = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -22,8 +24,10 @@ export const getOrderDetail = asyncHandler(async (req: AuthenticatedRequest, res
 });
 
 export const listRestaurantOrders = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const orders = await service.listRestaurantOrders(req.user!.userId);
-  res.status(200).json({ success: true, data: orders });
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const result = await service.listRestaurantOrders(req.user!.userId, page, limit);
+  res.status(200).json({ success: true, ...result });
 });
 
 export const adminListOrders = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {

@@ -1,6 +1,8 @@
 import { Server } from "http";
 import { Server as SocketIOServer } from "socket.io";
+import { createAdapter } from "@socket.io/redis-adapter";
 import { env } from "../config/env";
+import { isRedisEnabled, redisConnection } from "../config/redis";
 
 let io: SocketIOServer | null = null;
 
@@ -11,6 +13,12 @@ export const initSocket = (server: Server): SocketIOServer => {
       credentials: true
     }
   });
+
+  if (isRedisEnabled && redisConnection) {
+    const pubClient = redisConnection;
+    const subClient = pubClient.duplicate();
+    io.adapter(createAdapter(pubClient, subClient));
+  }
 
   io.on("connection", (socket) => {
     socket.on("join", (room: string) => {

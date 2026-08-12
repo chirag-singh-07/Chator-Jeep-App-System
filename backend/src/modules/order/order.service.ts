@@ -17,6 +17,7 @@ import { getPlatformConfig } from "../system/system.service";
 import { haversineKm } from "../../common/utils/geo.util";
 import { Restaurant } from "../restaurant/restaurant.model";
 import { validateCoupon, incrementCouponUsage } from "../coupon/coupon.service";
+import { withTransaction } from "../../common/utils/transaction.util";
 
 const canTransition = (current: OrderStatus, next: OrderStatus, actorRole: Role): boolean => {
   if ((next as string) === ORDER_STATUS.CANCELLED) {
@@ -58,13 +59,14 @@ export const createOrder = async (
     couponCode?: string;
   }
 ) => {
-  const draft = await buildOrderDraft(userId, input);
-  const paymentMethod = input.paymentMethod || "COD";
+  return withTransaction(async (session) => {
+    const draft = await buildOrderDraft(userId, input);
+    const paymentMethod = input.paymentMethod || "COD";
 
   let walletAmountUsed = 0;
   if (paymentMethod === "WALLET" || paymentMethod === "PARTIAL_WALLET") {
     const requestedDeduction = paymentMethod === "WALLET" ? draft.itemsTotal : input.useWalletAmount || 0;
-    walletAmountUsed = await deductUserWallet(userId, requestedDeduction, "pending");
+    walletAmountUsed = await deductUserWallet(userId, requestedDeduction, "pending", session);
   }
 
   const remainingAmount = Math.max(0, draft.itemsTotal - walletAmountUsed);
@@ -83,7 +85,7 @@ export const createOrder = async (
     couponCode: draft.couponCode || null,
     couponDiscount: draft.couponDiscount || 0,
     paymentStatus: initialPaymentStatus,
-  } as any);
+  } as any, session);
 
   if (draft.couponCode) {
     await incrementCouponUsage(draft.couponCode);
@@ -92,13 +94,15 @@ export const createOrder = async (
   if (walletAmountUsed > 0) {
     await UserWalletTransaction.updateOne(
       { userId, referenceId: "pending", referenceType: "ORDER" },
-      { referenceId: order._id.toString() }
+      { referenceId: order._id.toString() },
+      { session }
     );
   }
 
   await notifyNewOrder(order._id.toString(), userId, input.restaurantId, draft.itemsTotal, input.deliveryAddress);
 
   return { ...order.toObject(), remainingAmount };
+  });
 };
 
 type OrderInput = {
@@ -239,6 +243,40 @@ const notifyCustomerPaymentConfirmed = (userId: string, orderId: string, gateway
     type: "ORDER_PLACED",
     data: { orderId },
   });
+};
+
+export const handleRazorpayWebhookForOrder = async (
+  razorpayOrderId: string,
+  razorpayPaymentId: string,
+  event: string,
+  failureReason?: string
+) => {
+  const order = await Order.findOne({ razorpayOrderId });
+  if (!order) return false; // Not a food order
+
+  if (order.paymentStatus === PAYMENT_STATUS.PAID && (event === "payment.captured" || event === "payment.authorized")) {
+    return true; // Idempotent: already paid
+  }
+
+  if (event === "payment.failed") {
+    // We could mark it failed, but currently paymentStatus is UNPAID, PAID, REFUNDED.
+    return true;
+  }
+
+  if (event === "payment.captured" || event === "payment.authorized") {
+    return withTransaction(async (session) => {
+      await repo.updateOrder(order._id.toString(), {
+        paymentStatus: PAYMENT_STATUS.PAID,
+        paymentGateway: "RAZORPAY",
+        razorpayPaymentId,
+      } as any, session);
+    }).then(() => {
+      notifyCustomerPaymentConfirmed(order.userId.toString(), order._id.toString(), "Razorpay");
+      return true;
+    });
+  }
+
+  return true;
 };
 
 const markOrderPaidIfNeeded = async (
@@ -466,7 +504,7 @@ export const verifyAndConfirmPayment = async (
   return updated;
 };
 
-export const listMyOrders = (userId: string) => repo.listOrdersByUser(userId);
+export const listMyOrders = (userId: string, page: number = 1, limit: number = 20) => repo.listOrdersByUser(userId, page, limit);
 
 export const getOrderDetail = async (userId: string, orderId: string) => {
   const order = await Order.findById(orderId)
@@ -481,10 +519,10 @@ export const getOrderDetail = async (userId: string, orderId: string) => {
   return order.toObject();
 };
 
-export const listRestaurantOrders = async (ownerId: string) => {
-  const restaurant = await findRestaurantByOwner(ownerId);
-  if (!restaurant) throw new AppError("Restaurant profile not found", 404);
-  return repo.listOrdersByRestaurant(restaurant._id.toString());
+export const listRestaurantOrders = async (userId: string, page: number = 1, limit: number = 20) => {
+  const restaurant = await findRestaurantByOwner(userId);
+  if (!restaurant) throw new AppError("Restaurant not found", 404);
+  return repo.listOrdersByRestaurant(restaurant._id.toString(), page, limit);
 };
 
 export const adminListOrders = async (query: { status?: string; page?: string; limit?: string }) => {
@@ -521,30 +559,32 @@ export const cancelOrder = async (userId: string, orderId: string, reason?: stri
     throw new AppError(`Cannot cancel order in ${order.status} state`, 400);
   }
 
-  await repo.updateOrder(orderId, {
-    status: ORDER_STATUS.CANCELLED,
-    cancellationReason: reason || "Cancelled by customer",
-  } as any);
+  return withTransaction(async (session) => {
+    await repo.updateOrder(orderId, {
+      status: ORDER_STATUS.CANCELLED,
+      cancellationReason: reason || "Cancelled by customer",
+    } as any, session);
 
-  if (order.walletAmountUsed && order.walletAmountUsed > 0) {
-    await refundUserWallet(userId, order.walletAmountUsed, orderId, "Order cancelled - wallet refund");
-  }
+    if (order.walletAmountUsed && order.walletAmountUsed > 0) {
+      await refundUserWallet(userId, order.walletAmountUsed, orderId, "Order cancelled - wallet refund", session);
+    }
+  }).then(() => {
+    void NotificationService.sendToRestaurant(order.restaurantId.toString(), {
+      title: "Order Cancelled",
+      body: "A customer cancelled their order.",
+      type: "ORDER_CANCELLED" as any,
+      data: { orderId },
+    });
 
-  void NotificationService.sendToRestaurant(order.restaurantId.toString(), {
-    title: "Order Cancelled",
-    body: "A customer cancelled their order.",
-    type: "ORDER_CANCELLED" as any,
-    data: { orderId },
+    void NotificationService.sendToCustomer(userId, {
+      title: "Order Cancelled",
+      body: reason ? `Order cancelled. Reason: ${reason}` : "Your order has been cancelled.",
+      type: "ORDER_CANCELLED" as any,
+      data: { orderId },
+    });
+
+    return { success: true, refunded: order.walletAmountUsed || 0 };
   });
-
-  void NotificationService.sendToCustomer(userId, {
-    title: "Order Cancelled",
-    body: reason ? `Order cancelled. Reason: ${reason}` : "Your order has been cancelled.",
-    type: "ORDER_CANCELLED" as any,
-    data: { orderId },
-  });
-
-  return { success: true, refunded: order.walletAmountUsed || 0 };
 };
 
 export const updateOrderStatus = async (
@@ -632,26 +672,28 @@ export const adminRefund = async (
 
   const refundAmount = input.amount || order.totalAmount;
 
-  await repo.updateOrder(orderId, {
-    paymentStatus: PAYMENT_STATUS.REFUNDED,
-  } as any);
+  return withTransaction(async (session) => {
+    await repo.updateOrder(orderId, {
+      paymentStatus: PAYMENT_STATUS.REFUNDED,
+    } as any, session);
 
-  if (order.walletAmountUsed && order.walletAmountUsed > 0) {
-    await refundUserWallet(order.userId.toString(), order.walletAmountUsed, orderId, `Admin refund: ${input.reason}`);
-  }
+    if (order.walletAmountUsed && order.walletAmountUsed > 0) {
+      await refundUserWallet(order.userId.toString(), order.walletAmountUsed, orderId, `Admin refund: ${input.reason}`, session);
+    }
+  }).then(() => {
+    void NotificationService.sendToCustomer(order.userId.toString(), {
+      title: "Refund Processed",
+      body: `A refund of Rs ${refundAmount} has been processed for order ${orderId}.`,
+      type: "REFUND_PROCESSED" as any,
+      data: { orderId, refundAmount },
+    });
 
-  void NotificationService.sendToCustomer(order.userId.toString(), {
-    title: "Refund Processed",
-    body: `A refund of Rs ${refundAmount} has been processed for order ${orderId}.`,
-    type: "REFUND_PROCESSED" as any,
-    data: { orderId, refundAmount },
+    return {
+      success: true,
+      refundAmount,
+      reason: input.reason,
+      orderId,
+      refundedAt: new Date(),
+    };
   });
-
-  return {
-    success: true,
-    refundAmount,
-    reason: input.reason,
-    orderId,
-    refundedAt: new Date(),
-  };
 };

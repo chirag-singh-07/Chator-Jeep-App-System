@@ -18,6 +18,7 @@ import { addEarningsToRestaurant } from "../restaurant/restaurant.service";
 import { Types } from "mongoose";
 import { hashPassword } from "../../common/utils/hash";
 import { findUserByEmail, createUser } from "../auth/auth.repository";
+import { isRedisEnabled, redisConnection } from "../../config/redis";
 
 const roundAmount = (value: number) =>
   Math.round((value + Number.EPSILON) * 100) / 100;
@@ -241,7 +242,7 @@ export const notifyRidersForOrder = async (orderId: string) => {
       },
     },
   })
-    .limit(10)
+    .limit(3) // Batched broadcast to Top 3 nearest riders to reduce load
     .exec();
 
   if (riders.length === 0) {
@@ -761,10 +762,31 @@ export const updateMyLocation = async (
   riderId: string,
   coordinates: [number, number],
 ) => {
-  const delivery = await repo.updateRiderAvailability(riderId, {
-    currentLocation: { type: "Point", coordinates },
-    lastLocationUpdatedAt: new Date(),
-  });
+  let delivery: any;
+  const throttleKey = `gps_throttle:${riderId}`;
+  let shouldWriteDb = true;
+
+  if (isRedisEnabled && redisConnection) {
+    const throttled = await redisConnection.get(throttleKey);
+    if (throttled) shouldWriteDb = false;
+  }
+
+  if (shouldWriteDb) {
+    delivery = await repo.updateRiderAvailability(riderId, {
+      currentLocation: { type: "Point", coordinates },
+      lastLocationUpdatedAt: new Date(),
+    });
+    if (isRedisEnabled && redisConnection) {
+      await redisConnection.set(throttleKey, "1", "EX", 10); // Throttle writes for 10 seconds
+    }
+  } else {
+    // Just fetch it to get current order/status for socket
+    delivery = await repo.findDeliveryByRiderId(riderId);
+    if (delivery) {
+      delivery.currentLocation = { type: "Point", coordinates };
+      delivery.lastLocationUpdatedAt = new Date();
+    }
+  }
 
   if (!delivery) throw new AppError("Unable to update location", 400);
 

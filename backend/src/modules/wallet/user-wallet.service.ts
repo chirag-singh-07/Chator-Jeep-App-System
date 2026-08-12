@@ -1,11 +1,15 @@
+import { ClientSession } from "mongoose";
 import { AppError } from "../../common/errors/app-error";
 import { UserWallet, UserWalletTransaction } from "./user-wallet.model";
 
 const round = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
 
-const ensureWallet = async (userId: string) => {
-  let wallet = await UserWallet.findOne({ userId });
-  if (!wallet) wallet = await UserWallet.create({ userId, balance: 0 });
+const ensureWallet = async (userId: string, session?: ClientSession) => {
+  let wallet = await UserWallet.findOne({ userId }).session(session || null);
+  if (!wallet) {
+    const created = await UserWallet.create([{ userId, balance: 0 }], { session });
+    wallet = created[0];
+  }
   return wallet;
 };
 
@@ -51,9 +55,10 @@ export const topUpUserWallet = async (userId: string, amount: number, referenceI
 export const deductUserWallet = async (
   userId: string,
   requestedAmount: number,
-  orderId: string
+  orderId: string,
+  session?: ClientSession
 ): Promise<number> => {
-  const wallet = await ensureWallet(userId);
+  const wallet = await ensureWallet(userId, session);
   const deductAmount = round(Math.min(requestedAmount, wallet.balance));
 
   if (deductAmount <= 0) return 0;
@@ -61,12 +66,12 @@ export const deductUserWallet = async (
   const updated = await UserWallet.findOneAndUpdate(
     { _id: wallet._id, balance: { $gte: deductAmount } },
     { $inc: { balance: -deductAmount } },
-    { new: true }
+    { new: true, session }
   );
 
   if (!updated) return 0; // Concurrent modification — return 0 safely
 
-  await UserWalletTransaction.create({
+  await UserWalletTransaction.create([{
     walletId: wallet._id,
     userId,
     type: "DEBIT",
@@ -75,7 +80,7 @@ export const deductUserWallet = async (
     description: "Payment for order",
     referenceType: "ORDER",
     referenceId: orderId,
-  });
+  }], { session });
 
   return deductAmount;
 };
@@ -85,19 +90,20 @@ export const refundUserWallet = async (
   userId: string,
   amount: number,
   orderId: string,
-  reason?: string
+  reason?: string,
+  session?: ClientSession
 ): Promise<void> => {
   const amt = round(amount);
   if (amt <= 0) return;
 
-  const wallet = await ensureWallet(userId);
+  const wallet = await ensureWallet(userId, session);
   const updated = await UserWallet.findByIdAndUpdate(
     wallet._id,
     { $inc: { balance: amt } },
-    { new: true }
+    { new: true, session }
   );
 
-  await UserWalletTransaction.create({
+  await UserWalletTransaction.create([{
     walletId: wallet._id,
     userId,
     type: "REFUND",
@@ -106,5 +112,5 @@ export const refundUserWallet = async (
     description: reason || "Order refund",
     referenceType: "REFUND",
     referenceId: orderId,
-  });
+  }], { session });
 };
