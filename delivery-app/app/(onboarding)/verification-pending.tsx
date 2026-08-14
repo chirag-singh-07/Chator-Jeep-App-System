@@ -46,7 +46,7 @@ export default function VerificationPending() {
       contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
       showsVerticalScrollIndicator={false}
     >
-      <StatusBar style="light" backgroundColor={Colors.light.primary} />
+      <StatusBar style="light" />
 
       {/* Top gradient banner */}
       <LinearGradient

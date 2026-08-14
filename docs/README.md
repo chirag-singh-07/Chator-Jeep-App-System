@@ -18,7 +18,8 @@ Maintain the backend but migrate mobile applications to Flutter. Ensure robust s
 3. 03-backend-architecture.md
 4. 04-database-architecture.md
 5. 11-order-system.md
-6. 40-ai-agent-development-rules.md
+6. 41-bulk-order-system.md
+7. 40-ai-agent-development-rules.md
 
 ## Important Warnings
 - Never trust client-side pricing.

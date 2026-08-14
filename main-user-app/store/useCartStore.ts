@@ -22,6 +22,7 @@ interface CartState {
   clearCart: () => void;
   totalAmount: number;
   totalItems: number;
+  recalculate: () => void;
 }
 
 export const useCartStore = create<CartState>()(

@@ -1030,7 +1030,7 @@ export default function RegisterScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" backgroundColor={Colors.light.primary} />
+      <StatusBar style="light" />
 
       {/* Header gradient */}
       <LinearGradient

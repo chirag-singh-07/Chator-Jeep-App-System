@@ -5,6 +5,8 @@ import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
+
 const RESTAURANTS = [
   {
     id: '1',
@@ -48,7 +50,7 @@ export default function ListingScreen() {
   const router = useRouter();
 
   const renderItem = ({ item, index }: { item: any, index: number }) => (
-    <Animated.TouchableOpacity 
+    <AnimatedTouchableOpacity 
       entering={FadeInDown.delay(index * 100)}
       activeOpacity={0.9}
       style={styles.card}
@@ -72,7 +74,7 @@ export default function ListingScreen() {
           <Text style={styles.metaText}>{item.time} • Free Delivery</Text>
         </View>
       </View>
-    </Animated.TouchableOpacity>
+    </AnimatedTouchableOpacity>
   );
 
   return (

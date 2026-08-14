@@ -227,7 +227,7 @@ const getStatusColor = (status: string) => {
   }
 };
 
-const styles = StyleSheet.create({
+const styles: any = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
   bulkBadgeText: {
     color: '#FFF',
     fontSize: 11,
-    fontWeight: '950',
+    fontWeight: '900',
   },
   bulkTimeText: {
     color: '#FFEDD5',

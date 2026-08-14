@@ -7,17 +7,17 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
-  SafeAreaView,
   StatusBar,
   Alert,
   TextInput
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { useCartStore } from '@/store/useCartStore';
 import { useLocationStore } from '@/store/useLocationStore';
-import Animated, { FadeInDown, SlideInBottom, FadeInRight } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeInRight, SlideInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
 const { height } = Dimensions.get('window');
@@ -182,7 +182,7 @@ export default function CartScreen() {
       </ScrollView>
 
       {/* Footer Checkout */}
-      <Animated.View entering={SlideInBottom} style={styles.footer}>
+      <Animated.View entering={SlideInDown} style={styles.footer}>
          <View style={styles.addressFooter}>
             <View style={styles.addrCircle}>
               <Ionicons name="location" size={18} color={Colors.light.primary} />

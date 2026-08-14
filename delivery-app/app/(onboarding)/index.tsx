@@ -107,7 +107,7 @@ export default function OnboardingScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" backgroundColor="#F4F7FF" />
+      <StatusBar style="dark" />
 
       {/* Background wave decoration */}
       <View style={styles.bgDecorTop} />

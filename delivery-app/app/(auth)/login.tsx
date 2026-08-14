@@ -48,7 +48,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" backgroundColor={Colors.light.primary} />
+      <StatusBar style="light" />
 
       {/* Hero Header */}
       <LinearGradient

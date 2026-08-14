@@ -21,9 +21,10 @@ export default function RootLayout() {
     // Wait until navigation state is ready
     if (!navigationState?.key) return;
 
-    const inAuthGroup = segments[0] === "(auth)";
-    const inOnboarding = segments[0] === "(onboarding)";
-    const authPage = segments[1] as string | undefined;
+    const segs = segments as string[];
+    const inAuthGroup = segs[0] === "(auth)";
+    const inOnboarding = segs[0] === "(onboarding)";
+    const authPage = segs[1] as string | undefined;
     
     // Defer the navigation to ensure Root Layout is fully mounted
     const timer = setTimeout(() => {

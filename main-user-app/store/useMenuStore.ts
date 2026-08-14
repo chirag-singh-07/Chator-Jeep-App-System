@@ -44,7 +44,7 @@ interface MenuState {
   reviews: any[];
   isLoading: boolean;
   error: string | null;
-  fetchHomeData: (lat?: number, lng?: number) => Promise<void>;
+  fetchHomeData: (lat?: number, lng?: number, city?: string) => Promise<void>;
   fetchRestaurants: (params?: any) => Promise<void>;
   fetchRestaurantDetail: (id: string) => Promise<void>;
   fetchReviews: (restaurantId: string) => Promise<void>;
