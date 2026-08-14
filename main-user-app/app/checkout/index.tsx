@@ -62,6 +62,72 @@ export default function CheckoutScreen() {
   const [availableCoupons, setAvailableCoupons] = useState<CouponItem[]>([]);
   const [isFetchingCoupons, setIsFetchingCoupons] = useState(false);
 
+  // Bulk order scheduling states
+  const [isBulkOrder, setIsBulkOrder] = useState(false);
+  const [scheduledDeliveryTime, setScheduledDeliveryTime] = useState<Date | null>(null);
+  const [selectedDateId, setSelectedDateId] = useState<string | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<any>(null);
+
+  // Helper functions for bulk orders
+  const generateAvailableDates = () => {
+    const dates = [];
+    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    for (let i = 0; i < 7; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      
+      let label = '';
+      if (i === 0) label = 'Today';
+      else if (i === 1) label = 'Tomorrow';
+      else label = `${daysOfWeek[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
+      
+      dates.push({
+        id: d.toISOString().split('T')[0], // YYYY-MM-DD
+        label,
+        dateObj: d,
+      });
+    }
+    return dates;
+  };
+
+  const generateTimeSlots = (selectedDateId: string) => {
+    const slots = [];
+    const startHour = 10; // 10 AM
+    const endHour = 22; // 10 PM
+    
+    const now = new Date();
+    const minTime = new Date(now.getTime() + 3 * 60 * 60 * 1000); // 3 hours from now
+    
+    for (let hour = startHour; hour <= endHour; hour++) {
+      for (let min of [0, 30]) {
+        if (hour === endHour && min > 0) break; // Don't generate slots past 10 PM
+        
+        const timeStr = `${hour > 12 ? hour - 12 : hour}:${min === 0 ? '00' : '30'} ${hour >= 12 ? 'PM' : 'AM'}`;
+        
+        // Check if slot is valid for Today
+        const slotTime = new Date(selectedDateId);
+        slotTime.setHours(hour, min, 0, 0);
+        
+        if (selectedDateId === now.toISOString().split('T')[0]) {
+          if (slotTime > minTime) {
+            slots.push({ timeStr, hour, min });
+          }
+        } else {
+          slots.push({ timeStr, hour, min });
+        }
+      }
+    }
+    return slots;
+  };
+
+  const updateScheduledTime = (dateId: string, slot: { hour: number, min: number }) => {
+    const d = new Date(dateId);
+    d.setHours(slot.hour, slot.min, 0, 0);
+    setScheduledDeliveryTime(d);
+  };
+
   useEffect(() => {
     const defaultAddress = currentAddress || savedAddresses[0] || null;
     if (!selectedAddress || (currentAddress && selectedAddress?.id !== currentAddress.id)) {
@@ -87,6 +153,8 @@ export default function CheckoutScreen() {
             : [77.1025, 28.7041],
         },
         paymentMethod: 'ONLINE',
+        isBulkOrder,
+        ...(scheduledDeliveryTime ? { scheduledDeliveryTime: scheduledDeliveryTime.toISOString() } : {}),
       };
       const res = await api.post('/orders/payment/checkout-preview', baseOrderData);
       if (res.data?.success) {
@@ -103,7 +171,7 @@ export default function CheckoutScreen() {
     if (step === 2 && selectedAddress) {
       fetchPreview(selectedAddress);
     }
-  }, [step, selectedAddress]);
+  }, [step, selectedAddress, isBulkOrder, scheduledDeliveryTime]);
 
   const grandTotal = Math.max(0, breakdown.totalAmount - discount);
 
@@ -213,6 +281,11 @@ export default function CheckoutScreen() {
       return;
     }
 
+    if (isBulkOrder && !scheduledDeliveryTime) {
+      Alert.alert('Scheduling Required', 'Please select a scheduled delivery date and time slot for your bulk order.');
+      return;
+    }
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsProcessing(true);
 
@@ -228,6 +301,8 @@ export default function CheckoutScreen() {
             : [77.1025, 28.7041],
         },
         paymentMethod: paymentMethod,
+        isBulkOrder,
+        ...(scheduledDeliveryTime ? { scheduledDeliveryTime: scheduledDeliveryTime.toISOString() } : {}),
         ...(appliedCouponCode ? { couponCode: appliedCouponCode } : {}),
       };
 
@@ -499,6 +574,112 @@ export default function CheckoutScreen() {
                     <Ionicons name="chevron-forward" size={16} color={Colors.light.primary} />
                   </TouchableOpacity>
                 </View>
+              )}
+            </View>
+
+            {/* Bulk Order Section */}
+            <View style={styles.bulkOrderCard}>
+              <View style={styles.bulkHeaderRow}>
+                <Ionicons name="gift-outline" size={24} color="#EA580C" />
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={styles.bulkSectionTitle}>Bulk & Party Order</Text>
+                  <Text style={styles.bulkSubtitle}>Minimum food value ₹5,000</Text>
+                </View>
+                {totalAmount >= 5000 && (
+                  <TouchableOpacity
+                    style={[styles.toggleBtn, isBulkOrder && styles.toggleBtnActive]}
+                    onPress={() => {
+                      const willBeBulk = !isBulkOrder;
+                      setIsBulkOrder(willBeBulk);
+                      if (!willBeBulk) {
+                        setScheduledDeliveryTime(null);
+                        setSelectedDateId(null);
+                        setSelectedSlot(null);
+                      } else {
+                        // Select today/tomorrow by default
+                        const dates = generateAvailableDates();
+                        setSelectedDateId(dates[0].id);
+                      }
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    }}
+                  >
+                    <View style={[styles.toggleCircle, isBulkOrder && styles.toggleCircleActive]} />
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {totalAmount < 5000 ? (
+                <View style={styles.bulkInfoBanner}>
+                  <Ionicons name="information-circle-outline" size={18} color="#C2410C" style={{ marginRight: 6 }} />
+                  <Text style={styles.bulkInfoText}>
+                    Add ₹{(5000 - totalAmount).toLocaleString('en-IN')} more to unlock bulk benefits (scheduled delivery and multi-rider dispatch).
+                  </Text>
+                </View>
+              ) : (
+                isBulkOrder && (
+                  <Animated.View entering={FadeInDown} style={styles.schedulerContainer}>
+                    <Text style={styles.pickerLabel}>1. Select Delivery Date</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.datesList}>
+                      {generateAvailableDates().map((date) => {
+                        const isSelected = selectedDateId === date.id;
+                        return (
+                          <TouchableOpacity
+                            key={date.id}
+                            style={[styles.datePill, isSelected && styles.datePillActive]}
+                            onPress={() => {
+                              setSelectedDateId(date.id);
+                              setSelectedSlot(null);
+                              setScheduledDeliveryTime(null);
+                              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                            }}
+                          >
+                            <Text style={[styles.datePillText, isSelected && styles.datePillTextActive]}>
+                              {date.label}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </ScrollView>
+
+                    <Text style={[styles.pickerLabel, { marginTop: 15 }]}>2. Select Time Slot (3+ hours advance)</Text>
+                    {selectedDateId ? (
+                      <View style={styles.slotsGrid}>
+                        {generateTimeSlots(selectedDateId).map((slot, index) => {
+                          const isSelected = selectedSlot?.timeStr === slot.timeStr;
+                          return (
+                            <TouchableOpacity
+                              key={index}
+                              style={[styles.slotPill, isSelected && styles.slotPillActive]}
+                              onPress={() => {
+                                setSelectedSlot(slot);
+                                updateScheduledTime(selectedDateId, slot);
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                              }}
+                            >
+                              <Text style={[styles.slotPillText, isSelected && styles.slotPillTextActive]}>
+                                {slot.timeStr}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                        {generateTimeSlots(selectedDateId).length === 0 && (
+                          <Text style={styles.noSlotsText}>No slots available for today. Please select tomorrow.</Text>
+                        )}
+                      </View>
+                    ) : (
+                      <Text style={styles.noSlotsText}>Please select a date first</Text>
+                    )}
+
+                    {scheduledDeliveryTime && selectedSlot && (
+                      <View style={styles.scheduleConfirmation}>
+                        <Ionicons name="alarm-outline" size={16} color="#16A34A" />
+                        <Text style={styles.scheduleConfirmationText}>
+                          Scheduled for {scheduledDeliveryTime.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })} at {selectedSlot.timeStr}
+                        </Text>
+                      </View>
+                    )}
+                  </Animated.View>
+                )
               )}
             </View>
 
@@ -1066,5 +1247,152 @@ const styles = StyleSheet.create({
     color: '#374151',
     lineHeight: 18,
     flex: 1,
+  },
+  bulkOrderCard: {
+    backgroundColor: '#FFF',
+    padding: 16,
+    borderRadius: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  bulkHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  bulkSectionTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  bulkSubtitle: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  toggleBtn: {
+    width: 50,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#E5E7EB',
+    padding: 2,
+    justifyContent: 'center',
+  },
+  toggleBtnActive: {
+    backgroundColor: '#EA580C',
+  },
+  toggleCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#FFF',
+    alignSelf: 'flex-start',
+  },
+  toggleCircleActive: {
+    alignSelf: 'flex-end',
+  },
+  bulkInfoBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF7ED',
+    padding: 12,
+    borderRadius: 12,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#FFEDD5',
+  },
+  bulkInfoText: {
+    fontSize: 12,
+    color: '#C2410C',
+    fontWeight: '600',
+    flex: 1,
+  },
+  schedulerContainer: {
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    paddingTop: 16,
+  },
+  pickerLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  datesList: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  datePill: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  datePillActive: {
+    backgroundColor: '#FFF7ED',
+    borderColor: '#FDBA74',
+  },
+  datePillText: {
+    fontSize: 13,
+    color: '#4B5563',
+    fontWeight: '600',
+  },
+  datePillTextActive: {
+    color: '#C2410C',
+    fontWeight: '700',
+  },
+  slotsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  slotPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#F3F4F6',
+    width: '30%',
+    alignItems: 'center',
+  },
+  slotPillActive: {
+    backgroundColor: '#FFF7ED',
+    borderWidth: 1,
+    borderColor: '#FDBA74',
+  },
+  slotPillText: {
+    fontSize: 12,
+    color: '#4B5563',
+    fontWeight: '600',
+  },
+  slotPillTextActive: {
+    color: '#C2410C',
+    fontWeight: '700',
+  },
+  noSlotsText: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    fontStyle: 'italic',
+    paddingVertical: 8,
+  },
+  scheduleConfirmation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 16,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: '#DCFCE7',
+  },
+  scheduleConfirmationText: {
+    fontSize: 12,
+    color: '#16A34A',
+    fontWeight: '700',
   },
 });

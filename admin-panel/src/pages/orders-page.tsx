@@ -55,7 +55,23 @@ export function OrdersPage() {
 
   const columnsConfig = useMemo(() => {
     const allColumns: Array<{ key: ColumnKey; column: DataColumn<any> }> = [
-      { key: "id", column: { key: "_id", label: "Order ID", render: (row) => row._id } },
+      {
+        key: "id",
+        column: {
+          key: "_id",
+          label: "Order ID",
+          render: (row) => (
+            <div className="flex flex-col gap-1">
+              <span className="font-mono text-xs">{row._id}</span>
+              {row.isBulkOrder && (
+                <span className="inline-flex items-center gap-1 w-max px-2 py-0.5 rounded text-[10px] font-semibold bg-orange-100 text-orange-800 border border-orange-200">
+                  📦 Bulk Order
+                </span>
+              )}
+            </div>
+          )
+        }
+      },
       { key: "customer", column: { key: "customer", label: "Customer", render: (row) => row.userId?.name || "N/A" } },
       { key: "kitchen", column: { key: "kitchen", label: "Kitchen", render: (row) => row.restaurantId?.name || "N/A" } },
       { key: "status", column: { key: "status", label: "Status", render: (row) => <StatusBadge value={row.status} /> } },

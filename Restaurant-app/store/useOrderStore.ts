@@ -9,6 +9,8 @@ export interface Order {
   totalAmount: number;
   status: 'PENDING' | 'ACCEPTED' | 'PREPARING' | 'READY' | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED';
   createdAt: string;
+  isBulkOrder?: boolean;
+  scheduledDeliveryTime?: string;
 }
 
 interface OrderState {

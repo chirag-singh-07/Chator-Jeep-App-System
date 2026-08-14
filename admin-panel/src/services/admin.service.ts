@@ -44,6 +44,11 @@ export const adminService = {
     return response.data;
   },
 
+  getOrderById: async (id: string) => {
+    const response = await apiClient.get(`/orders/${id}`);
+    return response.data;
+  },
+
   createDelivery: async (data: any) => {
     const response = await apiClient.post("/users/admin/delivery", data);
     return response.data;

@@ -17,6 +17,8 @@ export const createOrderSchema = z.object({
     }),
     paymentMethod: z.enum(["COD", "ONLINE", "WALLET", "PARTIAL_WALLET"]).optional(),
     useWalletAmount: z.number().min(0).optional(),
+    isBulkOrder: z.boolean().optional(),
+    scheduledDeliveryTime: z.string().optional(),
   }),
 });
 

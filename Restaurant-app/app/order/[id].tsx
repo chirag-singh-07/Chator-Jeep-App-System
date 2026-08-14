@@ -84,6 +84,27 @@ export default function OrderDetailsScreen() {
           )}
         </View>
 
+        {/* Bulk Notice Banner */}
+        {order.isBulkOrder && (
+          <View style={styles.bulkNoticeCard}>
+            <View style={styles.bulkNoticeHeader}>
+              <Ionicons name="gift" size={20} color="#FFF" />
+              <Text style={styles.bulkNoticeTitle}>BULK / PARTY ORDER DETECTED</Text>
+            </View>
+            <Text style={styles.bulkNoticeText}>
+              This order contains a large volume of items (minimum value ₹5,000) and must be delivered on schedule.
+            </Text>
+            {order.scheduledDeliveryTime && (
+              <View style={styles.scheduledTimeBox}>
+                <Ionicons name="alarm-outline" size={18} color="#FFE4E6" />
+                <Text style={styles.scheduledTimeText}>
+                  Scheduled Delivery: {new Date(order.scheduledDeliveryTime).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })} at {new Date(order.scheduledDeliveryTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
         {/* Customer Information */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
@@ -403,5 +424,43 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     flex: 1,
     lineHeight: 18,
-  }
+  },
+  bulkNoticeCard: {
+    backgroundColor: '#EA580C',
+    padding: 16,
+    borderRadius: 15,
+    marginTop: 15,
+  },
+  bulkNoticeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  bulkNoticeTitle: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  bulkNoticeText: {
+    color: '#FFEDD5',
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: '500',
+  },
+  scheduledTimeBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.15)',
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 12,
+    gap: 8,
+  },
+  scheduledTimeText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
 });

@@ -68,6 +68,15 @@ export default function OrderDetailScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <DeliveryMapCard order={order} />
 
+        {order.isBulkOrder && (
+          <View style={styles.bulkBanner}>
+            <Ionicons name="warning-outline" size={18} color="#C2410C" />
+            <Text style={styles.bulkBannerText}>
+              📦 Bulk Order: Multiple riders are assigned to this delivery. Please coordinate.
+            </Text>
+          </View>
+        )}
+
         <View style={styles.actionCard}>
           <Text style={styles.actionTitle}>Next Step</Text>
           <View style={styles.actionStack}>
@@ -387,6 +396,24 @@ const styles = StyleSheet.create({
   },
   timelineSection: {
     gap: Spacing.md,
-  }
+  },
+  bulkBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF7ED',
+    padding: Spacing.md,
+    borderRadius: Radius.lg,
+    marginTop: Spacing.md,
+    borderWidth: 1,
+    borderColor: '#FFEDD5',
+    gap: 8,
+  },
+  bulkBannerText: {
+    fontSize: 13,
+    color: '#C2410C',
+    fontWeight: '700',
+    flex: 1,
+    lineHeight: 18,
+  },
 });
 

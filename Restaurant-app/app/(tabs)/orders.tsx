@@ -65,6 +65,18 @@ export default function OrdersScreen() {
         <Text style={styles.priceText}>₹{item.totalAmount.toLocaleString('en-IN')}</Text>
       </View>
 
+      {item.isBulkOrder && (
+        <View style={styles.bulkBadgeContainer}>
+          <Ionicons name="gift" size={14} color="#FFF" />
+          <Text style={styles.bulkBadgeText}>BULK ORDER</Text>
+          {item.scheduledDeliveryTime && (
+            <Text style={styles.bulkTimeText}>
+              • Scheduled: {new Date(item.scheduledDeliveryTime).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} at {new Date(item.scheduledDeliveryTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </Text>
+          )}
+        </View>
+      )}
+
       <View style={styles.customerRow}>
         <Ionicons name="person-circle" size={16} color="#666" />
         <Text style={styles.customerName}>{item.customerData?.name || 'Customer'}</Text>
@@ -432,5 +444,25 @@ const styles = StyleSheet.create({
     color: "#444",
     fontWeight: "700",
     marginTop: 8,
+  },
+  bulkBadgeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EA580C',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    marginTop: 8,
+    gap: 5,
+  },
+  bulkBadgeText: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: '950',
+  },
+  bulkTimeText: {
+    color: '#FFEDD5',
+    fontSize: 11,
+    fontWeight: '700',
   },
 });
