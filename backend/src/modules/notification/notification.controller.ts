@@ -4,7 +4,7 @@ import { User } from "../user/user.model";
 import { Restaurant } from "../restaurant/restaurant.model";
 import { DeliveryPartner } from "../delivery/delivery.model";
 import { Notification } from "./notification.model";
-import { NotificationService } from "./notification.service";
+import { NotificationManager } from "./notification.manager";
 import { ROLES } from "../../common/constants";
 
 export const updateFcmToken = async (req: AuthenticatedRequest, res: Response) => {
@@ -107,7 +107,7 @@ export const broadcastNotification = async (req: AuthenticatedRequest, res: Resp
     const audience = audienceMap[targetUserType] || "ALL";
 
     // ⚡ Trigger Broadcast
-    await NotificationService.broadcast(audience, { title, body, image });
+    await NotificationManager.broadcastOffer(audience, title, body, image);
 
     // ⚡ Log the broadcast (as a system-level notification history item)
     await Notification.create({

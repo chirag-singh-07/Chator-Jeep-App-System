@@ -13,7 +13,7 @@ import * as repo from "./delivery.repository";
 import { DeliveryPartner, IDeliveryPartner } from "./delivery.model";
 import { generateOTP } from "../../common/utils/otp.util";
 import { signAccessToken, signRefreshToken } from "../../common/utils/jwt";
-import { NotificationService } from "../notification/notification.service";
+import { NotificationManager } from "../notification/notification.manager";
 import { addEarningsToRestaurant } from "../restaurant/restaurant.service";
 import { Types } from "mongoose";
 import { hashPassword } from "../../common/utils/hash";
@@ -258,10 +258,13 @@ export const notifyRidersForOrder = async (orderId: string) => {
   );
 
   const requestPayload = {
-    orderId: order._id.toString(),
+    orderId: order._id,
     restaurantName: restaurant.name,
-    distanceKm: earnings.distanceKm,
+    pickupLocation: restaurant.location,
+    dropLocation: customer ? getDeliveryCoordinates(customer) : null,
     earnings: earnings.estimatedAmount,
+    distanceKm: earnings.distanceKm,
+    isBulkOrder: order.isBulkOrder,
     pickupAddress: formatRestaurantAddress(restaurant),
     dropAddress: formatUserAddress(customer),
     expiresIn: 30, // 30 seconds
@@ -274,18 +277,31 @@ export const notifyRidersForOrder = async (orderId: string) => {
       requestPayload,
     );
     // ⚡ Send Push Notification
-    void NotificationService.sendToPartner(rider._id.toString(), {
-      title: `New delivery #${order._id.toString().slice(-6).toUpperCase()}`,
-      body: `New order near ${restaurant.name}. Earnings: ₹${earnings.estimatedAmount}`,
-      type: "NEW_DELIVERY_REQUEST",
-      data: {
-        ...requestPayload,
-        customerName: customer?.name || "",
-        orderAmount: String(order.totalAmount),
-        deliveryAddress: formatUserAddress(customer),
-        orderStatus: order.status,
-      },
-    });
+    if (order.isBulkOrder) {
+      NotificationManager.notifyPartnerBulkDeliveryRequest(
+        rider._id.toString(),
+        order._id.toString(),
+        restaurant.name,
+        earnings.estimatedAmount,
+        requestPayload,
+        customer?.name || "",
+        order.totalAmount,
+        formatUserAddress(customer),
+        order.status
+      );
+    } else {
+      NotificationManager.notifyPartnerDeliveryRequest(
+        rider._id.toString(),
+        order._id.toString(),
+        restaurant.name,
+        earnings.estimatedAmount,
+        requestPayload,
+        customer?.name || "",
+        order.totalAmount,
+        formatUserAddress(customer),
+        order.status
+      );
+    }
   });
 
   return { notifiedCount: riders.length };
@@ -294,8 +310,13 @@ export const notifyRidersForOrder = async (orderId: string) => {
 export const acceptOrderRequest = async (userId: string, orderId: string) => {
   const order = await getOrderById(orderId);
   if (!order) throw new AppError("Order not found", 404);
-  if (order.deliveryId)
-    throw new AppError("Order already accepted by another rider", 400);
+  
+  const totalItems = order.items?.reduce((acc: number, item: any) => acc + item.quantity, 0) || 1;
+  const maxRiders = order.isBulkOrder ? Math.max(2, Math.ceil(totalItems / 10)) : 1;
+  const currentRidersCount = order.deliveryIds?.length || (order.deliveryId ? 1 : 0);
+
+  if (currentRidersCount >= maxRiders)
+    throw new AppError("Order already accepted by enough riders", 400);
 
   const partner = await repo.findDeliveryByRiderId(userId);
   if (!partner) throw new AppError("Partner profile not found", 404);
@@ -326,10 +347,15 @@ export const acceptOrderRequest = async (userId: string, orderId: string) => {
 
   if (!delivery) throw new AppError("Unable to accept order", 500);
 
-  await updateOrder(orderId, {
-    deliveryId: delivery._id as any,
-    status: ORDER_STATUS.ACCEPTED,
-  });
+  const updateData: any = { $push: { deliveryIds: delivery._id } };
+  if (!order.deliveryId) {
+    updateData.$set = {
+      deliveryId: delivery._id,
+      status: ORDER_STATUS.ACCEPTED,
+    };
+  }
+
+  await updateOrder(orderId, updateData);
 
   const payload = await buildDeliveryPayload(delivery);
   emitDeliveryUpdate(
@@ -339,19 +365,7 @@ export const acceptOrderRequest = async (userId: string, orderId: string) => {
   );
 
   // ⚡ Notify Customer
-  void NotificationService.sendToCustomer(order.userId.toString(), {
-    title: "Delivery Partner Assigned",
-    body: `${partner.fullName} will be delivering your order.`,
-    type: "DELIVERY_ASSIGNED",
-    data: {
-      orderId: orderId,
-      partnerName: partner.fullName,
-      customerName: customer?.name || "",
-      orderAmount: String(order.totalAmount),
-      deliveryAddress: formatUserAddress(customer),
-      orderStatus: "DELIVERY_ASSIGNED",
-    },
-  });
+  NotificationManager.notifyCustomerDeliveryAssigned(order.userId.toString(), orderId, partner.fullName);
 
   return payload;
 };
@@ -657,12 +671,7 @@ export const updateDeliveryStatus = async (
     );
 
     // ⚡ Notify Customer
-    void NotificationService.sendToCustomer(order.userId.toString(), {
-      title: "Order Picked Up",
-      body: "Your order is on the way!",
-      type: "ORDER_PICKED_UP",
-      data: { orderId: orderId, deliveryOtp },
-    });
+    NotificationManager.notifyCustomerOrderPickedUp(order.userId.toString(), orderId, delivery.fullName);
 
     return { ...payload, deliveryOtp };
   }
@@ -678,12 +687,7 @@ export const updateDeliveryStatus = async (
     );
 
     // ⚡ Notify Customer
-    void NotificationService.sendToCustomer(order.userId.toString(), {
-      title: "Delivery Partner Arrived",
-      body: "Your delivery partner has arrived at your location.",
-      type: "DELIVERY_ARRIVED",
-      data: { orderId: orderId },
-    });
+    NotificationManager.notifyCustomerOrderStatusUpdated(order.userId.toString(), orderId, "ARRIVED", order.totalAmount, "");
 
     return payload;
   }
@@ -739,18 +743,7 @@ export const updateDeliveryStatus = async (
     );
 
     // ⚡ Notify Customer
-    void NotificationService.sendToCustomer(order.userId.toString(), {
-      title: "Order Delivered",
-      body: `Order #${orderId.slice(-6).toUpperCase()} delivered. Enjoy your meal!`,
-      type: "ORDER_DELIVERED",
-      data: {
-        orderId: orderId,
-        customerName: payload.customer?.name || "",
-        orderAmount: String(order.totalAmount),
-        deliveryAddress: payload.customer?.address || "",
-        orderStatus: "DELIVERED",
-      },
-    });
+    NotificationManager.notifyCustomerOrderDelivered(order.userId.toString(), orderId);
 
     return payload;
   }

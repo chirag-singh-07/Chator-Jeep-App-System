@@ -15,6 +15,9 @@ export interface IOrder extends Document {
   userId: Types.ObjectId;
   restaurantId: Types.ObjectId;
   deliveryId?: Types.ObjectId;
+  deliveryIds: Types.ObjectId[];
+  isBulkOrder: boolean;
+  scheduledDeliveryTime?: Date;
   items: IOrderItemSnapshot[];
   foodAmount: number;
   deliveryFee: number;
@@ -48,6 +51,9 @@ const orderSchema = new Schema<IOrder>(
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     restaurantId: { type: Schema.Types.ObjectId, ref: "Restaurant", required: true, index: true },
     deliveryId: { type: Schema.Types.ObjectId, ref: "DeliveryPartner", default: null, index: true },
+    deliveryIds: [{ type: Schema.Types.ObjectId, ref: "DeliveryPartner" }],
+    isBulkOrder: { type: Boolean, default: false },
+    scheduledDeliveryTime: { type: Date, default: null },
     items: [
       {
         menuItemId: { type: Schema.Types.ObjectId, ref: "MenuItem", required: true },

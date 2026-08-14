@@ -6,7 +6,7 @@ import { listMenuByRestaurant, findRestaurantByOwner } from "../restaurant/resta
 import { orderQueue } from "../../jobs/queues";
 import * as repo from "./order.repository";
 import { notifyRidersForOrder } from "../delivery/delivery.service";
-import { NotificationService } from "../notification/notification.service";
+import { NotificationManager } from "../notification/notification.manager";
 import { deductUserWallet, refundUserWallet } from "../wallet/user-wallet.service";
 import { buildPhonePeRedirectProxyUrl, createPhonePePayment, getPhonePeOrderStatus } from "../payment/phonepe.service";
 import { createRazorpayOrder, fetchRazorpayOrder, verifyRazorpayPayment } from "../payment/razorpay.service";
@@ -99,7 +99,7 @@ export const createOrder = async (
     );
   }
 
-  await notifyNewOrder(order._id.toString(), userId, input.restaurantId, draft.itemsTotal, input.deliveryAddress);
+  await notifyNewOrder(order._id.toString(), userId, input.restaurantId, draft.itemsTotal, input.deliveryAddress, draft.payload.isBulkOrder);
 
   return { ...order.toObject(), remainingAmount };
   });
@@ -113,6 +113,8 @@ type OrderInput = {
   paymentMethod?: "COD" | "ONLINE" | "WALLET" | "PARTIAL_WALLET";
   useWalletAmount?: number;
   couponCode?: string;
+  isBulkOrder?: boolean;
+  scheduledDeliveryTime?: string | Date;
 };
 
 const buildOrderDraft = async (userId: string, input: OrderInput) => {
@@ -139,7 +141,27 @@ const buildOrderDraft = async (userId: string, input: OrderInput) => {
   );
   const distanceKm = Math.min(rawDistanceKm, 15);
 
-  const deliveryFee = Math.round(config.deliveryBaseFee + distanceKm * config.deliveryPerKmFee);
+  let deliveryFee = Math.round(config.deliveryBaseFee + distanceKm * config.deliveryPerKmFee);
+  
+  if (input.isBulkOrder) {
+    if (foodTotal < 5000) {
+      throw new AppError("Bulk orders must have a minimum value of ₹5000", 400);
+    }
+    if (!input.scheduledDeliveryTime) {
+      throw new AppError("Scheduled delivery time is required for bulk orders", 400);
+    }
+    const scheduledTime = new Date(input.scheduledDeliveryTime);
+    const minTime = new Date(Date.now() + 3 * 60 * 60 * 1000);
+    if (scheduledTime < minTime) {
+      throw new AppError("Bulk orders must be scheduled at least 3 hours in advance", 400);
+    }
+    
+    // Add extra delivery price based on items (e.g. ₹20 per item over 10 items)
+    const totalItems = snapshotItems.reduce((sum, item) => sum + item.quantity, 0);
+    if (totalItems > 10) {
+      deliveryFee += (totalItems - 10) * 20;
+    }
+  }
   const offerActive = Boolean(
     restaurant.launchOfferExpiresAt &&
       restaurant.launchOfferExpiresAt.getTime() > Date.now(),
@@ -187,6 +209,8 @@ const buildOrderDraft = async (userId: string, input: OrderInput) => {
       deliveryAddress: input.deliveryAddress,
       location: input.location,
       status: ORDER_STATUS.PENDING,
+      isBulkOrder: input.isBulkOrder || false,
+      scheduledDeliveryTime: input.scheduledDeliveryTime ? new Date(input.scheduledDeliveryTime) : null,
     },
   };
 };
@@ -197,6 +221,7 @@ const notifyNewOrder = async (
   restaurantId: string,
   itemsTotal: number,
   deliveryAddress?: string,
+  isBulkOrder?: boolean
 ) => {
   if (orderQueue) {
     try {
@@ -210,39 +235,16 @@ const notifyNewOrder = async (
     }
   }
 
-  void NotificationService.sendToCustomer(userId, {
-    title: "Order Placed!",
-    body: "Your order has been placed. Waiting for restaurant confirmation.",
-    type: "ORDER_PLACED",
-    data: {
-      orderId,
-      orderAmount: String(itemsTotal),
-      orderStatus: "PLACED",
-      deliveryAddress: deliveryAddress || "",
-    },
-  });
-
-  void NotificationService.sendToRestaurant(restaurantId, {
-    title: `New order #${orderId.slice(-6).toUpperCase()}`,
-    body: `New order worth Rs.${itemsTotal}. Please confirm.`,
-    type: "NEW_ORDER",
-    data: {
-      orderId,
-      customerName: "",
-      orderAmount: String(itemsTotal),
-      deliveryAddress: deliveryAddress || "",
-      orderStatus: "PLACED",
-    },
-  });
+  NotificationManager.notifyCustomerOrderPlaced(userId, orderId, itemsTotal, deliveryAddress || "");
+  if (isBulkOrder) {
+    NotificationManager.notifyRestaurantNewBulkOrder(restaurantId, orderId, itemsTotal, deliveryAddress || "");
+  } else {
+    NotificationManager.notifyRestaurantNewOrder(restaurantId, orderId, itemsTotal, deliveryAddress || "");
+  }
 };
 
 const notifyCustomerPaymentConfirmed = (userId: string, orderId: string, gatewayLabel: string) => {
-  void NotificationService.sendToCustomer(userId, {
-    title: "Payment Confirmed",
-    body: `Your ${gatewayLabel} payment was successful. Order is now placed.`,
-    type: "ORDER_PLACED",
-    data: { orderId },
-  });
+  NotificationManager.notifyCustomerPaymentConfirmed(userId, orderId, gatewayLabel);
 };
 
 export const handleRazorpayWebhookForOrder = async (
@@ -469,7 +471,7 @@ export const verifyPaymentAndCreateOrder = async (
     await incrementCouponUsage(draft.couponCode);
   }
 
-  await notifyNewOrder(order._id.toString(), userId, input.restaurantId, draft.itemsTotal, input.deliveryAddress);
+  await notifyNewOrder(order._id.toString(), userId, input.restaurantId, draft.itemsTotal, input.deliveryAddress, draft.payload.isBulkOrder);
   notifyCustomerPaymentConfirmed(userId, order._id.toString(), "Razorpay");
 
   return { ...order.toObject(), remainingAmount: 0 };
@@ -569,19 +571,8 @@ export const cancelOrder = async (userId: string, orderId: string, reason?: stri
       await refundUserWallet(userId, order.walletAmountUsed, orderId, "Order cancelled - wallet refund", session);
     }
   }).then(() => {
-    void NotificationService.sendToRestaurant(order.restaurantId.toString(), {
-      title: "Order Cancelled",
-      body: "A customer cancelled their order.",
-      type: "ORDER_CANCELLED" as any,
-      data: { orderId },
-    });
-
-    void NotificationService.sendToCustomer(userId, {
-      title: "Order Cancelled",
-      body: reason ? `Order cancelled. Reason: ${reason}` : "Your order has been cancelled.",
-      type: "ORDER_CANCELLED" as any,
-      data: { orderId },
-    });
+    NotificationManager.notifyRestaurantOrderCancelled(order.restaurantId.toString(), orderId);
+    NotificationManager.notifyCustomerOrderCancelled(userId, orderId, reason);
 
     return { success: true, refunded: order.walletAmountUsed || 0 };
   });
@@ -613,18 +604,13 @@ export const updateOrderStatus = async (
 
   const label = statusLabels[nextStatus as string] || nextStatus;
 
-  void NotificationService.sendToCustomer(order.userId.toString(), {
-    title: `Order ${label}`,
-    body: `Your order is now: ${label}.`,
-    type: `ORDER_${nextStatus}` as any,
-    data: {
-      orderId,
-      status: nextStatus,
-      orderStatus: nextStatus,
-      orderAmount: String(order.totalAmount),
-      deliveryAddress: order.deliveryAddress,
-    },
-  });
+  NotificationManager.notifyCustomerOrderStatusUpdated(
+    order.userId.toString(),
+    orderId,
+    nextStatus,
+    order.totalAmount,
+    order.deliveryAddress
+  );
 
   if (nextStatus === ORDER_STATUS.READY) {
     void notifyRidersForOrder(orderId);
@@ -681,12 +667,7 @@ export const adminRefund = async (
       await refundUserWallet(order.userId.toString(), order.walletAmountUsed, orderId, `Admin refund: ${input.reason}`, session);
     }
   }).then(() => {
-    void NotificationService.sendToCustomer(order.userId.toString(), {
-      title: "Refund Processed",
-      body: `A refund of Rs ${refundAmount} has been processed for order ${orderId}.`,
-      type: "REFUND_PROCESSED" as any,
-      data: { orderId, refundAmount },
-    });
+    NotificationManager.notifyCustomerRefundProcessed(order.userId.toString(), orderId, refundAmount);
 
     return {
       success: true,
