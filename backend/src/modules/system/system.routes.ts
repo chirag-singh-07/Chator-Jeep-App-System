@@ -53,5 +53,11 @@ router.get(
   roleMiddleware(["ADMIN"]),
   controller.getTopItems,
 );
+router.post(
+  "/trigger-push",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  controller.triggerUserPush,
+);
 
 export default router;

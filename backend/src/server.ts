@@ -8,6 +8,7 @@ import { initFirebase } from "./config/firebase";
 import { initWorkers } from "./jobs/workers";
 import { initKeepAlive } from "./common/utils/cron";
 import { initMongoHealthCheck } from "./common/utils/mongo-cron";
+import { initUserPushCron } from "./jobs/user-push-cron";
 import { ensureCategories } from "./scripts/ensure-categories";
 
 const bootstrap = async (): Promise<void> => {
@@ -32,6 +33,7 @@ const bootstrap = async (): Promise<void> => {
     console.log(`Server running on port ${env.PORT}`);
     initKeepAlive();
     initMongoHealthCheck();
+    initUserPushCron();
   });
 };
 

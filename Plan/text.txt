@@ -10,18 +10,3 @@ $env:RNFB_SUPPRESS_NEW_ARCHITECTURE_WARNING="1"
 
 npx.cmd expo run:android --port 8082
 
-
-okey so now make the restaurant details page more good and means 
-redesign whole restaurant details page and also keep current theme 
-just improve the styles and all thing and also show the food items name 
-and images more good with the prices and with the offer / sales price too 
-and with the delivery time and with the location and with the ratings and 
-with the offers and also on the restaurant details screen 
-
-show the restaurant cover image and logo 
-name and location and delivery fees and ratings and offer
-then show the list of their food items / menu with the images 
-and names and other thing and not need to chnage the functionlly 
-just chnage the ui and style 
-
-also redesign the notifcation screen too so improve that 
