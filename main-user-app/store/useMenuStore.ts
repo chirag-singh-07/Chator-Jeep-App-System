@@ -7,6 +7,9 @@ export interface Restaurant {
   rating: number;
   cuisines: string[];
   isOpen: boolean;
+  isVeg?: boolean;
+  foodType?: string;
+  coverImage?: string;
   logoUrls?: Record<string, string>;
   bannerUrls?: Record<string, string>;
   address: {

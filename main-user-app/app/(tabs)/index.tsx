@@ -14,6 +14,7 @@ import {
   ActivityIndicator,
   Modal,
   Pressable,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
@@ -81,6 +82,7 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [activeFilter, setActiveFilter] = useState("Nearby");
+  const [isVegOnly, setIsVegOnly] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -115,50 +117,137 @@ export default function HomeScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
+  const getRestaurantCover = (res: any) => {
+    if (res?.coverImage) return res.coverImage;
+    if (res?.bannerUrls?.original) return res.bannerUrls.original;
+    if (res?.bannerUrls?.medium) return res.bannerUrls.medium;
+    if (res?.bannerUrls?.large) return res.bannerUrls.large;
+    if (res?.logoUrls?.original) return res.logoUrls.original;
+    return "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80";
+  };
+
+  const renderDietaryBadge = (res: any) => {
+    const foodTypeLower = res?.foodType?.toLowerCase() || '';
+    const isVeg = res?.isVeg === true || foodTypeLower === 'veg' || foodTypeLower === 'pure veg';
+    const isNonVeg = foodTypeLower === 'non-veg';
+
+    if (isVeg) {
+      return (
+        <View style={styles.badgeVegPill}>
+          <View style={styles.vegSquare}>
+            <View style={styles.vegDot} />
+          </View>
+          <Text style={styles.badgeVegText}>PURE VEG</Text>
+        </View>
+      );
+    }
+
+    if (isNonVeg) {
+      return (
+        <View style={styles.badgeNonVegPill}>
+          <View style={styles.nonVegSquare}>
+            <View style={styles.nonVegDot} />
+          </View>
+          <Text style={styles.badgeNonVegText}>NON-VEG</Text>
+        </View>
+      );
+    }
+
+    // Both (Veg & Non-Veg)
+    return (
+      <View style={styles.badgeBothPill}>
+        <View style={styles.dualDotsRow}>
+          <View style={styles.vegSquareSmall}>
+            <View style={styles.vegDotSmall} />
+          </View>
+          <View style={styles.nonVegSquareSmall}>
+            <View style={styles.nonVegDotSmall} />
+          </View>
+        </View>
+        <Text style={styles.badgeBothText}>VEG & NON-VEG</Text>
+      </View>
+    );
+  };
+
+  const displayedRestaurants = React.useMemo(() => {
+    return restaurants.filter((res: any) => {
+      const foodTypeLower = res?.foodType?.toLowerCase() || '';
+      const isPureVeg = res?.isVeg === true || foodTypeLower === 'veg' || foodTypeLower === 'pure veg';
+      
+      if (isVegOnly) {
+        if (!isPureVeg) return false;
+      }
+      
+      if (activeFilter === "Pure Veg") {
+        if (!isPureVeg) return false;
+      }
+      
+      if (activeFilter === "Rating 4.0+") {
+        if ((res.rating || 4.2) < 4.0) return false;
+      }
+
+      return true;
+    });
+  }, [restaurants, isVegOnly, activeFilter]);
+
   const renderRestaurantCard = (res: any, index: number) => (
-    <Animated.View key={res._id} entering={FadeInDown.delay(index * 100)}>
+    <Animated.View key={res._id} entering={FadeInDown.delay(index * 80)}>
       <TouchableOpacity
         activeOpacity={0.95}
         style={styles.restaurantCard}
         onPress={() => router.push(`/restaurant/${res._id}`)}
       >
-        <Image
-          source={{
-            uri:
-              res.bannerUrls?.original ||
-              "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800",
-          }}
-          style={styles.restaurantImage}
-        />
-        <View style={styles.offerBadge}>
-          <Text style={styles.offerText}>50% OFF</Text>
+        <View style={styles.cardImageContainer}>
+          <Image
+            source={{ uri: getRestaurantCover(res) }}
+            style={styles.restaurantImage}
+          />
+          <View style={styles.imageOverlayGradient} />
+          
+          <View style={styles.topBadgeRow}>
+            <View style={styles.offerBadge}>
+              <Ionicons name="pricetag" size={11} color="#1A1A1A" />
+              <Text style={styles.offerText}>50% OFF</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.heartBtn}
+              onPress={() => Haptics.selectionAsync()}
+            >
+              <Ionicons name="heart-outline" size={18} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.floatingMetaBadge}>
+            <Ionicons name="time-outline" size={12} color="#1A1A1A" />
+            <Text style={styles.floatingMetaText}>25-30 min</Text>
+          </View>
         </View>
-        <TouchableOpacity
-          style={styles.heartBtn}
-          onPress={() => Haptics.selectionAsync()}
-        >
-          <Ionicons name="heart-outline" size={18} color="#FFF" />
-        </TouchableOpacity>
 
         <View style={styles.restaurantInfo}>
           <View style={styles.resRow}>
-            <Text style={styles.resName}>{res.name}</Text>
+            <Text style={styles.resName} numberOfLines={1}>{res.name}</Text>
             <View style={styles.ratingBadge}>
               <Text style={styles.ratingText}>{res.rating || "4.2"}</Text>
-              <Ionicons name="star" size={10} color="#FFF" />
+              <Ionicons name="star" size={11} color="#FFF" />
             </View>
           </View>
-          <Text style={styles.resTags}>
-            {res.cuisines?.join(" • ") || "Fast Food • Pizza"}
-          </Text>
+
+          <View style={styles.dietaryAndCuisineRow}>
+            {renderDietaryBadge(res)}
+            <Text style={styles.resTags} numberOfLines={1}>
+              {res.cuisines?.join(" • ") || "North Indian • Fast Food"}
+            </Text>
+          </View>
 
           <View style={styles.resMeta}>
             <View style={styles.metaItem}>
-              <Ionicons name="bicycle" size={14} color="#48bb78" />
-              <Text style={styles.metaText}>25-30 min</Text>
+              <Ionicons name="bicycle" size={14} color="#22C55E" />
+              <Text style={styles.metaText}>Free Delivery</Text>
             </View>
             <View style={styles.metaDot} />
             <Text style={styles.metaText}>₹250 for two</Text>
+            <View style={styles.metaDot} />
+            <Text style={styles.metaText}>{res.address?.city || "Nearby"}</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -226,7 +315,7 @@ export default function HomeScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 130 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -313,19 +402,37 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filterList}
         >
-          {["Nearby", "Rating 4.0+", "Fast Delivery", "Pure Veg", "Offers"].map((filter) => (
-            <TouchableOpacity
-              key={filter}
-              style={[styles.filterChip, activeFilter === filter && styles.activeFilterChip]}
-              onPress={() => {
-                setActiveFilter(filter);
-                Haptics.selectionAsync();
-              }}
-            >
-              <Text style={[styles.filterText, activeFilter === filter && styles.activeFilterText]}>{filter}</Text>
-              {activeFilter === filter && <Ionicons name="close-circle" size={14} color="#1A1A1A" style={{ marginLeft: 4 }} />}
-            </TouchableOpacity>
-          ))}
+          {["Nearby", "Rating 4.0+", "Fast Delivery", "Pure Veg", "Offers"].map((filter) => {
+            const isActive = activeFilter === filter || (filter === "Pure Veg" && isVegOnly);
+            return (
+              <TouchableOpacity
+                key={filter}
+                style={[styles.filterChip, isActive && styles.activeFilterChip]}
+                onPress={() => {
+                  if (filter === "Pure Veg") {
+                    const nextVeg = !isVegOnly;
+                    setIsVegOnly(nextVeg);
+                    setActiveFilter(nextVeg ? "Pure Veg" : "Nearby");
+                  } else {
+                    if (activeFilter === filter) {
+                      setActiveFilter("Nearby");
+                    } else {
+                      setActiveFilter(filter);
+                    }
+                  }
+                  Haptics.selectionAsync();
+                }}
+              >
+                {filter === "Pure Veg" && (
+                  <View style={[styles.vegSquareSmall, { marginRight: 5 }]}>
+                    <View style={styles.vegDotSmall} />
+                  </View>
+                )}
+                <Text style={[styles.filterText, isActive && styles.activeFilterText]}>{filter}</Text>
+                {isActive && <Ionicons name="close-circle" size={14} color="#1A1A1A" style={{ marginLeft: 4 }} />}
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
 
         {/* Trending Dishes Section */}
@@ -479,11 +586,35 @@ export default function HomeScreen() {
           ))}
         </ScrollView>
 
-        {/* Restaurants List */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Popular Near You</Text>
-          <TouchableOpacity>
-            <Text style={styles.viewAllText}>View All</Text>
+        {/* Restaurants List & Veg Filter */}
+        <View style={styles.resSectionHeader}>
+          <View>
+            <Text style={styles.sectionTitle}>Popular Near You</Text>
+            <Text style={styles.sectionSubTitle}>
+              {displayedRestaurants.length} restaurants serving in your area
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={[styles.vegToggleBtn, (isVegOnly || activeFilter === "Pure Veg") && styles.vegToggleBtnActive]}
+            onPress={() => {
+              const nextState = !isVegOnly;
+              setIsVegOnly(nextState);
+              if (nextState) {
+                setActiveFilter("Pure Veg");
+              } else if (activeFilter === "Pure Veg") {
+                setActiveFilter("Nearby");
+              }
+              Haptics.selectionAsync();
+            }}
+          >
+            <View style={styles.vegSquareSmall}>
+              <View style={styles.vegDotSmall} />
+            </View>
+            <Text style={[styles.vegToggleText, (isVegOnly || activeFilter === "Pure Veg") && styles.vegToggleTextActive]}>
+              Veg Only
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -508,17 +639,31 @@ export default function HomeScreen() {
                 </View>
               </View>
             ))
-          ) : restaurants.length > 0 ? (
-            restaurants.map((res, index) => renderRestaurantCard(res, index))
+          ) : displayedRestaurants.length > 0 ? (
+            displayedRestaurants.map((res, index) => renderRestaurantCard(res, index))
           ) : (
             <View style={styles.emptyContainer}>
-              <Ionicons name="search-outline" size={60} color="#DDD" />
+              <Ionicons name="leaf-outline" size={60} color={Colors.light.primary} />
               <Text style={styles.emptyText}>
-                No restaurants found in this area
+                {isVegOnly || activeFilter === "Pure Veg"
+                  ? "No Pure Veg restaurants found nearby"
+                  : "No restaurants found in this area"}
               </Text>
-              <TouchableOpacity style={styles.retryBtn} onPress={onRefresh}>
-                <Text style={styles.retryText}>Retry</Text>
-              </TouchableOpacity>
+              {(isVegOnly || activeFilter === "Pure Veg") ? (
+                <TouchableOpacity
+                  style={styles.retryBtn}
+                  onPress={() => {
+                    setIsVegOnly(false);
+                    setActiveFilter("Nearby");
+                  }}
+                >
+                  <Text style={styles.retryText}>Show All Restaurants</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity style={styles.retryBtn} onPress={onRefresh}>
+                  <Text style={styles.retryText}>Retry</Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
         </View>
@@ -607,7 +752,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 28) + 8 : 16,
+    paddingBottom: 16,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F9FAFB",
   },
   headerLeft: {
     flex: 1,
@@ -960,47 +1109,98 @@ const styles = StyleSheet.create({
   },
   restaurantCard: {
     backgroundColor: "#FFF",
-    borderRadius: 25,
-    marginBottom: 25,
+    borderRadius: 24,
+    marginBottom: 22,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "#F3F4F6",
     shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  cardImageContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 190,
+    backgroundColor: '#F9FAFB',
   },
   restaurantImage: {
     width: "100%",
-    height: 200,
+    height: "100%",
+    resizeMode: 'cover',
+  },
+  imageOverlayGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  topBadgeRow: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    right: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    zIndex: 2,
   },
   offerBadge: {
-    position: "absolute",
-    top: 15,
-    left: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: Colors.light.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    gap: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   offerText: {
     color: "#1A1A1A",
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: "900",
+    letterSpacing: 0.5,
   },
   heartBtn: {
-    position: "absolute",
-    top: 15,
-    right: 15,
     width: 36,
     height: 36,
     borderRadius: 12,
-    backgroundColor: "rgba(0,0,0,0.3)",
+    backgroundColor: "rgba(0,0,0,0.35)",
     alignItems: "center",
     justifyContent: "center",
   },
+  floatingMetaBadge: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    backgroundColor: 'rgba(255,255,255,0.94)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  floatingMetaText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#1A1A1A',
+  },
   restaurantInfo: {
-    padding: 15,
+    padding: 16,
   },
   resRow: {
     flexDirection: "row",
@@ -1011,11 +1211,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "900",
     color: Colors.light.text,
+    flex: 1,
+    marginRight: 10,
   },
   ratingBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#48bb78",
+    backgroundColor: "#22C55E",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -1024,13 +1226,165 @@ const styles = StyleSheet.create({
   ratingText: {
     color: "#FFF",
     fontSize: 12,
-    fontWeight: "bold",
+    fontWeight: "900",
+  },
+  dietaryAndCuisineRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 8,
   },
   resTags: {
-    fontSize: 13,
+    flex: 1,
+    fontSize: 12,
     color: Colors.light.textMuted,
-    marginTop: 4,
-    fontWeight: "500",
+    fontWeight: "600",
+  },
+  badgeVegPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E6F4EA',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
+    gap: 4,
+  },
+  badgeVegText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#137333',
+    letterSpacing: 0.3,
+  },
+  badgeNonVegPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FCE8E6',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
+    gap: 4,
+  },
+  badgeNonVegText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#C5221F',
+    letterSpacing: 0.3,
+  },
+  badgeBothPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF7E0',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
+    gap: 4,
+  },
+  badgeBothText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#B06000',
+    letterSpacing: 0.3,
+  },
+  vegSquare: {
+    width: 12,
+    height: 12,
+    borderWidth: 1.2,
+    borderColor: '#137333',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 3,
+  },
+  vegDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#137333',
+  },
+  nonVegSquare: {
+    width: 12,
+    height: 12,
+    borderWidth: 1.2,
+    borderColor: '#C5221F',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 3,
+  },
+  nonVegDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#C5221F',
+  },
+  dualDotsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  vegSquareSmall: {
+    width: 11,
+    height: 11,
+    borderWidth: 1.2,
+    borderColor: '#137333',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 2,
+  },
+  vegDotSmall: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#137333',
+  },
+  nonVegSquareSmall: {
+    width: 11,
+    height: 11,
+    borderWidth: 1.2,
+    borderColor: '#C5221F',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 2,
+  },
+  nonVegDotSmall: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#C5221F',
+  },
+  resSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 25,
+    marginBottom: 15,
+  },
+  sectionSubTitle: {
+    fontSize: 12,
+    color: Colors.light.textMuted,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  vegToggleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#EFEFEF',
+  },
+  vegToggleBtnActive: {
+    backgroundColor: '#E6F4EA',
+    borderColor: '#137333',
+  },
+  vegToggleText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#666',
+    marginLeft: 4,
+  },
+  vegToggleTextActive: {
+    color: '#137333',
   },
   resMeta: {
     flexDirection: "row",
