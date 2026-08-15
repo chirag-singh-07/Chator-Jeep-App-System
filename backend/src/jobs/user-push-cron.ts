@@ -4,12 +4,14 @@ import { Order } from "../modules/order/order.model";
 import { NotificationEvent } from "../modules/notification/notification-event.model";
 import { notificationQueue } from "./queues";
 import { NotificationService } from "../modules/notification/notification.service";
-import { getPeriodicTemplate } from "../modules/notification/notification.templates";
+import { selectTemplate, getActiveTemplateCount } from "../modules/notification/template-selector";
 import { notifConfig } from "../modules/notification/notification.config";
 import { ORDER_STATUS } from "../common/constants";
 import type { NotificationJobData } from "./workers/notification.worker";
 
-// Statuses that mean the user is actively waiting for food — skip periodic push
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+/** Statuses that mean the user is actively waiting for food — skip periodic push */
 const ACTIVE_ORDER_STATUSES = [
   ORDER_STATUS.PENDING,
   ORDER_STATUS.ACCEPTED,
@@ -18,26 +20,31 @@ const ACTIVE_ORDER_STATUSES = [
 ];
 
 /**
- * Check if current IST hour is within the configured daytime window.
+ * Periodic notification types — used for daily limit counting.
+ * These are the engagement categories, NOT order lifecycle types.
  */
+const PERIODIC_TYPES_PATTERN = /^(BREAKFAST|LUNCH|DINNER|EVENING_SNACK|MIDNIGHT_CRAVINGS|CRAVINGS|MOVIE_NIGHT|GAMING|STUDY_BREAK|WORK_BREAK|FRIENDS|FAMILY|WEEKEND|RAINY_WEATHER|HOT_WEATHER|SPORTS|PARTY|LAZY_DAY|SELF_TREAT|FOOD_DISCOVERY|RE_ENGAGEMENT|FUN_CONVERSATIONAL|LATE_NIGHT)$/;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Get current IST date string (YYYY-MM-DD) for daily limit tracking */
+const getISTDateString = (): string => {
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  return new Date(Date.now() + istOffset).toISOString().split("T")[0];
+};
+
+/** Check if current IST hour is within the configured daytime window */
 const isWithinDaytimeWindow = (): boolean => {
   const istOffset = 5.5 * 60 * 60 * 1000;
-  const istNow = new Date(Date.now() + istOffset);
-  const hour = istNow.getUTCHours();
+  const hour = new Date(Date.now() + istOffset).getUTCHours();
   return hour >= notifConfig.dayStartHour && hour < notifConfig.dayEndHour;
 };
 
-/**
- * Get today's date string in IST (YYYY-MM-DD) for daily limit tracking.
- */
-const getISTDateString = (): string => {
-  const istOffset = 5.5 * 60 * 60 * 1000;
-  const istNow = new Date(Date.now() + istOffset);
-  return istNow.toISOString().split("T")[0]; // "2026-08-15"
-};
+// ─── Per-User Processing ──────────────────────────────────────────────────────
 
 /**
- * Send periodic push to a single user — checks all eligibility rules.
+ * Evaluate and dispatch a periodic engagement notification for a single user.
+ * Runs all eligibility gates, selects the best template, enqueues/sends.
  */
 const processUserPeriodicNotification = async (
   userId: string,
@@ -49,10 +56,10 @@ const processUserPeriodicNotification = async (
   const minIntervalMs = notifConfig.minIntervalHours * 60 * 60 * 1000;
   const minIntervalCutoff = new Date(Date.now() - minIntervalMs);
 
-  // ─── Rule 1: Check daily limit ────────────────────────────────────────────────
+  // ─── Gate 1: Daily limit ──────────────────────────────────────────────────
   const todayCount = await NotificationEvent.countDocuments({
     userId,
-    type: { $in: ["LUNCH_REMINDER", "EVENING_CRAVING", "DINNER_REMINDER", "FOOD_DISCOVERY", "RE_ENGAGEMENT"] },
+    type: { $regex: PERIODIC_TYPES_PATTERN },
     sentAt: { $gte: new Date(`${todayIst}T00:00:00.000+05:30`) },
     status: "SENT",
   });
@@ -62,10 +69,10 @@ const processUserPeriodicNotification = async (
     return "skipped";
   }
 
-  // ─── Rule 2: Check minimum interval since last periodic notification ──────────
+  // ─── Gate 2: Minimum interval since last periodic notification ────────────
   const recentPeriodicEvent = await NotificationEvent.findOne({
     userId,
-    type: { $in: ["LUNCH_REMINDER", "EVENING_CRAVING", "DINNER_REMINDER", "FOOD_DISCOVERY", "RE_ENGAGEMENT"] },
+    type: { $regex: PERIODIC_TYPES_PATTERN },
     sentAt: { $gte: minIntervalCutoff },
     status: "SENT",
   }).select("_id sentAt");
@@ -76,7 +83,7 @@ const processUserPeriodicNotification = async (
     return "skipped";
   }
 
-  // ─── Rule 3: Check for active order (user is already waiting for food) ────────
+  // ─── Gate 3: Active order check ───────────────────────────────────────────
   const activeOrder = await Order.findOne({
     userId,
     status: { $in: ACTIVE_ORDER_STATUSES },
@@ -87,21 +94,30 @@ const processUserPeriodicNotification = async (
     return "skipped";
   }
 
-  // ─── All gates passed — generate and send notification ───────────────────────
-  const { title, body, language, type } = getPeriodicTemplate(preferredLanguage);
+  // ─── All gates passed: select template ───────────────────────────────────
+  const selected = await selectTemplate(userId, preferredLanguage);
 
-  // Build dedup key: periodic:{userId}:{date}:{type}
-  // This ensures user gets at most 1 of each type per day even if cron runs multiple times
-  const deduplicationKey = `periodic:${userId}:${todayIst}:${type}`;
+  if (!selected) {
+    console.log(`${tag} ⏭️  SKIP — template selector returned null (no eligible templates)`);
+    return "skipped";
+  }
+
+  // Dedup key: ensures this exact template is only sent once per user per day
+  const deduplicationKey = `periodic:${userId}:${selected.templateId}:${todayIst}`;
 
   const jobData: NotificationJobData = {
     userId,
-    type,
-    title,
-    body,
-    language,
+    type: selected.type,
+    title: selected.title,
+    body: selected.body,
+    language: selected.language,
     deduplicationKey,
-    data: { screen: "home", isPromotional: "true" },
+    data: {
+      screen: selected.screen,
+      isPromotional: "true",
+      templateId: selected.templateId,
+      category: selected.category,
+    },
   };
 
   try {
@@ -111,88 +127,102 @@ const processUserPeriodicNotification = async (
         backoff: { type: "exponential", delay: notifConfig.retryBaseDelayMs },
         removeOnComplete: { count: 50 },
         removeOnFail: { count: 50 },
-        jobId: deduplicationKey, // BullMQ-level dedup too
+        jobId: deduplicationKey, // BullMQ-level dedup
       });
-      console.log(`${tag} 📤 Queued periodic push for "${userName}" | type: ${type} | lang: ${language}`);
-      console.log(`${tag}   title: "${title}"`);
-      console.log(`${tag}   body: "${body}"`);
+      console.log(`${tag} 📤 Queued | template: "${selected.templateId}" | cat: ${selected.category} | lang: ${selected.language}`);
+      console.log(`${tag}   title: "${selected.title}"`);
+      console.log(`${tag}   body:  "${selected.body}"`);
     } else {
       // Fallback: direct send if Redis unavailable
-      console.log(`${tag} 🔁 Fallback direct send (no Redis) for "${userName}" | type: ${type}`);
+      console.log(`${tag} 🔁 Fallback direct send (no Redis) | template: "${selected.templateId}"`);
       await NotificationService.sendToCustomer(userId, {
-        title,
-        body,
-        type: type as any,
-        data: { screen: "home", isPromotional: "true" },
+        title: selected.title,
+        body: selected.body,
+        type: selected.type as any,
+        data: {
+          screen: selected.screen,
+          isPromotional: "true",
+          templateId: selected.templateId,
+        },
       });
     }
     return "sent";
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error(`${tag} ❌ FAILED to enqueue periodic notification for "${userName}": ${msg}`);
+    console.error(`${tag} ❌ FAILED to enqueue | template: "${selected.templateId}" | error: ${msg}`);
     return "failed";
   }
 };
 
+// ─── Cron Initialization ──────────────────────────────────────────────────────
+
 /**
  * Initialize the periodic engagement notification cron.
  *
- * Runs every hour (checks daytime window before doing any work).
- * Adds a random 0-20 minute delay within the hour to avoid thundering-herd
- * on large user bases.
- *
- * Note: Uses setInterval internally NOT as a cron replacement but to
- * add the randomized delay after the cron fires.
+ * Runs at :00 of every hour (IST daytime window: 10am-10pm).
+ * Adds a random 0-20 min delay to spread load and avoid thundering-herd.
  */
 export const initUserPushCron = (): void => {
   if (!notifConfig.periodicEnabled) {
-    console.log("[UserPushCron] ⏸️  Periodic notifications disabled (PERIODIC_NOTIFICATIONS_ENABLED=false). Skipping.");
+    console.log("[UserPushCron] ⏸️  Periodic notifications disabled (PERIODIC_NOTIFICATIONS_ENABLED=false).");
     return;
   }
 
-  console.log("[UserPushCron] 🚀 Initializing periodic engagement notification cron (every hour)...");
-  console.log(`[UserPushCron] ⚙️  Config: window=${notifConfig.dayStartHour}h-${notifConfig.dayEndHour}h IST | minInterval=${notifConfig.minIntervalHours}h | maxDaily=${notifConfig.maxDailyCount}`);
+  const templateCount = getActiveTemplateCount();
+  console.log("[UserPushCron] 🚀 Initializing smart engagement notification cron...");
+  console.log(`[UserPushCron] 📚 Template library: ${templateCount} active templates`);
+  console.log(`[UserPushCron] ⚙️  window: ${notifConfig.dayStartHour}h-${notifConfig.dayEndHour}h IST | minInterval: ${notifConfig.minIntervalHours}h | maxDaily: ${notifConfig.maxDailyCount} | templateCooldown: ${notifConfig.templateCooldownDays}d`);
 
-  // Runs at minute 0 of every hour
   cron.schedule("0 * * * *", async () => {
     if (!isWithinDaytimeWindow()) {
       const istOffset = 5.5 * 60 * 60 * 1000;
       const istHour = new Date(Date.now() + istOffset).getUTCHours();
-      console.log(`[UserPushCron] 🌙 Outside daytime window (current IST hour: ${istHour}h). Skipping.`);
+      console.log(`[UserPushCron] 🌙 Outside window (IST hour: ${istHour}). Skipping.`);
       return;
     }
 
     // Random delay 0-20 min to spread load
     const delayMs = Math.floor(Math.random() * 20 * 60 * 1000);
-    console.log(`[UserPushCron] ⏰ Daytime window active. Running in ${Math.round(delayMs / 60000)} minutes...`);
+    const delayMin = Math.round(delayMs / 60000);
+    console.log(`[UserPushCron] ⏰ Daytime window active. Firing batch in ${delayMin} min...`);
 
-    setTimeout(async () => {
-      await runPeriodicBatch();
-    }, delayMs);
+    setTimeout(() => { void runPeriodicBatch(); }, delayMs);
   });
 
-  console.log("[UserPushCron] ✅ Cron scheduled (runs at :00 of every hour, sends during daytime window only)");
+  console.log("[UserPushCron] ✅ Cron scheduled — runs at :00 each hour, daytime window only.");
 };
 
+// ─── Batch Runner ────────────────────────────────────────────────────────────
+
 /**
- * Process a batch of eligible users for periodic notifications.
- * Called from the cron (after random delay) or on-demand from admin.
+ * Process all eligible users for periodic engagement notifications.
+ * Called by the cron (post-delay) or directly from the admin trigger endpoint.
+ *
+ * @returns Batch statistics: { sent, skipped, failed, total }
  */
-export const runPeriodicBatch = async (): Promise<{ sent: number; skipped: number; failed: number; total: number }> => {
-  console.log("[UserPushCron] 🔔 Starting periodic notification batch run...");
+export const runPeriodicBatch = async (): Promise<{
+  sent: number;
+  skipped: number;
+  failed: number;
+  total: number;
+}> => {
+  console.log("[UserPushCron] 🔔 Starting periodic notification batch...");
   const startTime = Date.now();
 
-  // Fetch all ACTIVE users who have at least 1 FCM token
   interface LeanUser {
     _id: { toString(): string };
     name: string;
     fcmTokens: string[];
     preferredLanguage?: "en" | "hi";
   }
+
+  // Fetch active users with at least 1 registered FCM token
   const users = await User.find({
     status: "ACTIVE",
     fcmTokens: { $exists: true, $not: { $size: 0 } },
-  }).select("_id name fcmTokens preferredLanguage").lean<LeanUser[]>();
+  })
+    .select("_id name fcmTokens preferredLanguage")
+    .lean<LeanUser[]>();
 
   const total = users.length;
   console.log(`[UserPushCron] 👥 Found ${total} eligible user(s) with FCM tokens`);
@@ -201,17 +231,13 @@ export const runPeriodicBatch = async (): Promise<{ sent: number; skipped: numbe
   let skipped = 0;
   let failed = 0;
 
-  // Process users in parallel batches of 20 to avoid overwhelming the DB
+  // Process in batches of 20 to avoid overwhelming MongoDB
   const BATCH_SIZE = 20;
   for (let i = 0; i < users.length; i += BATCH_SIZE) {
     const batch = users.slice(i, i + BATCH_SIZE);
     const results = await Promise.allSettled(
       batch.map((u) =>
-        processUserPeriodicNotification(
-          u._id.toString(),
-          u.name,
-          u.preferredLanguage
-        )
+        processUserPeriodicNotification(u._id.toString(), u.name, u.preferredLanguage)
       )
     );
 
@@ -222,12 +248,20 @@ export const runPeriodicBatch = async (): Promise<{ sent: number; skipped: numbe
         else failed++;
       } else {
         failed++;
+        console.error("[UserPushCron] ❌ Unhandled batch rejection:", result.reason);
       }
+    }
+
+    // Small delay between batches to reduce DB pressure
+    if (i + BATCH_SIZE < users.length) {
+      await new Promise((r) => setTimeout(r, 100));
     }
   }
 
   const elapsed = Math.round((Date.now() - startTime) / 1000);
-  console.log(`[UserPushCron] ✅ Batch complete in ${elapsed}s — sent: ${sent} | skipped: ${skipped} | failed: ${failed} | total: ${total}`);
+  console.log(
+    `[UserPushCron] ✅ Batch complete in ${elapsed}s — sent: ${sent} | skipped: ${skipped} | failed: ${failed} | total: ${total}`
+  );
 
   return { sent, skipped, failed, total };
 };

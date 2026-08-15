@@ -28,6 +28,8 @@ export interface INotificationEvent extends Document {
   language: "en" | "hi";
   status: NotificationEventStatus;
   deduplicationKey: string;
+  /** Template ID from notification-templates-library.ts — used for per-user cooldown tracking */
+  templateId?: string;
   retryCount: number;
   failureReason?: string;
   sentAt?: Date;
@@ -52,13 +54,18 @@ const notificationEventSchema = new Schema<INotificationEvent>(
       index: true,
     },
     // Unique key to prevent duplicate sends across retries, restarts, and multiple workers.
-    // Format: order:{orderId}:status:{status} or periodic:{userId}:{date}:{slot}
+    // Format: order:{orderId}:status:{status} or periodic:{userId}:{templateId}:{date}
     deduplicationKey: {
       type: String,
       required: true,
       unique: true,
       sparse: true,
     },
+    /**
+     * Template ID from the template library — stored to enforce per-user cooldowns.
+     * The template-selector queries this field to avoid repeating the same template.
+     */
+    templateId: { type: String, default: null, index: true },
     retryCount: { type: Number, default: 0 },
     failureReason: { type: String, default: null },
     sentAt: { type: Date, default: null },
@@ -72,6 +79,8 @@ const notificationEventSchema = new Schema<INotificationEvent>(
 notificationEventSchema.index({ userId: 1, status: 1, createdAt: -1 });
 // Index for periodic notification eligibility queries
 notificationEventSchema.index({ userId: 1, type: 1, sentAt: -1 });
+// Index for template cooldown lookups: "which templates did user X receive in the last N days?"
+notificationEventSchema.index({ userId: 1, templateId: 1, sentAt: -1 });
 // Cleanup old events after 30 days automatically
 notificationEventSchema.index({ createdAt: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 });
 

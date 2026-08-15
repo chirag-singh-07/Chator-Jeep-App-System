@@ -42,6 +42,12 @@ export const notifConfig = {
 
   /** IANA timezone used for daytime window calculations */
   timezone: process.env.NOTIFICATION_TIMEZONE || "Asia/Kolkata",
+
+  /**
+   * How many days must pass before the same template ID can be sent
+   * to the same user again. Default: 7 days.
+   */
+  templateCooldownDays: toInt(process.env.NOTIFICATION_TEMPLATE_COOLDOWN_DAYS, 7),
 } as const;
 
 export type NotifConfig = typeof notifConfig;

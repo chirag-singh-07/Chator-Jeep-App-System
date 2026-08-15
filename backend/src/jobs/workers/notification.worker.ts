@@ -57,6 +57,8 @@ export const processNotification = async (data: unknown): Promise<void> => {
           language: job.language || "en",
           status: "PENDING",
           deduplicationKey: job.deduplicationKey,
+          // Store templateId at top-level for efficient cooldown index queries
+          templateId: (job.data as any)?.templateId || null,
           retryCount: 0,
           data: job.data || {},
         },
