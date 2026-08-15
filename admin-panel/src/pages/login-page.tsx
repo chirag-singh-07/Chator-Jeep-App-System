@@ -10,7 +10,9 @@ import {
   ChefHat, 
   Truck, 
   Users, 
-  LayoutDashboard 
+  LayoutDashboard,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +29,7 @@ const getLoginErrorMessage = (err: any) =>
 export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -151,13 +154,25 @@ export function LoginPage() {
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                   <Input
                     id="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="h-12 pl-10.5 bg-secondary/20 border-border/50 rounded-2xl focus-visible:ring-1 focus-visible:ring-primary/30 focus-visible:border-primary/50 text-sm font-medium transition-all"
+                    className="h-12 pl-10.5 pr-10 bg-secondary/20 border-border/50 rounded-2xl focus-visible:ring-1 focus-visible:ring-primary/30 focus-visible:border-primary/50 text-sm font-medium transition-all"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-primary transition-colors focus:outline-none"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="size-4" />
+                    ) : (
+                      <Eye className="size-4" />
+                    )}
+                  </button>
                 </div>
               </div>
             </div>

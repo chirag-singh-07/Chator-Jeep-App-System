@@ -182,24 +182,6 @@ export default function LoginScreen() {
                 )}
               </TouchableOpacity>
 
-              <View style={styles.divider}>
-                <View style={styles.line} />
-                <Text style={styles.dividerText}>OR CONTINUE WITH</Text>
-                <View style={styles.line} />
-              </View>
-
-              <View style={styles.socialRow}>
-                <TouchableOpacity style={styles.socialBtn}>
-                  <Ionicons name="logo-google" size={24} color="#DB4437" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.socialBtn}>
-                  <Ionicons name="logo-apple" size={24} color="#000000" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.socialBtn}>
-                  <Ionicons name="logo-facebook" size={24} color="#4267B2" />
-                </TouchableOpacity>
-              </View>
-
               <View style={styles.footer}>
                 <Text style={styles.footerText}>New to our kitchen? </Text>
                 <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
@@ -368,48 +350,10 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 2,
   },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 40,
-    marginBottom: 30,
-  },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#F0F0F0',
-  },
-  dividerText: {
-    marginHorizontal: 15,
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#BDBDBD',
-    letterSpacing: 1,
-  },
-  socialRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 20,
-    marginBottom: 40,
-  },
-  socialBtn: {
-    width: 65,
-    height: 65,
-    borderRadius: 22,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: '#F3F4F6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
+    marginTop: 35,
     paddingBottom: 40,
   },
   footerText: {
