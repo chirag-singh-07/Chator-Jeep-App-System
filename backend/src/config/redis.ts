@@ -88,8 +88,26 @@ export const ensureRedisConnection = async (): Promise<boolean> => {
 
     await redisConnection.ping();
 
+    // Verify write access (BullMQ requires writes; read-only replica will fail)
+    try {
+      await redisConnection.set("__health_write_check__", "1", "EX", 5);
+    } catch (writeErr: any) {
+      const msg = writeErr instanceof Error ? writeErr.message : String(writeErr);
+      if (msg.includes("READONLY")) {
+        console.error(
+          "\n[Redis] ⚠️  Redis is configured as a READ-ONLY REPLICA and cannot accept writes.\n" +
+          "[Redis] 💡 To fix this on your VPS, run:\n" +
+          "        redis-cli REPLICAOF NO ONE\n" +
+          "[Redis] ℹ️  Disabling BullMQ workers for now — system will use direct notification dispatch fallback.\n"
+        );
+        disableRedis();
+        return false;
+      }
+      throw writeErr;
+    }
+
     if (!redisConnectedLogged) {
-      console.log("Redis connected");
+      console.log("Redis connected (read/write verified)");
       redisConnectedLogged = true;
     }
 
