@@ -92,9 +92,13 @@ export const getTopItems = asyncHandler(
 
 export const triggerUserPush = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
-    const { sendPeriodicUserPushNotifications } = await import("../../jobs/user-push-cron.js");
-    await sendPeriodicUserPushNotifications();
-    res.status(200).json({ success: true, message: "Periodic user push notification triggered successfully" });
+    const { runPeriodicBatch } = await import("../../jobs/user-push-cron.js");
+    const result = await runPeriodicBatch();
+    res.status(200).json({
+      success: true,
+      message: "Periodic user push notification batch triggered successfully",
+      data: result,
+    });
   }
 );
 

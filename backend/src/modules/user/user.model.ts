@@ -25,6 +25,7 @@ export interface IUser extends Document {
   refreshToken?: string | null;
   addresses: IAddress[];
   fcmTokens: string[];
+  preferredLanguage?: "en" | "hi";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -103,6 +104,11 @@ const userSchema = new Schema<IUser>(
     fcmTokens: {
       type: [String],
       default: [],
+    },
+    preferredLanguage: {
+      type: String,
+      enum: ["en", "hi"],
+      default: "en",
     },
   },
   {
