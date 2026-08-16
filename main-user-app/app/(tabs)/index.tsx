@@ -542,6 +542,27 @@ export default function HomeScreen() {
           />
         )}
 
+        {/* Bulk & Party Order Promotional Card */}
+        <Animated.View entering={FadeInUp.delay(400)} style={styles.promoSectionContainer}>
+          <TouchableOpacity
+            style={[styles.referCard, { backgroundColor: '#FFFBEB', borderColor: '#FEF3C7', borderWidth: 1.5 }]}
+            onPress={() => router.push('/bulk-order')}
+            activeOpacity={0.9}
+          >
+            <View style={styles.referContent}>
+              <Text style={[styles.referTitle, { color: '#92400E' }]}>🎉 Bulk & Party Orders</Text>
+              <Text style={[styles.referDesc, { color: '#B45309', marginTop: 4 }]}>Planning a celebration? Order bulk food from any restaurant. 24 hours advance booking required.</Text>
+              <View style={[styles.referBtn, { backgroundColor: '#FDBE15', borderColor: '#F59E0B' }]}>
+                <Text style={[styles.referBtnText, { color: '#1A1A1A' }]}>BOOK PARTY ORDER</Text>
+              </View>
+            </View>
+            <Image
+              source={{ uri: 'https://cdn-icons-png.flaticon.com/512/3752/3752002.png' }}
+              style={styles.referImage}
+            />
+          </TouchableOpacity>
+        </Animated.View>
+
         {/* Refer & Earn Promotional Card */}
         <Animated.View entering={FadeInUp.delay(500)} style={styles.promoSectionContainer}>
           <TouchableOpacity

@@ -89,6 +89,18 @@ export default function ProfileScreen() {
               onPress={() => router.push('/edit-profile')}
            />
            <ProfileItem 
+              icon="receipt-outline" 
+              title="My Orders" 
+              subtitle="Order history and status" 
+              onPress={() => router.push('/(tabs)/orders')}
+           />
+           <ProfileItem 
+              icon="heart-outline" 
+              title="Liked Restaurants" 
+              subtitle="Your favorite dining spots" 
+              onPress={() => router.push('/(tabs)/favorites')}
+           />
+           <ProfileItem 
               icon="location-outline" 
               title="Saved Addresses" 
               subtitle="Home, Office, Other" 

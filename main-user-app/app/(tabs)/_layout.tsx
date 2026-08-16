@@ -29,12 +29,6 @@ export default function TabLayout() {
           fontWeight: '800',
           marginTop: 2,
         },
-        tabBarIconStyle: {
-          width: 'auto',
-          height: 'auto',
-          justifyContent: 'center',
-          alignItems: 'center',
-        },
       }}
     >
       <Tabs.Screen
@@ -42,9 +36,7 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color, focused }) => (
-            <View style={[styles.iconContainer, focused && styles.activeIconBg]}>
-              <Ionicons name={focused ? 'home' : 'home-outline'} size={22} color={color} />
-            </View>
+            <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
           ),
         }}
       />
@@ -53,32 +45,22 @@ export default function TabLayout() {
         options={{
           title: 'Explore',
           tabBarIcon: ({ color, focused }) => (
-            <View style={[styles.iconContainer, focused && styles.activeIconBg]}>
-              <Ionicons name={focused ? 'search' : 'search-outline'} size={22} color={color} />
-            </View>
+            <Ionicons name={focused ? 'search' : 'search-outline'} size={24} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="favorites"
         options={{
-          title: 'Likes',
-          tabBarIcon: ({ color, focused }) => (
-            <View style={[styles.iconContainer, focused && styles.activeIconBg]}>
-              <Ionicons name={focused ? 'heart' : 'heart-outline'} size={22} color={color} />
-            </View>
-          ),
+          href: null,
+          tabBarButton: () => null,
         }}
       />
       <Tabs.Screen
         name="orders"
         options={{
-          title: 'Orders',
-          tabBarIcon: ({ color, focused }) => (
-            <View style={[styles.iconContainer, focused && styles.activeIconBg]}>
-              <Ionicons name={focused ? 'receipt' : 'receipt-outline'} size={22} color={color} />
-            </View>
-          ),
+          href: null,
+          tabBarButton: () => null,
         }}
       />
       <Tabs.Screen
@@ -86,9 +68,7 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, focused }) => (
-            <View style={[styles.iconContainer, focused && styles.activeIconBg]}>
-              <Ionicons name={focused ? 'person' : 'person-outline'} size={22} color={color} />
-            </View>
+            <Ionicons name={focused ? 'person' : 'person-outline'} size={24} color={color} />
           ),
         }}
       />
@@ -96,15 +76,3 @@ export default function TabLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  iconContainer: {
-    paddingHorizontal: 14,
-    paddingVertical: 5,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  activeIconBg: {
-    backgroundColor: 'rgba(253, 190, 21, 0.12)',
-  },
-});

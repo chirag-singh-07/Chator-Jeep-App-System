@@ -64,7 +64,15 @@ export default function RestaurantDetailScreen() {
 
   useEffect(() => {
     if (id) {
-      fetchRestaurantDetail(id as string);
+      console.log("[RestaurantDetailScreen] Fetching restaurant details for ID:", id);
+      fetchRestaurantDetail(id as string).then(() => {
+        const currentRes = useMenuStore.getState().selectedRestaurant;
+        const currentMenu = useMenuStore.getState().menu;
+        console.log("[RestaurantDetailScreen] Details fetched successfully:", {
+          name: currentRes?.name,
+          menuItemsCount: currentMenu?.length
+        });
+      });
       fetchReviews(id as string);
     }
   }, [id]);
@@ -246,7 +254,7 @@ export default function RestaurantDetailScreen() {
           <View style={styles.infoCard}>
             <View style={styles.resTitleRow}>
               <View style={{ flex: 1, marginRight: 10 }}>
-                <Text style={styles.resName}>{res?.name}</Text>
+                <Text style={styles.resName}>{res?.name || "Loading..."}</Text>
                 <View style={styles.locationRow}>
                   <Ionicons name="location-outline" size={14} color={Colors.light.textMuted} />
                   <Text style={styles.locationText} numberOfLines={1}>

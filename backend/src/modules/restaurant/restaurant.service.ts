@@ -609,7 +609,11 @@ export const listRestaurantMenu = async (restaurantId: string) => {
     }
   }
 
-  const menu = await MenuItem.find({ restaurantId, isAvailable: true, showInMenu: true }).exec();
+  const menu = await MenuItem.find({
+    restaurantId: new mongoose.Types.ObjectId(restaurantId),
+    isAvailable: true,
+    showInMenu: true
+  }).exec();
   
   if (isRedisEnabled && redisConnection) {
     await redisConnection.set(cacheKey, JSON.stringify(menu), "EX", 3600); // Cache for 1 hour
@@ -667,7 +671,15 @@ export const listRestaurants = async (query: {
   const limit = parseInt(query.limit ?? "20");
   const skip = (page - 1) * limit;
 
-  const filter: any = { status: RESTAURANT_STATUS.ACTIVE };
+  // Filter out restaurants with no menu items
+  const activeRestaurantIds = await MenuItem.distinct("restaurantId", {
+    isAvailable: true,
+    showInMenu: true,
+  });
+  const filter: any = {
+    status: RESTAURANT_STATUS.ACTIVE,
+    _id: { $in: activeRestaurantIds },
+  };
 
   if (query.search) {
     filter.name = { $regex: query.search, $options: "i" };
