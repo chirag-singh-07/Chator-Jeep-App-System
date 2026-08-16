@@ -12,22 +12,28 @@ export default function TabLayout() {
         tabBarInactiveTintColor: Colors.light.textMuted,
         headerShown: false,
         tabBarStyle: {
-          height: Platform.OS === 'ios' ? 95 : 78,
-          paddingBottom: Platform.OS === 'ios' ? 32 : 18,
-          paddingTop: 10,
+          height: Platform.OS === 'ios' ? 90 : 74,
+          paddingBottom: Platform.OS === 'ios' ? 30 : 14,
+          paddingTop: 8,
           backgroundColor: '#FFFFFF',
           borderTopWidth: 1,
           borderTopColor: '#F3F4F6',
-          elevation: 25,
+          elevation: 20,
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: -8 },
-          shadowOpacity: 0.08,
-          shadowRadius: 20,
+          shadowOffset: { width: 0, height: -6 },
+          shadowOpacity: 0.05,
+          shadowRadius: 16,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: '800',
-          marginTop: 4,
+          marginTop: 2,
+        },
+        tabBarIconStyle: {
+          width: 'auto',
+          height: 'auto',
+          justifyContent: 'center',
+          alignItems: 'center',
         },
       }}
     >
@@ -92,13 +98,13 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   iconContainer: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   activeIconBg: {
-    backgroundColor: 'rgba(255, 107, 0, 0.1)',
+    backgroundColor: 'rgba(253, 190, 21, 0.12)',
   },
 });
