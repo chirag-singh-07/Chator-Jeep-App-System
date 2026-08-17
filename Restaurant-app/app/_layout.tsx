@@ -2,6 +2,7 @@ import { Stack, router, useSegments, useRootNavigationState } from "expo-router"
 import { useEffect } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { SocketProvider } from "@/components/SocketProvider";
+import PermissionsModal from "@/components/PermissionsModal";
 import { useNotifications } from "@/hooks/useNotifications";
 import { StatusBar } from "expo-status-bar";
 import { AlertOverlay } from "@/components/AlertOverlay";
@@ -65,6 +66,7 @@ export default function RootLayout() {
         <Stack.Screen name="order/[id]" />
       </Stack>
       <AlertOverlay />
+      <PermissionsModal />
       {!isReady && <AppLoadingScreen onFinish={() => setIsReady(true)} />}
     </SocketProvider>
   );

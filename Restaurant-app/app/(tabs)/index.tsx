@@ -44,7 +44,10 @@ const CATEGORY_EMOJI: Record<string, string> = {
   pasta: "🍝",
 };
 
+import { useKeepAwake } from "expo-keep-awake";
+
 export default function KitchenDashboard() {
+  useKeepAwake();
   const { user } = useAuthStore();
   const { orders, fetchOrders, isLoading } = useOrderStore();
   const [isOpen, setIsOpen] = useState(true);

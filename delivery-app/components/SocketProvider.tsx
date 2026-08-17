@@ -21,7 +21,7 @@ export function SocketProvider({ children }: PropsWithChildren) {
   const fetchWalletOverview = useWalletStore(
     (state: ReturnType<typeof useWalletStore.getState>) => state.fetchWalletOverview
   );
-  const notificationPlayer = useAudioPlayer(require("../assets/audios/order-incoming-sound.wav"));
+  const notificationPlayer = useAudioPlayer(require("../assets/audios/order_incoming_sound.wav"));
 
   useEffect(() => {
     if (!isAuthenticated || !token || !user?.id) {

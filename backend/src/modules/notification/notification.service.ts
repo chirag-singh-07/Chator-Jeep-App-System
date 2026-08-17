@@ -11,7 +11,7 @@ export class NotificationService {
     if (normalized.includes("DELIVERED")) return "order_delivered";
     if (normalized.includes("DELIVERY_ASSIGNED") || normalized.includes("DELIVERY_REQUEST")) return "delivery_assigned";
     if (normalized.includes("ACCEPTED")) return "order_accepted";
-    return "new_order";
+    return "order_incoming_sound";
   }
 
   private static stringifyData(data?: any) {

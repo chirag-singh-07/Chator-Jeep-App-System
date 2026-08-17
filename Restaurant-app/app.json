@@ -43,6 +43,12 @@
       "expo-router",
       "@react-native-firebase/app",
       [
+        "expo-notifications",
+        {
+          "sounds": ["./assets/audios/order_incoming_sound.wav"]
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/icons/ios-icon-1024x1024.png",

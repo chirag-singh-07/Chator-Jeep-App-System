@@ -45,10 +45,13 @@ function AuthGate() {
   );
 }
 
+import PermissionsModal from "@/components/PermissionsModal";
+
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthGate />
+      <PermissionsModal />
     </GestureHandlerRootView>
   );
 }

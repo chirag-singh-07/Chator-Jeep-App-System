@@ -1,6 +1,7 @@
 import { Stack, router, useRootNavigationState, useSegments } from "expo-router";
 import { ThemeProvider, DefaultTheme } from "expo-router/react-navigation";
 import { useEffect } from "react";
+import PermissionsModal from "@/components/PermissionsModal";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { SocketProvider } from "@/components/SocketProvider";
@@ -67,6 +68,7 @@ export default function RootLayout() {
                 }}
               />
             </Stack>
+            <PermissionsModal />
 
             {(!hasHydrated || !isReady) && (
               <AppLoadingScreen onFinish={() => setIsReady(true)} />

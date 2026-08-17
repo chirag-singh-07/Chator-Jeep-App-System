@@ -20,7 +20,7 @@ export const AlertOverlay = () => {
   const rejectOrder = useOrderStore((state) => state.rejectOrder);
 
   // Utilize the SDK 54 compatible expo-audio hook
-  const player = useAudioPlayer(require("../assets/audios/order-incoming-sound.wav"));
+  const player = useAudioPlayer(require("../assets/audios/order_incoming_sound.wav"));
 
   useEffect(() => {
     if (incomingOrder) {
