@@ -20,8 +20,6 @@
         "foregroundImage": "./assets/icons/android-icon-512x512.png",
         "monochromeImage": "./assets/icons/android-icon-512x512.png"
       },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
