@@ -47,15 +47,14 @@ export function FinalCta() {
               </Button>
             </Link>
             
-            <button onClick={handleScrollToFeatures} className="w-full sm:w-auto cursor-pointer">
-              <Button
-                size="lg"
-                variant="outline"
-                className="w-full sm:w-auto rounded-full font-bold px-10 py-7 text-base border-white/20 text-white hover:bg-white/5 hover:text-white transition-all hover:scale-105 active:scale-95 duration-200"
-              >
-                Explore Features
-              </Button>
-            </button>
+            <Button
+              onClick={handleScrollToFeatures}
+              size="lg"
+              variant="outline"
+              className="w-full sm:w-auto rounded-full font-bold px-10 py-7 text-base border-white/20 text-white hover:bg-white/5 hover:text-white transition-all hover:scale-105 active:scale-95 duration-200 cursor-pointer"
+            >
+              Explore Features
+            </Button>
           </div>
         </ScrollReveal>
       </div>

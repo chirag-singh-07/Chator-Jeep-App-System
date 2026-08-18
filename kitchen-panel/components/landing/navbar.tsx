@@ -59,7 +59,7 @@ export function Navbar() {
             alt="Chatori Jeep Kitchen Logo"
             width={44}
             height={44}
-            className="w-11 h-11 object-contain transition-transform duration-300 group-hover:scale-105"
+            className="w-11 h-auto object-contain transition-transform duration-300 group-hover:scale-105"
             priority
           />
           <span className="font-heading text-xl md:text-2xl font-black tracking-tight text-primary transition-colors">
@@ -127,7 +127,7 @@ export function Navbar() {
                       alt="Chatori Jeep Kitchen Logo"
                       width={36}
                       height={36}
-                      className="w-9 h-9 object-contain"
+                      className="w-9 h-auto object-contain"
                     />
                     <span className="font-heading text-xl font-black text-primary">
                       Chatori Jeep

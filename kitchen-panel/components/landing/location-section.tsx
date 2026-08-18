@@ -61,8 +61,8 @@ export function LocationSection() {
                 <div className="w-full bg-zinc-950 border border-zinc-800/80 rounded-2xl p-4 text-zinc-400 space-y-5 select-none text-left">
                   {/* Header */}
                   <div className="flex items-center gap-2 border-b border-zinc-850 pb-3">
-                    <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center p-0.5 shrink-0">
-                      <Image src="/Restaurant-app-logo.png" alt="logo" width={20} height={20} className="object-contain" />
+                    <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center p-0.5 shrink-0 overflow-hidden">
+                      <Image src="/Restaurant-app-logo.png" alt="logo" width={20} height={20} className="w-full h-auto object-contain" />
                     </div>
                     <div>
                       <h4 className="text-[10px] font-bold text-white leading-tight">Chatori Jeep</h4>
