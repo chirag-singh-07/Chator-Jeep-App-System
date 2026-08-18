@@ -27,6 +27,7 @@ import Animated, {
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLocationStore } from '@/store/useLocationStore';
+import { useCartStore } from '@/store/useCartStore';
 
 const { width, height } = Dimensions.get('window');
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -213,6 +214,9 @@ export default function RegisterScreen() {
 
       await useAuthStore.getState().setAuth(user, { accessToken, refreshToken });
       
+      // Flush any pending cart item added while browsing as guest
+      useCartStore.getState().flushPendingItem();
+
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.replace('/(tabs)');
     } catch (error: any) {

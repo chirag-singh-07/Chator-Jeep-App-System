@@ -23,6 +23,12 @@ interface CartState {
   totalAmount: number;
   totalItems: number;
   recalculate: () => void;
+  pendingItem: { item: Omit<CartItem, "quantity">; restaurant: { id: string; name: string } } | null;
+  setPendingItem: (item: Omit<CartItem, "quantity">, restaurant: { id: string; name: string }) => void;
+  clearPendingItem: () => void;
+  flushPendingItem: () => void;
+  showAuthPrompt: boolean;
+  setShowAuthPrompt: (show: boolean) => void;
 }
 
 export const useCartStore = create<CartState>()(
@@ -111,6 +117,19 @@ export const useCartStore = create<CartState>()(
         const totalAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
         const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
         set({ totalAmount, totalItems });
+      },
+
+      pendingItem: null,
+      showAuthPrompt: false,
+      setPendingItem: (item, restaurant) => set({ pendingItem: { item, restaurant }, showAuthPrompt: true }),
+      clearPendingItem: () => set({ pendingItem: null, showAuthPrompt: false }),
+      setShowAuthPrompt: (show) => set({ showAuthPrompt: show }),
+      flushPendingItem: () => {
+        const { pendingItem, addItem } = get();
+        if (pendingItem) {
+          addItem(pendingItem.item, pendingItem.restaurant);
+          set({ pendingItem: null, showAuthPrompt: false });
+        }
       },
     }),
     {

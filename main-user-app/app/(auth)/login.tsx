@@ -25,6 +25,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useCartStore } from '@/store/useCartStore';
 
 const { width, height } = Dimensions.get('window');
 
@@ -58,6 +59,9 @@ export default function LoginScreen() {
       
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       
+      // Flush any pending cart item added while browsing as guest
+      useCartStore.getState().flushPendingItem();
+
       // If we can go back (e.g. from a forced login), go back. Otherwise go to tabs.
       if (router.canGoBack()) {
         router.back();

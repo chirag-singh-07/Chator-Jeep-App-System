@@ -9,6 +9,7 @@ import {
   Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useAuthStore } from '@/store/useAuthStore';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { 
@@ -155,17 +156,24 @@ export default function OnboardingScreen() {
 
   const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
 
+  const { setHasSeenOnboarding } = useAuthStore();
+
+  const finishOnboarding = () => {
+    setHasSeenOnboarding(true);
+    router.replace('/(tabs)');
+  };
+
   const goToNextSlide = () => {
     const nextIndex = currentIndex + 1;
     if (nextIndex < SLIDES.length) {
       flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
     } else {
-      router.replace('/(auth)/login');
+      finishOnboarding();
     }
   };
 
   const skip = () => {
-    router.replace('/(auth)/login');
+    finishOnboarding();
   };
 
   // Animated Pagination Indicator

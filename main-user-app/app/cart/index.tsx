@@ -17,12 +17,14 @@ import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { useCartStore } from '@/store/useCartStore';
 import { useLocationStore } from '@/store/useLocationStore';
+import { useAuthStore } from '@/store/useAuthStore';
 import Animated, { FadeInDown, FadeInRight, SlideInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
 const { height } = Dimensions.get('window');
 
 export default function CartScreen() {
+  const { isAuthenticated } = useAuthStore();
   const router = useRouter();
   const { items, restaurantName, totalAmount, totalItems, updateQuantity, clearCart } = useCartStore();
   const { currentAddress } = useLocationStore();
@@ -204,7 +206,13 @@ export default function CartScreen() {
            <TouchableOpacity 
              activeOpacity={0.9} 
              style={styles.checkoutBtn}
-             onPress={() => router.push('/checkout')}
+             onPress={() => {
+               if (!isAuthenticated) {
+                 useCartStore.getState().setShowAuthPrompt(true);
+               } else {
+                 router.push('/checkout');
+               }
+             }}
            >
               <Text style={styles.checkoutBtnText}>Proceed to Pay</Text>
               <Ionicons name="arrow-forward" size={18} color="#1A1A1A" />

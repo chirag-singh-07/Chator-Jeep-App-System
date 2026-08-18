@@ -28,6 +28,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useMenuStore } from '@/store/useMenuStore';
 import { useCartStore } from '@/store/useCartStore';
+import { useAuthStore } from '@/store/useAuthStore';
 import * as Haptics from 'expo-haptics';
 
 const { width } = Dimensions.get('window');
@@ -129,18 +130,26 @@ export default function RestaurantDetailScreen() {
     return items.find(i => i.id === itemId)?.quantity || 0;
   };
 
+  const { isAuthenticated } = useAuthStore();
+  const { setPendingItem } = useCartStore();
+
   const handleAddItem = (item: any) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    addItem(
-      {
-        id: item._id,
-        name: item.name,
-        price: item.price,
-        restaurantId: id as string,
-        image: item.imageUrl || item.images?.original
-      },
-      { id: id as string, name: res?.name || "Restaurant" }
-    );
+    const cartItemData = {
+      id: item._id,
+      name: item.name,
+      price: item.price,
+      restaurantId: id as string,
+      image: item.imageUrl || item.images?.original
+    };
+    const restaurantData = { id: id as string, name: res?.name || "Restaurant" };
+
+    if (!isAuthenticated) {
+      setPendingItem(cartItemData, restaurantData);
+      return;
+    }
+
+    addItem(cartItemData, restaurantData);
   };
 
   const renderDietaryBadge = () => {

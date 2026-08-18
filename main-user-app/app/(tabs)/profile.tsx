@@ -10,7 +10,7 @@ import { getAvatarUrl } from '@/lib/utils';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user, logout, isAuthenticated } = useAuthStore();
 
   const handleLogout = () => {
     Alert.alert(
@@ -51,15 +51,23 @@ export default function ProfileScreen() {
         <View style={styles.header}>
            <Animated.View entering={FadeInUp} style={styles.avatarContainer}>
               <Image 
-                source={{ uri: getAvatarUrl(user?.email || 'user') }} 
+                source={{ uri: getAvatarUrl(user?.email || 'guest') }} 
                 style={styles.avatar} 
               />
-              <TouchableOpacity style={styles.editBadge} onPress={() => router.push('/edit-profile')}>
-                 <Ionicons name="camera" size={16} color="#FFF" />
-              </TouchableOpacity>
+              {isAuthenticated && (
+                <TouchableOpacity style={styles.editBadge} onPress={() => router.push('/edit-profile')}>
+                   <Ionicons name="camera" size={16} color="#FFF" />
+                </TouchableOpacity>
+              )}
            </Animated.View>
            <Text style={styles.userName}>{user?.name || "Guest User"}</Text>
-           <Text style={styles.userEmail}>{user?.email || "guest@example.com"}</Text>
+           <Text style={styles.userEmail}>{user?.email || "Login to access all features"}</Text>
+           
+           {!isAuthenticated && (
+             <TouchableOpacity style={styles.loginBtn} onPress={() => router.push('/(auth)/login')}>
+               <Text style={styles.loginBtnText}>Login / Register</Text>
+             </TouchableOpacity>
+           )}
            
            <View style={styles.statsRow}>
               <View style={styles.statBox}>
@@ -133,10 +141,12 @@ export default function ProfileScreen() {
         </View>
 
         {/* Logout */}
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-           <Ionicons name="log-out-outline" size={22} color={Colors.light.primary} />
-           <Text style={styles.logoutText}>SIGN OUT</Text>
-        </TouchableOpacity>
+        {isAuthenticated && (
+          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+             <Ionicons name="log-out-outline" size={22} color={Colors.light.primary} />
+             <Text style={styles.logoutText}>SIGN OUT</Text>
+          </TouchableOpacity>
+        )}
         
         <Text style={styles.version}>Version 1.0.4 (Production)</Text>
         <View style={{ height: 100 }} />
@@ -272,6 +282,25 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: Colors.light.primary,
     letterSpacing: 1,
+  },
+  loginBtn: {
+    marginTop: 15,
+    paddingHorizontal: 30,
+    paddingVertical: 12,
+    backgroundColor: Colors.light.primary,
+    borderRadius: 20,
+    alignSelf: 'center',
+    shadowColor: Colors.light.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  loginBtnText: {
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: '900',
+    letterSpacing: 0.5,
   },
   version: {
     textAlign: 'center',

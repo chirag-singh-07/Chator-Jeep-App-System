@@ -130,14 +130,24 @@ export default function OrdersScreen() {
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={orders}
-        renderItem={renderItem}
-        keyExtractor={(item) => item._id}
-        contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={isLoading && orders.length > 0} onRefresh={onRefresh} tintColor={Colors.light.primary} />}
-        ListEmptyComponent={
-          isLoading ? (
+      {!isAuthenticated ? (
+        <View style={styles.emptyState}>
+          <Ionicons name="receipt-outline" size={60} color="#CBD5E1" />
+          <Text style={styles.emptyTitle}>Sign in to see orders</Text>
+          <Text style={styles.emptySub}>You need to be logged in to view your past and upcoming orders.</Text>
+          <TouchableOpacity style={styles.loginBtn} onPress={() => router.push('/(auth)/login')}>
+             <Text style={styles.loginBtnText}>Log In / Register</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <FlatList
+          data={orders}
+          renderItem={renderItem}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.list}
+          refreshControl={<RefreshControl refreshing={isLoading && orders.length > 0} onRefresh={onRefresh} tintColor={Colors.light.primary} />}
+          ListEmptyComponent={
+            isLoading ? (
             <View style={styles.emptyState}>
               <ActivityIndicator size="large" color={Colors.light.primary} />
               <Text style={styles.emptyHint}>Loading your orders...</Text>
@@ -154,8 +164,9 @@ export default function OrdersScreen() {
               </TouchableOpacity>
             </View>
           )
-        }
-      />
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -191,7 +202,10 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: "center", justifyContent: "center", paddingTop: 110, paddingHorizontal: 34 },
   emptyIcon: { width: 88, height: 88, borderRadius: 32, backgroundColor: "#FFF5F2", alignItems: "center", justifyContent: "center", marginBottom: 18 },
   emptyTitle: { color: Colors.light.text, fontSize: 20, fontWeight: "900" },
+  emptySub: { color: "#94A3B8", fontSize: 14, textAlign: "center", marginTop: 8, paddingHorizontal: 20 },
   emptyHint: { color: "#94A3B8", fontSize: 14, lineHeight: 20, textAlign: "center", marginTop: 8, fontWeight: "600" },
   browseButton: { marginTop: 22, height: 50, paddingHorizontal: 22, borderRadius: 18, backgroundColor: Colors.light.primary, alignItems: "center", justifyContent: "center" },
   browseButtonText: { color: Colors.light.black, fontSize: 14, fontWeight: "900" },
+  loginBtn: { marginTop: 22, height: 50, paddingHorizontal: 30, borderRadius: 20, backgroundColor: Colors.light.primary, alignItems: "center", justifyContent: "center" },
+  loginBtnText: { color: '#FFF', fontSize: 15, fontWeight: "900" },
 });

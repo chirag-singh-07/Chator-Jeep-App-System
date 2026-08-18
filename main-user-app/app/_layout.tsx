@@ -6,7 +6,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AppLoadingScreen } from "@/components/AppLoadingScreen";
 function AuthGate() {
-  const { isAuthenticated, hasHydrated } = useAuthStore();
+  const { isAuthenticated, hasHydrated, hasSeenOnboarding } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
 
@@ -18,22 +18,20 @@ function AuthGate() {
   useEffect(() => {
     if (!hasHydrated) return;
     
-    // Once hydrated, wait for the loading screen animation to finish
-    // However, the routing can run immediately or we can defer it.
-    // Let's just run routing, but keep showing loading screen on top
     const inAuthGroup = segments.some(s => s === "(auth)");
     const inOnboardingGroup = segments.some(s => s === "(onboarding)");
 
-    console.log('AuthGate:', { isAuthenticated, segments, inAuthGroup, inOnboardingGroup });
-
-    if (!isAuthenticated && !inAuthGroup && !inOnboardingGroup) {
-      console.log('Redirecting to onboarding');
-      router.replace("/(onboarding)");
-    } else if (isAuthenticated && (inAuthGroup || inOnboardingGroup)) {
-      console.log('Redirecting to tabs');
-      router.replace("/(tabs)");
+    if (!isAuthenticated) {
+      if (!hasSeenOnboarding && !inOnboardingGroup) {
+        router.replace("/(onboarding)");
+      }
+      // If they have seen onboarding, they can browse as guest anywhere.
+    } else {
+      if (inAuthGroup || inOnboardingGroup) {
+        router.replace("/(tabs)");
+      }
     }
-  }, [isAuthenticated, hasHydrated, segments]);
+  }, [isAuthenticated, hasHydrated, hasSeenOnboarding, segments]);
 
   return (
     <SocketProvider>
@@ -46,6 +44,8 @@ function AuthGate() {
 }
 
 import * as Location from 'expo-location';
+
+import { AuthPromptModal } from "@/components/AuthPromptModal";
 
 export default function RootLayout() {
   useEffect(() => {
@@ -62,6 +62,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthGate />
+      <AuthPromptModal />
     </GestureHandlerRootView>
   );
 }
