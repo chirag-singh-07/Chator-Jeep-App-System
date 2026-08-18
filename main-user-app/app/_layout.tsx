@@ -45,13 +45,23 @@ function AuthGate() {
   );
 }
 
-import PermissionsModal from "@/components/PermissionsModal";
+import * as Location from 'expo-location';
 
 export default function RootLayout() {
+  useEffect(() => {
+    // Request location permissions natively like all other apps do
+    (async () => {
+      try {
+        await Location.requestForegroundPermissionsAsync();
+      } catch (e) {
+        console.warn('Location permission request failed:', e);
+      }
+    })();
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthGate />
-      <PermissionsModal />
     </GestureHandlerRootView>
   );
 }
