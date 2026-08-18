@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Menu01Icon, ShoppingBag01Icon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const navItems = [
   { label: "Home", href: "#home" },
@@ -19,8 +20,11 @@ const navItems = [
 export function Navbar() {
   const [scrolled, setScrolled] = React.useState(false);
   const [isOpen, setIsOpen] = React.useState(false);
+  const { isAuthenticated } = useAuthStore();
+  const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
+    setMounted(true);
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
@@ -78,12 +82,27 @@ export function Navbar() {
         </nav>
 
         {/* CTAs */}
-        <div className="flex items-center gap-4">
-          <Link href="/login" className="hidden sm:inline-block">
-            <Button size="lg" className="rounded-full font-bold px-6 shadow-md shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-transform">
-              Login
-            </Button>
-          </Link>
+        <div className="flex items-center gap-3">
+          {mounted && isAuthenticated ? (
+            <Link href="/dashboard">
+              <Button className="rounded-full px-6 font-bold shadow-md shadow-primary/20">
+                Dashboard
+              </Button>
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" className="hidden sm:block">
+                <Button variant="ghost" className="rounded-full font-bold">
+                  Sign In
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button className="rounded-full px-6 font-bold shadow-md shadow-primary/20 hover:scale-105 transition-transform">
+                  Join Now
+                </Button>
+              </Link>
+            </>
+          )}
 
           {/* Mobile Navigation Menu */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>

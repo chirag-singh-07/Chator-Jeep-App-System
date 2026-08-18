@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { EyeIcon, EyeOffIcon, FireIcon, ShieldIcon } from "@hugeicons/core-free-icons";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export function LoginForm() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export function LoginForm() {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
+  const { login } = useAuthStore();
   
   // Status states
   const [isLoading, setIsLoading] = React.useState(false);
@@ -40,21 +42,13 @@ export function LoginForm() {
     setIsLoading(true);
 
     try {
-      // Simulate API verification call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      
-      // Mock validation credentials
-      if (email === "demo@chatori.com" && password === "chatori123") {
-        setSuccess(true);
-        // Simulate redirecting to kitchen panel / landing home
-        setTimeout(() => {
-          router.push("/");
-        }, 800);
-      } else {
-        setError("Invalid email or password. Please use the credentials provided in the banner.");
-      }
-    } catch (err) {
-      setError("Something went wrong. Please try again later.");
+      await login(email, password);
+      setSuccess(true);
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 500);
+    } catch (err: any) {
+      setError(err.message || "Invalid email or password.");
     } finally {
       setIsLoading(false);
     }
@@ -83,20 +77,6 @@ export function LoginForm() {
         </CardHeader>
         
         <CardContent className="p-6 pt-0 space-y-5">
-          {/* Credentials Banner */}
-          <div className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-4 text-xs text-amber-600 dark:text-amber-400 space-y-1.5 text-left leading-relaxed">
-            <div className="flex items-center gap-1.5 font-bold">
-              <HugeiconsIcon icon={ShieldIcon} size={14} strokeWidth={2.5} />
-              <span>Demo Operator Access</span>
-            </div>
-            <p className="opacity-95">
-              To preview the kitchen workflow panel, use:
-              <br />
-              <span className="block mt-1 font-mono bg-amber-500/10 px-2 py-0.5 rounded w-fit select-all">demo@chatori.com</span>
-              <span className="block mt-1 font-mono bg-amber-500/10 px-2 py-0.5 rounded w-fit select-all">chatori123</span>
-            </p>
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Error message */}
             {error && (
@@ -136,8 +116,11 @@ export function LoginForm() {
                   Password
                 </Label>
                 <a
-                  href="#forgot"
-                  onClick={(e) => e.preventDefault()}
+                  href="/forgot-password"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    router.push("/forgot-password");
+                  }}
                   className="text-xs font-bold text-primary hover:underline"
                 >
                   Forgot Password?
