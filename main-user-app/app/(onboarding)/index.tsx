@@ -49,6 +49,31 @@ const SLIDES = [
   },
 ];
 
+const PaginationDot = ({ index, scrollX }: { index: number; scrollX: any }) => {
+  const animatedDotStyle = useAnimatedStyle(() => {
+    const widthAnim = interpolate(
+      scrollX.value,
+      [(index - 1) * width, index * width, (index + 1) * width],
+      [8, 28, 8],
+      Extrapolation.CLAMP
+    );
+    const opacityAnim = interpolate(
+      scrollX.value,
+      [(index - 1) * width, index * width, (index + 1) * width],
+      [0.3, 1, 0.3],
+      Extrapolation.CLAMP
+    );
+    return {
+      width: widthAnim,
+      opacity: opacityAnim,
+    };
+  });
+
+  return (
+    <Animated.View style={[styles.indicator, animatedDotStyle]} />
+  );
+};
+
 const BouncingNextButton = ({ onPress, isLast }: { onPress: () => void, isLast: boolean }) => {
   return (
     <Animated.View entering={FadeInUp.delay(200).springify()}>
@@ -180,33 +205,9 @@ export default function OnboardingScreen() {
   const Pagination = () => {
     return (
       <View style={styles.indicatorRow}>
-        {SLIDES.map((_, index) => {
-          const animatedDotStyle = useAnimatedStyle(() => {
-            const widthAnim = interpolate(
-              scrollX.value,
-              [(index - 1) * width, index * width, (index + 1) * width],
-              [8, 28, 8],
-              Extrapolation.CLAMP
-            );
-            const opacityAnim = interpolate(
-              scrollX.value,
-              [(index - 1) * width, index * width, (index + 1) * width],
-              [0.3, 1, 0.3],
-              Extrapolation.CLAMP
-            );
-            return {
-              width: widthAnim,
-              opacity: opacityAnim,
-            };
-          });
-
-          return (
-            <Animated.View
-              key={index}
-              style={[styles.indicator, animatedDotStyle]}
-            />
-          );
-        })}
+        {SLIDES.map((_, index) => (
+          <PaginationDot key={index} index={index} scrollX={scrollX} />
+        ))}
       </View>
     );
   };
