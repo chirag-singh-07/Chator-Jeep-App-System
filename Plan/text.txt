@@ -10,3 +10,7 @@ $env:RNFB_SUPPRESS_NEW_ARCHITECTURE_WARNING="1"
 
 npx.cmd expo run:android --port 8082
 
+okey so i got a problem that when i open the main user app i see the onbaorading screns and then 
+at the last step of the onbaorading screen my app got crash why fix that error 
+fix the build error and types error and then push the code update using the eas OTA 
+into the productions 

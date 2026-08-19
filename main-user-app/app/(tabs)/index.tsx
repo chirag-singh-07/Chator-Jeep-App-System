@@ -326,7 +326,7 @@ export default function HomeScreen() {
       >
         {/* Welcome Section */}
         <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeText}>Hello, {user?.name?.split(' ')[0] || 'Chatori'}! 👋</Text>
+          <Text style={styles.welcomeText}>Hello, {(user?.name?.split(' ') || [])[0] || 'Chatori'}! 👋</Text>
           <Text style={styles.welcomeSubText}>What would you like to eat today?</Text>
         </View>
         {/* Banner Carousel */}

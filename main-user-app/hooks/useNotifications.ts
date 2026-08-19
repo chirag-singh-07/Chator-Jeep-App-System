@@ -5,6 +5,8 @@ import { useAuthStore } from "../store/useAuthStore";
 import { Alert, Vibration } from "react-native";
 import { router } from "expo-router";
 
+import { Platform } from "react-native";
+
 const openOrderFromNotification = (data?: { [key: string]: any }) => {
   const orderId = data?.orderId;
   if (orderId) {
@@ -12,7 +14,9 @@ const openOrderFromNotification = (data?: { [key: string]: any }) => {
   }
 };
 
-messaging().setBackgroundMessageHandler(async () => undefined);
+if (Platform.OS !== "web") {
+  messaging().setBackgroundMessageHandler(async () => undefined);
+}
 
 export const useNotifications = () => {
   const { user } = useAuthStore();
@@ -45,6 +49,8 @@ export const useNotifications = () => {
   };
 
   useEffect(() => {
+    if (Platform.OS === "web") return;
+    
     if (user?.id) {
       requestUserPermission().then((granted) => {
         if (granted) {
