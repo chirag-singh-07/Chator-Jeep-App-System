@@ -18,7 +18,6 @@ import {
   Utensils,
   Store,
   Check,
-  X,
   Search,
   Flame,
   Star,
@@ -27,6 +26,8 @@ import {
   Zap,
   RotateCcw,
   Eraser,
+  FolderTree,
+  Tag,
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -74,93 +75,6 @@ export interface BulkMenuItemDraft {
   isUploadingImage?: boolean;
 }
 
-const SAMPLE_TEMPLATE_DATA = [
-  {
-    "Name *": "Crispy Veg Maharaja Burger",
-    "Category *": "Burgers",
-    "Subcategory": "Gourmet Burgers",
-    "Price *": 179,
-    "Discount Price": 149,
-    "Is Veg (Yes/No)": "Yes",
-    "Image URL": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600",
-    "Short Description": "Crunchy herb potato patty with secret spicy sauce",
-    "Full Description": "Double decker crispy veggie burger layered with fresh lettuce, sliced tomatoes, gherkins and special cheese sauce.",
-    "Prep Time (Mins)": 15,
-    "Calories": 480,
-    "Ingredients (comma separated)": "Potato, Peas, Cheese, Special Mayo, Sesame Bun",
-    "Allergens (comma separated)": "Gluten, Dairy",
-    "Is Bestseller (Yes/No)": "Yes",
-    "Is Spicy (Yes/No)": "No",
-    "Is Jain (Yes/No)": "No",
-    "Is Recommended (Yes/No)": "Yes",
-    "Variants (Name:Price)": "Regular:149, Double Patty:199",
-    "Addons (Name:Price)": "Extra Cheese Slice:25, Peri Peri Dip:30",
-  },
-  {
-    "Name *": "Paneer Tikka Stuffed Garlic Bread",
-    "Category *": "Starters",
-    "Subcategory": "Breads",
-    "Price *": 199,
-    "Discount Price": 179,
-    "Is Veg (Yes/No)": "Yes",
-    "Image URL": "https://images.unsplash.com/photo-1573821663912-569905455b1c?w=600",
-    "Short Description": "Freshly baked garlic bread filled with tandoori paneer",
-    "Full Description": "Artisanal garlic loaf stuffed with smoked tandoori paneer cubes, mozzarella cheese and fresh coriander.",
-    "Prep Time (Mins)": 20,
-    "Calories": 520,
-    "Ingredients (comma separated)": "Paneer, Mozzarella, Garlic Butter, Oregano",
-    "Allergens (comma separated)": "Dairy, Gluten",
-    "Is Bestseller (Yes/No)": "Yes",
-    "Is Spicy (Yes/No)": "Yes",
-    "Is Jain (Yes/No)": "No",
-    "Is Recommended (Yes/No)": "Yes",
-    "Variants (Name:Price)": "4 Pieces:179, 8 Pieces:299",
-    "Addons (Name:Price)": "Cheese Jalapeno Dip:35",
-  },
-  {
-    "Name *": "Classic Margherita Pizza (10 inch)",
-    "Category *": "Pizzas",
-    "Subcategory": "Thin Crust",
-    "Price *": 299,
-    "Discount Price": 249,
-    "Is Veg (Yes/No)": "Yes",
-    "Image URL": "https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=600",
-    "Short Description": "San Marzano tomato base with 100% real mozzarella and basil",
-    "Full Description": "Traditional hand-tossed 10-inch sourdough pizza topped with aromatic Italian herbs, extra virgin olive oil and fresh basil leaves.",
-    "Prep Time (Mins)": 22,
-    "Calories": 650,
-    "Ingredients (comma separated)": "Pizza Dough, San Marzano Sauce, Mozzarella, Fresh Basil",
-    "Allergens (comma separated)": "Dairy, Gluten",
-    "Is Bestseller (Yes/No)": "No",
-    "Is Spicy (Yes/No)": "No",
-    "Is Jain (Yes/No)": "Yes",
-    "Is Recommended (Yes/No)": "Yes",
-    "Variants (Name:Price)": "Regular Crust:249, Cheese Burst:329",
-    "Addons (Name:Price)": "Extra Mozzarella:45, Black Olives:30",
-  },
-  {
-    "Name *": "Belgian Dark Chocolate Thickshake",
-    "Category *": "Beverages",
-    "Subcategory": "Shakes",
-    "Price *": 159,
-    "Discount Price": 139,
-    "Is Veg (Yes/No)": "Yes",
-    "Image URL": "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600",
-    "Short Description": "Rich 70% dark chocolate shake with chocolate chips",
-    "Full Description": "Creamy thickshake blended with rich Belgian dark chocolate gelato, topped with whipped cream and cocoa shavings.",
-    "Prep Time (Mins)": 10,
-    "Calories": 390,
-    "Ingredients (comma separated)": "Milk, Dark Chocolate Gelato, Cocoa, Chocolate Chips",
-    "Allergens (comma separated)": "Dairy",
-    "Is Bestseller (Yes/No)": "Yes",
-    "Is Spicy (Yes/No)": "No",
-    "Is Jain (Yes/No)": "Yes",
-    "Is Recommended (Yes/No)": "Yes",
-    "Variants (Name:Price)": "300ml:139, 500ml:199",
-    "Addons (Name:Price)": "Whipped Cream:20, Extra Choco Chips:20",
-  },
-];
-
 export function BulkMenuUploadPage() {
   const [searchParams] = useSearchParams();
   const preselectedRestaurantId = searchParams.get("restaurantId") || "";
@@ -170,7 +84,8 @@ export function BulkMenuUploadPage() {
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<string>(preselectedRestaurantId);
   const [loadingRestaurants, setLoadingRestaurants] = useState(true);
 
-  const { categories, fetchCategories } = useCategoryStore();
+  // Real Database Categories & Subcategories
+  const { categories, fetchCategories, loading: loadingCategories } = useCategoryStore();
 
   // Active Tab: "form" (default) or "file"
   const [activeTab, setActiveTab] = useState<"form" | "file">("form");
@@ -192,30 +107,38 @@ export function BulkMenuUploadPage() {
   const [tableType, setTableType] = useState<"all" | "veg" | "non-veg">("all");
 
   // Create clean empty item
-  const createEmptyItem = (): BulkMenuItemDraft => ({
-    id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    name: "",
-    category: categories[0]?.name || "Main Course",
-    subcategory: "",
-    price: "",
-    discountPrice: "",
-    isVeg: true,
-    imageUrl: "",
-    shortDescription: "",
-    description: "",
-    preparationTimeMins: "15",
-    calories: "",
-    ingredients: "",
-    allergens: "",
-    isBestseller: false,
-    isSpicy: false,
-    isJain: false,
-    isRecommended: false,
-    variantsText: "",
-    addonsText: "",
-    errors: [],
-    isValid: false,
-  });
+  const createEmptyItem = (defaultCat?: string, defaultSub?: string): BulkMenuItemDraft => {
+    const fallbackCategory = defaultCat || categories[0]?.name || "Main Course";
+    const initialCat = categories.find(
+      (c) => c.name.toLowerCase() === fallbackCategory.toLowerCase()
+    );
+    const initialSub = defaultSub || initialCat?.subcategories?.[0] || "";
+
+    return {
+      id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: "",
+      category: fallbackCategory,
+      subcategory: initialSub,
+      price: "",
+      discountPrice: "",
+      isVeg: true,
+      imageUrl: "",
+      shortDescription: "",
+      description: "",
+      preparationTimeMins: "15",
+      calories: "",
+      ingredients: "",
+      allergens: "",
+      isBestseller: false,
+      isSpicy: false,
+      isJain: false,
+      isRecommended: false,
+      variantsText: "",
+      addonsText: "",
+      errors: [],
+      isValid: false,
+    };
+  };
 
   // Validate a single draft item
   const validateItem = (item: BulkMenuItemDraft): { isValid: boolean; errors: string[] } => {
@@ -241,12 +164,30 @@ export function BulkMenuUploadPage() {
     };
   };
 
-  // Load restaurants & categories on mount
+  // Load database categories & restaurants on mount
   useEffect(() => {
     fetchCategories();
     loadRestaurants();
-    setItems([createEmptyItem()]);
   }, []);
+
+  // When categories finish loading, initialize items if empty
+  useEffect(() => {
+    if (items.length === 0) {
+      setItems([createEmptyItem(categories[0]?.name)]);
+    } else if (categories.length > 0 && !items[0].category) {
+      setItems((curr) =>
+        curr.map((i, idx) =>
+          idx === 0
+            ? {
+                ...i,
+                category: categories[0].name,
+                subcategory: categories[0].subcategories?.[0] || "",
+              }
+            : i
+        )
+      );
+    }
+  }, [categories]);
 
   const loadRestaurants = async () => {
     setLoadingRestaurants(true);
@@ -292,16 +233,64 @@ export function BulkMenuUploadPage() {
   }, [selectedRestaurantId]);
 
   // ==========================================
-  // TEMPLATE DOWNLOAD
+  // TEMPLATE DOWNLOAD (WITH REAL CATEGORIES)
   // ==========================================
   const handleDownloadTemplate = (format: "xlsx" | "csv" = "xlsx") => {
     try {
-      const worksheet = XLSX.utils.json_to_sheet(SAMPLE_TEMPLATE_DATA);
+      // Build sample data using real database categories if available
+      const sampleData =
+        categories.length > 0
+          ? categories.slice(0, 4).map((cat, idx) => ({
+              "Name *": `Special ${cat.name} Dish #${idx + 1}`,
+              "Category *": cat.name,
+              "Subcategory": cat.subcategories?.[0] || "Standard",
+              "Price *": 199 + idx * 50,
+              "Discount Price": 169 + idx * 40,
+              "Is Veg (Yes/No)": "Yes",
+              "Image URL": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600",
+              "Short Description": `Freshly prepared chef special ${cat.name}`,
+              "Full Description": `Delicious and authentic ${cat.name} made with premium organic ingredients.`,
+              "Prep Time (Mins)": 15,
+              "Calories": 450,
+              "Ingredients (comma separated)": "Fresh Herbs, Special Sauce, Spices",
+              "Allergens (comma separated)": "Dairy",
+              "Is Bestseller (Yes/No)": "Yes",
+              "Is Spicy (Yes/No)": "No",
+              "Is Jain (Yes/No)": "No",
+              "Is Recommended (Yes/No)": "Yes",
+              "Variants (Name:Price)": "Regular:169, Large:229",
+              "Addons (Name:Price)": "Extra Dip:30",
+            }))
+          : [
+              {
+                "Name *": "Crispy Veg Maharaja Burger",
+                "Category *": "Burgers",
+                "Subcategory": "Gourmet Burgers",
+                "Price *": 179,
+                "Discount Price": 149,
+                "Is Veg (Yes/No)": "Yes",
+                "Image URL": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600",
+                "Short Description": "Crunchy herb potato patty with secret spicy sauce",
+                "Full Description": "Double decker crispy veggie burger layered with fresh lettuce, sliced tomatoes, gherkins and special cheese sauce.",
+                "Prep Time (Mins)": 15,
+                "Calories": 480,
+                "Ingredients (comma separated)": "Potato, Peas, Cheese, Special Mayo, Sesame Bun",
+                "Allergens (comma separated)": "Gluten, Dairy",
+                "Is Bestseller (Yes/No)": "Yes",
+                "Is Spicy (Yes/No)": "No",
+                "Is Jain (Yes/No)": "No",
+                "Is Recommended (Yes/No)": "Yes",
+                "Variants (Name:Price)": "Regular:149, Double Patty:199",
+                "Addons (Name:Price)": "Extra Cheese Slice:25, Peri Peri Dip:30",
+              },
+            ];
+
+      const worksheet = XLSX.utils.json_to_sheet(sampleData);
       const colWidths = [
         { wch: 32 },
-        { wch: 18 },
-        { wch: 18 },
-        { wch: 10 },
+        { wch: 20 },
+        { wch: 20 },
+        { wch: 12 },
         { wch: 14 },
         { wch: 16 },
         { wch: 45 },
@@ -325,7 +314,7 @@ export function BulkMenuUploadPage() {
 
       const fileName = `Chatori_Jeeb_Menu_Bulk_Template.${format}`;
       XLSX.writeFile(workbook, fileName, { bookType: format });
-      toast.success(`Template downloaded: ${fileName}`);
+      toast.success(`Template downloaded with database categories: ${fileName}`);
     } catch (error) {
       console.error("Failed to generate template:", error);
       toast.error("Failed to download template");
@@ -366,8 +355,18 @@ export function BulkMenuUploadPage() {
         };
 
         const name = String(getVal("name *", "name", "item name", "dish name")).trim();
-        const category = String(getVal("category *", "category", "cat")).trim() || "Main Course";
-        const subcategory = String(getVal("subcategory", "sub category", "sub-category")).trim();
+        const rawCategory = String(getVal("category *", "category", "cat")).trim();
+        // Match against real database categories if possible
+        const matchedCategory =
+          categories.find((c) => c.name.toLowerCase() === rawCategory.toLowerCase())?.name ||
+          rawCategory ||
+          categories[0]?.name ||
+          "Main Course";
+
+        const rawSubcategory = String(
+          getVal("subcategory", "sub category", "sub-category", "sub cat")
+        ).trim();
+
         const price = getVal("price *", "price", "rate", "cost");
         const discountPrice = getVal("discount price", "discount_price", "discountprice", "offer price");
 
@@ -407,8 +406,8 @@ export function BulkMenuUploadPage() {
         const draft: BulkMenuItemDraft = {
           id: `item-upload-${index}-${Date.now()}`,
           name,
-          category,
-          subcategory,
+          category: matchedCategory,
+          subcategory: rawSubcategory,
           price,
           discountPrice,
           isVeg,
@@ -505,6 +504,18 @@ export function BulkMenuUploadPage() {
     });
   };
 
+  // Category changed handler: auto-syncs available database subcategories
+  const handleCategoryChange = (index: number, newCategory: string) => {
+    const matchedCategory = categories.find(
+      (c) => c.name.toLowerCase() === newCategory.toLowerCase()
+    );
+    const firstSub = matchedCategory?.subcategories?.[0] || "";
+    updateItem(index, {
+      category: newCategory,
+      subcategory: firstSub,
+    });
+  };
+
   // Add row
   const handleAddRow = () => {
     setItems((curr) => [...curr, createEmptyItem()]);
@@ -538,7 +549,7 @@ export function BulkMenuUploadPage() {
     }
   };
 
-  // Clear / Reset Form with intelligent confirmation
+  // Clear / Reset Form
   const handleClearAll = () => {
     const hasData = items.some(
       (i) => i.name.trim() || i.price !== "" || i.imageUrl || i.shortDescription || i.description
@@ -622,7 +633,7 @@ export function BulkMenuUploadPage() {
 
       return {
         name: item.name.trim(),
-        category: item.category?.trim() || "Main Course",
+        category: item.category?.trim() || categories[0]?.name || "Main Course",
         subcategory: item.subcategory?.trim() || undefined,
         price: Number(item.price),
         discountPrice:
@@ -753,7 +764,7 @@ export function BulkMenuUploadPage() {
           <div>
             <h1 className="text-2xl md:text-3xl font-black tracking-tight">Add Menu Items</h1>
             <p className="text-xs md:text-sm text-muted-foreground">
-              Add food items for any kitchen with spacious form inputs, live image upload, and an auto-refreshing menu table.
+              Add food items for any kitchen with database categories, subcategories, live image upload, and an auto-refreshing menu table.
             </p>
           </div>
         </div>
@@ -765,7 +776,7 @@ export function BulkMenuUploadPage() {
             onClick={() => handleDownloadTemplate("xlsx")}
           >
             <Download className="mr-2 size-4 text-emerald-600" />
-            Download Excel Template (.xlsx)
+            Download Template with Categories (.xlsx)
           </Button>
         </div>
       </div>
@@ -860,7 +871,7 @@ export function BulkMenuUploadPage() {
                 <AlertTriangle className="size-3" /> {errorCount} Incomplete
               </span>
             )}
-            
+
             {/* Top Quick Reset Button */}
             <Button
               type="button"
@@ -876,11 +887,17 @@ export function BulkMenuUploadPage() {
         </div>
 
         {/* ──────────────────────────────────────────────────────────
-            TAB 1: SPACIOUS CARD-BASED FORM ENTRY
+            TAB 1: SPACIOUS CARD-BASED FORM ENTRY (WITH REAL DB CATEGORIES & SUBCATEGORIES)
            ────────────────────────────────────────────────────────── */}
         <TabsContent value="form" className="mt-4 flex flex-col gap-6">
           {items.map((item, index) => {
             const hasError = !item.isValid && item.name.trim().length > 0;
+
+            // Look up database subcategories for the selected category
+            const currentCatRecord = categories.find(
+              (c) => c.name.toLowerCase() === (item.category || "").toLowerCase()
+            );
+            const availableDbSubcategories = currentCatRecord?.subcategories || [];
 
             return (
               <Card
@@ -900,8 +917,17 @@ export function BulkMenuUploadPage() {
                       <h3 className="font-bold text-base text-foreground">
                         {item.name ? item.name : `New Dish Item #${index + 1}`}
                       </h3>
-                      <p className="text-xs text-muted-foreground">
-                        {item.category || "Uncategorized"} · {item.isVeg ? "Vegetarian" : "Non-Vegetarian"}
+                      <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                        <FolderTree className="size-3 text-primary" />
+                        <span className="font-semibold text-foreground">{item.category || "Uncategorized"}</span>
+                        {item.subcategory && (
+                          <>
+                            <span>›</span>
+                            <span className="text-primary font-medium">{item.subcategory}</span>
+                          </>
+                        )}
+                        <span>·</span>
+                        <span>{item.isVeg ? "Vegetarian" : "Non-Vegetarian"}</span>
                       </p>
                     </div>
                   </div>
@@ -966,38 +992,80 @@ export function BulkMenuUploadPage() {
                         />
                       </div>
 
-                      {/* Category & Subcategory */}
+                      {/* Dynamic Database Category & Subcategory */}
                       <div className="grid gap-4 sm:grid-cols-2">
+                        {/* Database Category Dropdown */}
                         <div className="flex flex-col gap-1.5">
-                          <label className="text-xs font-bold text-foreground uppercase tracking-wider">
-                            Category *
+                          <label className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center justify-between">
+                            <span className="flex items-center gap-1.5">
+                              <FolderTree className="size-3.5 text-primary" />
+                              Category *
+                            </span>
+                            {loadingCategories && (
+                              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                <Loader2 className="size-3 animate-spin" /> Loading DB...
+                              </span>
+                            )}
                           </label>
-                          <div className="relative">
-                            <input
-                              list={`categories-list-${item.id}`}
-                              value={item.category}
-                              onChange={(e) => updateItem(index, { category: e.target.value })}
-                              placeholder="Select or type category"
-                              className="h-11 w-full rounded-2xl border bg-background px-3.5 text-sm shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
-                            />
-                            <datalist id={`categories-list-${item.id}`}>
+
+                          {categories.length > 0 ? (
+                            <Select
+                              value={item.category || categories[0]?.name || "Main Course"}
+                              onValueChange={(val) => handleCategoryChange(index, val)}
+                              className="h-11"
+                            >
                               {categories.map((c) => (
-                                <option key={c.id} value={c.name} />
+                                <SelectItem key={c.id || c._id || c.name} value={c.name}>
+                                  {c.name}
+                                </SelectItem>
                               ))}
-                            </datalist>
-                          </div>
+                            </Select>
+                          ) : (
+                            <Input
+                              value={item.category}
+                              onChange={(e) => handleCategoryChange(index, e.target.value)}
+                              placeholder="e.g. Main Course, Burgers"
+                              className="h-11 text-sm rounded-2xl"
+                            />
+                          )}
                         </div>
 
+                        {/* Dynamic Database Subcategory */}
                         <div className="flex flex-col gap-1.5">
-                          <label className="text-xs font-bold text-foreground uppercase tracking-wider">
-                            Subcategory (Optional)
+                          <label className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center justify-between">
+                            <span className="flex items-center gap-1.5">
+                              <Tag className="size-3.5 text-primary" />
+                              Subcategory
+                            </span>
+                            {availableDbSubcategories.length > 0 && (
+                              <span className="text-[10px] text-primary font-bold">
+                                {availableDbSubcategories.length} DB options
+                              </span>
+                            )}
                           </label>
-                          <Input
-                            value={item.subcategory || ""}
-                            onChange={(e) => updateItem(index, { subcategory: e.target.value })}
-                            placeholder="e.g. Gourmet, Thin Crust"
-                            className="h-11 text-sm rounded-2xl"
-                          />
+
+                          {availableDbSubcategories.length > 0 ? (
+                            <div className="flex flex-col gap-1.5">
+                              <Select
+                                value={item.subcategory || availableDbSubcategories[0] || ""}
+                                onValueChange={(val) => updateItem(index, { subcategory: val })}
+                                className="h-11"
+                              >
+                                {availableDbSubcategories.map((sub) => (
+                                  <SelectItem key={sub} value={sub}>
+                                    {sub}
+                                  </SelectItem>
+                                ))}
+                              </Select>
+                            </div>
+                          ) : (
+                            <Input
+                              value={item.subcategory || ""}
+                              onChange={(e) => updateItem(index, { subcategory: e.target.value })}
+                              placeholder="e.g. Regular, Special (Optional)"
+                              className="h-11 text-sm rounded-2xl"
+                            />
+                          )}
                         </div>
                       </div>
 
@@ -1414,7 +1482,7 @@ export function BulkMenuUploadPage() {
               <Select value={tableCategory} onValueChange={setTableCategory} className="h-10">
                 <SelectItem value="all">All Categories</SelectItem>
                 {categories.map((c) => (
-                  <SelectItem key={c.id} value={c.name}>
+                  <SelectItem key={c.id || c._id || c.name} value={c.name}>
                     {c.name}
                   </SelectItem>
                 ))}
@@ -1544,9 +1612,16 @@ export function BulkMenuUploadPage() {
 
                     {/* Category */}
                     <td className="p-3.5">
-                      <Badge variant="secondary" className="font-semibold text-xs px-2.5 py-0.5 rounded-lg">
-                        {item.category || "Uncategorized"}
-                      </Badge>
+                      <div className="flex flex-col">
+                        <Badge variant="secondary" className="font-semibold text-xs px-2.5 py-0.5 rounded-lg w-fit">
+                          {item.category || "Uncategorized"}
+                        </Badge>
+                        {item.subcategory && (
+                          <span className="text-[10px] text-muted-foreground mt-0.5">
+                            {item.subcategory}
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     {/* Price */}

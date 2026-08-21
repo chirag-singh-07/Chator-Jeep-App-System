@@ -1,7 +1,5 @@
-"use client";
-
-import { useState } from "react";
-import { X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { X, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { FormField } from "@/components/admin/form-field";
@@ -11,7 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { restaurantsSeed, categoriesSeed } from "@/data/dashboard-data";
+import { useCategoryStore } from "@/stores/useCategoryStore";
+import { adminService } from "@/services/admin.service";
 import type { FoodAddonType } from "@/types/dashboard";
 
 type DraftAddon = {
@@ -23,9 +22,14 @@ type DraftAddon = {
 
 export function FoodItemFormPage() {
   const navigate = useNavigate();
+  const { categories, fetchCategories } = useCategoryStore();
+  const [restaurants, setRestaurants] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [name, setName] = useState("");
-  const [category, setCategory] = useState(categoriesSeed[0]?.name ?? "Burgers");
-  const [kitchenId, setKitchenId] = useState(restaurantsSeed[0]?.id ?? "");
+  const [category, setCategory] = useState("");
+  const [subcategory, setSubcategory] = useState("");
+  const [kitchenId, setKitchenId] = useState("");
   const [price, setPrice] = useState("");
   const [foodType, setFoodType] = useState("Veg");
   const [image, setImage] = useState("");
@@ -38,6 +42,39 @@ export function FoodItemFormPage() {
   });
   const [addons, setAddons] = useState<DraftAddon[]>([]);
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    fetchCategories();
+    loadRestaurants();
+  }, []);
+
+  const loadRestaurants = async () => {
+    try {
+      const res = await adminService.getRestaurants({ page: 1 });
+      if (res.success && res.restaurants) {
+        setRestaurants(res.restaurants);
+        if (res.restaurants.length > 0) {
+          setKitchenId(res.restaurants[0]._id);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (categories.length > 0 && !category) {
+      setCategory(categories[0].name);
+      setSubcategory(categories[0].subcategories?.[0] || "");
+    }
+  }, [categories]);
+
+  const currentCatRecord = categories.find(
+    (c) => c.name.toLowerCase() === (category || "").toLowerCase()
+  );
+  const availableSubcategories = currentCatRecord?.subcategories || [];
 
   const nameError = submitted && !name.trim() ? "Food item name is required." : "";
   const priceError = submitted && !price.trim() ? "Price is required." : "";
@@ -59,11 +96,34 @@ export function FoodItemFormPage() {
     });
   };
 
-  const onSave = () => {
+  const onSave = async () => {
     setSubmitted(true);
     if (!name.trim() || !price.trim()) return;
-    toast.success("Food item created with add-ons.");
-    navigate("/food-items");
+    if (!kitchenId) {
+      toast.error("Please select a target kitchen.");
+      return;
+    }
+
+    try {
+      await adminService.bulkUploadMenuItems(kitchenId, [
+        {
+          name: name.trim(),
+          category: category.trim() || "Main Course",
+          subcategory: subcategory.trim() || undefined,
+          price: Number(price),
+          isVeg: foodType === "Veg",
+          imageUrl: image.trim() || undefined,
+          description: description.trim() || undefined,
+          isAvailable: true,
+          showInMenu: true,
+          addOns: addons.map((a) => ({ name: a.name, price: Number(a.price) || 0 })),
+        },
+      ]);
+      toast.success("Food item created successfully.");
+      navigate("/food-items");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to create food item");
+    }
   };
 
   return (
@@ -84,29 +144,52 @@ export function FoodItemFormPage() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <FormField label="Category">
-              <Select value={category} onValueChange={setCategory}>
-                {categoriesSeed.map((item) => (
+              <Select
+                value={category || categories[0]?.name || "Main Course"}
+                onValueChange={(val) => {
+                  setCategory(val);
+                  const matched = categories.find((c) => c.name === val);
+                  setSubcategory(matched?.subcategories?.[0] || "");
+                }}
+              >
+                {categories.map((item) => (
                   <SelectItem key={item.id} value={item.name}>
                     {item.name}
                   </SelectItem>
                 ))}
               </Select>
             </FormField>
-            <FormField label="Kitchen">
+
+            <FormField label="Subcategory (Optional)">
+              {availableSubcategories.length > 0 ? (
+                <Select value={subcategory || availableSubcategories[0]} onValueChange={setSubcategory}>
+                  {availableSubcategories.map((sub) => (
+                    <SelectItem key={sub} value={sub}>
+                      {sub}
+                    </SelectItem>
+                  ))}
+                </Select>
+              ) : (
+                <Input
+                  value={subcategory}
+                  onChange={(e) => setSubcategory(e.target.value)}
+                  placeholder="e.g. Gourmet (Optional)"
+                />
+              )}
+            </FormField>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField label="Kitchen / Restaurant">
               <Select value={kitchenId} onValueChange={setKitchenId}>
-                {restaurantsSeed.map((item) => (
-                  <SelectItem key={item.id} value={item.id}>
+                {restaurants.map((item) => (
+                  <SelectItem key={item._id} value={item._id}>
                     {item.name}
                   </SelectItem>
                 ))}
               </Select>
             </FormField>
-          </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="Price" error={priceError}>
-              <Input value={price} onChange={(event) => setPrice(event.target.value)} aria-invalid={Boolean(priceError)} />
-            </FormField>
             <FormField label="Food Type">
               <Select value={foodType} onValueChange={setFoodType}>
                 <SelectItem value="Veg">Veg</SelectItem>
