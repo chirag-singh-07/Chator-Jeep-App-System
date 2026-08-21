@@ -75,6 +75,21 @@ export const adminService = {
     const response = await apiClient.get("/restaurants/admin/menu", { params });
     return response.data;
   },
+
+  bulkUploadMenuItems: async (restaurantId: string, items: any[]) => {
+    const response = await apiClient.post(`/restaurants/admin/${restaurantId}/menu/bulk`, { items });
+    return response.data;
+  },
+
+  deleteMenuItem: async (id: string) => {
+    const response = await apiClient.delete(`/restaurants/admin/menu/${id}`);
+    return response.data;
+  },
+
+  toggleMenuItemStock: async (id: string, isAvailable: boolean) => {
+    const response = await apiClient.patch(`/restaurants/admin/menu/${id}/stock`, { isAvailable });
+    return response.data;
+  },
   
   approveRestaurant: async (id: string) => {
     const response = await apiClient.patch(`/restaurants/admin/${id}/approve`);

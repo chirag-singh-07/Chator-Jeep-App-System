@@ -66,17 +66,23 @@ export function UserNav() {
             </Link>
           </DropdownMenuItem>
 
-          <DropdownMenuItem className="rounded-xl cursor-pointer">
-            <div className="flex w-full items-center">
+          <DropdownMenuItem asChild className="rounded-xl cursor-pointer">
+            <Link to="/system/notifications" className="flex w-full items-center">
               <Bell className="mr-2 h-4 w-4" />
               <span>Notifications</span>
-            </div>
+            </Link>
           </DropdownMenuItem>
         </div>
 
         <DropdownMenuSeparator className="my-2" />
 
-        <DropdownMenuItem className="rounded-xl focus:bg-destructive/10 focus:text-destructive text-destructive cursor-pointer">
+        <DropdownMenuItem
+          onClick={() => {
+            useAuthStore.getState().logout();
+            window.location.href = "/login";
+          }}
+          className="rounded-xl focus:bg-destructive/10 focus:text-destructive text-destructive cursor-pointer"
+        >
           <div className="flex w-full items-center">
             <LogOut className="mr-2 h-4 w-4" />
             <span>Log out</span>

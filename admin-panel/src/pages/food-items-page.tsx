@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Upload, FileSpreadsheet } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { DataTable, type DataColumn } from "@/components/admin/data-table";
 import { FilterBar } from "@/components/admin/filter-bar";
@@ -147,7 +147,13 @@ export function FoodItemsPage() {
             <SelectItem value="Inactive">Inactive</SelectItem>
           </Select>
         </div>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <Button variant="outline" className="rounded-xl border-dashed" asChild>
+            <Link to="/food-items/bulk-upload">
+              <FileSpreadsheet data-icon="inline-start" />
+              Bulk Upload
+            </Link>
+          </Button>
           <Button asChild>
             <Link to="/food-items/new">
               <Plus data-icon="inline-start" />

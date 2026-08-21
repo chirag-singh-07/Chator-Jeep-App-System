@@ -9,6 +9,7 @@ import { PaymentsPage } from "@/pages/payments-page";
 import { ProfilePage } from "@/pages/profile-page";
 import { FoodItemFormPage } from "@/pages/food-item-form-page";
 import { FoodItemsPage } from "@/pages/food-items-page";
+import { BulkMenuUploadPage } from "@/pages/bulk-menu-upload-page";
 import { RestaurantFormPage } from "@/pages/restaurant-form-page";
 import { RestaurantDetailsPage } from "@/pages/restaurant-details-page";
 import { RestaurantsPage } from "@/pages/restaurants-page";
@@ -64,6 +65,7 @@ function App() {
         <Route path="/restaurants/:restaurantId" element={<RestaurantDetailsPage />} />
         <Route path="/food-items" element={<FoodItemsPage />} />
         <Route path="/food-items/new" element={<FoodItemFormPage />} />
+        <Route path="/food-items/bulk-upload" element={<BulkMenuUploadPage />} />
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/categories/new" element={<CategoryFormPage mode="create" />} />
         <Route path="/categories/:categoryId/edit" element={<CategoryFormPage mode="edit" />} />

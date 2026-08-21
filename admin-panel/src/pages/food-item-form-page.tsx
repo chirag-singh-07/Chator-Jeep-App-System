@@ -69,8 +69,13 @@ export function FoodItemFormPage() {
   return (
     <div className="grid gap-4 xl:grid-cols-[1fr_0.8fr]">
       <Card className="rounded-2xl shadow-sm">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Add Food Item</CardTitle>
+          <Button variant="outline" size="sm" className="rounded-xl border-dashed" asChild>
+            <Link to="/food-items/bulk-upload">
+              Bulk Upload Multiple Items →
+            </Link>
+          </Button>
         </CardHeader>
         <CardContent className="flex flex-col gap-5">
           <FormField label="Item Name" error={nameError}>

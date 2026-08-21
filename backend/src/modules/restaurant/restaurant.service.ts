@@ -267,6 +267,170 @@ export const adminListMenuItems = async (query: {
   };
 };
 
+export const adminBulkUploadMenuItems = async (restaurantId: string, rawItems: any[]) => {
+  const restaurant = await findRestaurantById(restaurantId);
+  if (!restaurant) throw new AppError("Restaurant not found", 404);
+
+  if (!Array.isArray(rawItems) || rawItems.length === 0) {
+    throw new AppError("No items provided for bulk upload", 400);
+  }
+
+  const sanitizedItems = rawItems.map((item, index) => {
+    if (!item.name || typeof item.name !== "string" || !item.name.trim()) {
+      throw new AppError(`Item at row ${index + 1} is missing a valid name`, 400);
+    }
+    const price = Number(item.price);
+    if (isNaN(price) || price < 0) {
+      throw new AppError(`Item '${item.name}' at row ${index + 1} has an invalid price`, 400);
+    }
+
+    const discountPrice =
+      item.discountPrice !== undefined && item.discountPrice !== null && item.discountPrice !== ""
+        ? Number(item.discountPrice)
+        : undefined;
+
+    // Normalize isVeg
+    let isVeg = false;
+    if (typeof item.isVeg === "boolean") {
+      isVeg = item.isVeg;
+    } else if (typeof item.isVeg === "string") {
+      const v = item.isVeg.trim().toLowerCase();
+      isVeg = v === "true" || v === "yes" || v === "veg" || v === "1" || v === "vegetarian";
+    }
+
+    // Normalize ingredients
+    let ingredients: string[] = [];
+    if (Array.isArray(item.ingredients)) {
+      ingredients = item.ingredients.map((i: any) => String(i).trim()).filter(Boolean);
+    } else if (typeof item.ingredients === "string" && item.ingredients.trim()) {
+      ingredients = item.ingredients.split(",").map((i: string) => i.trim()).filter(Boolean);
+    }
+
+    // Normalize allergens
+    let allergens: string[] = [];
+    if (Array.isArray(item.allergens)) {
+      allergens = item.allergens.map((i: any) => String(i).trim()).filter(Boolean);
+    } else if (typeof item.allergens === "string" && item.allergens.trim()) {
+      allergens = item.allergens.split(",").map((i: string) => i.trim()).filter(Boolean);
+    }
+
+    // Normalize tags
+    const tags = {
+      isJain: Boolean(item.tags?.isJain ?? item.isJain),
+      isSpicy: Boolean(item.tags?.isSpicy ?? item.isSpicy),
+      isBestseller: Boolean(item.tags?.isBestseller ?? item.isBestseller),
+      isRecommended: Boolean(item.tags?.isRecommended ?? item.isRecommended),
+    };
+
+    // Normalize variants
+    let variants: { name: string; price: number }[] = [];
+    if (Array.isArray(item.variants)) {
+      variants = item.variants
+        .map((v: any) => ({
+          name: String(v.name || "").trim(),
+          price: Number(v.price) || 0,
+        }))
+        .filter((v: any) => v.name && v.price >= 0);
+    } else if (typeof item.variants === "string" && item.variants.trim()) {
+      variants = item.variants
+        .split(",")
+        .map((vStr: string) => {
+          const [vName, vPrice] = vStr.split(":");
+          return {
+            name: vName?.trim() || "",
+            price: Number(vPrice?.trim()) || 0,
+          };
+        })
+        .filter((v: any) => v.name && !isNaN(v.price));
+    }
+
+    // Normalize addOns
+    let addOns: { name: string; price: number; imageUrl?: string }[] = [];
+    if (Array.isArray(item.addOns)) {
+      addOns = item.addOns
+        .map((a: any) => ({
+          name: String(a.name || "").trim(),
+          price: Number(a.price) || 0,
+          imageUrl: a.imageUrl ? String(a.imageUrl).trim() : undefined,
+        }))
+        .filter((a: any) => a.name && a.price >= 0);
+    } else if (typeof item.addOns === "string" && item.addOns.trim()) {
+      addOns = item.addOns
+        .split(",")
+        .map((aStr: string) => {
+          const [aName, aPrice] = aStr.split(":");
+          return {
+            name: aName?.trim() || "",
+            price: Number(aPrice?.trim()) || 0,
+          };
+        })
+        .filter((a: any) => a.name && !isNaN(a.price));
+    }
+
+    return {
+      restaurantId: restaurant._id,
+      name: item.name.trim(),
+      shortDescription: item.shortDescription ? String(item.shortDescription).trim() : undefined,
+      description: item.description ? String(item.description).trim() : undefined,
+      price,
+      discountPrice: discountPrice !== undefined && !isNaN(discountPrice) ? discountPrice : undefined,
+      category: item.category ? String(item.category).trim() : undefined,
+      subcategory: item.subcategory ? String(item.subcategory).trim() : undefined,
+      isVeg,
+      isAvailable: item.isAvailable !== undefined ? Boolean(item.isAvailable) : true,
+      showInMenu: item.showInMenu !== undefined ? Boolean(item.showInMenu) : true,
+      imageUrl: item.imageUrl ? String(item.imageUrl).trim() : undefined,
+      portionSize: item.portionSize ? String(item.portionSize).trim() : undefined,
+      preparationTimeMins:
+        !isNaN(Number(item.preparationTimeMins)) && Number(item.preparationTimeMins) > 0
+          ? Number(item.preparationTimeMins)
+          : undefined,
+      calories:
+        !isNaN(Number(item.calories)) && Number(item.calories) > 0 ? Number(item.calories) : undefined,
+      ingredients,
+      allergens,
+      tags,
+      variants,
+      addOns,
+    };
+  });
+
+  const inserted = await MenuItem.insertMany(sanitizedItems);
+
+  if (isRedisEnabled && redisConnection) {
+    await redisConnection.del(`menu:${restaurant._id.toString()}`);
+  }
+
+  return {
+    count: inserted.length,
+    items: inserted,
+  };
+};
+
+export const adminDeleteMenuItem = async (itemId: string) => {
+  const item = await MenuItem.findByIdAndDelete(itemId);
+  if (!item) throw new AppError("Menu item not found", 404);
+
+  if (isRedisEnabled && redisConnection && item.restaurantId) {
+    await redisConnection.del(`menu:${item.restaurantId.toString()}`);
+  }
+  return true;
+};
+
+export const adminToggleMenuItemStock = async (itemId: string, isAvailable: boolean) => {
+  const item = await MenuItem.findByIdAndUpdate(
+    itemId,
+    { $set: { isAvailable } },
+    { new: true }
+  );
+  if (!item) throw new AppError("Menu item not found", 404);
+
+  if (isRedisEnabled && redisConnection && item.restaurantId) {
+    await redisConnection.del(`menu:${item.restaurantId.toString()}`);
+  }
+  return item;
+};
+
 export const adminGetRestaurant = async (id: string) => {
   const restaurant = await findRestaurantById(id);
   if (!restaurant) throw new AppError("Restaurant not found", 404);

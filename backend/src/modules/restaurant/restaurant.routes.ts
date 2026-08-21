@@ -451,6 +451,64 @@ router.get("/admin/menu", authMiddleware, roleMiddleware(["ADMIN"]), ctrl.adminL
 
 /**
  * @openapi
+ * /api/v1/restaurants/admin/{restaurantId}/menu/bulk:
+ *   post:
+ *     tags:
+ *       - Admin
+ *     summary: Bulk upload menu items for a restaurant (Admin)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: restaurantId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               items:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/MenuItem'
+ *     responses:
+ *       201:
+ *         description: Items uploaded successfully
+ */
+router.post(
+  "/admin/:restaurantId/menu/bulk",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  ctrl.adminBulkUploadMenuItems
+);
+
+router.post(
+  "/admin/menu/bulk",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  ctrl.adminBulkUploadMenuItems
+);
+
+router.delete(
+  "/admin/menu/:id",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  ctrl.adminDeleteMenuItem
+);
+
+router.patch(
+  "/admin/menu/:id/stock",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  ctrl.adminToggleMenuItemStock
+);
+
+/**
+ * @openapi
  * /api/v1/restaurants/admin/create:
  *   post:
  *     tags:

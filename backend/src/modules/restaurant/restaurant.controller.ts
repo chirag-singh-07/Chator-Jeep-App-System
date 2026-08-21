@@ -57,6 +57,37 @@ export const adminListMenuItems = asyncHandler(
   },
 );
 
+export const adminBulkUploadMenuItems = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const restaurantId = req.params.restaurantId || req.body.restaurantId;
+    const items = req.body.items || req.body;
+    const result = await service.adminBulkUploadMenuItems(
+      restaurantId,
+      items,
+    );
+    res.status(201).json({
+      success: true,
+      message: `Successfully uploaded ${result.count} menu items`,
+      ...result,
+    });
+  },
+);
+
+export const adminDeleteMenuItem = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    await service.adminDeleteMenuItem(req.params.id as string);
+    res.status(200).json({ success: true, message: "Menu item deleted successfully" });
+  },
+);
+
+export const adminToggleMenuItemStock = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const isAvailable = req.body.isAvailable !== undefined ? Boolean(req.body.isAvailable) : true;
+    const item = await service.adminToggleMenuItemStock(req.params.id as string, isAvailable);
+    res.status(200).json({ success: true, data: item });
+  },
+);
+
 export const adminGetRestaurant = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const restaurant = await service.adminGetRestaurant(

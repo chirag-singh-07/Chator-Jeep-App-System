@@ -5,14 +5,21 @@ import { cn } from "@/lib/utils";
 function Select({
   value,
   onValueChange,
-  children
+  children,
+  className,
 }: {
   value: string;
   onValueChange: (value: string) => void;
-  children: React.ReactElement<{ value: string; children: React.ReactNode }>[];
+  children: React.ReactNode;
+  className?: string;
 }) {
+  const validChildren = React.Children.toArray(children).filter(
+    (child): child is React.ReactElement<{ value?: string; children?: React.ReactNode }> =>
+      React.isValidElement(child)
+  );
+
   return (
-    <div className="relative">
+    <div className={cn("relative", className)}>
       <select
         value={value}
         onChange={(event) => onValueChange(event.target.value)}
@@ -21,11 +28,14 @@ function Select({
           "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
         )}
       >
-        {children.map((child) => (
-          <option key={child.props.value} value={child.props.value}>
-            {child.props.children}
-          </option>
-        ))}
+        {validChildren.map((child, idx) => {
+          const val = child.props?.value ?? String(idx);
+          return (
+            <option key={val} value={val}>
+              {child.props?.children}
+            </option>
+          );
+        })}
       </select>
       <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
     </div>

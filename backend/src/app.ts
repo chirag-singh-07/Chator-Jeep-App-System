@@ -81,10 +81,10 @@ const authRateLimiter = rateLimit({
 });
 app.use("/api/v1/auth", authRateLimiter);
 
-// Strict Rate Limiter for Uploads to Prevent Server Abuse
+// Rate Limiter for Uploads
 const uploadRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 15, // Limit each IP to 15 upload requests per 15 minutes
+  max: 500, // Limit each IP to 500 upload requests per 15 minutes
   message: "Too many upload attempts, please try again later after 15 minutes."
 });
 app.use("/api/v1/uploads", uploadRateLimiter);

@@ -8,7 +8,11 @@ const API_ENDPOINTS = [
 ];
 
 const normalizeUrl = (url: string) => {
-  const cleaned = url.trim().replace(/\/+$/, "");
+  let cleaned = url.trim().replace(/^["']+|["';\s]+$/g, "").replace(/\/+$/, "");
+  // Ensure production domain uses https to avoid preflight redirects
+  if (cleaned.startsWith("http://api.chatorijeeb.com")) {
+    cleaned = cleaned.replace("http://api.chatorijeeb.com", "https://api.chatorijeeb.com");
+  }
   return cleaned.endsWith("/api/v1") ? cleaned : `${cleaned}/api/v1`;
 };
 

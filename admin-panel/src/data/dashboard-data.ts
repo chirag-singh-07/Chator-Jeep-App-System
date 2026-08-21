@@ -497,11 +497,35 @@ export const sidebarNavigation: NavigationItem[] = [
     icon: "orders",
     children: [
       { title: "All Orders", href: "/orders" },
-      { title: "Completed", href: "/orders?status=completed" },
-      { title: "Unassigned", href: "/orders?status=unassigned" },
       { title: "Preparing", href: "/orders?status=preparing" },
       { title: "Out for Delivery", href: "/orders?status=out-for-delivery" },
+      { title: "Completed", href: "/orders?status=completed" },
       { title: "Cancelled", href: "/orders?status=cancelled" }
+    ]
+  },
+  {
+    title: "Food Items",
+    href: "/food-items",
+    icon: "food-items",
+    children: [
+      { title: "All Food Items", href: "/food-items" },
+      { title: "Add New Dish", href: "/food-items/new" },
+      { title: "Bulk Menu Upload", href: "/food-items/bulk-upload" },
+      { title: "Veg Items", href: "/food-items?type=veg" },
+      { title: "Non-Veg Items", href: "/food-items?type=non-veg" }
+    ]
+  },
+  { title: "Categories", href: "/categories", icon: "categories" },
+  { title: "Add-ons", href: "/addons", icon: "addons" },
+  {
+    title: "Restaurants",
+    href: "/restaurants",
+    icon: "restaurants",
+    children: [
+      { title: "All Kitchens", href: "/restaurants" },
+      { title: "Onboard Kitchen", href: "/restaurants/new" },
+      { title: "Active Kitchens", href: "/restaurants?status=ACTIVE" },
+      { title: "New Requests", href: "/restaurants?status=REQUESTED" }
     ]
   },
   {
@@ -510,89 +534,61 @@ export const sidebarNavigation: NavigationItem[] = [
     icon: "users",
     children: [
       { title: "All Users", href: "/users" },
-      { title: "Admins", href: "/users?role=admin" },
-      { title: "Delivery", href: "/users?role=delivery" },
-      { title: "Kitchen", href: "/users?role=kitchen" },
-      { title: "Customers", href: "/users?role=user" }
-    ]
-  },
-  {
-    title: "Restaurants",
-    href: "/restaurants",
-    icon: "restaurants",
-    children: [
-      { title: "All Partners", href: "/restaurants" },
-      { title: "Requested", href: "/restaurants?status=REQUESTED" },
-      { title: "Active", href: "/restaurants?status=ACTIVE" },
-      { title: "Closed", href: "/restaurants?status=CLOSED" },
-      { title: "Flagged", href: "/restaurants?status=FLAGGED" }
-    ]
-  },
-  {
-    title: "Food Items",
-
-    href: "/food-items",
-    icon: "food-items",
-    children: [
-      { title: "All Items", href: "/food-items" },
-      { title: "Veg", href: "/food-items?type=veg" },
-      { title: "Non-Veg", href: "/food-items?type=non-veg" },
-      { title: "Bestsellers", href: "/food-items?type=bestsellers" }
-    ]
-  },
-  { title: "Categories", href: "/categories", icon: "categories" },
-  { title: "Add-ons", href: "/addons", icon: "addons" },
-  { title: "Payments", href: "/payments", icon: "payments" },
-  {
-    title: "Analytics",
-    href: "/analytics",
-    icon: "analytics",
-    children: [
-      { title: "Sales Overview", href: "/analytics/sales" },
-      { title: "Revenue Deepdive", href: "/analytics/revenue" },
-      { title: "Performance", href: "/analytics/performance" }
+      { title: "Customers", href: "/users?role=user" },
+      { title: "Delivery Agents", href: "/users?role=delivery" },
+      { title: "Admins", href: "/users?role=admin" }
     ]
   },
   {
     title: "Delivery",
-    href: "/delivery",
+    href: "/delivery/agents",
     icon: "delivery",
     children: [
-      { title: "Agents", href: "/delivery/agents" },
-      { title: "Payouts", href: "/delivery/payouts" },
-      { title: "Tracking", href: "/delivery/tracking" }
+      { title: "Delivery Agents", href: "/delivery/agents" },
+      { title: "Add New Agent", href: "/delivery/agents/new" },
+      { title: "Delivery Payouts", href: "/delivery/payouts" },
+      { title: "Live Tracking", href: "/delivery/tracking" }
+    ]
+  },
+  { title: "Payments", href: "/payments", icon: "payments" },
+  {
+    title: "Analytics",
+    href: "/analytics/sales",
+    icon: "analytics",
+    children: [
+      { title: "Sales Overview", href: "/analytics/sales" },
+      { title: "Revenue Deepdive", href: "/analytics/revenue" }
     ]
   },
   {
     title: "Marketing",
-    href: "/marketing",
+    href: "/marketing/coupons",
     icon: "marketing",
     children: [
-      { title: "Coupons", href: "/marketing/coupons" },
-      { title: "Banner Ads", href: "/marketing/banners" },
+      { title: "Coupons & Discounts", href: "/marketing/coupons" },
+      { title: "Banner Promotions", href: "/marketing/banners" },
       { title: "Loyalty Points", href: "/marketing/loyalty" }
     ]
   },
   {
     title: "Support",
-    href: "/support",
+    href: "/support/tickets",
     icon: "support",
     children: [
-      { title: "Tickets", href: "/support/tickets" },
-      { title: "Reviews", href: "/support/reviews" }
+      { title: "Support Tickets", href: "/support/tickets" },
+      { title: "Customer Reviews", href: "/support/reviews" }
     ]
   },
   { title: "Inventory", href: "/inventory", icon: "inventory" },
   {
     title: "System",
-    href: "/system",
+    href: "/system/config",
     icon: "system",
     children: [
-      { title: "Audit Logs", href: "/system/logs" },
-      { title: "Notifications", href: "/system/notifications" },
-      { title: "Cloud Media", href: "/system/media" },
+      { title: "App Config", href: "/system/config" },
       { title: "Service Zones", href: "/system/zones" },
-      { title: "App Config", href: "/system/config" }
+      { title: "Notifications", href: "/system/notifications" },
+      { title: "Audit Logs", href: "/system/logs" }
     ]
   },
   { title: "Settings", href: "/settings", icon: "settings" },

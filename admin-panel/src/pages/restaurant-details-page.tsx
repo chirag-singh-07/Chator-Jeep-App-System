@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, PencilLine, ExternalLink, FileText, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, PencilLine, ExternalLink, FileText, Image as ImageIcon, FileSpreadsheet } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { Button } from "@/components/ui/button";
@@ -70,12 +70,20 @@ export function RestaurantDetailsPage() {
             </Button>
             <h1 className="text-2xl font-bold tracking-tight">{restaurant.name}</h1>
         </div>
-        <Button variant="outline" className="w-fit" asChild>
-          <Link to="/restaurants/new">
-            <PencilLine className="mr-2 h-4 w-4" />
-            Edit Restaurant
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" className="w-fit rounded-xl border-dashed" asChild>
+            <Link to={`/food-items/bulk-upload?restaurantId=${restaurantId}`}>
+              <FileSpreadsheet className="mr-2 h-4 w-4 text-emerald-600" />
+              Bulk Upload Menu
+            </Link>
+          </Button>
+          <Button variant="outline" className="w-fit" asChild>
+            <Link to="/restaurants/new">
+              <PencilLine className="mr-2 h-4 w-4" />
+              Edit Restaurant
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {(bannerUrl || logoUrl) && (

@@ -6,7 +6,13 @@ import {
   Search,
   Plus,
   MessageSquare,
+  UtensilsCrossed,
+  Layers,
+  Store,
+  Tags,
+  Truck,
 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UserNav } from "./user-nav";
@@ -16,6 +22,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -36,11 +43,19 @@ export function Topbar({
   onToggleCollapse,
 }: TopbarProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && searchQuery.trim()) {
+      navigate(`/food-items?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   const formattedDate = new Intl.DateTimeFormat("en-US", {
     weekday: "short",
@@ -71,7 +86,7 @@ export function Topbar({
               <ChevronsLeftRight
                 className={cn(
                   "h-3.5 w-3.5 transition-transform",
-                  collapsed && "rotate-180",
+                  collapsed && "rotate-180"
                 )}
               />
             </Button>
@@ -108,12 +123,15 @@ export function Topbar({
             <Search className="h-4 w-4 text-muted-foreground/60 group-focus-within:text-primary transition-colors" />
           </div>
           <Input
-            placeholder="Search resources, orders, or kitchens..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
+            placeholder="Search dishes or orders (Press Enter to search)..."
             className="pl-10 h-10 rounded-xl bg-muted/30 border-muted/20 focus-visible:ring-primary/20 hover:bg-muted/50 transition-all placeholder:text-muted-foreground/40 w-full text-sm shadow-sm"
           />
           <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none opacity-40 group-focus-within:opacity-0 transition-opacity">
             <kbd className="pointer-events-none h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium flex">
-              <span className="text-xs">⌘</span>K
+              <span className="text-xs">↵</span>
             </kbd>
           </div>
         </div>
@@ -131,16 +149,40 @@ export function Topbar({
                 <span className="font-bold text-xs text-white">Create</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
-              <DropdownMenuLabel>Instant Actions</DropdownMenuLabel>
-              <DropdownMenuItem className="cursor-pointer">
-                New Quick Order
+            <DropdownMenuContent align="end" className="w-56 rounded-2xl p-1.5">
+              <DropdownMenuLabel className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                Quick Actions
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild className="rounded-xl cursor-pointer">
+                <Link to="/food-items/new" className="flex items-center gap-2">
+                  <UtensilsCrossed className="size-4 text-primary" />
+                  <span>Add Food Item</span>
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
-                Onboard Restaurant
+              <DropdownMenuItem asChild className="rounded-xl cursor-pointer">
+                <Link to="/food-items/bulk-upload" className="flex items-center gap-2">
+                  <Layers className="size-4 text-emerald-600" />
+                  <span>Bulk Menu Upload</span>
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
-                Dispatch Partner
+              <DropdownMenuItem asChild className="rounded-xl cursor-pointer">
+                <Link to="/restaurants/new" className="flex items-center gap-2">
+                  <Store className="size-4 text-amber-600" />
+                  <span>Onboard Kitchen</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="rounded-xl cursor-pointer">
+                <Link to="/categories/new" className="flex items-center gap-2">
+                  <Tags className="size-4 text-sky-600" />
+                  <span>New Category</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="rounded-xl cursor-pointer">
+                <Link to="/users/new/delivery" className="flex items-center gap-2">
+                  <Truck className="size-4 text-purple-600" />
+                  <span>Add Delivery Agent</span>
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -166,18 +208,24 @@ export function Topbar({
                 variant="ghost"
                 size="icon"
                 className="rounded-lg h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-background/80 relative"
+                asChild
+                title="Support Tickets"
               >
-                <MessageSquare className="h-4 w-4" />
-                <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
+                <Link to="/support/tickets">
+                  <MessageSquare className="h-4 w-4" />
+                </Link>
               </Button>
 
               <Button
                 variant="ghost"
                 size="icon"
                 className="rounded-lg h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-background/80 relative"
+                asChild
+                title="Notifications"
               >
-                <Bell className="h-4 w-4" />
-                <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-rose-500" />
+                <Link to="/system/notifications">
+                  <Bell className="h-4 w-4" />
+                </Link>
               </Button>
 
               <ThemeToggle />
