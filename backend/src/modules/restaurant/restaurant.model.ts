@@ -86,6 +86,7 @@ export interface IRestaurant extends Document {
   activationTimestamp?: Date;
   launchOfferExpiresAt?: Date;
   currentCommissionPercentage: number;
+  supportsBulkOrders: boolean;
 }
 
 // ─── Schema ────────────────────────────────────────────────────────────────────
@@ -179,6 +180,7 @@ const restaurantSchema = new Schema<IRestaurant>(
     activationTimestamp: { type: Date },
     launchOfferExpiresAt: { type: Date },
     currentCommissionPercentage: { type: Number, default: 18 },
+    supportsBulkOrders: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

@@ -10,6 +10,7 @@ export interface BannerRecord {
   linkId?: string;
   isActive: boolean;
   priority: number;
+  placement: 'HOME_SCREEN' | 'APP_OPEN_POPUP';
   createdAt: string;
 }
 

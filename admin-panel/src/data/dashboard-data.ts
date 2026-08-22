@@ -567,6 +567,7 @@ export const sidebarNavigation: NavigationItem[] = [
     children: [
       { title: "Coupons & Discounts", href: "/marketing/coupons" },
       { title: "Banner Promotions", href: "/marketing/banners" },
+      { title: "Ad Popups", href: "/marketing/ad-popups" },
       { title: "Loyalty Points", href: "/marketing/loyalty" }
     ]
   },

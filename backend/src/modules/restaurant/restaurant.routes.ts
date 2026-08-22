@@ -35,6 +35,24 @@ router.get("/", ctrl.listRestaurants);
 
 /**
  * @openapi
+ * /api/v1/restaurants/bulk/search:
+ *   get:
+ *     tags:
+ *       - Restaurants
+ *     summary: Search restaurants supporting bulk orders
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of active restaurants supporting bulk orders
+ */
+router.get("/bulk/search", ctrl.searchBulkRestaurants);
+
+/**
+ * @openapi
  * /api/v1/restaurants/menu/popular:
  *   get:
  *     tags:
@@ -408,6 +426,39 @@ router.patch("/me/legal-docs", authMiddleware, roleMiddleware(["KITCHEN"]), ctrl
  *         description: Status toggled
  */
 router.patch("/me/status", authMiddleware, roleMiddleware(["KITCHEN"]), ctrl.updateMyOpenStatus);
+
+/**
+ * @openapi
+ * /api/v1/restaurants/me/bulk-orders:
+ *   put:
+ *     tags:
+ *       - Restaurants
+ *     summary: Update restaurant bulk order support status
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - supportsBulkOrders
+ *             properties:
+ *               supportsBulkOrders:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Status updated successfully
+ *       401:
+ *         description: Unauthorized
+ */
+router.put(
+  "/me/bulk-orders",
+  authMiddleware,
+  roleMiddleware(["KITCHEN"]),
+  ctrl.updateMyBulkOrderStatus,
+);
 
 // ============================================
 // ADMIN ROUTES

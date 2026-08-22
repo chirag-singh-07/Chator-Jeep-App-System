@@ -1,16 +1,30 @@
-import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Switch, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useOrderStore } from '@/store/useOrderStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { apiClient } from '@/lib/api';
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuthStore();
+  const { user, logout, updateUserBulkOrderStatus } = useAuthStore();
+  const [updatingBulk, setUpdatingBulk] = useState(false);
 
   const handleLogout = () => {
     logout();
+  };
+
+  const handleToggleBulkOrders = async (value: boolean) => {
+    try {
+      setUpdatingBulk(true);
+      await apiClient.put('/restaurants/me/bulk-orders', { supportsBulkOrders: value });
+      updateUserBulkOrderStatus(value);
+    } catch (error) {
+      console.error("Failed to update bulk order status", error);
+    } finally {
+      setUpdatingBulk(false);
+    }
   };
 
   return (
@@ -64,6 +78,26 @@ export default function ProfileScreen() {
             </View>
             <Ionicons name="chevron-forward" size={18} color="#222" />
           </TouchableOpacity>
+
+          <View style={styles.menuItem}>
+            <View style={styles.iconBox}>
+              <Ionicons name="cube" size={18} color={Colors.light.primary} />
+            </View>
+            <View style={styles.menuInfo}>
+               <Text style={styles.menuText}>Supports Bulk Orders</Text>
+               <Text style={styles.menuSub}>Accept large pre-scheduled orders</Text>
+            </View>
+            {updatingBulk ? (
+              <ActivityIndicator size="small" color={Colors.light.primary} />
+            ) : (
+              <Switch 
+                value={user?.supportsBulkOrders || false}
+                onValueChange={handleToggleBulkOrders}
+                trackColor={{ false: '#333', true: Colors.light.primary }}
+                thumbColor={user?.supportsBulkOrders ? '#000' : '#f4f3f4'}
+              />
+            )}
+          </View>
         </View>
 
         <View style={styles.section}>

@@ -101,6 +101,7 @@ export default function RegisterScreen() {
   const [kitchenName, setKitchenName] = useState("");
   const [phone, setPhone] = useState("");
   const [foodType, setFoodType] = useState("both");
+  const [supportsBulkOrders, setSupportsBulkOrders] = useState(false);
 
   // Step 3: Brand
   const [logo, setLogo] = useState<any>(null);
@@ -161,6 +162,7 @@ export default function RegisterScreen() {
         setKitchenName(draft.kitchenName || "");
         setPhone(draft.phone || "");
         setFoodType(draft.foodType || "both");
+        setSupportsBulkOrders(Boolean(draft.supportsBulkOrders));
         setLogo(draft.logo || null);
         setBanner(draft.banner || null);
         setStreet(draft.street || "");
@@ -206,6 +208,7 @@ export default function RegisterScreen() {
       kitchenName,
       phone,
       foodType,
+      supportsBulkOrders,
       logo,
       banner,
       street,
@@ -243,6 +246,7 @@ export default function RegisterScreen() {
     kitchenName,
     phone,
     foodType,
+    supportsBulkOrders,
     logo,
     banner,
     street,
@@ -739,6 +743,7 @@ export default function RegisterScreen() {
             phone,
             fssaiLicense: fssaiLicense.trim(),
             cuisines: [foodType],
+            supportsBulkOrders,
             address: {
               line1: finalAddress,
               city: addressValidation.fields.city.value,
@@ -891,6 +896,21 @@ export default function RegisterScreen() {
                 keyboardType="phone-pad"
                 maxLength={10}
               />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>SUPPORTS BULK ORDERS</Text>
+              <TouchableOpacity
+                style={[styles.checkbox, supportsBulkOrders && styles.checkboxActive, { marginTop: 10, alignSelf: 'flex-start', padding: 10, flexDirection: 'row', alignItems: 'center' }]}
+                onPress={() => setSupportsBulkOrders(!supportsBulkOrders)}
+              >
+                {supportsBulkOrders && <Ionicons name="checkmark" size={18} color="#000" />}
+                <Text style={{ marginLeft: supportsBulkOrders ? 10 : 0, color: supportsBulkOrders ? '#000' : '#FFF' }}>
+                  {supportsBulkOrders ? 'Enabled' : 'Disabled'}
+                </Text>
+              </TouchableOpacity>
+              <Text style={{ color: '#999', fontSize: 12, marginTop: 5 }}>
+                Enable if this kitchen can handle large bulk orders with advance notice.
+              </Text>
             </View>
           </View>
         );

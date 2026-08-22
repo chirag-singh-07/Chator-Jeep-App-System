@@ -167,6 +167,15 @@ export const adminDeleteRestaurant = asyncHandler(
   },
 );
 
+export const searchBulkRestaurants = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await service.searchBulkRestaurants(
+      req.query as Record<string, string>,
+    );
+    res.status(200).json({ success: true, ...result });
+  },
+);
+
 // ─── Menu Handlers ────────────────────────────────────────────────────────────
 export const addMenuItem = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
@@ -227,6 +236,17 @@ export const updateMyOpenStatus = asyncHandler(
       !!isOpen,
     );
     res.status(200).json({ success: true, data: { isOpen: result?.isOpen } });
+  },
+);
+
+export const updateMyBulkOrderStatus = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { supportsBulkOrders } = req.body;
+    const result = await service.updateRestaurantBulkOrderStatus(
+      req.user!.userId,
+      !!supportsBulkOrders,
+    );
+    res.status(200).json({ success: true, data: { supportsBulkOrders: result?.supportsBulkOrders } });
   },
 );
 

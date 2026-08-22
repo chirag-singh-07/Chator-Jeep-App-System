@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectItem } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import type { Coupon } from "@/types/dashboard";
 
@@ -46,8 +47,10 @@ export function CouponsPage() {
     discountType: "PERCENTAGE",
     discountValue: "",
     minOrderAmount: "0",
+    minOrderAmount: "0",
     maxDiscountAmount: "",
     expiryDate: "",
+    isForNewUser: false,
   });
 
   useEffect(() => {
@@ -90,6 +93,7 @@ export function CouponsPage() {
         minOrderAmount: "0",
         maxDiscountAmount: "",
         expiryDate: "",
+        isForNewUser: false,
       });
       fetchCoupons();
     } catch (error: any) {
@@ -215,6 +219,16 @@ export function CouponsPage() {
                   />
                 </div>
               </div>
+              <div className="flex items-center justify-between mt-2 p-4 border rounded-xl bg-muted/20">
+                <div className="space-y-0.5">
+                  <Label className="font-bold">For New Users Only</Label>
+                  <p className="text-xs text-muted-foreground">Only applicable on a user's first order.</p>
+                </div>
+                <Switch
+                  checked={formData.isForNewUser}
+                  onCheckedChange={(checked) => setFormData({ ...formData, isForNewUser: checked })}
+                />
+              </div>
             </div>
             <DialogFooter>
               <Button
@@ -268,8 +282,13 @@ export function CouponsPage() {
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-2xl font-black tracking-tighter text-primary">
+                    <p className="text-2xl font-black tracking-tighter text-primary flex items-center gap-2">
                       {coupon.code}
+                      {coupon.isForNewUser && (
+                        <span className="text-[10px] bg-indigo-500 text-white px-2 py-0.5 rounded-full whitespace-nowrap">
+                          New User Only
+                        </span>
+                      )}
                     </p>
                     <p className="text-sm font-bold text-muted-foreground">
                       {coupon.discountType === "PERCENTAGE"

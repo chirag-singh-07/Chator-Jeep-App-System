@@ -14,6 +14,34 @@ export const getMyProfile = async (userId: string) => {
   return user;
 };
 
+export const addAddress = async (userId: string, addressData: any) => {
+  const user = await User.findById(userId);
+  if (!user) throw new AppError("User not found", 404);
+  
+  if (user.addresses.length >= 10) {
+    throw new AppError("Maximum number of addresses reached", 400);
+  }
+
+  user.addresses.push(addressData);
+  await user.save();
+  return user.addresses[user.addresses.length - 1];
+};
+
+export const getAddresses = async (userId: string) => {
+  const user = await User.findById(userId);
+  if (!user) throw new AppError("User not found", 404);
+  return user.addresses;
+};
+
+export const deleteAddress = async (userId: string, addressId: string) => {
+  const user = await User.findById(userId);
+  if (!user) throw new AppError("User not found", 404);
+  
+  user.addresses = user.addresses.filter((addr: any) => (addr as any)._id?.toString() !== addressId);
+  await user.save();
+  return user.addresses;
+};
+
 // ─── Admin Services ──────────────────────────────────────────────────────────
 
 export const adminListUsers = async (query: {

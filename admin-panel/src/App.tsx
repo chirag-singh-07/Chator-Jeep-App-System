@@ -29,6 +29,7 @@ import { DeliveryPayoutsPage } from "@/pages/delivery-payouts-page";
 import { DeliveryTrackingPage } from "@/pages/delivery-tracking-page";
 import { CouponsPage } from "@/pages/coupons-page";
 import { BannerAdsPage } from "@/pages/banner-ads-page";
+import { AdPopupsPage } from "@/pages/ad-popups-page";
 import { LoyaltyPointsPage } from "@/pages/loyalty-points-page";
 import { SupportTicketsPage } from "@/pages/support-tickets-page";
 import { ReviewsManagementPage } from "@/pages/reviews-management-page";
@@ -88,6 +89,7 @@ function App() {
         <Route path="/marketing" element={<Navigate to="/marketing/coupons" replace />} />
         <Route path="/marketing/coupons" element={<CouponsPage />} />
         <Route path="/marketing/banners" element={<BannerAdsPage />} />
+        <Route path="/marketing/ad-popups" element={<AdPopupsPage />} />
         <Route path="/marketing/loyalty" element={<LoyaltyPointsPage />} />
         
         <Route path="/support" element={<Navigate to="/support/tickets" replace />} />

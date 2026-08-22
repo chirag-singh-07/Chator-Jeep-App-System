@@ -183,7 +183,7 @@ const buildOrderDraft = async (userId: string, input: OrderInput) => {
   let couponCode: string | null = null;
   if (input.couponCode) {
     try {
-      const couponResult = await validateCoupon(input.couponCode, itemsTotal);
+      const couponResult = await validateCoupon(input.couponCode, itemsTotal, userId);
       couponDiscount = couponResult.discount;
       couponCode = couponResult.code;
     } catch {

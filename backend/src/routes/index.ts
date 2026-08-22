@@ -15,6 +15,7 @@ import systemRoutes from "../modules/system/system.routes";
 import bannerRoutes from "../modules/banner/banner.routes";
 import reviewRoutes from "../modules/review/review.routes";
 import deletionRoutes from "../modules/account-deletion/deletion.routes";
+import adPopupRoutes from "../modules/ad-popup/adPopup.routes";
 
 const router = Router();
 
@@ -34,5 +35,6 @@ router.use("/system", systemRoutes);
 router.use("/banners", bannerRoutes);
 router.use("/reviews", reviewRoutes);
 router.use("/account", deletionRoutes);
+router.use("/ad-popup", adPopupRoutes);
 
 export default router;

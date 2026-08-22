@@ -8,6 +8,7 @@ export interface IBanner extends Document {
   linkId?: string;
   isActive: boolean;
   priority: number;
+  placement: 'HOME_SCREEN' | 'APP_OPEN_POPUP';
 }
 
 const bannerSchema = new Schema<IBanner>({
@@ -18,6 +19,7 @@ const bannerSchema = new Schema<IBanner>({
   linkId: { type: String },
   isActive: { type: Boolean, default: true },
   priority: { type: Number, default: 0 },
+  placement: { type: String, enum: ['HOME_SCREEN', 'APP_OPEN_POPUP'], default: 'HOME_SCREEN' },
 }, { timestamps: true });
 
 export const BannerModel = mongoose.models.Banner || model<IBanner>('Banner', bannerSchema);

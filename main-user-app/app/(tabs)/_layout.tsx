@@ -3,32 +3,14 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { View, StyleSheet, Platform } from 'react-native';
+import CustomTabBar from '@/components/CustomTabBar';
 
 export default function TabLayout() {
   return (
     <Tabs
+      tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
-        tabBarActiveTintColor: Colors.light.primary,
-        tabBarInactiveTintColor: Colors.light.textMuted,
         headerShown: false,
-        tabBarStyle: {
-          height: Platform.OS === 'ios' ? 90 : 74,
-          paddingBottom: Platform.OS === 'ios' ? 30 : 14,
-          paddingTop: 8,
-          backgroundColor: '#FFFFFF',
-          borderTopWidth: 1,
-          borderTopColor: '#F3F4F6',
-          elevation: 20,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -6 },
-          shadowOpacity: 0.05,
-          shadowRadius: 16,
-        },
-        tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: '800',
-          marginTop: 2,
-        },
       }}
     >
       <Tabs.Screen
@@ -49,18 +31,14 @@ export default function TabLayout() {
           ),
         }}
       />
+
       <Tabs.Screen
-        name="favorites"
+        name="bulk-order"
         options={{
-          href: null,
-          tabBarButton: () => null,
-        }}
-      />
-      <Tabs.Screen
-        name="orders"
-        options={{
-          href: null,
-          tabBarButton: () => null,
+          title: 'Bulk Order',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'cube' : 'cube-outline'} size={24} color={color} />
+          ),
         }}
       />
       <Tabs.Screen

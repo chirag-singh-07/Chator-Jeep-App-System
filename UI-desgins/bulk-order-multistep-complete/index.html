@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Bulk Order Flow</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="icon-button" id="backBtn" aria-label="Back">
+        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="topbar-copy">
+        <span>Bulk Order</span>
+        <strong id="headerTitle">Build your order</strong>
+      </div>
+      <button class="icon-button" aria-label="Help">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M9.8 9a2.4 2.4 0 0 1 4.6.8c0 1.7-2.4 2-2.4 3.7"/>
+          <path d="M12 17h.01"/>
+        </svg>
+      </button>
+    </header>
+
+    <main>
+      <section class="progress-card">
+        <div class="progress-step active" data-progress="1">
+          <span>1</span>
+          <small>Details</small>
+        </div>
+        <div class="progress-line"><i></i></div>
+        <div class="progress-step" data-progress="2">
+          <span>2</span>
+          <small>Review</small>
+        </div>
+        <div class="progress-line"><i></i></div>
+        <div class="progress-step" data-progress="3">
+          <span>3</span>
+          <small>Payment</small>
+        </div>
+      </section>
+
+      <!-- STEP 1 -->
+      <section class="screen active" id="step1">
+        <section class="hero-card">
+          <div>
+            <span class="pill">BULK ORDER</span>
+            <h1>Find food nearby.<br />Order for later.</h1>
+            <p>Search a restaurant or a food item. We’ll prioritize the nearest available options.</p>
+          </div>
+          <div class="hero-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 5h16l-1.2 14H5.2L4 5z"/>
+              <path d="M8 5a4 4 0 0 1 8 0"/>
+              <path d="M8 10h8"/>
+            </svg>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-title">
+            <div>
+              <span>STEP 1</span>
+              <h2>Search restaurant or food</h2>
+            </div>
+            <div class="section-icon">
+              <svg viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="7"/>
+                <path d="m20 20-3.5-3.5"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="7"/>
+              <path d="m20 20-3.5-3.5"/>
+            </svg>
+            <input id="searchInput" type="search" placeholder="Search restaurant or food..." />
+            <button id="clearSearch" class="clear-btn" aria-label="Clear">×</button>
+          </div>
+
+          <div class="segmented">
+            <button class="segment active" data-mode="restaurant">Restaurant</button>
+            <button class="segment" data-mode="food">Food Item</button>
+          </div>
+
+          <div id="searchHint" class="hint">
+            Search restaurant names to see their menu. Results are sorted by nearest first.
+          </div>
+
+          <div class="result-list" id="resultList"></div>
+        </section>
+
+        <section class="card hidden" id="menuCard">
+          <div class="section-title">
+            <div>
+              <span>MENU</span>
+              <h2 id="selectedRestaurantName">Restaurant menu</h2>
+              <p id="selectedRestaurantMeta"></p>
+            </div>
+            <button class="text-btn" id="changeRestaurant">Change</button>
+          </div>
+          <div class="menu-list" id="menuList"></div>
+        </section>
+
+        <section class="card">
+          <div class="section-title">
+            <div>
+              <span>SELECTED ITEMS</span>
+              <h2>Your bulk order</h2>
+            </div>
+            <span class="count-badge" id="selectedCount">0</span>
+          </div>
+
+          <div id="selectedItems" class="selected-list empty-state">
+            No items selected yet.
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-title">
+            <div>
+              <span>SCHEDULE</span>
+              <h2>Choose delivery date & time</h2>
+            </div>
+            <div class="section-icon">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="5" width="18" height="16" rx="2"/>
+                <path d="M8 3v4M16 3v4M3 10h18"/>
+              </svg>
+            </div>
+          </div>
+
+          <p class="helper">Bulk orders must be placed at least 1 day before delivery.</p>
+
+          <div class="date-grid">
+            <label>
+              <span>Delivery date</span>
+              <input id="deliveryDate" type="date" />
+            </label>
+            <label>
+              <span>Time</span>
+              <input id="deliveryTime" type="time" value="13:00" />
+            </label>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-title">
+            <div>
+              <span>DELIVERY ADDRESS</span>
+              <h2>Where should we deliver?</h2>
+            </div>
+            <div class="section-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0z"/>
+                <circle cx="12" cy="10" r="2.5"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <button id="useLocationBtn" class="secondary-action">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+                <circle cx="12" cy="12" r="8"/>
+              </svg>
+              Use current location
+            </button>
+            <button id="addAddressBtn" class="secondary-action">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+              Add new
+            </button>
+          </div>
+
+          <div class="address-box" id="addressBox">
+            <div class="address-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0z"/>
+                <circle cx="12" cy="10" r="2.5"/>
+              </svg>
+            </div>
+            <div>
+              <strong id="addressLabel">No address selected</strong>
+              <p id="addressText">Choose current location or add a delivery address.</p>
+            </div>
+          </div>
+
+          <div class="address-form hidden" id="addressForm">
+            <input id="houseInput" type="text" placeholder="Flat / House / Office" />
+            <input id="streetInput" type="text" placeholder="Street / Area / Landmark" />
+            <div class="two-col">
+              <input id="cityInput" type="text" placeholder="City" />
+              <input id="pinInput" type="text" inputmode="numeric" placeholder="PIN code" />
+            </div>
+            <button id="saveAddressBtn" class="mini-primary">Save address</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-title">
+            <div>
+              <span>CONTACT DETAILS</span>
+              <h2>Who should we contact?</h2>
+            </div>
+            <div class="section-icon">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M4 21c.8-4.3 3.5-6.5 8-6.5s7.2 2.2 8 6.5"/>
+              </svg>
+            </div>
+          </div>
+
+          <label class="field">
+            <span>Name</span>
+            <input id="contactName" type="text" placeholder="Full name" />
+          </label>
+
+          <label class="field">
+            <span>Phone number</span>
+            <div class="phone-input">
+              <strong>+91</strong>
+              <input id="contactPhone" type="tel" inputmode="numeric" placeholder="98765 43210" />
+            </div>
+          </label>
+
+          <label class="field">
+            <span>Note <small>(optional)</small></span>
+            <textarea id="orderNote" placeholder="Packaging, spice level, delivery note, GST requirement, etc."></textarea>
+          </label>
+        </section>
+      </section>
+
+      <!-- STEP 2 -->
+      <section class="screen" id="step2">
+        <section class="review-hero">
+          <span>STEP 2</span>
+          <h1>Review everything</h1>
+          <p>Check your items, quantity, delivery schedule, address and contact details before payment.</p>
+        </section>
+
+        <section class="card">
+          <div class="section-title">
+            <div>
+              <span>ORDER ITEMS</span>
+              <h2>Selected food</h2>
+            </div>
+            <button class="text-btn" data-edit-step="1">Edit</button>
+          </div>
+          <div id="reviewItems" class="review-list"></div>
+        </section>
+
+        <section class="card">
+          <div class="section-title">
+            <div>
+              <span>DELIVERY</span>
+              <h2>Schedule & address</h2>
+            </div>
+            <button class="text-btn" data-edit-step="1">Edit</button>
+          </div>
+          <div class="detail-row">
+            <div>
+              <span>Date & time</span>
+              <strong id="reviewSchedule">—</strong>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div>
+              <span>Address</span>
+              <strong id="reviewAddress">—</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-title">
+            <div>
+              <span>CONTACT</span>
+              <h2>Contact details</h2>
+            </div>
+            <button class="text-btn" data-edit-step="1">Edit</button>
+          </div>
+          <div class="detail-row">
+            <div>
+              <span>Name</span>
+              <strong id="reviewName">—</strong>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div>
+              <span>Phone</span>
+              <strong id="reviewPhone">—</strong>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div>
+              <span>Note</span>
+              <strong id="reviewNote">No note</strong>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- STEP 3 -->
+      <section class="screen" id="step3">
+        <section class="payment-hero">
+          <div>
+            <span>STEP 3</span>
+            <h1>Confirm & Pay</h1>
+            <p>Review final billing and complete your order securely.</p>
+          </div>
+          <div class="shield-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3 5 6v5c0 4.8 2.8 8.2 7 10 4.2-1.8 7-5.2 7-10V6l-7-3z"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-title">
+            <div>
+              <span>BILL SUMMARY</span>
+              <h2>Your order</h2>
+            </div>
+          </div>
+          <div id="billingItems" class="billing-list"></div>
+          <div class="bill-line"><span>Subtotal</span><strong id="subtotal">₹0</strong></div>
+          <div class="bill-line"><span>Bulk handling</span><strong id="handling">₹0</strong></div>
+          <div class="bill-line"><span>Delivery</span><strong id="deliveryFee">₹0</strong></div>
+          <div class="bill-line discount"><span>Bulk savings</span><strong id="discount">-₹0</strong></div>
+          <div class="bill-total"><span>Total</span><strong id="grandTotal">₹0</strong></div>
+        </section>
+
+        <section class="card">
+          <div class="section-title">
+            <div>
+              <span>DELIVERY DETAILS</span>
+              <h2>Order destination</h2>
+            </div>
+          </div>
+          <div class="final-info">
+            <span>Delivery date & time</span>
+            <strong id="finalSchedule">—</strong>
+          </div>
+          <div class="final-info">
+            <span>Delivery address</span>
+            <strong id="finalAddress">—</strong>
+          </div>
+          <div class="final-info">
+            <span>Contact</span>
+            <strong id="finalContact">—</strong>
+          </div>
+        </section>
+
+        <section class="razorpay-card">
+          <div class="razorpay-logo">R</div>
+          <div>
+            <strong>Secure payment with Razorpay</strong>
+            <p>UPI, Cards, Netbanking & Wallets</p>
+          </div>
+          <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+        </section>
+      </section>
+
+      <!-- PAYMENT RESULT -->
+      <section class="screen" id="resultScreen">
+        <div class="result-screen-card" id="resultCard">
+          <div class="result-icon" id="resultIcon">
+            <svg viewBox="0 0 24 24"><path d="m6 12 4 4 8-8"/></svg>
+          </div>
+          <span id="resultEyebrow">PAYMENT SUCCESSFUL</span>
+          <h1 id="resultTitle">Bulk order confirmed!</h1>
+          <p id="resultText">Your order has been placed successfully.</p>
+
+          <div class="order-id">
+            <span>Order ID</span>
+            <strong id="orderId">BO-000000</strong>
+          </div>
+
+          <button id="doneBtn" class="primary-cta">Done</button>
+          <button id="retryBtn" class="outline-cta hidden">Try payment again</button>
+        </div>
+      </section>
+    </main>
+
+    <div class="bottom-bar" id="bottomBar">
+      <div>
+        <span id="bottomLabel">Selected</span>
+        <strong id="bottomValue">0 items</strong>
+      </div>
+      <button id="primaryBtn" class="primary-cta">
+        Continue
+        <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

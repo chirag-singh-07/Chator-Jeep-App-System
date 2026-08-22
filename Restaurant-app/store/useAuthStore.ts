@@ -10,6 +10,7 @@ interface User {
   role: string;
   restaurantId?: string;
   status?: string;
+  supportsBulkOrders?: boolean;
 }
 
 interface AuthState {
@@ -22,6 +23,7 @@ interface AuthState {
   register: (data: any) => Promise<void>;
   logout: () => Promise<void>;
   updateUserStatus: (status: string) => void;
+  updateUserBulkOrderStatus: (supportsBulkOrders: boolean) => void;
   uploadBranding: (logoJson: any, bannerJson: any, onProgress?: (percent: number) => void) => Promise<void>;
   uploadLegalDocs: (aadhar: any, pan: any, livePhoto: any, otherDocs: Array<{ label: string; file: any }>, onProgress?: (percent: number) => void) => Promise<void>;
 }
@@ -237,6 +239,11 @@ export const useAuthStore = create<AuthState>()(
       updateUserStatus: (status) => {
         set((state) => ({
           user: state.user ? { ...state.user, status } : null
+        }));
+      },
+      updateUserBulkOrderStatus: (supportsBulkOrders) => {
+        set((state) => ({
+          user: state.user ? { ...state.user, supportsBulkOrders } : null
         }));
       }
     }),

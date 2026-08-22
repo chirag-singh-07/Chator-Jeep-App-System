@@ -1,26 +1,14 @@
-diff --git a/node_modules/react-native-reanimated/android/src/main/cpp/reanimated/CMakeLists.txt b/node_modules/react-native-reanimated/android/src/main/cpp/reanimated/CMakeLists.txt
-index e8267fe..0c5fc74 100644
---- a/node_modules/react-native-reanimated/android/src/main/cpp/reanimated/CMakeLists.txt
-+++ b/node_modules/react-native-reanimated/android/src/main/cpp/reanimated/CMakeLists.txt
-@@ -1,7 +1,7 @@
- cmake_minimum_required(VERSION 3.8)
+diff --git a/node_modules/react-native-reanimated/android/CMakeLists.txt b/node_modules/react-native-reanimated/android/CMakeLists.txt
+index d28dc07..1a9e887 100644
+--- a/node_modules/react-native-reanimated/android/CMakeLists.txt
++++ b/node_modules/react-native-reanimated/android/CMakeLists.txt
+@@ -47,7 +47,8 @@ set(ignoreMe "${JS_RUNTIME_DIR}")
  
--file(GLOB_RECURSE REANIMATED_COMMON_CPP_SOURCES CONFIGURE_DEPENDS "${COMMON_CPP_DIR}/reanimated/*.cpp")
--file(GLOB_RECURSE REANIMATED_ANDROID_CPP_SOURCES CONFIGURE_DEPENDS "${ANDROID_CPP_DIR}/reanimated/*.cpp")
-+file(GLOB_RECURSE REANIMATED_COMMON_CPP_SOURCES CONFIGURE_DEPENDS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${COMMON_CPP_DIR}/reanimated/*.cpp")
-+file(GLOB_RECURSE REANIMATED_ANDROID_CPP_SOURCES CONFIGURE_DEPENDS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${ANDROID_CPP_DIR}/reanimated/*.cpp")
+ set(BUILD_DIR "${CMAKE_SOURCE_DIR}/build")
+ set(ANDROID_CPP_DIR "${CMAKE_SOURCE_DIR}/src/main/cpp")
+-set(COMMON_CPP_DIR "${CMAKE_SOURCE_DIR}/../Common/cpp")
++file(COPY "${CMAKE_SOURCE_DIR}/../Common/cpp/" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/Common_cpp")
++set(COMMON_CPP_DIR "${CMAKE_CURRENT_BINARY_DIR}/Common_cpp")
  
- find_package(ReactAndroid REQUIRED CONFIG)
- 
-diff --git a/node_modules/react-native-reanimated/android/src/main/cpp/worklets/CMakeLists.txt b/node_modules/react-native-reanimated/android/src/main/cpp/worklets/CMakeLists.txt
-index 61508ef..6e0e83f 100644
---- a/node_modules/react-native-reanimated/android/src/main/cpp/worklets/CMakeLists.txt
-+++ b/node_modules/react-native-reanimated/android/src/main/cpp/worklets/CMakeLists.txt
-@@ -1,6 +1,6 @@
- cmake_minimum_required(VERSION 3.8)
- 
--file(GLOB_RECURSE WORKLETS_COMMON_CPP_SOURCES CONFIGURE_DEPENDS "${COMMON_CPP_DIR}/worklets/*.cpp")
-+file(GLOB_RECURSE WORKLETS_COMMON_CPP_SOURCES CONFIGURE_DEPENDS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${COMMON_CPP_DIR}/worklets/*.cpp")
- 
- # Consume shared libraries and headers from prefabs
- find_package(fbjni REQUIRED CONFIG)
+ add_subdirectory("${ANDROID_CPP_DIR}/worklets")
+ add_subdirectory("${ANDROID_CPP_DIR}/reanimated")

@@ -5,6 +5,10 @@ import { SocketProvider } from "@/context/SocketContext";
 import { useNotifications } from "@/hooks/useNotifications";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AppLoadingScreen } from "@/components/AppLoadingScreen";
+import * as Location from 'expo-location';
+import { AuthPromptModal } from "@/components/AuthPromptModal";
+import { AdPopupModal } from "@/components/AdPopupModal";
+
 function AuthGate() {
   const { isAuthenticated, hasHydrated, hasSeenOnboarding } = useAuthStore();
   const segments = useSegments();
@@ -43,10 +47,6 @@ function AuthGate() {
   );
 }
 
-import * as Location from 'expo-location';
-
-import { AuthPromptModal } from "@/components/AuthPromptModal";
-
 export default function RootLayout() {
   useEffect(() => {
     // Request location permissions natively like all other apps do
@@ -63,6 +63,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthGate />
       <AuthPromptModal />
+      <AdPopupModal />
     </GestureHandlerRootView>
   );
 }

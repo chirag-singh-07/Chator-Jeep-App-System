@@ -95,6 +95,10 @@ const routeMeta: Record<string, { title: string; subtitle: string }> = {
     title: "Banner Campaigns",
     subtitle: "Update home screen sliders and tactical marketing placements.",
   },
+  "/marketing/ad-popups": {
+    title: "Ad Popups",
+    subtitle: "Manage promotional popups that appear when users open the app.",
+  },
   "/marketing/loyalty": {
     title: "Loyalty Program",
     subtitle: "Configure customer points, referral bonuses, and tier rewards.",

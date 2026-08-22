@@ -43,6 +43,7 @@ export function BannerAdsPage() {
     linkId: "",
     priority: 0,
     isActive: true,
+    placement: "HOME_SCREEN",
   });
 
   useEffect(() => {
@@ -65,6 +66,7 @@ export function BannerAdsPage() {
         linkId: banner.linkId || "",
         priority: banner.priority,
         isActive: banner.isActive,
+        placement: banner.placement || "HOME_SCREEN",
       });
     } else {
       setEditingBanner(null);
@@ -76,6 +78,7 @@ export function BannerAdsPage() {
         linkId: "",
         priority: 0,
         isActive: true,
+        placement: "HOME_SCREEN",
       });
     }
     setIsDialogOpen(true);
@@ -125,7 +128,12 @@ export function BannerAdsPage() {
       label: "Content Details", 
       render: (row) => (
         <div className="flex flex-col">
-          <span className="font-bold text-foreground text-sm">{row.title}</span>
+          <span className="font-bold text-foreground text-sm flex items-center gap-2">
+            {row.title}
+            <span className={`text-[9px] px-1.5 py-0.5 rounded-sm font-black text-white ${row.placement === 'APP_OPEN_POPUP' ? 'bg-purple-500' : 'bg-blue-500'}`}>
+              {row.placement === 'APP_OPEN_POPUP' ? 'POPUP AD' : 'CAROUSEL'}
+            </span>
+          </span>
           <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mt-0.5">
             {row.subtitle || "No Subtitle"}
           </span>
@@ -307,6 +315,17 @@ export function BannerAdsPage() {
                   className="rounded-xl h-11 border-secondary/20"
                 />
               </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="placement" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Ad Placement</Label>
+              <Select 
+                value={formData.placement} 
+                onValueChange={(v: any) => setFormData({ ...formData, placement: v })}
+              >
+                <SelectItem value="HOME_SCREEN">Home Screen Carousel</SelectItem>
+                <SelectItem value="APP_OPEN_POPUP">App Open Popup</SelectItem>
+              </Select>
             </div>
 
             <div className="flex items-center justify-between p-4 bg-secondary/10 rounded-2xl border border-secondary/10">

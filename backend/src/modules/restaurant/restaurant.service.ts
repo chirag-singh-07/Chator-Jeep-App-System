@@ -74,6 +74,7 @@ export const registerRestaurant = async (input: {
   bannerUrls?: Record<string, string>;
   documents?: Array<{ label: string; key: string; url: string }>;
   termsAccepted?: boolean;
+  supportsBulkOrders?: boolean;
 }) => {
   const { email, phone } = await validateRestaurantRegistrationInput(input);
   
@@ -116,6 +117,7 @@ export const registerRestaurant = async (input: {
       activationTimestamp,
       launchOfferExpiresAt,
       currentCommissionPercentage: 10,
+      supportsBulkOrders: input.supportsBulkOrders || false,
       registrationPayment: {
         transactionId: new mongoose.Types.ObjectId() as any,
         razorpayOrderId: "FREE_REGISTRATION",
@@ -180,6 +182,7 @@ export const loginRestaurant = async (email: string, password: string) => {
     refreshToken,
     status: restaurant?.status ?? RESTAURANT_STATUS.REQUESTED,
     restaurantId: restaurant?._id?.toString() ?? null,
+    supportsBulkOrders: restaurant?.supportsBulkOrders ?? false,
   };
 };
 
@@ -192,6 +195,7 @@ export const getMyRestaurantStatus = async (userId: string) => {
     rejectionReason: restaurant.rejectionReason,
     name: restaurant.name,
     restaurantId: restaurant._id.toString(),
+    supportsBulkOrders: restaurant.supportsBulkOrders || false,
     activationTimestamp: restaurant.activationTimestamp,
     launchOfferExpiresAt: restaurant.launchOfferExpiresAt,
     offerActive: Boolean(
@@ -571,6 +575,7 @@ export const adminCreateRestaurant = async (
     aadharCard?: any;
     panCard?: any;
     livePhoto?: any;
+    supportsBulkOrders?: boolean;
   }
 ) => {
   const { email, phone } = await validateRestaurantRegistrationInput({
@@ -633,6 +638,7 @@ export const adminCreateRestaurant = async (
       activationTimestamp: new Date(),
       currentCommissionPercentage: 10,
       description: input.notes,
+      supportsBulkOrders: input.supportsBulkOrders || false,
       registrationPayment: {
         transactionId: new mongoose.Types.ObjectId() as any,
         razorpayOrderId: "OFFLINE_CASH",
@@ -822,6 +828,16 @@ export const updateRestaurantOpenStatus = async (userId: string, isOpen: boolean
   return updateRestaurantById(restaurant._id.toString(), { isOpen });
 };
 
+export const updateRestaurantBulkOrderStatus = async (
+  ownerId: string,
+  supportsBulkOrders: boolean,
+) => {
+  const restaurant = await Restaurant.findOne({ ownerId });
+  if (!restaurant) throw new AppError("Restaurant not found", 404);
+
+  return updateRestaurantById(restaurant._id.toString(), { supportsBulkOrders });
+};
+
 export const listRestaurants = async (query: {
   categoryId?: string;
   search?: string;
@@ -943,6 +959,137 @@ export const listRestaurants = async (query: {
     }
   } else {
     // No coordinates provided - show all active restaurants
+    [restaurants, total] = await Promise.all([
+      Restaurant.find(filter)
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      Restaurant.countDocuments(filter).exec(),
+    ]);
+  }
+
+  return {
+    restaurants,
+    pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+  };
+};
+
+export const searchBulkRestaurants = async (query: {
+  search?: string;
+  lat?: string;
+  lng?: string;
+  city?: string;
+  page?: string;
+  limit?: string;
+}) => {
+  const page = parseInt(query.page ?? "1");
+  const limit = parseInt(query.limit ?? "20");
+  const skip = (page - 1) * limit;
+
+  const filter: any = {
+    status: RESTAURANT_STATUS.ACTIVE,
+    supportsBulkOrders: true,
+  };
+
+  if (query.search) {
+    const searchRegex = new RegExp(query.search, "i");
+    
+    // Find menu items matching the search query
+    const matchingMenuRestaurantIds = await MenuItem.distinct("restaurantId", {
+      name: { $regex: searchRegex },
+      isAvailable: true,
+      showInMenu: true,
+    });
+
+    filter.$or = [
+      { name: { $regex: searchRegex } },
+      { _id: { $in: matchingMenuRestaurantIds } }
+    ];
+  }
+
+  let sort: any = { createdAt: -1 };
+  let restaurants: any[] = [];
+  let total = 0;
+
+  // If coordinates provided, try geo query first, then fallback to city-based or all
+  if (query.lat && query.lng) {
+    const latitude = parseFloat(query.lat);
+    const longitude = parseFloat(query.lng);
+
+    // Tiered Radius Search: 5km -> 8km -> 10km
+    const radii = [5000, 8000, 10000];
+    let geoResults: any[] = [];
+    let geoTotal = 0;
+
+    try {
+      for (const maxDistance of radii) {
+        const geoFilter = {
+          ...filter,
+          location: {
+            $near: {
+              $geometry: { type: "Point", coordinates: [longitude, latitude] },
+              $maxDistance: maxDistance,
+            },
+          },
+        };
+
+        geoTotal = await Restaurant.countDocuments(geoFilter).exec();
+        if (geoTotal > 0) {
+          geoResults = await Restaurant.find(geoFilter)
+            .skip(skip)
+            .limit(limit)
+            .exec();
+          
+          if (geoResults.length >= limit || geoTotal < limit) {
+            break;
+          }
+        }
+      }
+
+      if (geoResults.length > 0) {
+        restaurants = geoResults;
+        total = geoTotal;
+      } else {
+        const noLocationFilter = {
+          ...filter,
+          $or: [
+            { location: { $exists: false } },
+            { location: null },
+            { "location.coordinates": { $size: 0 } },
+            { "address.city": { $regex: query.city ?? "", $options: "i" } },
+          ],
+        };
+
+        const noLocationResults = await Restaurant.find(noLocationFilter)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .exec();
+
+        const noLocationCount = await Restaurant.countDocuments(noLocationFilter).exec();
+
+        if (noLocationResults.length > 0) {
+          restaurants = noLocationResults;
+          total = noLocationCount;
+        } else {
+          restaurants = await Restaurant.find(filter)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .exec();
+          total = await Restaurant.countDocuments(filter).exec();
+        }
+      }
+    } catch (geoError) {
+      restaurants = await Restaurant.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec();
+      total = await Restaurant.countDocuments(filter).exec();
+    }
+  } else {
     [restaurants, total] = await Promise.all([
       Restaurant.find(filter)
         .sort(sort)

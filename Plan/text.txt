@@ -1,16 +1,23 @@
-for test restaurant
+make the that bulk order screen with the multe step with 
 
-User: owner.burger@gmail.com (or owner.pizza@gmail.com / owner.sushi@gmail.com)
-Password: password123
 
-.\android\gradlew.bat --stop
 
-$env:GRADLE_USER_HOME="D:\Food-system\.gradle-user-home"
-$env:RNFB_SUPPRESS_NEW_ARCHITECTURE_WARNING="1"
+they search the restaurnat name or food name  
 
-npx.cmd expo run:android --port 8082
+   -> if the search the restaurnat  name then open the restaurnat  menu items they will select the items and also give the nesrest restaurnat  for that 
 
-okey so i got a problem that when i open the main user app i see the onbaorading screns and then 
-at the last step of the onbaorading screen my app got crash why fix that error 
-fix the build error and types error and then push the code update using the eas OTA 
-into the productions 
+if they seach the food items name then take the restaurnat that have that food item in their menu and show that and restaurnat need to be nerset so keep in the mind that 
+
+
+
+after the food items are selected in below show that units / qty and then show the date they can order in the future and also they need to order one day before the food its delivery they can select the date and time 
+
+Then Below they need to add the full address fetch the address fr,om useer cureent address or give option to add new address 
+
+Contact Details ( name , phone no and also the note ( optional ) 
+
+step 2 they will review the all thing and have a option to go back and edit them or remve them
+
+step 3 show the full price or billing with the delivery address and date and time and with the user contact details 
+
+they will make the payment using the rozapay and complete the order and show the sucess or failure or error screen base on that 

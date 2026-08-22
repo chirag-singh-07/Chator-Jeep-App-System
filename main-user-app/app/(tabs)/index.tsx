@@ -39,6 +39,7 @@ import { useLocationStore } from "@/store/useLocationStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import * as Haptics from "expo-haptics";
 import { getAvatarUrl } from "@/lib/utils";
+import api from "@/lib/api";
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
 const { width, height } = Dimensions.get("window");
@@ -76,13 +77,41 @@ const Skeleton = ({
 export default function HomeScreen() {
   const router = useRouter();
   const { restaurants, categories, popularItems, banners, isLoading, fetchHomeData } = useMenuStore();
-  const { currentAddress, savedAddresses, setCurrentAddress } =
+  const { currentAddress, savedAddresses, setCurrentAddress, fetchAddresses } =
     useLocationStore();
   const { user } = useAuthStore();
   const [refreshing, setRefreshing] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [activeFilter, setActiveFilter] = useState("Nearby");
   const [isVegOnly, setIsVegOnly] = useState(false);
+  const [showPopupAd, setShowPopupAd] = useState(true);
+  const [showWelcomeCoupon, setShowWelcomeCoupon] = useState(false);
+  const [welcomeCoupon, setWelcomeCoupon] = useState<any>(null);
+
+  const homeBanners = banners.filter((b: any) => b.placement === 'HOME_SCREEN' || !b.placement);
+  const popupAd = banners.find((b: any) => b.placement === 'APP_OPEN_POPUP');
+
+  useEffect(() => {
+    const fetchWelcomeCoupon = async () => {
+      try {
+        if (!user) return;
+        const res = await api.get('/coupons/welcome');
+        if (res.data?.success && res.data?.data) {
+          setWelcomeCoupon(res.data.data);
+          setShowWelcomeCoupon(true);
+        }
+      } catch (err) {
+        console.log("No welcome coupon available", err);
+      }
+    };
+    fetchWelcomeCoupon();
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchAddresses();
+    }
+  }, [user]);
 
   useEffect(() => {
     loadData();
@@ -258,6 +287,84 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container} edges={["top"]}>
       <StatusBar barStyle="dark-content" />
 
+      {/* Popup Ad Modal */}
+      {popupAd && (
+        <Modal
+          visible={showPopupAd}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowPopupAd(false)}
+        >
+          <View style={styles.popupOverlay}>
+            <View style={styles.popupContent}>
+              <TouchableOpacity
+                style={styles.popupCloseBtn}
+                onPress={() => setShowPopupAd(false)}
+              >
+                <Ionicons name="close" size={24} color="#FFF" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.9}
+                style={{ width: '100%', height: '100%' }}
+                onPress={() => {
+                  setShowPopupAd(false);
+                  handleBannerPress(popupAd);
+                }}
+              >
+                <Image
+                  source={{ uri: popupAd.imageUrl }}
+                  style={styles.popupImage}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* Welcome Coupon Modal */}
+      {welcomeCoupon && (
+        <Modal
+          visible={showWelcomeCoupon}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowWelcomeCoupon(false)}
+        >
+          <View style={styles.popupOverlay}>
+            <View style={[styles.popupContent, { backgroundColor: '#fff', padding: 24, alignItems: 'center' }]}>
+              <TouchableOpacity
+                style={[styles.popupCloseBtn, { right: 10, top: 10, backgroundColor: 'rgba(0,0,0,0.1)' }]}
+                onPress={() => setShowWelcomeCoupon(false)}
+              >
+                <Ionicons name="close" size={20} color="#000" />
+              </TouchableOpacity>
+              
+              <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: Colors.light.primary + '20', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                <Ionicons name="gift" size={32} color={Colors.light.primary} />
+              </View>
+              
+              <Text style={{ fontSize: 24, fontWeight: '900', color: Colors.light.primary, marginBottom: 8 }}>WELCOME BONUS!</Text>
+              <Text style={{ fontSize: 16, textAlign: 'center', color: Colors.light.textMuted, marginBottom: 20 }}>
+                Get {welcomeCoupon.discountType === 'PERCENTAGE' ? `${welcomeCoupon.discountValue}%` : `₹${welcomeCoupon.discountValue}`} OFF on your first order of ₹{welcomeCoupon.minOrderAmount} or more!
+              </Text>
+              
+              <View style={{ backgroundColor: '#f4f4f5', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, borderWidth: 2, borderColor: Colors.light.primary, borderStyle: 'dashed', marginBottom: 24 }}>
+                <Text style={{ fontSize: 20, fontWeight: '900', letterSpacing: 2, color: '#1A1A1A' }}>{welcomeCoupon.code}</Text>
+              </View>
+
+              <TouchableOpacity
+                style={{ backgroundColor: Colors.light.primary, width: '100%', paddingVertical: 16, borderRadius: 16, alignItems: 'center' }}
+                onPress={() => {
+                  setShowWelcomeCoupon(false);
+                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                }}
+              >
+                <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>CLAIM OFFER NOW</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
+
       {/* Header with Location */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
@@ -330,7 +437,7 @@ export default function HomeScreen() {
           <Text style={styles.welcomeSubText}>What would you like to eat today?</Text>
         </View>
         {/* Banner Carousel */}
-        {banners.length > 0 && (
+        {homeBanners.length > 0 && (
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -338,7 +445,7 @@ export default function HomeScreen() {
             snapToInterval={width - 65}
             decelerationRate="fast"
           >
-            {banners.map((banner, index) => (
+            {homeBanners.map((banner: any, index: number) => (
               <Animated.View key={banner._id} entering={FadeInRight.delay(index * 100)}>
                 <TouchableOpacity
                   activeOpacity={0.9}
@@ -542,45 +649,57 @@ export default function HomeScreen() {
           />
         )}
 
-        {/* Bulk & Party Order Promotional Card */}
-        <Animated.View entering={FadeInUp.delay(400)} style={styles.promoSectionContainer}>
+        {/* Bulk & Party Order Premium Card */}
+        <Animated.View entering={FadeInUp.delay(400)} style={styles.bulkOrderSectionContainer}>
           <TouchableOpacity
-            style={[styles.referCard, { backgroundColor: '#FFFBEB', borderColor: '#FEF3C7', borderWidth: 1.5 }]}
-            onPress={() => router.push('/bulk-order')}
-            activeOpacity={0.9}
+            style={styles.bulkOrderCard}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              router.push('/bulk-order');
+            }}
+            activeOpacity={0.92}
           >
-            <View style={styles.referContent}>
-              <Text style={[styles.referTitle, { color: '#92400E' }]}>🎉 Bulk & Party Orders</Text>
-              <Text style={[styles.referDesc, { color: '#B45309', marginTop: 4 }]}>Planning a celebration? Order bulk food from any restaurant. 24 hours advance booking required.</Text>
-              <View style={[styles.referBtn, { backgroundColor: '#FDBE15', borderColor: '#F59E0B' }]}>
-                <Text style={[styles.referBtnText, { color: '#1A1A1A' }]}>BOOK PARTY ORDER</Text>
-              </View>
-            </View>
             <Image
-              source={{ uri: 'https://cdn-icons-png.flaticon.com/512/3752/3752002.png' }}
-              style={styles.referImage}
+              source={{ uri: 'https://images.unsplash.com/photo-1555244162-803834f70033?w=800&q=80' }}
+              style={styles.bulkOrderBgImage}
             />
-          </TouchableOpacity>
-        </Animated.View>
+            <View style={styles.bulkOrderOverlay} />
 
-        {/* Refer & Earn Promotional Card */}
-        <Animated.View entering={FadeInUp.delay(500)} style={styles.promoSectionContainer}>
-          <TouchableOpacity
-            style={styles.referCard}
-            onPress={() => router.push('/referral')}
-            activeOpacity={0.9}
-          >
-            <View style={styles.referContent}>
-              <Text style={styles.referTitle}>Refer & Earn ₹100</Text>
-              <Text style={styles.referDesc}>Invite your friends to Chatori Jeeb and get credits on their first order!</Text>
-              <View style={styles.referBtn}>
-                <Text style={styles.referBtnText}>INVITE NOW</Text>
+            <View style={styles.bulkOrderContent}>
+              <View style={styles.bulkOrderBadge}>
+                <Ionicons name="sparkles" size={12} color="#FDBE15" />
+                <Text style={styles.bulkOrderBadgeText}>PARTY & BULK CATERING</Text>
+              </View>
+
+              <Text style={styles.bulkOrderTitle}>
+                Planning a Party or Office Gathering? 🎊
+              </Text>
+              <Text style={styles.bulkOrderSubtitle}>
+                Get special discounted prices on bulk meals from top-rated restaurants with custom packaging.
+              </Text>
+
+              <View style={styles.bulkFeatureRow}>
+                <View style={styles.bulkFeatureItem}>
+                  <Ionicons name="pricetags" size={12} color="#FDBE15" />
+                  <Text style={styles.bulkFeatureText}>Special Rates</Text>
+                </View>
+                <View style={styles.bulkFeatureDot} />
+                <View style={styles.bulkFeatureItem}>
+                  <Ionicons name="time" size={12} color="#FDBE15" />
+                  <Text style={styles.bulkFeatureText}>24hr Booking</Text>
+                </View>
+                <View style={styles.bulkFeatureDot} />
+                <View style={styles.bulkFeatureItem}>
+                  <Ionicons name="shield-checkmark" size={12} color="#22C55E" />
+                  <Text style={styles.bulkFeatureText}>Guaranteed Delivery</Text>
+                </View>
+              </View>
+
+              <View style={styles.bulkOrderBtn}>
+                <Text style={styles.bulkOrderBtnText}>BOOK BULK ORDER</Text>
+                <Ionicons name="arrow-forward" size={14} color="#1A1A1A" />
               </View>
             </View>
-            <Image
-              source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2168/2168001.png' }}
-              style={styles.referImage}
-            />
           </TouchableOpacity>
         </Animated.View>
 
@@ -691,72 +810,109 @@ export default function HomeScreen() {
       </ScrollView>
 
       {/* Location Selection Modal */}
-      <Modal visible={showLocationModal} transparent animationType="none">
+      <Modal visible={showLocationModal} transparent animationType="fade">
         <Pressable
           style={styles.modalOverlay}
           onPress={() => setShowLocationModal(false)}
         >
-          <Animated.View
-            entering={SlideInDown}
-            exiting={SlideOutDown}
-            style={styles.modalContent}
-          >
-            <View style={styles.modalHandle} />
-            <Text style={styles.modalTitle}>Choose a delivery location</Text>
+          <Pressable style={{width: '100%'}}>
+            <Animated.View
+              entering={SlideInDown.springify().damping(25)}
+              exiting={SlideOutDown}
+              style={styles.modalContent}
+            >
+              <View style={styles.modalHandle} />
+              <Text style={styles.modalTitle}>Select a Location</Text>
 
-            <ScrollView style={styles.addressList}>
-              {savedAddresses.map((addr) => (
-                <TouchableOpacity
-                  key={addr.id}
-                  style={[
-                    styles.addrCard,
-                    currentAddress?.id === addr.id && styles.activeAddr,
-                  ]}
-                  onPress={() => handleAddressSelect(addr)}
+              <ScrollView style={styles.addressList} showsVerticalScrollIndicator={false}>
+                {/* Search Bar (Fake, goes to address-picker) */}
+                <TouchableOpacity 
+                  style={styles.fakeSearchBar}
+                  onPress={() => {
+                    setShowLocationModal(false);
+                    router.push("/address-picker");
+                  }}
                 >
-                  <Ionicons
-                    name={
-                      addr.type === "Home"
-                        ? "home"
-                        : addr.type === "Work"
-                          ? "briefcase"
-                          : "location"
-                    }
-                    size={20}
-                    color={
-                      currentAddress?.id === addr.id
-                        ? Colors.light.primary
-                        : "#666"
-                    }
-                  />
-                  <View style={{ flex: 1, marginLeft: 15 }}>
-                    <Text style={styles.addrType}>{addr.type}</Text>
-                    <Text style={styles.addrText}>
-                      {addr.flat}, {addr.area}
-                    </Text>
-                  </View>
-                  {currentAddress?.id === addr.id && (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={24}
-                      color={Colors.light.primary}
-                    />
-                  )}
+                  <Ionicons name="search" size={20} color={Colors.light.primary} />
+                  <Text style={styles.fakeSearchText}>Search for area, street name...</Text>
                 </TouchableOpacity>
-              ))}
 
-              <TouchableOpacity
-                style={styles.addNewAddr}
-                onPress={() => {
-                  setShowLocationModal(false);
-                  router.push("/address-picker");
-                }}
-              >
-                <Ionicons name="add" size={24} color={Colors.light.primary} />
-                <Text style={styles.addNewText}>Add New Address</Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </Animated.View>
+                {/* Current Location Option */}
+                <TouchableOpacity 
+                  style={styles.currentLocModalBtn}
+                  onPress={() => {
+                    setShowLocationModal(false);
+                    router.push("/address-picker");
+                  }}
+                >
+                  <Ionicons name="locate" size={22} color={Colors.light.primary} />
+                  <View style={{ marginLeft: 12 }}>
+                    <Text style={styles.currentLocModalTitle}>Use current location</Text>
+                    <Text style={styles.currentLocModalSub}>Using GPS</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color="#999" style={{ marginLeft: 'auto' }} />
+                </TouchableOpacity>
+
+                <View style={styles.modalDivider} />
+
+                {savedAddresses.length > 0 && <Text style={styles.savedAddrLabel}>SAVED ADDRESSES</Text>}
+                {savedAddresses.map((addr) => (
+                  <TouchableOpacity
+                    key={addr.id}
+                    style={[
+                      styles.addrCard,
+                      currentAddress?.id === addr.id && styles.activeAddr,
+                    ]}
+                    onPress={() => handleAddressSelect(addr)}
+                  >
+                    <View style={[styles.addrIconCircle, currentAddress?.id === addr.id && { backgroundColor: Colors.light.primary }]}>
+                      <Ionicons
+                        name={
+                          addr.type === "Home" || addr.label === "Home"
+                            ? "home"
+                            : addr.type === "Work" || addr.label === "Work"
+                              ? "briefcase"
+                              : "location"
+                        }
+                        size={18}
+                        color={
+                          currentAddress?.id === addr.id
+                            ? "#FFF"
+                            : Colors.light.primary
+                        }
+                      />
+                    </View>
+                    <View style={{ flex: 1, marginLeft: 15 }}>
+                      <Text style={[styles.addrType, currentAddress?.id === addr.id && {color: Colors.light.primary}]}>
+                        {addr.label || addr.type || "Address"}
+                      </Text>
+                      <Text style={styles.addrText} numberOfLines={2}>
+                        {addr.flat ? addr.flat + ', ' : ''}{addr.area}
+                      </Text>
+                    </View>
+                    {currentAddress?.id === addr.id && (
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={24}
+                        color={Colors.light.primary}
+                      />
+                    )}
+                  </TouchableOpacity>
+                ))}
+
+                <TouchableOpacity
+                  style={styles.addNewAddr}
+                  onPress={() => {
+                    setShowLocationModal(false);
+                    router.push("/address-picker");
+                  }}
+                >
+                  <Ionicons name="add" size={20} color={Colors.light.primary} />
+                  <Text style={styles.addNewText}>Add New Address</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </Animated.View>
+          </Pressable>
         </Pressable>
       </Modal>
     </SafeAreaView>
@@ -824,56 +980,118 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginTop: 2,
   },
-  promoSectionContainer: {
+  bulkOrderSectionContainer: {
     paddingHorizontal: 20,
-    marginBottom: 30,
+    marginBottom: 28,
   },
-  referCard: {
-    backgroundColor: '#F0FDF4',
-    borderRadius: 25,
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#DCFCE7',
+  bulkOrderCard: {
+    position: 'relative',
+    borderRadius: 24,
     overflow: 'hidden',
+    backgroundColor: '#1E232A',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(253, 190, 21, 0.25)',
   },
-  referContent: {
-    flex: 1,
+  bulkOrderBgImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  bulkOrderOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15, 23, 42, 0.88)',
+  },
+  bulkOrderContent: {
+    padding: 20,
     zIndex: 2,
   },
-  referTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#166534',
-  },
-  referDesc: {
-    fontSize: 12,
-    color: '#15803D',
-    marginTop: 5,
-    lineHeight: 18,
-    fontWeight: '600',
-  },
-  referBtn: {
-    backgroundColor: '#166534',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 10,
-    marginTop: 15,
+  bulkOrderBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     alignSelf: 'flex-start',
+    backgroundColor: 'rgba(253, 190, 21, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(253, 190, 21, 0.4)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 5,
+    marginBottom: 10,
   },
-  referBtnText: {
-    color: '#FFF',
+  bulkOrderBadgeText: {
     fontSize: 10,
     fontWeight: '900',
+    color: '#FDBE15',
+    letterSpacing: 0.8,
   },
-  referImage: {
-    width: 100,
-    height: 100,
-    position: 'absolute',
-    right: -10,
-    bottom: -10,
-    opacity: 0.2,
+  bulkOrderTitle: {
+    fontSize: 19,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    lineHeight: 25,
+    letterSpacing: -0.3,
+  },
+  bulkOrderSubtitle: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.75)',
+    marginTop: 6,
+    lineHeight: 18,
+  },
+  bulkFeatureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    marginTop: 12,
+    gap: 6,
+  },
+  bulkFeatureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  bulkFeatureText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#E2E8F0',
+  },
+  bulkFeatureDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  bulkOrderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: Colors.light.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 12,
+    marginTop: 16,
+    gap: 6,
+    shadowColor: Colors.light.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  bulkOrderBtnText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#1A1A1A',
+    letterSpacing: 0.6,
   },
   locationContainer: {
     flexDirection: "row",
@@ -1475,7 +1693,8 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     padding: 25,
-    maxHeight: height * 0.7,
+    paddingBottom: 40,
+    maxHeight: '85%',
   },
   modalHandle: {
     width: 40,
@@ -1489,15 +1708,56 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "900",
     color: Colors.light.text,
-    marginBottom: 25,
+    marginBottom: 20,
   },
   addressList: {
+    marginBottom: 10,
+  },
+  fakeSearchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    padding: 15,
+    borderRadius: 16,
     marginBottom: 20,
+  },
+  fakeSearchText: {
+    marginLeft: 10,
+    fontSize: 15,
+    color: '#9CA3AF',
+    fontWeight: '500',
+  },
+  currentLocModalBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  currentLocModalTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.light.primary,
+  },
+  currentLocModalSub: {
+    fontSize: 13,
+    color: '#666',
+    marginTop: 2,
+  },
+  modalDivider: {
+    height: 1,
+    backgroundColor: '#F3F4F6',
+    marginVertical: 20,
+  },
+  savedAddrLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#9CA3AF',
+    letterSpacing: 1,
+    marginBottom: 15,
   },
   addrCard: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 20,
+    padding: 16,
     borderRadius: 20,
     marginBottom: 12,
     borderWidth: 1,
@@ -1507,6 +1767,14 @@ const styles = StyleSheet.create({
     borderColor: Colors.light.primary,
     backgroundColor: Colors.light.primary + "05",
   },
+  addrIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.light.primary + "15",
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   addrType: {
     fontSize: 16,
     fontWeight: "800",
@@ -1515,18 +1783,20 @@ const styles = StyleSheet.create({
   addrText: {
     fontSize: 13,
     color: "#666",
-    marginTop: 2,
+    marginTop: 4,
+    lineHeight: 18,
   },
   addNewAddr: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 20,
-    gap: 15,
+    padding: 16,
+    gap: 10,
+    marginTop: 5,
   },
   addNewText: {
     color: Colors.light.primary,
     fontSize: 16,
-    fontWeight: "900",
+    fontWeight: "800",
   },
   quickGrid: {
     flexDirection: 'row',
@@ -1594,5 +1864,39 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     marginTop: 2,
+  },
+  popupOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  popupContent: {
+    width: width * 0.85,
+    height: width * 1.1,
+    backgroundColor: 'transparent',
+    borderRadius: 24,
+    alignItems: 'center',
+    position: 'relative',
+  },
+  popupImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+    borderRadius: 24,
+  },
+  popupCloseBtn: {
+    position: 'absolute',
+    top: -45,
+    right: 0,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
   },
 });

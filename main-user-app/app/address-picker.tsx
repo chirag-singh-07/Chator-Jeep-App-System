@@ -33,13 +33,7 @@ import {
 
 const { width, height } = Dimensions.get('window');
 
-// Mock data for address search results
-const MOCK_RESULTS = [
-  { id: '1', name: 'Connaught Place', address: 'New Delhi, Delhi 110001', coordinates: { latitude: 28.6315, longitude: 77.2167 } },
-  { id: '2', name: 'Hauz Khas Village', address: 'Deer Park, Hauz Khas, New Delhi, Delhi 110016', coordinates: { latitude: 28.5521, longitude: 77.1948 } },
-  { id: '3', name: 'Cyber Hub', address: 'DLF Cyber City, DLF Phase 2, Sector 24, Gurugram, Haryana 122002', coordinates: { latitude: 28.4951, longitude: 77.0878 } },
-  { id: '4', name: 'India Gate', address: 'Rajpath, India Gate, New Delhi, Delhi 110001', coordinates: { latitude: 28.6129, longitude: 77.2295 } },
-];
+const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 export default function AddressPickerScreen() {
   const [search, setSearch] = useState('');
@@ -85,33 +79,90 @@ export default function AddressPickerScreen() {
     });
   };
 
-  const handleSearch = (text: string) => {
+  const handleSearch = async (text: string) => {
     setSearch(text);
-    if (text.length > 2) {
+    if (text.length > 2 && GOOGLE_MAPS_API_KEY) {
       setLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        setResults(MOCK_RESULTS.filter(r => r.name.toLowerCase().includes(text.toLowerCase()) || r.address.toLowerCase().includes(text.toLowerCase())));
+      try {
+        const response = await fetch(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(text)}&key=${GOOGLE_MAPS_API_KEY}&components=country:in`);
+        const data = await response.json();
+        if (data.status === 'OK') {
+          const formattedResults = data.predictions.map((p: any) => ({
+            id: p.place_id,
+            name: p.structured_formatting.main_text,
+            address: p.structured_formatting.secondary_text,
+            isGooglePlace: true,
+          }));
+          setResults(formattedResults);
+        } else {
+          setResults([]);
+        }
+      } catch (error) {
+        console.error("Google Maps API error:", error);
+        setResults([]);
+      } finally {
         setLoading(false);
-      }, 500);
+      }
     } else {
       setResults([]);
     }
   };
 
-  const handleSelect = (item: any) => {
+  const handleSelect = async (item: any) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setTempAddress(item);
+    let addressDetails = item;
+
+    if (item.isGooglePlace && GOOGLE_MAPS_API_KEY) {
+      setLoading(true);
+      try {
+        const response = await fetch(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${item.id}&key=${GOOGLE_MAPS_API_KEY}&fields=geometry,address_component,formatted_address,name`);
+        const data = await response.json();
+        if (data.status === 'OK') {
+          const result = data.result;
+          const lat = result.geometry.location.lat;
+          const lng = result.geometry.location.lng;
+          
+          let city = '';
+          let state = '';
+          let district = '';
+          let postalCode = '';
+          
+          result.address_components?.forEach((c: any) => {
+            if (c.types.includes('locality')) city = c.long_name;
+            if (c.types.includes('administrative_area_level_1')) state = c.long_name;
+            if (c.types.includes('administrative_area_level_2')) district = c.long_name;
+            if (c.types.includes('postal_code')) postalCode = c.long_name;
+          });
+
+          addressDetails = {
+            id: item.id,
+            name: result.name || item.name,
+            address: result.formatted_address || item.address,
+            city: city || district,
+            district,
+            region: state,
+            postalCode,
+            coordinates: { latitude: lat, longitude: lng }
+          };
+        }
+      } catch (error) {
+        console.error("Google Maps Details API error:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    setTempAddress(addressDetails);
     setAddressDraft({
       fullAddress: sanitizeAddressInput(
         "fullAddress",
-        item.address || item.name || item.street || "Current Location",
+        addressDetails.address || addressDetails.name || addressDetails.street || "Current Location",
       ),
       landmark: "",
-      state: sanitizeAddressInput("state", item.region || ""),
-      district: sanitizeAddressInput("district", item.district || ""),
-      city: sanitizeAddressInput("city", item.city || ""),
-      pinCode: sanitizeAddressInput("pinCode", item.postalCode || ""),
+      state: sanitizeAddressInput("state", addressDetails.region || ""),
+      district: sanitizeAddressInput("district", addressDetails.district || ""),
+      city: sanitizeAddressInput("city", addressDetails.city || ""),
+      pinCode: sanitizeAddressInput("pinCode", addressDetails.postalCode || ""),
     });
     setTouchedFields({});
     setLabel('Home');
@@ -363,13 +414,12 @@ export default function AddressPickerScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Address Details</Text>
               <TouchableOpacity onPress={() => setShowForm(false)}>
-                <Ionicons name="close" size={24} color="#FFF" />
+                <Ionicons name="close" size={24} color={Colors.light.text} />
               </TouchableOpacity>
             </View>
 
             <ScrollView contentContainerStyle={{padding: 20}}>
                <ValidatedAddressField
-                 dark
                  label="FULL ADDRESS / HOUSE NO / STREET"
                  placeholder="Flat 101, MG Road, Near Metro Gate"
                  value={addressDraft.fullAddress}
@@ -383,7 +433,6 @@ export default function AddressPickerScreen() {
                />
 
                <ValidatedAddressField
-                 dark
                  ref={landmarkRef}
                  label="LANDMARK (OPTIONAL)"
                  placeholder="Near City Mall"
@@ -398,7 +447,6 @@ export default function AddressPickerScreen() {
                />
 
                <ValidatedAddressField
-                 dark
                  ref={stateRef}
                  label="STATE"
                  placeholder="Maharashtra"
@@ -413,7 +461,6 @@ export default function AddressPickerScreen() {
                />
 
                <ValidatedAddressField
-                 dark
                  ref={districtRef}
                  label="DISTRICT"
                  placeholder="Mumbai"
@@ -428,7 +475,6 @@ export default function AddressPickerScreen() {
                />
 
                <ValidatedAddressField
-                 dark
                  ref={cityRef}
                  label="CITY / POST OFFICE"
                  placeholder="Andheri East"
@@ -443,7 +489,6 @@ export default function AddressPickerScreen() {
                />
 
                <ValidatedAddressField
-                 dark
                  ref={pinCodeRef}
                  label="PIN CODE"
                  placeholder="400001"
@@ -468,7 +513,7 @@ export default function AddressPickerScreen() {
                       <Ionicons 
                         name={l === 'Home' ? 'home' : l === 'Work' ? 'briefcase' : 'location'} 
                         size={16} 
-                        color={label === l ? '#1A1A1A' : '#666'} 
+                        color={label === l ? '#FFF' : '#666'} 
                       />
                       <Text style={[styles.labelBtnText, label === l && styles.activeLabelBtnText]}>{l}</Text>
                     </TouchableOpacity>
@@ -484,9 +529,9 @@ export default function AddressPickerScreen() {
                  disabled={!addressValidation.isValid || savingAddress}
                >
                   {savingAddress ? (
-                    <ActivityIndicator color="#1A1A1A" />
+                    <ActivityIndicator color="#FFF" />
                   ) : (
-                    <Text style={styles.saveBtnText}>NEXT SEQUENCE</Text>
+                    <Text style={styles.saveBtnText}>SAVE ADDRESS</Text>
                   )}
                </TouchableOpacity>
             </ScrollView>
@@ -556,9 +601,9 @@ const styles = StyleSheet.create({
   emptyContainer: { alignItems: 'center', marginTop: 50 },
   emptyText: { marginTop: 15, color: '#999', fontSize: 14, fontWeight: '600' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#050505', borderTopLeftRadius: 30, borderTopRightRadius: 30, maxHeight: height * 0.88, borderWidth: 1, borderColor: '#1F1F1F' },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 25, borderBottomWidth: 1, borderBottomColor: '#1F1F1F' },
-  modalTitle: { fontSize: 18, fontWeight: '900', color: '#FFF' },
+  modalContent: { backgroundColor: '#FFF', borderTopLeftRadius: 30, borderTopRightRadius: 30, maxHeight: height * 0.88, borderWidth: 1, borderColor: '#F3F4F6' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 25, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  modalTitle: { fontSize: 18, fontWeight: '900', color: Colors.light.text },
   inputLabel: { fontSize: 11, fontWeight: '900', color: '#999', letterSpacing: 1, marginBottom: 10, marginTop: 20 },
   formInput: { backgroundColor: '#F9FAFB', borderRadius: 15, padding: 15, fontSize: 15, fontWeight: '600', color: '#000', borderWidth: 1, borderColor: '#F3F4F6' },
   manualBtn: {
@@ -594,8 +639,8 @@ const styles = StyleSheet.create({
   labelBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 15, backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#F3F4F6' },
   activeLabelBtn: { backgroundColor: Colors.light.primary, borderColor: Colors.light.primary },
   labelBtnText: { fontSize: 14, fontWeight: '800', color: '#666' },
-  activeLabelBtnText: { color: '#1A1A1A' },
+  activeLabelBtnText: { color: '#FFF' },
   saveBtn: { backgroundColor: Colors.light.primary, height: 60, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginTop: 35, shadowColor: Colors.light.primary, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
   saveBtnDisabled: { opacity: 0.45 },
-  saveBtnText: { fontSize: 17, fontWeight: '900', color: '#1A1A1A' },
+  saveBtnText: { fontSize: 17, fontWeight: '900', color: '#FFF' },
 });

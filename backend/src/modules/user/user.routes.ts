@@ -26,6 +26,48 @@ const router = Router();
  */
 router.get("/me", authMiddleware, controller.me);
 
+/**
+ * @openapi
+ * /api/v1/users/me/addresses:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Get user addresses
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of user addresses
+ *   post:
+ *     tags:
+ *       - Users
+ *     summary: Add a new address
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       201:
+ *         description: Address added
+ * /api/v1/users/me/addresses/{addressId}:
+ *   delete:
+ *     tags:
+ *       - Users
+ *     summary: Delete an address
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: addressId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Address deleted
+ */
+router.get("/me/addresses", authMiddleware, controller.getAddresses);
+router.post("/me/addresses", authMiddleware, controller.addAddress);
+router.delete("/me/addresses/:addressId", authMiddleware, controller.deleteAddress);
+
 // ============================================
 // ADMIN ROUTES
 // ============================================

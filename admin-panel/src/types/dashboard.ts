@@ -193,5 +193,6 @@ export type Coupon = {
   usageLimit?: number;
   usedCount: number;
   isActive: boolean;
+  isForNewUser: boolean;
   createdAt: string;
 };
