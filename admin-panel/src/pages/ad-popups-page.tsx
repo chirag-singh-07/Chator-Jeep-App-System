@@ -136,8 +136,7 @@ export function AdPopupsPage() {
       label: "Status", 
       render: (row) => (
         <StatusBadge 
-          status={row.isActive ? "ACTIVE" : "INACTIVE"} 
-          type={row.isActive ? "success" : "default"} 
+          value={row.isActive ? "ACTIVE" : "INACTIVE"} 
         />
       ) 
     },
@@ -195,10 +194,14 @@ export function AdPopupsPage() {
         </div>
 
         <DataTable 
+          title="Ad Popups"
           columns={columns} 
-          data={filteredPopups} 
-          loading={loading}
-          emptyMessage="No popups found"
+          rows={filteredPopups}
+          page={1}
+          pageSize={100}
+          onPageChange={() => {}}
+          emptyTitle="No popups found"
+          emptyDescription="You have not created any popups yet."
         />
       </div>
 
@@ -224,11 +227,12 @@ export function AdPopupsPage() {
                     </Button>
                   </div>
                 ) : (
-                  <UploadDropzone
-                    onUploadComplete={(url) => setFormData({ ...formData, imageUrl: url })}
-                    folder="popups"
-                    className="h-40 border-none bg-transparent"
-                  />
+                  <div className="h-40">
+                    <UploadDropzone
+                      onChange={(url: string) => setFormData({ ...formData, imageUrl: url })}
+                      folder="popups"
+                    />
+                  </div>
                 )}
               </div>
             </div>
@@ -282,8 +286,8 @@ export function AdPopupsPage() {
       </Dialog>
 
       <ConfirmDialog 
-        isOpen={!!deleteId}
-        onClose={() => setDeleteId(null)}
+        open={!!deleteId}
+        onOpenChange={(isOpen) => !isOpen && setDeleteId(null)}
         onConfirm={() => {
           if (deleteId) handleDelete(deleteId);
           setDeleteId(null);

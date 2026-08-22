@@ -47,7 +47,6 @@ export function CouponsPage() {
     discountType: "PERCENTAGE",
     discountValue: "",
     minOrderAmount: "0",
-    minOrderAmount: "0",
     maxDiscountAmount: "",
     expiryDate: "",
     isForNewUser: false,
