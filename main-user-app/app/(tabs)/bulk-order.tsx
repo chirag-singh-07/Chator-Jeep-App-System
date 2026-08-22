@@ -390,7 +390,7 @@ export default function BulkOrderScreen() {
               </View>
 
               <View style={styles.resultList}>
-                {isSearching ? <ActivityIndicator color={C.yellow} /> : searchResults.map(r => (
+                {isSearching ? <ActivityIndicator color={C.yellow} /> : searchResults.length > 0 ? searchResults.map(r => (
                   <TouchableOpacity key={r._id} style={styles.resultCard} onPress={() => handleSelectRestaurant(r)}>
                     <View style={styles.restaurantThumb}><Text style={styles.thumbText}>{r.name.charAt(0)}</Text></View>
                     <View style={styles.resultCopy}>
@@ -399,7 +399,12 @@ export default function BulkOrderScreen() {
                     </View>
                     <View style={styles.distanceBadge}><Text style={styles.distanceText}>Select</Text></View>
                   </TouchableOpacity>
-                ))}
+                )) : searchQuery.length > 0 ? (
+                  <View style={styles.emptyState}>
+                    <Ionicons name="sad-outline" size={32} color="#ccc" style={{marginBottom: 8}} />
+                    <Text style={styles.emptyStateText}>In your area, no one takes bulk orders yet.</Text>
+                  </View>
+                ) : null}
               </View>
             </View>
 
