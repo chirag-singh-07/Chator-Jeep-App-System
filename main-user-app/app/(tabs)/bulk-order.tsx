@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions, ActivityIndicator, Alert, SafeAreaView, Platform
+  StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions, ActivityIndicator, Alert, SafeAreaView, Platform, KeyboardAvoidingView
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -330,7 +330,8 @@ export default function BulkOrderScreen() {
 
   return (
     <SafeAreaView style={styles.appShell}>
-      {renderTopBar()}
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        {renderTopBar()}
       <ScrollView contentContainerStyle={styles.main} keyboardShouldPersistTaps="handled">
         {renderProgressCard()}
 
@@ -477,7 +478,7 @@ export default function BulkOrderScreen() {
               </View>
               <Text style={styles.helperText}>Bulk orders must be placed at least 1 day before delivery.</Text>
 
-              <View style={styles.dateGrid}>
+              <View style={[styles.dateGrid, { marginBottom: 30 }]}>
                 <View style={styles.field}>
                   <Text style={styles.fieldLabel}>Delivery date</Text>
                   <TextInput 
@@ -630,33 +631,33 @@ export default function BulkOrderScreen() {
             </View>
           </Animated.View>
         )}
-      </ScrollView>
-
-      {/* Sticky Bottom Bar - with elevated bottom to prevent tab bar overlap */}
-      <View style={styles.bottomBar}>
-        <View style={{minWidth: 104}}>
-          <Text style={styles.bottomBarLabel}>{step === 1 ? 'Total items' : 'Amount to pay'}</Text>
-          <Text style={styles.bottomBarValue}>
-            {step === 1 ? `${Object.keys(cart).length} item${Object.keys(cart).length !== 1 ? 's' : ''}` : formatMoney(finalTotal)}
-          </Text>
+        {/* Inline Bottom Bar */}
+        <View style={styles.bottomBar}>
+          <View style={{minWidth: 104}}>
+            <Text style={styles.bottomBarLabel}>{step === 1 ? 'Total items' : 'Amount to pay'}</Text>
+            <Text style={styles.bottomBarValue}>
+              {step === 1 ? `${Object.keys(cart).length} item${Object.keys(cart).length !== 1 ? 's' : ''}` : formatMoney(finalTotal)}
+            </Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.primaryCta}
+            disabled={isProcessing}
+            onPress={() => {
+              if (step === 1) validateStep1();
+              else if (step === 2) validateStep2();
+              else if (step === 3) handlePlaceOrder();
+            }}
+          >
+            {isProcessing ? <ActivityIndicator color={C.ink} /> : (
+              <>
+                <Text style={styles.primaryCtaText}>{step === 3 ? 'Pay Now' : 'Continue'}</Text>
+                <Ionicons name="arrow-forward" size={18} color={C.ink} />
+              </>
+            )}
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity 
-          style={styles.primaryCta}
-          disabled={isProcessing}
-          onPress={() => {
-            if (step === 1) validateStep1();
-            else if (step === 2) validateStep2();
-            else if (step === 3) handlePlaceOrder();
-          }}
-        >
-          {isProcessing ? <ActivityIndicator color={C.ink} /> : (
-            <>
-              <Text style={styles.primaryCtaText}>{step === 3 ? 'Pay Now' : 'Continue'}</Text>
-              <Ionicons name="arrow-forward" size={18} color={C.ink} />
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
+      </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -665,7 +666,7 @@ const styles = StyleSheet.create({
   appShell: { flex: 1, backgroundColor: C.bg },
   topbar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 12, backgroundColor: 'rgba(255,255,255,0.94)',
+    paddingHorizontal: 16, paddingVertical: 12, paddingTop: Platform.OS === 'android' ? 44 : 12, backgroundColor: 'rgba(255,255,255,0.94)',
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.04)',
     zIndex: 50,
   },
@@ -676,7 +677,7 @@ const styles = StyleSheet.create({
   topbarCopy: { alignItems: 'center' },
   topbarSubtitle: { color: '#a88b00', fontSize: 10, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
   topbarTitle: { marginTop: 2, fontSize: 18, fontWeight: '600', letterSpacing: -0.35, color: C.ink },
-  main: { padding: 14, paddingBottom: 150 }, // Padding bottom for floating CTA
+  main: { paddingHorizontal: 14, paddingTop: 24, paddingBottom: 40 },
   
   progressCard: {
     flexDirection: 'row', alignItems: 'flex-start', backgroundColor: C.white,
@@ -797,10 +798,11 @@ const styles = StyleSheet.create({
   razorpayDesc: { fontSize: 10, color: '#999', marginTop: 3 },
   
   bottomBar: {
-    position: 'absolute', bottom: 90, left: 0, right: 0, 
-    backgroundColor: 'rgba(255,255,255,0.96)', borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)',
+    marginTop: 10,
+    backgroundColor: 'rgba(255,255,255,0.96)', borderRadius: 24,
+    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
     paddingHorizontal: 14, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 12,
-    shadowColor: '#000', shadowOffset: {width:0, height:-4}, shadowOpacity: 0.05, shadowRadius: 10, elevation: 5
+    shadowColor: '#000', shadowOffset: {width:0, height:4}, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5
   },
   bottomBarLabel: { fontSize: 9, color: '#999' },
   bottomBarValue: { fontSize: 13, fontWeight: '600', marginTop: 3, color: C.ink },
