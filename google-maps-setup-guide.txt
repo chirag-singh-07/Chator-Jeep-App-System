@@ -1,0 +1,69 @@
+====================================================
+GOOGLE MAPS API SETUP GUIDE FOR CHATOR JEEP APPS
+====================================================
+
+Hello! Please complete the following steps to fully configure Google Maps for the Chator Jeep platform.
+
+----------------------------------------------------
+STEP 1: CREATE API KEY & ENABLE APIS
+----------------------------------------------------
+1. Go to the Google Cloud Console.
+2. Create a new Project (or select the existing one).
+3. Go to "APIs & Services" > "Library" and ENABLE the following APIs:
+   - Maps SDK for Android
+   - Maps SDK for iOS
+   - Places API (or Places API New)
+   - Geocoding API
+   - Distance Matrix API
+   - Directions API
+4. Go to "Credentials" and create a new API Key.
+
+----------------------------------------------------
+STEP 2: ADD THE API KEY TO THE CODEBASE
+----------------------------------------------------
+The native configurations in `app.json` for all three apps have already been prepared. 
+Please find and replace the placeholder `"YOUR_GOOGLE_MAPS_API_KEY_HERE"` with the new API key in the following files:
+
+1. `main-user-app/app.json` (Under android.config.googleMaps & ios.config)
+2. `Restaurant-app/app.json` (Under android.config.googleMaps & ios.config)
+3. `delivery-app/app.json` (Under android.config.googleMaps & ios.config)
+
+Important: Also add the key to the main user app's environment file so the address autocomplete works:
+- File: `main-user-app/.env`
+- Variable: `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=your_key_here`
+
+----------------------------------------------------
+STEP 3: SECURE THE API KEY (CRITICAL)
+----------------------------------------------------
+In the Google Cloud Console, edit your new API Key and add "Application Restrictions" for Android and iOS to prevent quota theft.
+
+>> iOS Restrictions:
+Add the following Bundle Identifiers:
+- com.chatorijeeb.user
+- com.chatorijeeb.restaurant
+- com.chatorijeeb.deliveryapp
+
+>> Android Restrictions:
+You must add the Package Names AND their corresponding SHA-1 fingerprints. 
+The package names are:
+- com.chatorijeeb.user
+- com.chatorijeeb.restaurant
+- com.chatorijeeb.delivery
+
+You need to add TWO SHA-1 fingerprints for each package name (one for Dev, one for Prod):
+1. **Development SHA-1 (Local Testing):**
+   Run this in PowerShell/CMD on your local dev machine:
+   `keytool -list -v -keystore "%USERPROFILE%\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android`
+   (Copy the SHA1 value and add it to Google Cloud for all 3 package names).
+
+2. **Production SHA-1 (Play Store / EAS Build):**
+   Open the terminal, navigate to each app's folder, and run:
+   `eas credentials`
+   Select Android -> Production profile. 
+   (Copy the SHA-1 value provided by Expo and add it to Google Cloud for each specific app).
+
+Finally, add "API Restrictions" so the key can only call the 6 APIs enabled in Step 1.
+
+====================================================
+End of Guide
+====================================================

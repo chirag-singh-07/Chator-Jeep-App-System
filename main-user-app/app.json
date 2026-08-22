@@ -9,7 +9,10 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "YOUR_GOOGLE_MAPS_API_KEY_HERE"
+      }
     },
     "android": {
       "package": "com.chatorijeeb.user",
@@ -19,6 +22,11 @@
         "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/icons/android-icon-512x512.png",
         "monochromeImage": "./assets/icons/android-icon-512x512.png"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY_HERE"
+        }
       }
     },
     "web": {

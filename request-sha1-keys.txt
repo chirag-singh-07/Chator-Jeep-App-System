@@ -1,0 +1,25 @@
+Hi! I am setting up the Google Maps API keys for our project in the Google Cloud Console. To secure the keys, I need to add Android Application Restrictions for our 3 apps.
+
+first fetch the all latest code from the github using the pull commands and other git ccommands,
+
+Could you please get the SHA-1 Certificate Fingerprints for both Development and Production and send them back to me?
+
+Here are the 3 package names we have:
+1. Main User App: com.chatorijeeb.user
+2. Restaurant App: com.chatorijeeb.restaurant
+3. Delivery App: com.chatorijeeb.delivery
+
+What I need from you:
+--------------------------------------------------
+1. **The Development SHA-1 Fingerprint** (so maps work while we test locally)
+   You can get this by running this in your terminal:
+   `keytool -list -v -keystore "%USERPROFILE%\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android`
+   (Mac/Linux: `~/.android/debug.keystore`)
+
+2. **The Production SHA-1 Fingerprint** for EACH app (so maps work on the Play Store)
+   Since we use Expo EAS, please open the terminal, go into each app's folder, and run:
+   `eas credentials`
+   Then select Android -> Production.
+
+Please copy the SHA-1 values you get from those commands and store them into one file 
+and give that file in new folder on the root path 
