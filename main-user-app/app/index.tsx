@@ -1,16 +1,19 @@
 import { Redirect } from 'expo-router';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export default function Index() {
-  // Logic to check if user has seen onboarding or is logged in
-  const hasSeenOnboarding = false;
-  const isLoggedIn = false;
+  const { isAuthenticated, hasHydrated, hasSeenOnboarding } = useAuthStore();
 
-  if (isLoggedIn) {
+  if (!hasHydrated) {
+    return null;
+  }
+
+  if (isAuthenticated) {
     return <Redirect href="/(tabs)" />;
   }
 
   if (hasSeenOnboarding) {
-    return <Redirect href="/(auth)/login" />;
+    return <Redirect href="/(tabs)" />;
   }
 
   return <Redirect href="/(onboarding)" />;
