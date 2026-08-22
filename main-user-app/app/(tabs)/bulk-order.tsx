@@ -677,7 +677,7 @@ const styles = StyleSheet.create({
   topbarCopy: { alignItems: 'center' },
   topbarSubtitle: { color: '#a88b00', fontSize: 10, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
   topbarTitle: { marginTop: 2, fontSize: 18, fontWeight: '600', letterSpacing: -0.35, color: C.ink },
-  main: { paddingHorizontal: 14, paddingTop: 24, paddingBottom: 40 },
+  main: { paddingHorizontal: 14, paddingTop: 24, paddingBottom: 120 },
   
   progressCard: {
     flexDirection: 'row', alignItems: 'flex-start', backgroundColor: C.white,
