@@ -135,10 +135,11 @@ const buildOrderDraft = async (userId: string, input: OrderInput) => {
 
   const config = await getPlatformConfig();
   
-  const rawDistanceKm = haversineKm(
-    restaurant.location.coordinates as [number, number],
-    input.location.coordinates
-  );
+  const restaurantCoords = restaurant.location?.coordinates;
+  const rawDistanceKm = 
+    restaurantCoords && restaurantCoords.length === 2
+      ? haversineKm(restaurantCoords as [number, number], input.location.coordinates)
+      : 5; // Fallback distance if restaurant has no valid location
   const distanceKm = Math.min(rawDistanceKm, 15);
 
   let deliveryFee = Math.round(config.deliveryBaseFee + distanceKm * config.deliveryPerKmFee);
