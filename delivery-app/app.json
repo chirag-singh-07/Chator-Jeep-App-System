@@ -24,7 +24,7 @@
         "ITSAppUsesNonExemptEncryption": false
       },
       "config": {
-        "googleMapsApiKey": "YOUR_GOOGLE_MAPS_API_KEY_HERE"
+        "googleMapsApiKey": "AIzaSyC4UEJcxgqwDxo1CRy4Lpy9zH7GnqN4lwg"
       }
     },
     "android": {
@@ -54,7 +54,7 @@
       "predictiveBackGestureEnabled": false,
       "config": {
         "googleMaps": {
-          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY_HERE"
+          "apiKey": "AIzaSyC4UEJcxgqwDxo1CRy4Lpy9zH7GnqN4lwg"
         }
       }
     },
@@ -94,6 +94,7 @@
           },
           "android": {
             "compileSdkVersion": 36,
+            "targetSdkVersion": 36,
             "usesCleartextTraffic": true
           }
         }
