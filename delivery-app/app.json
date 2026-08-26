@@ -31,13 +31,6 @@
       "package": "com.chatorijeeb.delivery",
       "versionCode": 4,
       "googleServicesFile": "./google-services.json",
-      "blockedPermissions": [
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.ACCESS_BACKGROUND_LOCATION",
-        "android.permission.FOREGROUND_SERVICE",
-        "android.permission.FOREGROUND_SERVICE_LOCATION"
-      ],
       "statusBar": {
         "backgroundColor": "#000000",
         "barStyle": "light-content"
@@ -66,6 +59,12 @@
       "expo-router",
       "@react-native-firebase/app",
       "@react-native-firebase/messaging",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow location access to keep rider tracking accurate during delivery, even when the app is in the background."
+        }
+      ],
       [
         "expo-notifications",
         {
