@@ -16,6 +16,7 @@ type BulkActionBarProps = {
   onApprove: () => void;
   onReject: () => void;
   onSuspend: () => void;
+  onDelete: () => void;
   onExport: () => void;
   onClose: () => void;
   remarks: string;
@@ -28,6 +29,7 @@ export function BulkActionBar({
   onApprove,
   onReject,
   onSuspend,
+  onDelete,
   onExport,
   onClose,
   remarks,
@@ -97,6 +99,16 @@ export function BulkActionBar({
                 >
                   <AlertCircle className="mr-2 h-4 w-4" />
                   Suspend
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
+                  onClick={onDelete}
+                  disabled={isLoading}
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Delete
                 </Button>
 
                 {/* More Options */}

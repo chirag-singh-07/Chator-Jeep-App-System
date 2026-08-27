@@ -451,6 +451,17 @@ export const listAllPartners = async () => {
   return DeliveryPartner.find().sort({ createdAt: -1 });
 };
 
+export const adminDeletePartner = async (partnerId: string) => {
+  const partner = await repo.deleteDeliveryPartnerById(partnerId);
+  if (!partner) {
+    throw new AppError("Delivery partner not found", 404);
+  }
+  // Optionally delete the user as well if they were solely a delivery partner, 
+  // but for safety we'll just delete the delivery profile for now or delete the user too.
+  await User.findByIdAndDelete(partner.userId);
+  return { success: true, message: "Delivery partner deleted successfully" };
+};
+
 export const adminCreateDeliveryPartner = async (input: {
   name: string;
   email: string;

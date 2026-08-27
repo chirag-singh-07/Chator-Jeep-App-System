@@ -110,8 +110,8 @@ export function DeliveryPartnerCreatePage() {
     }
 
     // Address validation
-    if (!city.trim()) newErrors.city = "City is required";
-    if (!state.trim()) newErrors.state = "State is required";
+    if (!city.trim() || city.trim().length < 2) newErrors.city = "City must be at least 2 characters";
+    if (!state.trim() || state.trim().length < 2) newErrors.state = "State must be at least 2 characters";
     if (!/^\d{6}$/.test(pincode)) newErrors.pincode = "Enter a valid 6-digit PIN code";
 
     setErrors(newErrors);
@@ -143,10 +143,10 @@ export function DeliveryPartnerCreatePage() {
               }
             : undefined,
         address: {
-          buildingName: buildingName.trim(),
-          streetName: streetName.trim(),
-          landmark: landmark.trim(),
-          area: area.trim(),
+          buildingName: buildingName.trim() || undefined,
+          streetName: streetName.trim() || undefined,
+          landmark: landmark.trim() || undefined,
+          area: area.trim() || undefined,
           city: city.trim(),
           state: state.trim(),
           pincode: pincode.trim(),

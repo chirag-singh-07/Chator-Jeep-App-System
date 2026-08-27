@@ -57,3 +57,6 @@ export const resetRiderAfterDelivery = (
     payload,
     { new: true }
   ).exec();
+
+export const deleteDeliveryPartnerById = (id: string): Promise<IDeliveryPartner | null> =>
+  DeliveryPartner.findByIdAndDelete(new Types.ObjectId(id)).exec();

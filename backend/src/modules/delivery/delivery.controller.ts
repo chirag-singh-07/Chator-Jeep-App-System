@@ -69,3 +69,8 @@ export const adminCreatePartner = asyncHandler(async (req: AuthenticatedRequest,
   const partner = await service.adminCreateDeliveryPartner(req.body);
   res.status(201).json(partner);
 });
+
+export const adminDeletePartner = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const result = await service.adminDeletePartner(req.params.partnerId as string);
+  res.status(200).json(result);
+});

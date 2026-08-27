@@ -62,17 +62,17 @@ export function PartnerCard({
   return (
     <Card
       className={cn(
-        "overflow-hidden rounded-2xl transition-all duration-200",
+        "overflow-hidden rounded-2xl transition-all duration-300 transform-gpu",
         isPending &&
-          "border-orange-300/60 bg-linear-to-br from-orange-50/50 to-orange-50/25 shadow-lg shadow-orange-200/30 hover:shadow-orange-300/40",
+          "border-orange-300/60 bg-linear-to-br from-orange-50/60 to-orange-50/20 shadow-lg shadow-orange-200/20 hover:shadow-orange-300/40 hover:-translate-y-1 hover:border-orange-400/60",
         isApproved &&
-          "border-emerald-200/50 bg-linear-to-br from-emerald-50/30 to-emerald-50/10 hover:border-emerald-300/70",
-        isBlocked && "border-red-200/30 bg-red-50/20 opacity-75",
-        isRejected && "border-rose-200/30 bg-rose-50/20 opacity-60",
+          "border-emerald-200/50 bg-linear-to-br from-emerald-50/40 to-emerald-50/10 shadow-sm hover:shadow-emerald-200/40 hover:border-emerald-400/60 hover:-translate-y-1",
+        isBlocked && "border-red-200/30 bg-red-50/30 opacity-75 grayscale-[0.2] hover:grayscale-0 hover:-translate-y-1",
+        isRejected && "border-rose-200/30 bg-rose-50/30 opacity-60 grayscale-[0.5]",
         !isPending &&
           !isBlocked &&
           !isRejected &&
-          "border-muted/30 bg-background hover:border-muted/50"
+          "border-muted/30 bg-background/60 backdrop-blur-md shadow-xs hover:shadow-xl hover:border-primary/20 hover:-translate-y-1"
       )}
     >
       <CardContent className="space-y-3 p-4">
@@ -87,8 +87,8 @@ export function PartnerCard({
             />
 
             <div className="flex-1">
-              <div className="flex items-center gap-2.5">
-                <div className="h-10 w-10 overflow-hidden rounded-full bg-muted ring-2 ring-offset-2 ring-offset-background ring-muted/30">
+              <div className="flex items-center gap-3">
+                <div className="relative h-11 w-11 overflow-hidden rounded-full bg-muted shadow-xs ring-2 ring-offset-2 ring-offset-background transition-all duration-300 group-hover:scale-105 group-hover:ring-primary/40 ring-muted/30">
                   <img
                     src={
                       partner.profilePhoto ||
@@ -99,8 +99,8 @@ export function PartnerCard({
                   />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-foreground">{partner.fullName}</p>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  <p className="truncate text-sm font-bold text-foreground">{partner.fullName}</p>
+                  <p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground/80">
                     {partner.vehicleType || "Bike"}
                   </p>
                 </div>
@@ -112,11 +112,11 @@ export function PartnerCard({
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 rounded-lg p-0">
-                <MoreVertical className="h-4 w-4" />
+              <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full p-0 hover:bg-muted/50 data-[state=open]:bg-muted/50">
+                <MoreVertical className="h-4 w-4 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="rounded-xl">
+            <DropdownMenuContent align="end" className="rounded-xl shadow-xl border-muted/20">
               <DropdownMenuItem onClick={() => onViewDetails(partner)}>View Details</DropdownMenuItem>
               <DropdownMenuSeparator />
               {isPending && (
@@ -146,18 +146,18 @@ export function PartnerCard({
           </DropdownMenu>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1.5 truncate">
-            <Phone className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">{partner.phoneNumber}</span>
+        <div className="grid grid-cols-2 gap-3 rounded-xl bg-muted/20 p-3 text-xs text-muted-foreground border border-muted/10">
+          <div className="flex items-center gap-2 truncate">
+            <Phone className="h-3.5 w-3.5 shrink-0 text-primary/70" />
+            <span className="truncate font-medium">{partner.phoneNumber}</span>
           </div>
-          <div className="flex items-center gap-1.5 truncate">
-            <Mail className="h-3.5 w-3.5 shrink-0" />
+          <div className="flex items-center gap-2 truncate">
+            <Mail className="h-3.5 w-3.5 shrink-0 text-primary/70" />
             <span className="truncate">{partner.email}</span>
           </div>
-          <div className="col-span-2 flex items-center gap-1.5 truncate">
-            <MapPin className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">{partner.address?.city || "Location pending"}</span>
+          <div className="col-span-2 flex items-center gap-2 truncate">
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-primary/70" />
+            <span className="truncate text-foreground/80">{partner.address?.city || "Location pending"}</span>
           </div>
         </div>
 
@@ -166,14 +166,14 @@ export function PartnerCard({
             <div key={idx} className="flex-1">
               <div
                 className={cn(
-                  "flex h-6 items-center justify-center rounded-lg text-xs font-medium transition-all",
+                  "flex h-7 items-center justify-center rounded-md text-[11px] font-semibold tracking-wide transition-all",
                   doc.status === "completed"
-                    ? "bg-emerald-100 text-emerald-700"
-                    : "bg-muted text-muted-foreground"
+                    ? "bg-emerald-100/80 text-emerald-700 shadow-xs border border-emerald-200/50"
+                    : "bg-muted/50 text-muted-foreground/70 border border-muted/20"
                 )}
               >
                 {doc.status === "completed" ? (
-                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  <CheckCircle2 className="h-3.5 w-3.5 drop-shadow-xs" />
                 ) : (
                   <span>{doc.label.charAt(0)}</span>
                 )}
@@ -207,13 +207,13 @@ export function PartnerCard({
           </div>
         )}
 
-        <div className="flex gap-2 pt-1">
+        <div className="flex gap-2 pt-2">
           {isPending ? (
             <>
               <Button
                 size="sm"
                 variant="default"
-                className="h-7 flex-1 rounded-lg text-xs"
+                className="h-8 flex-1 rounded-lg text-xs font-semibold shadow-md hover:shadow-lg transition-all"
                 onClick={() => onUpdateStatus(partner._id, "approved")}
               >
                 Approve
@@ -221,7 +221,7 @@ export function PartnerCard({
               <Button
                 size="sm"
                 variant="outline"
-                className="h-7 flex-1 rounded-lg text-xs"
+                className="h-8 flex-1 rounded-lg text-xs font-semibold hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-colors"
                 onClick={() => onUpdateStatus(partner._id, "rejected")}
               >
                 Reject
@@ -231,10 +231,10 @@ export function PartnerCard({
             <Button
               size="sm"
               variant="ghost"
-              className="h-7 w-full rounded-lg text-xs hover:bg-muted/60"
+              className="h-8 w-full rounded-lg text-xs font-medium bg-muted/30 hover:bg-primary/10 hover:text-primary transition-colors group"
               onClick={() => onViewDetails(partner)}
             >
-              View Details <ArrowRight className="ml-1 h-3 w-3" />
+              View Details <ArrowRight className="ml-1.5 h-3.5 w-3.5 opacity-70 group-hover:translate-x-1 group-hover:opacity-100 transition-all" />
             </Button>
           )}
         </div>

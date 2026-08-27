@@ -55,6 +55,8 @@ interface DeliveryPartnerState {
   fetchPartners: () => Promise<void>;
   updateStatus: (partnerId: string, status: PartnerStatus, remarks?: string) => Promise<void>;
   createPartner: (data: CreatePartnerInput) => Promise<{ success: boolean; partner?: DeliveryPartner }>;
+  deletePartner: (partnerId: string) => Promise<void>;
+  deleteBulkPartners: (partnerIds: string[]) => Promise<void>;
 }
 
 export interface CreatePartnerInput {
@@ -143,8 +145,42 @@ export const useDeliveryPartnerStore = create<DeliveryPartnerState>((set) => ({
       return { success: true, partner };
     } catch (error: any) {
       set({ isCreating: false });
-      const message = error.response?.data?.message || error.message || "Failed to create delivery partner";
+      const responseData = error.response?.data;
+      let message = responseData?.message || error.message || "Failed to create delivery partner";
+      if (responseData?.errors) {
+        const errorDetails = Object.entries(responseData.errors)
+          .map(([field, msgs]: [string, any]) => `${field}: ${msgs.join(", ")}`)
+          .join(" | ");
+        message = `${message} - ${errorDetails}`;
+      }
       throw new Error(message);
+    }
+  },
+
+  deletePartner: async (partnerId: string) => {
+    try {
+      await apiClient.delete(`/delivery/admin/partners/${partnerId}`);
+      set((state) => ({
+        partners: state.partners.filter((p) => p._id !== partnerId),
+      }));
+    } catch (error) {
+      console.error("Failed to delete partner", error);
+      throw error;
+    }
+  },
+
+  deleteBulkPartners: async (partnerIds: string[]) => {
+    try {
+      // Loop over deletions since bulk delete API might not exist
+      await Promise.all(
+        partnerIds.map((id) => apiClient.delete(`/delivery/admin/partners/${id}`))
+      );
+      set((state) => ({
+        partners: state.partners.filter((p) => !partnerIds.includes(p._id)),
+      }));
+    } catch (error) {
+      console.error("Failed to delete partners in bulk", error);
+      throw error;
     }
   },
 }));

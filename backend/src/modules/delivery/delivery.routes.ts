@@ -342,6 +342,7 @@ router.patch("/admin/partners/:partnerId/status", authMiddleware, roleMiddleware
  *         description: Delivery partner created successfully
  */
 router.post("/admin/partners/create", authMiddleware, roleMiddleware([ROLES.ADMIN]), validate(adminCreateDeliveryPartnerSchema), controller.adminCreatePartner);
+router.delete("/admin/partners/:partnerId", authMiddleware, roleMiddleware([ROLES.ADMIN]), controller.adminDeletePartner);
 
 /**
  * @openapi
