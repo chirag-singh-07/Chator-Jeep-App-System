@@ -500,28 +500,33 @@ export const adminCreateDeliveryPartner = async (input: {
     role: ROLES.DELIVERY,
   });
 
-  // Create delivery partner profile
-  const partner = await repo.createDeliveryPartner({
-    userId: user._id as any,
-    fullName: input.name.trim(),
-    phoneNumber: normalizedPhone,
-    email: normalizedEmail,
-    profilePhoto: input.profilePhoto,
-    vehicleType: input.vehicleType as any,
-    vehicleFuelType: input.vehicleFuelType as any,
-    bikeNumber: input.bikeNumber.toUpperCase(),
-    drivingLicense: input.drivingLicense.toUpperCase(),
-    documents: input.documents,
-    address: input.address,
-    payoutMethod: input.payoutMethod as any,
-    upiId: input.upiId,
-    bankDetails: input.bankDetails,
-    status: input.autoApprove ? "approved" : "pending",
-    isOnline: false,
-    isAvailable: false,
-  });
-
-  return partner;
+  try {
+    // Create delivery partner profile
+    const partner = await repo.createDeliveryPartner({
+      userId: user._id as any,
+      fullName: input.name.trim(),
+      phoneNumber: normalizedPhone,
+      email: normalizedEmail,
+      profilePhoto: input.profilePhoto,
+      vehicleType: input.vehicleType as any,
+      vehicleFuelType: input.vehicleFuelType as any,
+      bikeNumber: input.bikeNumber?.toUpperCase(),
+      drivingLicense: input.drivingLicense?.toUpperCase(),
+      documents: input.documents,
+      address: input.address,
+      payoutMethod: input.payoutMethod as any,
+      upiId: input.upiId,
+      bankDetails: input.bankDetails,
+      status: input.autoApprove ? "approved" : "pending",
+      isOnline: false,
+      isAvailable: false,
+    });
+    return partner;
+  } catch (error) {
+    // Cleanup user if partner creation fails
+    await User.findByIdAndDelete(user._id);
+    throw error;
+  }
 };
 
 export const listAssignedOrders = async (riderId: string) => {

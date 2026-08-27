@@ -111,7 +111,7 @@ const deliveryPartnerSchema = new Schema<IDeliveryPartner>(
     payoutMethod: { type: String, enum: ["UPI", "BANK_ACCOUNT"], default: "BANK_ACCOUNT" },
     upiId: { type: String, trim: true },
     bankDetails: {
-      accountHolderName: { type: String, required: true },
+      accountHolderName: { type: String, required: function(this: any) { return this.payoutMethod === "BANK_ACCOUNT"; } },
       accountNumber: { type: String },
       ifscCode: { type: String, uppercase: true },
       bankName: { type: String },
