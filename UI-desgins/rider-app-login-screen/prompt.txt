@@ -1,0 +1,300 @@
+# Prompt: Update Chatori Jeeb Expo App Login UI Using UI-Designs Reference
+
+I already have a **fully working Expo / React Native app** for the **Chatori Jeeb Delivery App**. The application is already developed, connected to the backend, working correctly, and is currently live on the **Google Play Console**.
+
+I do **NOT** want to rebuild or restructure the application.
+
+Your task is specifically to **update the existing Login Screen UI only**, while keeping all existing functionality exactly as it is.
+
+## IMPORTANT: Check My UI Reference First
+
+I have already created the new Login Screen design in **HTML, CSS, and JavaScript** and stored the complete design/code inside the project at:
+
+`UI-designs/`
+
+Before making any changes:
+
+1. Locate the **`UI-designs` folder** in the project.
+2. Inspect all relevant HTML, CSS, JS, images, icons, and assets related to the login screen.
+3. Run/open the HTML design if necessary so you can properly understand how the final screen is supposed to look.
+4. Use that design as the **primary visual reference**.
+5. Recreate that UI accurately in **React Native / Expo**.
+6. Do NOT simply copy HTML/CSS into the Expo application.
+7. Convert the design properly into native React Native components and styles.
+8. Match the reference as closely as possible in terms of:
+
+   * Layout
+   * Spacing
+   * Typography
+   * Blue/white color theme
+   * Header design
+   * Background shapes
+   * Border radius
+   * Input fields
+   * Shadows
+   * Buttons
+   * Icons
+   * Alignment
+   * Visual hierarchy
+   * Mobile proportions
+
+The **`UI-designs` folder is the source of truth for the new visual design.**
+
+## Existing App Must Remain Working
+
+Before changing the login screen, inspect the existing implementation and understand how the current login system works.
+
+The app is already in production, so **do not break, replace, mock, or unnecessarily refactor any working functionality.**
+
+Preserve the existing:
+
+* Login API
+* Backend endpoints
+* Authentication logic
+* Email/mobile login logic
+* Password authentication
+* Form validation
+* Login request/response handling
+* Token handling
+* Session management
+* AsyncStorage / SecureStore implementation
+* State management
+* User/driver data
+* Error handling
+* Loading states
+* Navigation
+* Post-login redirect
+* Forgot Password functionality
+* Registration/Create Account functionality
+* API configuration
+* Environment variables
+* Existing production configuration
+
+**Do not create dummy authentication.**
+
+The new UI must be connected to the **same existing production login functionality**.
+
+## New Login Screen Design
+
+Use the design available inside `UI-designs/`.
+
+The new screen should follow the **blue and white Chatori Jeeb Delivery Partner App theme**.
+
+### Header Section
+
+Create the improved blue header from the reference design.
+
+It should contain:
+
+**Chatori Jeeb**
+`DELIVERY PARTNER APP`
+
+Include the visual branding/logo/icon used in the reference.
+
+Add the small status-style badge:
+
+**● Ready for deliveries**
+
+Main heading:
+
+**Deliver more.
+Earn better.**
+
+Supporting text:
+
+**Sign in to manage your delivery orders, track your daily activity and start delivering with Chatori Jeeb.**
+
+Recreate the premium blue gradient/header appearance from the reference design, including the decorative background elements and delivery/scooter visual where applicable.
+
+Do not use random emojis if proper icons/assets are available in the project. Prefer the existing Chatori Jeeb branding and proper Expo-compatible icons.
+
+## Login Form
+
+Below the header:
+
+**DRIVER LOGIN**
+
+### Welcome Back 👋
+
+**Sign in using your registered details to continue.**
+
+Then show the existing login fields.
+
+### Email or Mobile Number
+
+Placeholder:
+
+`Enter email or mobile number`
+
+### Password
+
+Placeholder:
+
+`Enter your password`
+
+Include a proper password visibility toggle.
+
+Keep:
+
+**Remember me**
+
+and
+
+**Forgot Password?**
+
+The main CTA should be:
+
+**Login to Continue →**
+
+Below it:
+
+**New delivery partner? Create Account**
+
+At the bottom:
+
+**Secure login powered by Chatori Jeeb**
+
+## Remove Google Login
+
+There should be **NO Google login button**.
+
+Also remove any:
+
+* "Continue with Google"
+* Google icon
+* Social authentication divider
+* "OR CONTINUE WITH"
+
+The login screen should focus entirely on the existing email/mobile + password authentication.
+
+## React Native / Expo Implementation
+
+Implement the design properly for the existing Expo project.
+
+Use the project's current architecture and dependencies wherever possible.
+
+Do not add unnecessary packages.
+
+Use React Native components such as:
+
+* `View`
+* `Text`
+* `TextInput`
+* `Pressable` / `TouchableOpacity`
+* `ScrollView`
+* `KeyboardAvoidingView`
+* `SafeAreaView`
+
+Use the project's existing icon library if one is already installed.
+
+If the design uses gradients and `expo-linear-gradient` is already available, use it. If it is not installed, first determine whether the same appearance can be achieved without introducing unnecessary dependencies.
+
+Make sure the screen works correctly with the keyboard and on smaller devices.
+
+## Responsive Design
+
+The reference HTML design represents the intended visual appearance, but the final implementation must be properly responsive in React Native.
+
+Test the UI at common Android screen sizes.
+
+Make sure there is:
+
+* No horizontal overflow
+* No clipped text
+* No overlapping elements
+* No keyboard overlap
+* No broken layout on smaller phones
+* Proper Safe Area handling
+* Correct spacing on larger devices
+* Correct button/input touch targets
+
+Do not hardcode the entire screen specifically for one device size.
+
+## Existing Functionality Comes First
+
+If there is any difference between the HTML/JS demo functionality inside `UI-designs` and the existing Expo application's real functionality:
+
+**KEEP THE EXISTING EXPO APP FUNCTIONALITY.**
+
+The `UI-designs` folder should be used for **visual design only**.
+
+The existing Expo implementation remains the source of truth for:
+
+* Authentication
+* API calls
+* Navigation
+* Business logic
+* Backend integration
+* User state
+* Production behavior
+
+## Do Not Modify Unrelated Screens
+
+Do not redesign the rest of the application.
+
+For this task, modify only the files/components required for the Login Screen and any directly related reusable styling/components.
+
+Avoid broad refactoring.
+
+Do not change:
+
+* Home screen
+* Order screens
+* Delivery screens
+* Profile
+* Dashboard
+* Backend
+* APIs
+* Database
+* Android configuration
+* Expo configuration
+* Package versions
+* Application ID/package name
+* Versioning
+* Signing configuration
+* Play Console configuration
+
+unless something is absolutely required for the login UI itself.
+
+## Final Verification
+
+After implementing the UI, run the project and verify the screen instead of assuming the code works.
+
+Check:
+
+1. App starts successfully.
+2. Login screen renders correctly.
+3. Design closely matches the files inside `UI-designs/`.
+4. Email/mobile input works.
+5. Password input works.
+6. Show/hide password works.
+7. Remember Me works as it did previously.
+8. Forgot Password still works.
+9. Create Account still works.
+10. Login button calls the existing real authentication system.
+11. Loading state works.
+12. Invalid credentials show the existing error correctly.
+13. Successful login redirects correctly.
+14. Existing session/token handling remains intact.
+15. Keyboard does not cover the form.
+16. Android back/navigation behavior remains correct.
+17. There are no new TypeScript, Expo, Metro, or runtime errors.
+18. No existing production functionality has been broken.
+
+Also compare the implemented React Native screen against the original design inside **`UI-designs/`** after implementation and fix noticeable visual differences.
+
+### Most Important Rule
+
+**This is a UI update to an existing production app, NOT a new app build.**
+
+Inspect:
+
+**Existing Expo Login Screen → Existing Authentication Logic → `UI-designs/` Reference → Implement New UI → Reconnect Existing Logic → Run & Test**
+
+Do not replace working production code unnecessarily.
+
+The final result should visually match the **`UI-designs` login design** while preserving **100% of the existing Chatori Jeeb app's working login functionality.**
+
+
+Note : do not used the emojis only used the real icons for the apps
+       so keep that in your mind

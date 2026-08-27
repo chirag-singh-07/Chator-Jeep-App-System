@@ -103,7 +103,7 @@ const processUserPeriodicNotification = async (
   }
 
   // Dedup key: ensures this exact template is only sent once per user per day
-  const deduplicationKey = `periodic:${userId}:${selected.templateId}:${todayIst}`;
+  const deduplicationKey = `periodic_${userId}_${selected.templateId}_${todayIst}`;
 
   const jobData: NotificationJobData = {
     userId,

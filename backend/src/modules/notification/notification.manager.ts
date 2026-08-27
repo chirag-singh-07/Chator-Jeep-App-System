@@ -76,7 +76,7 @@ export class NotificationManager {
       title,
       body,
       language,
-      deduplicationKey: `order:${orderId}:status:PLACED`,
+      deduplicationKey: `order_${orderId}_status_PLACED`,
       data: {
         orderId,
         orderAmount: String(itemsTotal),
@@ -95,7 +95,7 @@ export class NotificationManager {
       title: "Payment Confirmed ✅",
       body: `Your ${gatewayLabel} payment was successful. Your order is now placed.`,
       language: "en",
-      deduplicationKey: `order:${orderId}:payment:confirmed`,
+      deduplicationKey: `order_${orderId}_payment_confirmed`,
       data: { orderId, gateway: gatewayLabel, screen: "order-details" },
     });
   }
@@ -149,7 +149,7 @@ export class NotificationManager {
       title,
       body,
       language,
-      deduplicationKey: `order:${orderId}:status:${status}`,
+      deduplicationKey: `order_${orderId}_status_${status}`,
       data: {
         orderId,
         status,
@@ -181,7 +181,7 @@ export class NotificationManager {
       title,
       body,
       language,
-      deduplicationKey: `order:${orderId}:status:CANCELLED`,
+      deduplicationKey: `order_${orderId}_status_CANCELLED`,
       data: { orderId, reason: reason || "", screen: "order-details" },
     });
   }
@@ -204,7 +204,7 @@ export class NotificationManager {
       title,
       body,
       language,
-      deduplicationKey: `order:${orderId}:status:PICKED_UP`,
+      deduplicationKey: `order_${orderId}_status_PICKED_UP`,
       data: { orderId, partnerName, screen: "order-details" },
     });
   }
@@ -218,7 +218,7 @@ export class NotificationManager {
       title,
       body,
       language,
-      deduplicationKey: `order:${orderId}:status:DELIVERED`,
+      deduplicationKey: `order_${orderId}_status_DELIVERED`,
       data: { orderId, screen: "order-details" },
     });
   }
