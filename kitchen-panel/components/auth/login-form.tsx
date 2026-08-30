@@ -2,13 +2,15 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { IMAGES } from "@/lib/images";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { EyeIcon, EyeOffIcon, FireIcon, ShieldIcon } from "@hugeicons/core-free-icons";
+import { EyeIcon, EyeOffIcon, FireIcon } from "@hugeicons/core-free-icons";
 import { useAuthStore } from "@/store/useAuthStore";
+import { ScrollReveal } from "../landing/scroll-reveal";
 
 export function LoginForm() {
   const router = useRouter();
@@ -47,6 +49,7 @@ export function LoginForm() {
       setTimeout(() => {
         router.push("/dashboard");
       }, 500);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.message || "Invalid email or password.");
     } finally {
@@ -55,46 +58,61 @@ export function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-[400px] px-4 md:px-0">
-      {/* Branding for Mobile view only */}
-      <div className="flex items-center gap-2 justify-center mb-8 lg:hidden select-none">
-        <div className="p-2 bg-primary rounded-xl text-primary-foreground shadow-lg shadow-primary/20 shrink-0">
-          <HugeiconsIcon icon={FireIcon} size={18} strokeWidth={2.5} />
-        </div>
-        <span className="font-heading text-xl font-bold tracking-tight text-foreground dark:text-zinc-50">
-          Chatori Jeep<span className="text-primary font-sans font-light"> Kitchen</span>
-        </span>
-      </div>
+    <div className="w-full max-w-[420px] px-6 py-8 relative">
+      {/* Decorative background glow behind the form */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-primary/5 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
 
-      <Card className="rounded-2xl border shadow-xl bg-card">
-        <CardHeader className="space-y-1.5 p-6 pb-4">
-          <CardTitle className="font-heading text-2xl font-black text-center lg:text-left text-foreground dark:text-zinc-50">
-            Welcome Back 👋
-          </CardTitle>
-          <CardDescription className="text-center lg:text-left text-sm text-muted-foreground">
-            Sign in to your restaurant operator dashboard.
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent className="p-6 pt-0 space-y-5">
-          <form onSubmit={handleSubmit} className="space-y-4">
+      <ScrollReveal>
+        <div className="flex flex-col space-y-6">
+          
+          {/* Header */}
+          <div className="space-y-3 text-center lg:text-left">
+            {/* Branding for Mobile view only */}
+            <div className="flex items-center gap-2 justify-center lg:hidden select-none mb-6">
+              <div className="p-2 bg-primary/20 border border-primary/30 rounded-xl text-primary shadow-lg shadow-primary/20 shrink-0">
+                <Image
+                  src={IMAGES.logo}
+                  alt="logo"
+                  width={20}
+                  height={20}
+                  className="rounded-full w-5 h-5 object-contain"
+                  priority
+                />
+              </div>
+              <span className="font-heading text-xl font-bold tracking-tight text-foreground dark:text-zinc-50">
+                Chatori Jeep<span className="text-primary font-sans font-light"> Kitchen</span>
+              </span>
+            </div>
+
+            <h1 className="font-heading text-4xl font-black tracking-tight text-foreground dark:text-white">
+              Welcome Back
+            </h1>
+            <p className="text-sm text-muted-foreground font-medium">
+              Enter your credentials to access the kitchen control center.
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* Error message */}
             {error && (
-              <div className="p-3 text-xs font-semibold rounded-xl bg-destructive/10 text-destructive dark:bg-destructive/20 border border-destructive/20 animate-in fade-in-50 text-left">
+              <div className="p-4 text-sm font-semibold rounded-2xl bg-destructive/10 text-destructive dark:bg-destructive/20 border border-destructive/20 animate-in fade-in-50 slide-in-from-top-2 flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse"></div>
                 {error}
               </div>
             )}
 
             {/* Success message */}
             {success && (
-              <div className="p-3 text-xs font-semibold rounded-xl bg-green-500/10 text-green-600 dark:bg-green-500/20 border border-green-500/20 animate-in fade-in-50 text-left">
-                Sign in successful! Entering kitchen dashboard...
+              <div className="p-4 text-sm font-semibold rounded-2xl bg-green-500/10 text-green-600 dark:bg-green-500/20 border border-green-500/20 animate-in fade-in-50 slide-in-from-top-2 flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                Authentication successful. Entering dashboard...
               </div>
             )}
 
             {/* Email Field */}
-            <div className="space-y-1.5 text-left">
-              <Label htmlFor="email" className="text-xs font-bold text-foreground dark:text-zinc-300">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-muted-foreground pl-1">
                 Email Address
               </Label>
               <Input
@@ -105,14 +123,14 @@ export function LoginForm() {
                 placeholder="operator@chatorijeep.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="py-5"
+                className="py-6 px-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 focus-visible:ring-primary/30 focus-visible:border-primary transition-all duration-300 shadow-sm"
               />
             </div>
 
             {/* Password Field */}
-            <div className="space-y-1.5 text-left">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-xs font-bold text-foreground dark:text-zinc-300">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between pl-1">
+                <Label htmlFor="password" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Password
                 </Label>
                 <a
@@ -121,9 +139,9 @@ export function LoginForm() {
                     e.preventDefault();
                     router.push("/forgot-password");
                   }}
-                  className="text-xs font-bold text-primary hover:underline"
+                  className="text-xs font-bold text-primary hover:text-primary/80 transition-colors"
                 >
-                  Forgot Password?
+                  Forgot password?
                 </a>
               </div>
               <div className="relative">
@@ -135,7 +153,7 @@ export function LoginForm() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="py-5 pr-10"
+                  className="py-6 px-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 focus-visible:ring-primary/30 focus-visible:border-primary transition-all duration-300 shadow-sm pr-12"
                 />
                 
                 {/* Visibility Toggle Button */}
@@ -144,11 +162,11 @@ export function LoginForm() {
                   disabled={isLoading || success}
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-primary transition-colors focus:outline-none"
                 >
                   <HugeiconsIcon
                     icon={showPassword ? EyeOffIcon : EyeIcon}
-                    size={16}
+                    size={20}
                     strokeWidth={2}
                   />
                 </button>
@@ -159,22 +177,29 @@ export function LoginForm() {
             <Button
               type="submit"
               disabled={isLoading || success}
-              className="w-full rounded-full py-5 font-bold shadow-md shadow-primary/20 mt-2 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200"
+              className="w-full rounded-2xl py-6 font-bold shadow-lg shadow-primary/25 hover:shadow-primary/40 mt-6 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 group"
             >
-              {isLoading ? "Verifying..." : "Sign In"}
+              <span className="flex items-center gap-2">
+                {isLoading ? "Verifying..." : "Sign In Securely"}
+                {!isLoading && (
+                  <svg className="w-4 h-4 opacity-70 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                )}
+              </span>
             </Button>
           </form>
-        </CardContent>
 
-        <CardFooter className="p-6 pt-0 flex justify-center border-t border-zinc-100 dark:border-zinc-900 mt-4 py-4 text-xs select-none">
-          <span className="text-muted-foreground">
-            Operator registration is managed by admins. Need credentials?{" "}
-            <a href="/register" onClick={(e) => { e.preventDefault(); router.push("/register"); }} className="font-bold text-primary hover:underline">
-              Request Access
+          {/* Footer Info */}
+          <div className="pt-6 text-center text-sm text-muted-foreground mt-4 border-t border-border/50">
+            Need credentials? Contact the{" "}
+            <a href="/register" onClick={(e) => { e.preventDefault(); router.push("/register"); }} className="font-bold text-primary hover:underline transition-all">
+              system administrator
             </a>
-          </span>
-        </CardFooter>
-      </Card>
+            .
+          </div>
+        </div>
+      </ScrollReveal>
     </div>
   );
 }

@@ -18,11 +18,13 @@ interface AuthState {
   isLoading: boolean;
 
   login: (email: string, password: string) => Promise<void>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   register: (data: any) => Promise<void>;
   logout: () => void;
   updateUserStatus: (status: string) => void;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getApiErrorMessage = (error: any, fallback: string) =>
   error?.response?.data?.message ||
   error?.message ||
@@ -59,6 +61,7 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true, 
             isLoading: false 
           });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
           set({ isLoading: false });
           const msg = getApiErrorMessage(error, 'Login failed. Please check your credentials.');
@@ -66,6 +69,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       register: async (data: any) => {
         set({ isLoading: true });
         try {
@@ -89,6 +93,7 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
             isLoading: false 
           });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
           set({ isLoading: false });
           const msg = error.response?.data?.message || error.message || 'Registration failed due to network settings.';

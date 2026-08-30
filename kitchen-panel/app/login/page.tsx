@@ -11,12 +11,14 @@ export default function LoginPage() {
   return (
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-12 bg-background font-sans">
       {/* Left Column - Branding (Desktop only) */}
-      <div className="lg:col-span-5 h-full">
+      <div className="lg:col-span-5 h-full relative overflow-hidden">
         <AuthBranding />
       </div>
 
       {/* Right Column - Authentication Card */}
-      <div className="lg:col-span-7 flex flex-col justify-center items-center py-12 lg:py-0 bg-muted/10 dark:bg-black/10 min-h-screen">
+      <div className="lg:col-span-7 flex flex-col justify-center items-center py-12 lg:py-0 bg-white dark:bg-zinc-950 min-h-screen relative overflow-hidden">
+        {/* Subtle grid pattern background for the form side */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
         <LoginForm />
       </div>
     </div>

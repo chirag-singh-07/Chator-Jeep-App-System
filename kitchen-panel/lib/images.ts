@@ -3,6 +3,7 @@
  * Remote URLs from Unsplash for food photography, banners, and avatars.
  */
 export const IMAGES = {
+  logo: "/logo.png",
   // Hero Section
   hero: {
     main: "https://images.unsplash.com/photo-1606787366850-de6330128bfc?w=1000&auto=format&fit=crop&q=80",

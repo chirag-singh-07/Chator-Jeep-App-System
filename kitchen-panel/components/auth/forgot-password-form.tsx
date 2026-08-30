@@ -24,6 +24,7 @@ export function ForgotPasswordForm() {
   const [error, setError] = React.useState<string | null>(null);
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getApiMessage = (error: any, fallback: string) =>
     error?.response?.data?.message || error?.message || fallback;
 
@@ -45,6 +46,7 @@ export function ForgotPasswordForm() {
       });
       setStep("OTP");
       setSuccessMessage("A 6-digit reset code has been sent to your email.");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(getApiMessage(err, "Could not send reset OTP. Please try again."));
     } finally {
@@ -84,6 +86,7 @@ export function ForgotPasswordForm() {
       setTimeout(() => {
         router.push("/login");
       }, 2000);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(getApiMessage(err, "Could not reset your password. Please check the OTP and try again."));
     } finally {

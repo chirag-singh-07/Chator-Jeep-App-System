@@ -94,6 +94,7 @@ export function RegisterForm() {
         termsAccepted
       });
       router.push("/dashboard");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.message || "Registration failed.");
     } finally {

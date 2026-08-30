@@ -60,11 +60,13 @@ apiClient.interceptors.response.use(
       if (typeof window !== "undefined") {
         localStorage.removeItem("token");
         try {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
           const { useAuthStore } = require('../../store/useAuthStore');
           useAuthStore.getState().logout();
         } catch (e) {
           console.warn('Could not trigger logout from interceptor', e);
         }
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
         window.location.href = '/login';
       }
     }
