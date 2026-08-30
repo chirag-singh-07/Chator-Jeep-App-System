@@ -192,9 +192,9 @@ export function LoginForm() {
 
           {/* Footer Info */}
           <div className="pt-6 text-center text-sm text-muted-foreground mt-4 border-t border-border/50">
-            Need credentials? Contact the{" "}
+            Don&apos;t have an account?{" "}
             <a href="/register" onClick={(e) => { e.preventDefault(); router.push("/register"); }} className="font-bold text-primary hover:underline transition-all">
-              system administrator
+              Register here
             </a>
             .
           </div>

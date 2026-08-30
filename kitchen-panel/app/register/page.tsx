@@ -1,16 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { FireIcon } from "@hugeicons/core-free-icons";
-
 import { RegisterForm } from "@/components/auth/register-form";
 import { AuthBranding } from "@/components/auth/auth-branding";
 
 export const metadata: Metadata = {
   title: "Chatori Jeep Kitchen | Sign Up",
-  description: "Create an account at Chatori Jeep Kitchen to order your street-style favourites.",
+  description: "Register your kitchen with Chatori Jeep and start managing orders in real time.",
 };
 
 export default function RegisterPage() {
@@ -21,7 +15,7 @@ export default function RegisterPage() {
         <AuthBranding />
       </div>
 
-      {/* Right Column - Authentication Card */}
+      {/* Right Column - Registration Form */}
       <div className="lg:col-span-7 flex flex-col justify-center items-center py-12 lg:py-0 bg-muted/10 dark:bg-black/10 min-h-screen">
         <RegisterForm />
       </div>
