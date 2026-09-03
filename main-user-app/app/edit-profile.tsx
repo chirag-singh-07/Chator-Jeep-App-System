@@ -11,24 +11,25 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/store/useAuthStore';
 import * as Haptics from 'expo-haptics';
-import api from '@/lib/api';
+import { getAvatarUrl } from '@/lib/utils';
+// import api from '@/lib/api';
 
 const indianPhoneRegex = /^[6-9]\d{9}$/;
 
 export default function EditProfileScreen() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
-  const [phone, setPhone] = useState(''); // Assuming phone might be added
+  const [phone, setPhone] = useState(user?.phone || ''); 
   const [loading, setLoading] = useState(false);
 
   const handleUpdate = async () => {
@@ -58,91 +59,93 @@ export default function EditProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       
       <SafeAreaView style={{ flex: 1 }}>
-        <View style={styles.navBar}>
+        <View style={styles.pageHeader}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
+            <Ionicons name="arrow-back" size={20} color="#161616" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Edit Profile</Text>
-          <View style={{ width: 45 }} />
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerTitle}>Personal Information</Text>
+            <Text style={styles.headerSubtitle}>Edit your profile details</Text>
+          </View>
         </View>
 
         <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={{ flex: 1 }}
         >
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-            <View style={styles.avatarSection}>
-               <View style={styles.avatarCircle}>
-                  <Ionicons name="person" size={50} color="#DDD" />
-                  <TouchableOpacity style={styles.editAvatarBtn}>
-                     <Ionicons name="camera" size={20} color="#FFF" />
-                  </TouchableOpacity>
-               </View>
-               <Text style={styles.avatarText}>Change Photo</Text>
-            </View>
-
-            <View style={styles.form}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Full Name</Text>
-                <View style={styles.inputContainer}>
-                  <Ionicons name="person-outline" size={20} color={Colors.light.textMuted} style={styles.inputIcon} />
-                  <TextInput
-                    style={styles.input}
-                    value={name}
-                    onChangeText={setName}
-                    placeholder="Your Name"
-                  />
-                </View>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.pageBody}>
+            <View style={styles.avatarEditor}>
+              <View style={styles.bigAvatar}>
+                {isAuthenticated ? (
+                  <Image source={{ uri: getAvatarUrl(user?.email || 'guest') }} style={styles.avatarImg} />
+                ) : (
+                  <Text style={styles.avatarInitials}>CJ</Text>
+                )}
               </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Email Address</Text>
-                <View style={styles.inputContainer}>
-                  <Ionicons name="mail-outline" size={20} color={Colors.light.textMuted} style={styles.inputIcon} />
-                  <TextInput
-                    style={styles.input}
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="name@example.com"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                  />
-                </View>
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Phone Number</Text>
-                <View style={styles.inputContainer}>
-                  <Ionicons name="call-outline" size={20} color={Colors.light.textMuted} style={styles.inputIcon} />
-                  <TextInput
-                    style={styles.input}
-                    value={phone}
-                    onChangeText={(value) => setPhone(value.replace(/\D/g, ""))}
-                    placeholder="10 digit mobile number"
-                    keyboardType="phone-pad"
-                    maxLength={10}
-                  />
-                </View>
+              
+              <View style={styles.avatarActions}>
+                <TouchableOpacity style={[styles.smallBtn, styles.smallBtnPrimary]}>
+                  <Ionicons name="camera" size={12} color="#111" style={{ marginRight: 4 }} />
+                  <Text style={styles.primaryBtnText}>Change Photo</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.smallBtn}>
+                  <Text style={styles.smallBtnText}>Remove</Text>
+                </TouchableOpacity>
               </View>
             </View>
-          </ScrollView>
 
-          <View style={styles.footer}>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Full Name</Text>
+              <TextInput
+                style={styles.field}
+                value={name}
+                onChangeText={setName}
+                placeholder="Chatori Jeeb User"
+                placeholderTextColor="#999"
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Phone Number</Text>
+              <TextInput
+                style={styles.field}
+                value={phone}
+                onChangeText={(value) => setPhone(value.replace(/\D/g, ""))}
+                placeholder="+91 98765 43210"
+                placeholderTextColor="#999"
+                keyboardType="phone-pad"
+                maxLength={10}
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Email Address</Text>
+              <TextInput
+                style={styles.field}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="user@chatorijeeb.com"
+                placeholderTextColor="#999"
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
+            
             <TouchableOpacity 
               style={[styles.saveBtn, loading && { opacity: 0.7 }]} 
               onPress={handleUpdate}
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#1A1A1A" />
+                <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.saveBtnText}>SAVE CHANGES</Text>
+                <Text style={styles.saveBtnText}>Save Changes</Text>
               )}
             </TouchableOpacity>
-          </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
@@ -152,116 +155,133 @@ export default function EditProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#fff',
   },
-  navBar: {
+  pageHeader: {
+    paddingHorizontal: 18,
+    paddingVertical: 17,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ECECEC',
+    backgroundColor: '#fff',
+    zIndex: 20,
   },
   backBtn: {
-    width: 45,
-    height: 45,
-    borderRadius: 15,
-    backgroundColor: '#F9FAFB',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#1A1A1A',
-  },
-  content: {
-    paddingHorizontal: 30,
-    paddingTop: 20,
-  },
-  avatarSection: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  avatarCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 45,
-    backgroundColor: '#F9FAFB',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#F3F4F6',
-  },
-  editAvatarBtn: {
-    position: 'absolute',
-    bottom: -5,
-    right: -5,
     width: 40,
     height: 40,
-    borderRadius: 15,
-    backgroundColor: Colors.light.primary,
+    borderRadius: 13,
+    backgroundColor: '#F4F4F4',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: '#FFF',
-  },
-  avatarText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: Colors.light.primary,
-    marginTop: 15,
-  },
-  form: {
-    gap: 25,
-  },
-  inputGroup: {
-    gap: 8,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: Colors.light.text,
-    marginLeft: 4,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    height: 60,
-    borderWidth: 1.5,
-    borderColor: '#F3F4F6',
-  },
-  inputIcon: {
     marginRight: 12,
   },
-  input: {
+  headerTextContainer: {
     flex: 1,
-    fontSize: 16,
-    color: Colors.light.text,
-    fontWeight: '600',
   },
-  footer: {
-    padding: 25,
-    backgroundColor: '#FFF',
+  headerTitle: {
+    fontSize: 17,
+    fontFamily: 'Inter-SemiBold',
+    color: '#161616',
   },
-  saveBtn: {
-    backgroundColor: Colors.light.primary,
-    height: 65,
-    borderRadius: 22,
+  headerSubtitle: {
+    fontSize: 10, // adjusted slightly for readability from 8px
+    color: '#838383',
+    marginTop: 3,
+    fontFamily: 'Inter-Regular',
+  },
+  pageBody: {
+    paddingHorizontal: 18,
+    paddingTop: 18,
+    paddingBottom: 35,
+  },
+  avatarEditor: {
+    alignItems: 'center',
+    paddingTop: 8,
+    paddingBottom: 22,
+  },
+  bigAvatar: {
+    width: 104,
+    height: 104,
+    borderRadius: 32,
+    backgroundColor: '#111',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.light.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 15,
-    elevation: 5,
+    overflow: 'hidden',
+  },
+  avatarImg: {
+    width: '100%',
+    height: '100%',
+  },
+  avatarInitials: {
+    color: '#fff',
+    fontSize: 32,
+    fontFamily: 'Inter-Black',
+  },
+  avatarActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 12,
+  },
+  smallBtn: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    backgroundColor: '#fff',
+    borderRadius: 11,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  smallBtnPrimary: {
+    backgroundColor: '#FFD400',
+    borderColor: '#FFD400',
+  },
+  primaryBtnText: {
+    fontSize: 10, // Adjusted from 9px
+    fontFamily: 'Inter-Black',
+    color: '#111',
+  },
+  smallBtnText: {
+    fontSize: 10, // Adjusted from 9px
+    fontFamily: 'Inter-Black',
+    color: '#111',
+  },
+  formGroup: {
+    marginBottom: 14,
+  },
+  label: {
+    fontSize: 11, // Adjusted from 9px for readability
+    fontFamily: 'Inter-Black',
+    color: '#161616',
+    marginBottom: 6,
+  },
+  field: {
+    width: '100%',
+    height: 47,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 13,
+    paddingHorizontal: 13,
+    backgroundColor: '#fff',
+    fontSize: 13, // Adjusted from 11px
+    fontFamily: 'Inter-Regular',
+    color: '#161616',
+  },
+  saveBtn: {
+    width: '100%',
+    height: 47,
+    borderRadius: 14,
+    backgroundColor: '#111',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 5,
   },
   saveBtnText: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: '#1A1A1A',
-    letterSpacing: 1,
-  },
+    color: '#fff',
+    fontSize: 12, // Adjusted from 10px
+    fontFamily: 'Inter-Black',
+  }
 });

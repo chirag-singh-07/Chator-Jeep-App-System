@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chatori Jeeb - Search</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --yellow: #FFD400;
+            --yellow-soft: #FFF8D0;
+            --ink: #151515;
+            --muted: #7C7C7C;
+            --line: #ECECEC;
+            --surface: #F7F7F7;
+            --white: #fff;
+            --green: #17A768;
+            --shadow: 0 12px 28px rgba(0, 0, 0, .07);
+        }
+
+        body {
+            font-family: Inter, sans-serif;
+            background: #ECECEC;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            color: var(--ink);
+        }
+
+        button,
+        input {
+            font: inherit
+        }
+
+        button {
+            cursor: pointer
+        }
+
+        .app {
+            width: 100%;
+            max-width: 430px;
+            min-height: 100vh;
+            background: #fff;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .header {
+            padding: 18px 18px 16px;
+            background: linear-gradient(180deg, #FFF5B4 0%, #fff 100%);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .topline {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            margin-bottom: 15px;
+        }
+
+        .backBtn {
+            width: 41px;
+            height: 41px;
+            border: 0;
+            border-radius: 13px;
+            background: #fff;
+            box-shadow: 0 7px 18px rgba(0, 0, 0, .07);
+        }
+
+        .titleWrap h1 {
+            font-size: 19px
+        }
+
+        .titleWrap p {
+            font-size: 9px;
+            color: #777;
+            margin-top: 3px
+        }
+
+        .searchBox {
+            height: 56px;
+            background: #fff;
+            border: 1.5px solid #E7E7E7;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 0 10px 0 15px;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, .05);
+        }
+
+        .searchBox:focus-within {
+            border-color: #D9B900;
+            box-shadow: 0 8px 22px rgba(255, 212, 0, .15)
+        }
+
+        .searchBox>i {
+            color: #6D6D6D
+        }
+
+        .searchBox input {
+            flex: 1;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            font-size: 13px;
+            min-width: 0;
+        }
+
+        .clearBtn,
+        .voiceBtn {
+            width: 37px;
+            height: 37px;
+            border: 0;
+            border-radius: 11px;
+            display: grid;
+            place-items: center;
+        }
+
+        .clearBtn {
+            background: #F4F4F4;
+            color: #666
+        }
+
+        .voiceBtn {
+            background: #111;
+            color: #fff
+        }
+
+        .content {
+            padding: 18px 18px 35px
+        }
+
+        .section {
+            margin-top: 26px
+        }
+
+        .section:first-child {
+            margin-top: 2px
+        }
+
+        .sectionHead {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 13px;
+        }
+
+        .sectionHead h2 {
+            font-size: 16px
+        }
+
+        .linkBtn {
+            border: 0;
+            background: transparent;
+            font-size: 10px;
+            font-weight: 800;
+            color: #806A00;
+        }
+
+        .recentList {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .recentItem {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 11px 0;
+            border-bottom: 1px solid #f2f2f2;
+        }
+
+        .recentLeft {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .recentIcon {
+            width: 34px;
+            height: 34px;
+            border-radius: 11px;
+            display: grid;
+            place-items: center;
+            background: #F5F5F5;
+            color: #777;
+            flex-shrink: 0;
+        }
+
+        .recentItem span {
+            font-size: 11px;
+            font-weight: 600
+        }
+
+        .deleteRecent {
+            width: 30px;
+            height: 30px;
+            border: 0;
+            border-radius: 10px;
+            background: transparent;
+            color: #aaa;
+        }
+
+        .trends {
+            display: flex;
+            gap: 9px;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            border: 1px solid #E8E8E8;
+            border-radius: 999px;
+            background: #fff;
+            padding: 9px 12px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .chip.active,
+        .chip:hover {
+            background: var(--yellow-soft);
+            border-color: var(--yellow);
+        }
+
+        .categoryRow {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .categoryRow::-webkit-scrollbar {
+            display: none
+        }
+
+        .cat {
+            min-width: 73px;
+            text-align: center;
+        }
+
+        .catIcon {
+            width: 65px;
+            height: 65px;
+            border-radius: 21px;
+            background: #F6F6F6;
+            display: grid;
+            place-items: center;
+            font-size: 30px;
+            border: 1px solid #EEEEEE;
+        }
+
+        .cat span {
+            display: block;
+            margin-top: 7px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .cat.active .catIcon {
+            background: var(--yellow-soft);
+            border-color: var(--yellow);
+        }
+
+        .resultCount {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 13px;
+        }
+
+        .resultCount strong {
+            font-size: 15px
+        }
+
+        .resultCount span {
+            font-size: 9px;
+            color: #777
+        }
+
+        .filterBtn {
+            border: 0;
+            background: #111;
+            color: #fff;
+            border-radius: 11px;
+            padding: 8px 10px;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .restaurant {
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 13px;
+            display: flex;
+            padding: 10px;
+            gap: 11px;
+            box-shadow: 0 7px 20px rgba(0, 0, 0, .035);
+        }
+
+        .restaurantImg {
+            width: 95px;
+            height: 95px;
+            min-width: 95px;
+            border-radius: 16px;
+            display: grid;
+            place-items: center;
+            font-size: 48px;
+            background: linear-gradient(145deg, #FFE7A7, #FFC95A);
+            position: relative;
+        }
+
+        .timeBadge {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            background: #fff;
+            border-radius: 8px;
+            padding: 4px 6px;
+            font-size: 7px;
+            font-weight: 800;
+        }
+
+        .rInfo {
+            flex: 1;
+            min-width: 0
+        }
+
+        .rTop {
+            display: flex;
+            justify-content: space-between;
+            gap: 7px;
+            align-items: center;
+        }
+
+        .rTop h3 {
+            font-size: 13px
+        }
+
+        .rating {
+            background: var(--yellow);
+            border-radius: 8px;
+            padding: 4px 6px;
+            font-size: 8px;
+            font-weight: 800;
+        }
+
+        .rInfo p {
+            font-size: 9px;
+            color: #7f7f7f;
+            margin-top: 5px;
+            line-height: 1.45;
+        }
+
+        .rMeta {
+            display: flex;
+            gap: 11px;
+            margin-top: 9px;
+            font-size: 8px;
+            font-weight: 700;
+            color: #626262;
+        }
+
+        .openBtn {
+            margin-top: 9px;
+            border: 0;
+            background: #111;
+            color: #fff;
+            padding: 7px 10px;
+            border-radius: 9px;
+            font-size: 8px;
+            font-weight: 800;
+        }
+
+        .dish {
+            display: flex;
+            gap: 11px;
+            align-items: center;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 9px;
+            margin-bottom: 11px;
+        }
+
+        .dishImg {
+            width: 76px;
+            height: 73px;
+            min-width: 76px;
+            border-radius: 15px;
+            display: grid;
+            place-items: center;
+            background: var(--yellow-soft);
+            font-size: 38px;
+        }
+
+        .dishInfo {
+            flex: 1
+        }
+
+        .dishInfo h4 {
+            font-size: 12px
+        }
+
+        .dishInfo p {
+            font-size: 8px;
+            color: #818181;
+            margin-top: 4px;
+            line-height: 1.4
+        }
+
+        .dishBottom {
+            margin-top: 7px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .price {
+            font-size: 11px;
+            font-weight: 800
+        }
+
+        .addBtn {
+            border: 1px solid #D4B600;
+            background: #FFF7C2;
+            color: #695500;
+            border-radius: 9px;
+            padding: 6px 10px;
+            font-size: 8px;
+            font-weight: 800;
+        }
+
+        .empty {
+            display: none;
+            text-align: center;
+            padding: 50px 15px;
+        }
+
+        .emptyIcon {
+            width: 88px;
+            height: 88px;
+            border-radius: 28px;
+            background: var(--yellow-soft);
+            display: grid;
+            place-items: center;
+            font-size: 35px;
+            margin: 0 auto 15px;
+        }
+
+        .empty h3 {
+            font-size: 16px
+        }
+
+        .empty p {
+            font-size: 10px;
+            color: #777;
+            line-height: 1.5;
+            margin-top: 6px
+        }
+
+        .empty button {
+            margin-top: 13px;
+            border: 0;
+            border-radius: 12px;
+            background: #111;
+            color: #fff;
+            padding: 10px 13px;
+            font-size: 9px;
+            font-weight: 800;
+        }
+
+        .cartToast {
+            position: fixed;
+            left: 50%;
+            bottom: 20px;
+            transform: translate(-50%, 25px);
+            opacity: 0;
+            background: #111;
+            color: #fff;
+            border-radius: 13px;
+            padding: 11px 15px;
+            font-size: 10px;
+            font-weight: 700;
+            transition: .2s;
+            z-index: 40;
+        }
+
+        .cartToast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .45);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 60;
+        }
+
+        .modal.show {
+            display: flex
+        }
+
+        .sheet {
+            width: 100%;
+            max-width: 430px;
+            border-radius: 26px 26px 0 0;
+            background: #fff;
+            padding: 20px;
+        }
+
+        .sheetBar {
+            width: 42px;
+            height: 4px;
+            border-radius: 10px;
+            background: #ddd;
+            margin: 0 auto 16px
+        }
+
+        .sheet h3 {
+            font-size: 16px
+        }
+
+        .filterRow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 13px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 10px;
+        }
+
+        .applyBtn {
+            width: 100%;
+            height: 45px;
+            border: 0;
+            border-radius: 13px;
+            background: #111;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+            margin-top: 14px;
+        }
+
+        @media(min-width:600px) {
+            .app {
+                box-shadow: 0 0 55px rgba(0, 0, 0, .14)
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+
+        <header class="header">
+            <div class="topline">
+                <button class="backBtn" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i></button>
+                <div class="titleWrap">
+                    <h1>Search</h1>
+                    <p>Find food, dishes and restaurants near you</p>
+                </div>
+            </div>
+
+            <div class="searchBox">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="searchInput" autocomplete="off" placeholder="Search 'Biryani', 'Pizza', 'Burger'...">
+                <button id="clearBtn" class="clearBtn" onclick="clearSearch()" style="display:none"><i
+                        class="fa-solid fa-xmark"></i></button>
+                <button class="voiceBtn" onclick="voiceSearch()"><i class="fa-solid fa-microphone"></i></button>
+            </div>
+        </header>
+
+        <main class="content">
+
+            <div id="discoverArea">
+
+                <section class="section">
+                    <div class="sectionHead">
+                        <h2>Recent searches</h2>
+                        <button class="linkBtn" onclick="clearRecent()">Clear all</button>
+                    </div>
+                    <div id="recentList" class="recentList">
+                        <div class="recentItem">
+                            <button class="recentLeft" style="border:0;background:none"
+                                onclick="searchTerm('Chicken Biryani')">
+                                <span class="recentIcon"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                                <span>Chicken Biryani</span>
+                            </button>
+                            <button class="deleteRecent" onclick="removeRecent(this)"><i
+                                    class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="recentItem">
+                            <button class="recentLeft" style="border:0;background:none"
+                                onclick="searchTerm('Pizza Junction')">
+                                <span class="recentIcon"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                                <span>Pizza Junction</span>
+                            </button>
+                            <button class="deleteRecent" onclick="removeRecent(this)"><i
+                                    class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="recentItem">
+                            <button class="recentLeft" style="border:0;background:none" onclick="searchTerm('Burger')">
+                                <span class="recentIcon"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                                <span>Burger</span>
+                            </button>
+                            <button class="deleteRecent" onclick="removeRecent(this)"><i
+                                    class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <div class="sectionHead">
+                        <h2>Trending searches</h2>
+                    </div>
+                    <div class="trends">
+                        <button class="chip" onclick="searchTerm('Biryani')">🔥 Biryani</button>
+                        <button class="chip" onclick="searchTerm('Pizza')">Pizza</button>
+                        <button class="chip" onclick="searchTerm('Momos')">Momos</button>
+                        <button class="chip" onclick="searchTerm('South Indian')">South Indian</button>
+                        <button class="chip" onclick="searchTerm('Burger')">Burger</button>
+                        <button class="chip" onclick="searchTerm('Dessert')">Desserts</button>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <div class="sectionHead">
+                        <h2>Browse categories</h2>
+                    </div>
+                    <div class="categoryRow">
+                        <div class="cat active" onclick="searchTerm('Pizza')">
+                            <div class="catIcon">🍕</div><span>Pizza</span>
+                        </div>
+                        <div class="cat" onclick="searchTerm('Burger')">
+                            <div class="catIcon">🍔</div><span>Burger</span>
+                        </div>
+                        <div class="cat" onclick="searchTerm('Biryani')">
+                            <div class="catIcon">🍛</div><span>Biryani</span>
+                        </div>
+                        <div class="cat" onclick="searchTerm('Chinese')">
+                            <div class="catIcon">🍜</div><span>Chinese</span>
+                        </div>
+                        <div class="cat" onclick="searchTerm('Dessert')">
+                            <div class="catIcon">🍰</div><span>Dessert</span>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <div id="resultsArea" style="display:none">
+
+                <section class="section" style="margin-top:0">
+                    <div class="resultCount">
+                        <div>
+                            <strong id="resultsTitle">Search results</strong>
+                            <span id="resultSubtitle">Showing nearby matches</span>
+                        </div>
+                        <button class="filterBtn" onclick="openFilters()"><i class="fa-solid fa-sliders"></i>
+                            Filters</button>
+                    </div>
+
+                    <div id="restaurantResults">
+                        <article class="restaurant resultItem"
+                            data-text="pizza junction pizza italian fast food offer rating">
+                            <div class="restaurantImg">🍕<span class="timeBadge">25–30 min</span></div>
+                            <div class="rInfo">
+                                <div class="rTop">
+                                    <h3>Pizza Junction</h3><span class="rating">★ 4.6</span>
+                                </div>
+                                <p>Pizza • Italian • Fast Food</p>
+                                <div class="rMeta">
+                                    <span><i class="fa-solid fa-location-arrow"></i> 1.2 km</span>
+                                    <span><i class="fa-solid fa-indian-rupee-sign"></i> 149 for one</span>
+                                </div>
+                                <button class="openBtn" onclick="openRestaurant('Pizza Junction')">Open
+                                    restaurant</button>
+                            </div>
+                        </article>
+
+                        <article class="restaurant resultItem"
+                            data-text="biryani adda chicken biryani mughlai north indian rating">
+                            <div class="restaurantImg" style="background:linear-gradient(145deg,#FFD6C5,#FF9272)">
+                                🍛<span class="timeBadge">30–35 min</span></div>
+                            <div class="rInfo">
+                                <div class="rTop">
+                                    <h3>Biryani Adda</h3><span class="rating">★ 4.8</span>
+                                </div>
+                                <p>Biryani • Mughlai • North Indian</p>
+                                <div class="rMeta">
+                                    <span><i class="fa-solid fa-location-arrow"></i> 1.8 km</span>
+                                    <span><i class="fa-solid fa-indian-rupee-sign"></i> 199 for one</span>
+                                </div>
+                                <button class="openBtn" onclick="openRestaurant('Biryani Adda')">Open
+                                    restaurant</button>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="section">
+                    <div class="sectionHead">
+                        <h2>Dishes</h2>
+                    </div>
+                    <div id="dishResults">
+                        <article class="dish resultItem" data-text="double cheese burger burger fast food">
+                            <div class="dishImg">🍔</div>
+                            <div class="dishInfo">
+                                <h4>Double Cheese Burger</h4>
+                                <p>Cheese, crispy veggies & signature sauce</p>
+                                <div class="dishBottom"><span class="price">₹149</span><button class="addBtn"
+                                        onclick="addItem('Double Cheese Burger')">ADD +</button></div>
+                            </div>
+                        </article>
+
+                        <article class="dish resultItem" data-text="hyderabadi chicken biryani biryani rice chicken">
+                            <div class="dishImg">🍛</div>
+                            <div class="dishInfo">
+                                <h4>Hyderabadi Chicken Biryani</h4>
+                                <p>Spiced chicken, basmati rice & raita</p>
+                                <div class="dishBottom"><span class="price">₹229</span><button class="addBtn"
+                                        onclick="addItem('Chicken Biryani')">ADD +</button></div>
+                            </div>
+                        </article>
+
+                        <article class="dish resultItem" data-text="tandoori paneer pizza pizza veg vegetarian">
+                            <div class="dishImg">🍕</div>
+                            <div class="dishInfo">
+                                <h4>Tandoori Paneer Pizza</h4>
+                                <p>Paneer tikka, onions, capsicum & mozzarella</p>
+                                <div class="dishBottom"><span class="price">₹199</span><button class="addBtn"
+                                        onclick="addItem('Paneer Pizza')">ADD +</button></div>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+
+                <div id="emptyState" class="empty">
+                    <div class="emptyIcon"><i class="fa-solid fa-magnifying-glass"></i></div>
+                    <h3>No results found</h3>
+                    <p>Try a different food, dish, cuisine or restaurant name.</p>
+                    <button onclick="clearSearch()">Clear search</button>
+                </div>
+
+            </div>
+
+        </main>
+
+        <div id="filterModal" class="modal" onclick="closeOnBackdrop(event)">
+            <div class="sheet">
+                <div class="sheetBar"></div>
+                <h3>Search filters</h3>
+                <div class="filterRow"><span>Pure vegetarian</span><input id="fVeg" type="checkbox"></div>
+                <div class="filterRow"><span>Delivery under 30 minutes</span><input id="fFast" type="checkbox"></div>
+                <div class="filterRow"><span>Rating 4.5+</span><input id="fRating" type="checkbox"></div>
+                <div class="filterRow"><span>Offers available</span><input id="fOffer" type="checkbox"></div>
+                <button class="applyBtn" onclick="applyFilters()">Apply Filters</button>
+            </div>
+        </div>
+
+        <div id="toast" class="cartToast">Done</div>
+
+    </div>
+
+    <script>
+        const input = document.getElementById('searchInput');
+        const discover = document.getElementById('discoverArea');
+        const results = document.getElementById('resultsArea');
+        const resultItems = [...document.querySelectorAll('.resultItem')];
+        const empty = document.getElementById('emptyState');
+        const clearBtn = document.getElementById('clearBtn');
+
+        function performSearch() {
+            const q = input.value.trim().toLowerCase();
+            clearBtn.style.display = q ? 'grid' : 'none';
+
+            if (!q) {
+                discover.style.display = 'block';
+                results.style.display = 'none';
+                return;
+            }
+
+            discover.style.display = 'none';
+            results.style.display = 'block';
+            document.getElementById('resultsTitle').textContent = 'Results for "' + input.value.trim() + '"';
+
+            let count = 0;
+            resultItems.forEach(item => {
+                const match = item.dataset.text.includes(q);
+                item.style.display = match ? 'flex' : 'none';
+                if (match) count++;
+            });
+
+            empty.style.display = count ? 'none' : 'block';
+            document.getElementById('resultSubtitle').textContent = count + ' match' + (count === 1 ? '' : 'es') + ' found near you';
+        }
+
+        input.addEventListener('input', performSearch);
+
+        function searchTerm(term) {
+            input.value = term;
+            performSearch();
+            input.focus();
+        }
+
+        function clearSearch() {
+            input.value = '';
+            performSearch();
+            input.focus();
+        }
+
+        function removeRecent(btn) {
+            btn.closest('.recentItem').remove();
+            showToast('Recent search removed');
+        }
+
+        function clearRecent() {
+            document.getElementById('recentList').innerHTML = '<div style="font-size:10px;color:#888;padding:8px 0">No recent searches</div>';
+            showToast('Recent searches cleared');
+        }
+
+        function voiceSearch() {
+            showToast('Voice search ready');
+        }
+
+        function goBack() {
+            showToast('Back to home');
+        }
+
+        function openRestaurant(name) {
+            showToast(name + ' opened');
+        }
+
+        function addItem(name) {
+            showToast(name + ' added to cart');
+        }
+
+        function showToast(message) {
+            const t = document.getElementById('toast');
+            t.textContent = message;
+            t.classList.add('show');
+            clearTimeout(window.toastTimer);
+            window.toastTimer = setTimeout(() => t.classList.remove('show'), 1600);
+        }
+
+        function openFilters() {
+            document.getElementById('filterModal').classList.add('show');
+        }
+
+        function closeOnBackdrop(e) {
+            if (e.target.id === 'filterModal') document.getElementById('filterModal').classList.remove('show');
+        }
+
+        function applyFilters() {
+            document.getElementById('filterModal').classList.remove('show');
+            showToast('Search filters applied');
+        }
+
+        input.focus();
+    </script>
+</body>
+
+</html>

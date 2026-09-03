@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chatori Jeeb - Interactive Food App Prototype</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--yellow:#ffd400;--yellow2:#ffe768;--yellowSoft:#fff8d0;--ink:#171717;--muted:#777;
+--line:#ececec;--surface:#f7f7f7;--white:#fff;--green:#14a867;--red:#ff4d4f;
+--shadow:0 14px 34px rgba(0,0,0,.08)
+}
+body{font-family:Inter,sans-serif;background:#ececec;color:var(--ink);display:flex;justify-content:center;min-height:100vh}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.app{width:100%;max-width:430px;min-height:100vh;background:#fff;overflow-x:hidden;position:relative}
+.screen{display:none;min-height:100vh;background:#fff}
+.screen.active{display:block}
+.hero{
+background:radial-gradient(circle at 92% 0%,rgba(255,255,255,.6),transparent 28%),
+linear-gradient(145deg,#ffe86c,#ffd400 60%,#ffc400);
+padding:18px 18px 45px;border-radius:0 0 34px 34px;position:relative
+}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.location{display:flex;align-items:center;gap:10px;min-width:0}
+.iconBox,.iconBtn{width:43px;height:43px;border-radius:15px;display:grid;place-items:center}
+.iconBox{background:rgba(255,255,255,.8)}
+.iconBtn{background:#111;color:#fff;border:0}
+.location small{display:block;font-size:10px;font-weight:800;color:#6d5d00;text-transform:uppercase;letter-spacing:.7px}
+.location strong{font-size:14px}
+.heroCopy{display:flex;justify-content:space-between;align-items:center;margin-top:24px;gap:12px}
+.brandTag{display:inline-flex;gap:6px;align-items:center;background:rgba(255,255,255,.76);padding:6px 9px;border-radius:99px;font-size:9px;font-weight:800}
+.brand h1{font-family:Pacifico,cursive;font-size:33px;font-weight:400;margin-top:9px}
+.brand p{font-size:12px;line-height:1.45;font-weight:600;color:#514800;margin-top:8px;max-width:260px}
+.heroVisual{width:82px;height:82px;border-radius:28px;background:rgba(255,255,255,.72);display:grid;place-items:center;font-size:40px}
+.search{position:absolute;left:18px;right:18px;bottom:-29px;height:58px;background:#fff;border-radius:19px;display:flex;align-items:center;gap:11px;padding:0 10px 0 16px;box-shadow:0 13px 30px rgba(0,0,0,.11)}
+.search input{border:0;outline:0;flex:1;font-size:13px;min-width:0}
+.filterBtn{width:40px;height:40px;border:0;border-radius:13px;background:#111;color:#fff}
+main{padding:48px 18px 34px}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.quick button{border:1px solid var(--line);background:#fff;border-radius:18px;padding:12px 5px}
+.quick i{width:40px;height:40px;background:var(--yellowSoft);border-radius:14px;display:grid;place-items:center;margin:0 auto 7px;color:#836d00}
+.quick span{font-size:10px;font-weight:700}
+.section{margin-top:27px}
+.sectionHead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:14px}
+.sectionHead h2{font-size:18px}.sectionHead p{font-size:10px;color:var(--muted);margin-top:4px}
+.linkBtn{border:0;background:none;font-size:11px;font-weight:800;color:#806a00}
+.deal{background:linear-gradient(135deg,#181818,#060606);color:#fff;border-radius:25px;min-height:150px;padding:20px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.deal:after{content:"";position:absolute;width:125px;height:125px;border-radius:50%;background:var(--yellow);right:-22px;top:11px}
+.dealCopy{width:64%;position:relative;z-index:2}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:6px 9px;border-radius:99px;background:var(--yellow);color:#111;font-size:9px;font-weight:800}
+.deal h3{font-size:21px;line-height:1.15;margin-top:8px}.deal p{font-size:10px;color:#ccc;line-height:1.45;margin-top:6px}
+.primarySmall{margin-top:11px;border:0;background:#fff;padding:9px 12px;border-radius:11px;font-size:10px;font-weight:800}
+.dealFood{position:absolute;right:15px;top:36px;z-index:2;font-size:66px}
+.adCarousel{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none}.adCarousel::-webkit-scrollbar{display:none}
+.adBanner{min-width:330px;height:135px;border-radius:23px;padding:17px;position:relative;overflow:hidden;color:#fff}
+.ad1{background:linear-gradient(135deg,#ff7a18,#ff3f63)}.ad2{background:linear-gradient(135deg,#6b55ff,#2c95ff)}.ad3{background:linear-gradient(135deg,#0aa96e,#62ce52)}
+.adBanner h3{font-size:18px;max-width:180px;line-height:1.15}.adBanner p{font-size:10px;max-width:185px;margin-top:6px;line-height:1.4}
+.adBanner button{margin-top:10px;border:0;background:#fff;color:#111;border-radius:10px;padding:8px 11px;font-size:9px;font-weight:800}
+.adIcon{position:absolute;right:18px;bottom:8px;font-size:67px}
+.categories{display:flex;gap:10px;overflow:auto;scrollbar-width:none}.categories::-webkit-scrollbar{display:none}
+.category{min-width:72px;text-align:center}.catBox{width:66px;height:66px;border-radius:22px;background:#f6f6f6;border:1px solid #eee;display:grid;place-items:center;font-size:30px}
+.category span{display:block;font-size:10px;font-weight:700;margin-top:7px}.category.active .catBox{background:var(--yellowSoft);border-color:var(--yellow)}
+.bulkCard{border-radius:24px;background:linear-gradient(145deg,#fff8d5,#fff1a8);border:1px solid #f0df82;padding:18px;position:relative;overflow:hidden}
+.bulkCard h3{font-size:19px;max-width:220px}.bulkCard p{font-size:10px;color:#6d6440;line-height:1.45;margin-top:6px;max-width:250px}
+.bulkStats{display:flex;gap:8px;margin-top:12px}.bulkStats span{font-size:9px;font-weight:800;background:#fff;padding:6px 8px;border-radius:9px}
+.bulkBtn{margin-top:14px;background:#111;color:#fff;border:0;border-radius:12px;padding:10px 14px;font-size:10px;font-weight:800}
+.bulkIcon{position:absolute;right:13px;top:19px;width:78px;height:78px;border-radius:25px;background:#ffd400;display:grid;place-items:center;font-size:35px;transform:rotate(5deg)}
+.restaurantRow{display:flex;gap:14px;overflow:auto;scrollbar-width:none}.restaurantRow::-webkit-scrollbar{display:none}
+.restaurant{min-width:272px;border:1px solid var(--line);border-radius:23px;overflow:hidden;box-shadow:0 8px 22px rgba(0,0,0,.05)}
+.cover{height:140px;display:grid;place-items:center;font-size:77px;position:relative}.c1{background:linear-gradient(145deg,#ffecb3,#ffb75d)}.c2{background:linear-gradient(145deg,#ffd2c4,#fe8b6a)}
+.cover .time{position:absolute;left:10px;bottom:10px;background:#fff;padding:7px 9px;border-radius:10px;font-size:9px;font-weight:800}
+.fav{position:absolute;right:10px;top:10px;width:35px;height:35px;border:0;border-radius:12px;background:#fff}
+.rbody{padding:14px}.rtitle{display:flex;justify-content:space-between;gap:8px;align-items:center}.rtitle h3{font-size:14px}
+.rating{font-size:9px;font-weight:800;background:var(--yellow);padding:5px 7px;border-radius:8px}.rbody p{font-size:10px;color:#818181;margin-top:6px}
+.dishes{display:flex;flex-direction:column;gap:12px}.dish{display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:19px;padding:10px}
+.dishImg{width:80px;height:77px;min-width:80px;border-radius:17px;background:var(--yellowSoft);display:grid;place-items:center;font-size:40px}
+.dishInfo{flex:1}.dishInfo h4{font-size:13px}.dishInfo p{font-size:9px;color:#888;margin-top:4px}.dishFoot{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.addBtn{border:1px solid #d5b500;background:#fff7c2;border-radius:10px;padding:7px 11px;font-size:10px;font-weight:800;color:#6d5900}
+.pageHeader{padding:18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff;z-index:10}
+.backBtn{width:40px;height:40px;border:0;border-radius:13px;background:#f4f4f4}.pageHeader h2{font-size:18px}
+.pageBody{padding:18px 18px 35px}
+.infoCard{padding:15px;border-radius:18px;background:#f8f8f8;border:1px solid var(--line);margin-bottom:14px}
+.infoCard h3{font-size:14px}.infoCard p{font-size:10px;color:#777;line-height:1.5;margin-top:5px}
+.stepper{display:flex;justify-content:space-between;margin-bottom:20px;position:relative}.stepper:before{content:"";position:absolute;top:15px;left:12%;right:12%;height:2px;background:#eee}
+.step{position:relative;z-index:2;text-align:center;width:25%}.stepCircle{width:31px;height:31px;border-radius:50%;background:#eee;margin:auto;display:grid;place-items:center;font-size:10px;font-weight:800}.step.active .stepCircle{background:var(--yellow)}.step label{font-size:8px;font-weight:700;display:block;margin-top:5px}
+.formGroup{margin-bottom:14px}.formGroup label{display:block;font-size:10px;font-weight:800;margin-bottom:6px}.field{width:100%;height:46px;border:1px solid #ddd;border-radius:13px;padding:0 13px;outline:none;background:#fff}.field:focus{border-color:#d8b800}
+textarea.field{height:85px;padding-top:12px;resize:none}
+.optionList{display:flex;flex-direction:column;gap:9px}
+.option{border:1px solid var(--line);border-radius:15px;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.option strong{font-size:11px}.option p{font-size:9px;color:#777;margin-top:3px}
+.option button{border:0;background:var(--yellow);border-radius:10px;padding:8px 10px;font-size:9px;font-weight:800}
+.fullBtn{width:100%;height:47px;border:0;border-radius:14px;background:#111;color:#fff;font-weight:800;font-size:11px;margin-top:8px}
+.secondaryBtn{width:100%;height:44px;border:1px solid #ddd;border-radius:14px;background:#fff;font-weight:800;font-size:10px;margin-top:8px}
+.hidden{display:none!important}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
+.modal.show{display:flex}.sheet{width:100%;max-width:430px;background:#fff;border-radius:26px 26px 0 0;padding:20px;max-height:82vh;overflow:auto}
+.sheetBar{width:43px;height:4px;border-radius:9px;background:#ddd;margin:0 auto 16px}
+.sheet h3{font-size:17px}.close{float:right;border:0;background:#f4f4f4;width:34px;height:34px;border-radius:11px}
+.filterOption{padding:13px 0;border-bottom:1px solid #eee;display:flex;justify-content:space-between;font-size:11px}
+.cartBar{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;width:calc(100% - 36px);max-width:394px;background:#111;color:#fff;padding:13px 15px;border-radius:16px;display:none;justify-content:space-between;align-items:center;z-index:30}
+.cartBar.show{display:flex}.cartBar span{font-size:11px;font-weight:700}.cartBar button{background:var(--yellow);border:0;padding:8px 11px;border-radius:10px;font-size:9px;font-weight:800}
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,24px);opacity:0;background:#111;color:#fff;padding:11px 15px;border-radius:12px;font-size:10px;font-weight:700;z-index:80;transition:.2s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(min-width:600px){.app{box-shadow:0 0 55px rgba(0,0,0,.14)}}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<section id="homeScreen" class="screen active">
+<header class="hero">
+  <div class="topbar">
+    <button class="location" style="border:0;background:none;text-align:left" onclick="openLocation()">
+      <span class="iconBox"><i class="fa-solid fa-location-dot"></i></span>
+      <span><small>Delivering to</small><strong id="locationLabel">Silvassa, DNH <i class="fa-solid fa-chevron-down" style="font-size:9px"></i></strong></span>
+    </button>
+    <button class="iconBtn" onclick="openNotifications()"><i class="fa-regular fa-bell"></i></button>
+  </div>
+
+  <div class="heroCopy">
+    <div class="brand">
+      <span class="brandTag"><i class="fa-solid fa-bolt"></i> FAST FOOD DELIVERY</span>
+      <h1>Chatori Jeeb</h1>
+      <p>From your favourite local kitchens to your doorstep, hot & fresh.</p>
+    </div>
+    <div class="heroVisual">🍜</div>
+  </div>
+
+  <div class="search">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input id="searchInput" placeholder="Search dishes, restaurants or cuisine">
+    <button class="filterBtn" onclick="openFilters()"><i class="fa-solid fa-sliders"></i></button>
+  </div>
+</header>
+
+<main>
+  <div class="quick">
+    <button onclick="quickFilter('offer')"><i class="fa-solid fa-percent"></i><span>Offers</span></button>
+    <button onclick="quickFilter('veg')"><i class="fa-solid fa-leaf"></i><span>Pure Veg</span></button>
+    <button onclick="quickFilter('fast')"><i class="fa-solid fa-motorcycle"></i><span>Fast</span></button>
+    <button onclick="quickFilter('rating')"><i class="fa-solid fa-star"></i><span>Top Rated</span></button>
+  </div>
+
+  <section class="section">
+    <div class="deal">
+      <div class="dealCopy">
+        <span class="badge"><i class="fa-solid fa-gift"></i> WELCOME OFFER</span>
+        <h3>50% OFF on your first order</h3>
+        <p>Use code <strong>JEEB50</strong> and satisfy your cravings for less.</p>
+        <button class="primarySmall" onclick="applyCoupon()">Order now <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+      <div class="dealFood">🍔</div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="sectionHead">
+      <div><h2>Sponsored offers</h2><p>Promotions from restaurants & brands</p></div>
+      <button class="linkBtn" onclick="showToast('Showing all sponsored offers')">View all</button>
+    </div>
+    <div class="adCarousel">
+      <article class="adBanner ad1">
+        <h3>Buy 1 Get 1 Free on selected pizzas</h3>
+        <p>Limited-time sponsored offer from Pizza Junction.</p>
+        <button onclick="openRestaurant('Pizza Junction')">Claim offer</button>
+        <div class="adIcon">🍕</div>
+      </article>
+      <article class="adBanner ad2">
+        <h3>Free delivery on orders above ₹299</h3>
+        <p>Valid today across selected partner restaurants.</p>
+        <button onclick="quickFilter('fast')">Explore</button>
+        <div class="adIcon">🛵</div>
+      </article>
+      <article class="adBanner ad3">
+        <h3>Healthy bowls starting from ₹99</h3>
+        <p>Sponsored by Fresh Bowl. Fresh, light and tasty.</p>
+        <button onclick="openRestaurant('Fresh Bowl')">Order now</button>
+        <div class="adIcon">🥗</div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="sectionHead">
+      <div><h2>What are you craving?</h2><p>Pick a category and explore dishes</p></div>
+      <button class="linkBtn" onclick="showAllCategories()">View all</button>
+    </div>
+    <div class="categories">
+      <div class="category active" onclick="selectCategory(this,'all')"><div class="catBox">🍽️</div><span>All</span></div>
+      <div class="category" onclick="selectCategory(this,'pizza')"><div class="catBox">🍕</div><span>Pizza</span></div>
+      <div class="category" onclick="selectCategory(this,'burger')"><div class="catBox">🍔</div><span>Burger</span></div>
+      <div class="category" onclick="selectCategory(this,'biryani')"><div class="catBox">🍛</div><span>Biryani</span></div>
+      <div class="category" onclick="selectCategory(this,'chinese')"><div class="catBox">🍜</div><span>Chinese</span></div>
+      <div class="category" onclick="selectCategory(this,'dessert')"><div class="catBox">🍰</div><span>Dessert</span></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="bulkCard">
+      <div class="bulkIcon"><i class="fa-solid fa-boxes-stacked"></i></div>
+      <h3>Planning food for a group or event?</h3>
+      <p>Place scheduled bulk orders for offices, parties, events and celebrations.</p>
+      <div class="bulkStats">
+        <span><i class="fa-solid fa-calendar-check"></i> Schedule</span>
+        <span><i class="fa-solid fa-users"></i> 10+ servings</span>
+        <span><i class="fa-solid fa-truck"></i> Delivered</span>
+      </div>
+      <button class="bulkBtn" onclick="openScreen('bulkScreen')">Start Bulk Order <i class="fa-solid fa-arrow-right"></i></button>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="sectionHead">
+      <div><h2>Restaurants near you</h2><p>Popular picks around your location</p></div>
+      <button class="linkBtn" onclick="showToast('All restaurants opened')">View all</button>
+    </div>
+    <div class="restaurantRow" id="restaurants">
+      <article class="restaurant" data-tags="pizza offer rating">
+        <div class="cover c1">🍕<span class="time"><i class="fa-regular fa-clock"></i> 25–30 min</span><button class="fav" onclick="toggleFav(this,event)"><i class="fa-regular fa-heart"></i></button></div>
+        <div class="rbody" onclick="openRestaurant('Pizza Junction')"><div class="rtitle"><h3>Pizza Junction</h3><span class="rating">★ 4.6</span></div><p>Italian • Pizza • Fast Food • ₹₹</p></div>
+      </article>
+      <article class="restaurant" data-tags="biryani rating">
+        <div class="cover c2">🍛<span class="time"><i class="fa-regular fa-clock"></i> 30–35 min</span><button class="fav" onclick="toggleFav(this,event)"><i class="fa-regular fa-heart"></i></button></div>
+        <div class="rbody" onclick="openRestaurant('Biryani Adda')"><div class="rtitle"><h3>Biryani Adda</h3><span class="rating">★ 4.8</span></div><p>Biryani • Mughlai • North Indian • ₹₹</p></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="sectionHead"><div><h2>Popular right now</h2><p>Dishes people are ordering near you</p></div><button class="linkBtn" onclick="showToast('More dishes opened')">View all</button></div>
+    <div class="dishes" id="dishList">
+      <article class="dish" data-tags="burger fast offer"><div class="dishImg">🍔</div><div class="dishInfo"><h4>Double Cheese Burger</h4><p>Cheese, crispy veggies & signature sauce</p><div class="dishFoot"><strong>₹149</strong><button class="addBtn" onclick="addCart('Double Cheese Burger',149)">ADD +</button></div></div></article>
+      <article class="dish" data-tags="biryani rating"><div class="dishImg">🍛</div><div class="dishInfo"><h4>Hyderabadi Chicken Biryani</h4><p>Spiced chicken, basmati rice & raita</p><div class="dishFoot"><strong>₹229</strong><button class="addBtn" onclick="addCart('Chicken Biryani',229)">ADD +</button></div></div></article>
+      <article class="dish" data-tags="pizza veg"><div class="dishImg">🍕</div><div class="dishInfo"><h4>Tandoori Paneer Pizza</h4><p>Paneer tikka, onions, capsicum & mozzarella</p><div class="dishFoot"><strong>₹199</strong><button class="addBtn" onclick="addCart('Paneer Pizza',199)">ADD +</button></div></div></article>
+    </div>
+  </section>
+</main>
+</section>
+
+<section id="bulkScreen" class="screen">
+  <div class="pageHeader"><button class="backBtn" onclick="openScreen('homeScreen')"><i class="fa-solid fa-arrow-left"></i></button><div><h2>Bulk Order</h2><div style="font-size:9px;color:#777;margin-top:2px">Schedule large food orders easily</div></div></div>
+  <div class="pageBody">
+    <div class="stepper">
+      <div class="step active" id="s1"><div class="stepCircle">1</div><label>Food</label></div>
+      <div class="step" id="s2"><div class="stepCircle">2</div><label>Qty & Date</label></div>
+      <div class="step" id="s3"><div class="stepCircle">3</div><label>Address</label></div>
+      <div class="step" id="s4"><div class="stepCircle">4</div><label>Review</label></div>
+    </div>
+
+    <div id="bulk1">
+      <div class="infoCard"><h3>What would you like to order?</h3><p>Search by restaurant name or food item. We’ll show nearby options.</p></div>
+      <div class="formGroup"><label>Search restaurant or food</label><input id="bulkSearch" class="field" placeholder="e.g. Biryani, Pizza Junction"></div>
+      <div class="optionList">
+        <div class="option"><div><strong>Pizza Junction</strong><p>Pizza • 1.2 km away</p></div><button onclick="chooseBulk('Pizza Junction - Party Pizza Combo')">Select</button></div>
+        <div class="option"><div><strong>Biryani Adda</strong><p>Biryani • 1.8 km away</p></div><button onclick="chooseBulk('Biryani Adda - Family Biryani Pack')">Select</button></div>
+        <div class="option"><div><strong>Fresh Bowl</strong><p>Healthy meals • 900 m away</p></div><button onclick="chooseBulk('Fresh Bowl - Corporate Meal Box')">Select</button></div>
+      </div>
+      <button class="fullBtn" onclick="bulkNext(2)">Continue</button>
+    </div>
+
+    <div id="bulk2" class="hidden">
+      <div class="infoCard"><h3>Quantity & delivery schedule</h3><p>Bulk orders must be placed at least one day before delivery.</p></div>
+      <div class="formGroup"><label>Selected item</label><input id="selectedBulkItem" class="field" value="Party Food Package" readonly></div>
+      <div class="formGroup"><label>Number of servings</label><input id="bulkQty" class="field" type="number" min="10" value="25"></div>
+      <div class="formGroup"><label>Delivery date</label><input id="bulkDate" class="field" type="date"></div>
+      <div class="formGroup"><label>Delivery time</label><input id="bulkTime" class="field" type="time" value="13:00"></div>
+      <button class="fullBtn" onclick="bulkNext(3)">Continue</button><button class="secondaryBtn" onclick="bulkNext(1)">Back</button>
+    </div>
+
+    <div id="bulk3" class="hidden">
+      <div class="infoCard"><h3>Where should we deliver?</h3><p>Use your current location or enter a different delivery address.</p></div>
+      <button class="secondaryBtn" onclick="useCurrentLocation()"><i class="fa-solid fa-location-crosshairs"></i> Use current location</button>
+      <div class="formGroup" style="margin-top:14px"><label>Full address</label><textarea id="bulkAddress" class="field" placeholder="Building, street, area, landmark, city"></textarea></div>
+      <div class="formGroup"><label>Contact number</label><input id="bulkPhone" class="field" type="tel" placeholder="+91 98765 43210"></div>
+      <button class="fullBtn" onclick="bulkNext(4)">Review Order</button><button class="secondaryBtn" onclick="bulkNext(2)">Back</button>
+    </div>
+
+    <div id="bulk4" class="hidden">
+      <div class="infoCard"><h3>Review your bulk order</h3><p>Please check the order details before submitting.</p></div>
+      <div class="optionList">
+        <div class="option"><div><strong>Food Package</strong><p id="reviewItem">Party Food Package</p></div><i class="fa-solid fa-utensils"></i></div>
+        <div class="option"><div><strong>Quantity</strong><p id="reviewQty">25 servings</p></div><i class="fa-solid fa-users"></i></div>
+        <div class="option"><div><strong>Schedule</strong><p id="reviewDate">Select date & time</p></div><i class="fa-solid fa-calendar"></i></div>
+        <div class="option"><div><strong>Delivery</strong><p id="reviewAddress">Address not added</p></div><i class="fa-solid fa-location-dot"></i></div>
+      </div>
+      <button class="fullBtn" onclick="submitBulk()">Submit Bulk Order Request</button><button class="secondaryBtn" onclick="bulkNext(3)">Back</button>
+    </div>
+  </div>
+</section>
+
+<section id="restaurantScreen" class="screen">
+  <div class="pageHeader"><button class="backBtn" onclick="openScreen('homeScreen')"><i class="fa-solid fa-arrow-left"></i></button><h2 id="restaurantTitle">Restaurant</h2></div>
+  <div class="pageBody">
+    <div class="deal" style="background:linear-gradient(145deg,#ffd400,#ffbf00);color:#111">
+      <div class="dealCopy"><span class="badge" style="background:#111;color:#fff">RESTAURANT</span><h3 id="restaurantHero">Restaurant Menu</h3><p style="color:#5f5200">Freshly prepared favourites delivered to your doorstep.</p></div><div class="dealFood">🍽️</div>
+    </div>
+    <section class="section">
+      <div class="sectionHead"><div><h2>Menu</h2><p>Recommended items</p></div></div>
+      <div class="dishes">
+        <article class="dish"><div class="dishImg">🍕</div><div class="dishInfo"><h4>Chef Special</h4><p>One of the most ordered items from this restaurant</p><div class="dishFoot"><strong>₹199</strong><button class="addBtn" onclick="addCart('Chef Special',199)">ADD +</button></div></div></article>
+        <article class="dish"><div class="dishImg">🥤</div><div class="dishInfo"><h4>Meal Combo</h4><p>Main dish with beverage and side</p><div class="dishFoot"><strong>₹249</strong><button class="addBtn" onclick="addCart('Meal Combo',249)">ADD +</button></div></div></article>
+      </div>
+    </section>
+  </div>
+</section>
+
+<section id="cartScreen" class="screen">
+  <div class="pageHeader"><button class="backBtn" onclick="openScreen('homeScreen')"><i class="fa-solid fa-arrow-left"></i></button><h2>Your Cart</h2></div>
+  <div class="pageBody">
+    <div id="cartItems"></div>
+    <div class="infoCard"><h3>Total</h3><p id="cartTotal">₹0</p></div>
+    <button class="fullBtn" onclick="checkout()">Proceed to Checkout</button>
+  </div>
+</section>
+
+<div id="filterModal" class="modal" onclick="modalBackdrop(event,'filterModal')">
+  <div class="sheet"><div class="sheetBar"></div><button class="close" onclick="closeModal('filterModal')"><i class="fa-solid fa-xmark"></i></button><h3>Filters</h3>
+    <div class="filterOption"><span>Pure vegetarian</span><input type="checkbox" id="fVeg"></div>
+    <div class="filterOption"><span>Delivery under 30 minutes</span><input type="checkbox" id="fFast"></div>
+    <div class="filterOption"><span>Rating 4.5+</span><input type="checkbox" id="fRating"></div>
+    <div class="filterOption"><span>Offers available</span><input type="checkbox" id="fOffer"></div>
+    <button class="fullBtn" onclick="applyFilters()">Apply filters</button>
+  </div>
+</div>
+
+<div id="locationModal" class="modal" onclick="modalBackdrop(event,'locationModal')">
+  <div class="sheet"><div class="sheetBar"></div><button class="close" onclick="closeModal('locationModal')"><i class="fa-solid fa-xmark"></i></button><h3>Choose delivery location</h3>
+    <div class="optionList" style="margin-top:15px">
+      <div class="option"><div><strong>Silvassa, DNH</strong><p>Current selected location</p></div><button onclick="setLocation('Silvassa, DNH')">Select</button></div>
+      <div class="option"><div><strong>Kilvani Naka</strong><p>Silvassa</p></div><button onclick="setLocation('Kilvani Naka')">Select</button></div>
+      <div class="option"><div><strong>Amli</strong><p>Silvassa</p></div><button onclick="setLocation('Amli, Silvassa')">Select</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="notificationModal" class="modal" onclick="modalBackdrop(event,'notificationModal')">
+  <div class="sheet"><div class="sheetBar"></div><button class="close" onclick="closeModal('notificationModal')"><i class="fa-solid fa-xmark"></i></button><h3>Notifications</h3>
+    <div class="infoCard" style="margin-top:15px"><h3>50% off today</h3><p>Use JEEB50 on your first order.</p></div>
+    <div class="infoCard"><h3>Bulk order reminder</h3><p>Schedule large orders at least one day in advance.</p></div>
+  </div>
+</div>
+
+<div id="cartBar" class="cartBar"><span id="cartBarText">1 item added</span><button onclick="openCart()">View Cart</button></div>
+<div id="toast" class="toast">Done</div>
+
+<script>
+let cart=[];
+let bulkItem='Party Food Package';
+
+function openScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(id==='cartScreen') renderCart();
+}
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg;t.classList.add('show');
+  clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.classList.remove('show'),1700)
+}
+function openFilters(){document.getElementById('filterModal').classList.add('show')}
+function openLocation(){document.getElementById('locationModal').classList.add('show')}
+function openNotifications(){document.getElementById('notificationModal').classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function modalBackdrop(e,id){if(e.target.id===id)closeModal(id)}
+function setLocation(name){document.getElementById('locationLabel').innerHTML=name+' <i class="fa-solid fa-chevron-down" style="font-size:9px"></i>';closeModal('locationModal');showToast('Delivery location updated')}
+function selectCategory(el,tag){
+  document.querySelectorAll('.category').forEach(x=>x.classList.remove('active'));el.classList.add('active');filterContent(tag)
+}
+function quickFilter(tag){filterContent(tag);showToast('Filter applied')}
+function filterContent(tag){
+  document.querySelectorAll('[data-tags]').forEach(el=>{
+    el.style.display=(tag==='all'||el.dataset.tags.includes(tag))?'':'none'
+  })
+}
+function showAllCategories(){document.querySelectorAll('[data-tags]').forEach(el=>el.style.display='');showToast('All categories shown')}
+function applyCoupon(){showToast('Coupon JEEB50 applied')}
+function toggleFav(btn,e){e.stopPropagation();const i=btn.querySelector('i');i.classList.toggle('fa-regular');i.classList.toggle('fa-solid');btn.style.color=i.classList.contains('fa-solid')?'#ff4d4f':'#111';showToast(i.classList.contains('fa-solid')?'Added to favourites':'Removed from favourites')}
+function openRestaurant(name){document.getElementById('restaurantTitle').textContent=name;document.getElementById('restaurantHero').textContent=name;openScreen('restaurantScreen')}
+function addCart(name,price){
+  const existing=cart.find(x=>x.name===name);if(existing)existing.qty++;else cart.push({name,price,qty:1});
+  updateCartBar();showToast(name+' added to cart')
+}
+function updateCartBar(){
+  const count=cart.reduce((a,b)=>a+b.qty,0),total=cart.reduce((a,b)=>a+b.price*b.qty,0);
+  const bar=document.getElementById('cartBar');bar.classList.toggle('show',count>0);
+  document.getElementById('cartBarText').textContent=count+' item'+(count>1?'s':'')+' • ₹'+total
+}
+function openCart(){openScreen('cartScreen')}
+function renderCart(){
+  const root=document.getElementById('cartItems');root.innerHTML='';
+  if(!cart.length){root.innerHTML='<div class="infoCard"><h3>Your cart is empty</h3><p>Add something delicious from the home screen.</p></div>'}
+  cart.forEach((x,i)=>{
+    root.innerHTML+=`<div class="option"><div><strong>${x.name}</strong><p>₹${x.price} × ${x.qty}</p></div><button onclick="removeCart(${i})">Remove</button></div>`
+  });
+  document.getElementById('cartTotal').textContent='₹'+cart.reduce((a,b)=>a+b.price*b.qty,0)
+}
+function removeCart(i){cart.splice(i,1);renderCart();updateCartBar()}
+function checkout(){if(!cart.length)return showToast('Your cart is empty');showToast('Checkout flow opened successfully')}
+function applyFilters(){
+  const tags=[];if(fVeg.checked)tags.push('veg');if(fFast.checked)tags.push('fast');if(fRating.checked)tags.push('rating');if(fOffer.checked)tags.push('offer');
+  document.querySelectorAll('[data-tags]').forEach(el=>{el.style.display=!tags.length||tags.every(t=>el.dataset.tags.includes(t))?'':'none'});
+  closeModal('filterModal');showToast('Filters applied')
+}
+function chooseBulk(name){bulkItem=name;document.getElementById('selectedBulkItem').value=name;showToast('Selected '+name)}
+function bulkNext(step){
+  ['bulk1','bulk2','bulk3','bulk4'].forEach((x,i)=>document.getElementById(x).classList.toggle('hidden',i!==step-1));
+  document.querySelectorAll('.step').forEach((x,i)=>x.classList.toggle('active',i<step));
+  if(step===4){
+    const qty=document.getElementById('bulkQty').value||25, date=document.getElementById('bulkDate').value||'Date not selected',time=document.getElementById('bulkTime').value||'';
+    document.getElementById('reviewItem').textContent=bulkItem;
+    document.getElementById('reviewQty').textContent=qty+' servings';
+    document.getElementById('reviewDate').textContent=date+' '+time;
+    document.getElementById('reviewAddress').textContent=document.getElementById('bulkAddress').value||'Address not added'
+  }
+}
+function useCurrentLocation(){document.getElementById('bulkAddress').value='Current location - Silvassa, Dadra & Nagar Haveli';showToast('Current location added')}
+function submitBulk(){
+  if(!document.getElementById('bulkDate').value)return showToast('Please select a delivery date');
+  if(!document.getElementById('bulkAddress').value)return showToast('Please add delivery address');
+  showToast('Bulk order request submitted');setTimeout(()=>openScreen('homeScreen'),700)
+}
+document.getElementById('searchInput').addEventListener('input',function(){
+  const q=this.value.toLowerCase().trim();
+  document.querySelectorAll('.dish,.restaurant').forEach(el=>{el.style.display=el.innerText.toLowerCase().includes(q)?'':'none'})
+});
+const d=new Date();d.setDate(d.getDate()+1);document.getElementById('bulkDate').min=d.toISOString().split('T')[0];
+</script>
+</div>
+</body>
+</html>

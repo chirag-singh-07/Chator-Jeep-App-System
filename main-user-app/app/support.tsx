@@ -56,12 +56,14 @@ export default function SupportScreen() {
       <StatusBar barStyle="dark-content" />
       
       <SafeAreaView style={{ flex: 1 }}>
-        <View style={styles.navBar}>
+        <View style={styles.pageHeader}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
+            <Ionicons name="arrow-back" size={20} color="#161616" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Help & Support</Text>
-          <View style={{ width: 45 }} />
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerTitle}>Help & Support</Text>
+            <Text style={styles.headerSubtitle}>24/7 assistance for your orders</Text>
+          </View>
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
@@ -127,28 +129,42 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  navBar: {
+  pageHeader: {
+    paddingHorizontal: 18,
+    paddingVertical: 17,
+    paddingTop: Platform.OS === 'android' ? 45 : 25,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ECECEC',
+    backgroundColor: '#fff',
+    zIndex: 20,
   },
   backBtn: {
-    width: 45,
-    height: 45,
-    borderRadius: 15,
-    backgroundColor: '#F9FAFB',
+    width: 40,
+    height: 40,
+    borderRadius: 13,
+    backgroundColor: '#F4F4F4',
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 12,
+  },
+  headerTextContainer: {
+    flex: 1,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#1A1A1A',
+    fontSize: 20,
+    fontFamily: 'Inter-SemiBold',
+    color: '#161616',
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    color: '#838383',
+    marginTop: 3,
+    fontFamily: 'Inter-Regular',
   },
   content: {
-    paddingHorizontal: 25,
+    paddingHorizontal: 18,
     paddingTop: 30,
     paddingBottom: 40,
   },
@@ -168,21 +184,22 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
     shadowRadius: 20,
+    elevation: 5,
   },
   heroTitle: {
-    fontSize: 24,
-    fontWeight: '900',
+    fontSize: 26,
+    fontFamily: 'Inter-Black',
     color: '#1A1A1A',
     textAlign: 'center',
   },
   heroSub: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#666',
     textAlign: 'center',
     marginTop: 10,
-    lineHeight: 20,
+    lineHeight: 22,
     paddingHorizontal: 20,
-    fontWeight: '500',
+    fontFamily: 'Inter-Regular',
   },
   contactRow: {
     flexDirection: 'row',
@@ -190,14 +207,14 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   contactCard: {
-    width: (width - 70) / 3,
-    backgroundColor: '#F9FAFB',
+    width: (width - 60) / 3,
+    backgroundColor: '#fff',
     paddingVertical: 20,
-    borderRadius: 25,
+    borderRadius: 20,
     alignItems: 'center',
     gap: 10,
     borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderColor: '#ECECEC',
   },
   contactIcon: {
     width: 45,
@@ -207,16 +224,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   contactLabel: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#1A1A1A',
+    fontSize: 13,
+    fontFamily: 'Inter-Bold',
+    color: '#161616',
   },
   faqSection: {
     marginBottom: 30,
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '900',
+    fontFamily: 'Inter-Bold',
     color: '#1A1A1A',
     marginBottom: 20,
   },
@@ -226,23 +243,23 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginBottom: 15,
     borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderColor: '#ECECEC',
   },
   faqQ: {
-    fontSize: 15,
-    fontWeight: '800',
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
     color: '#1A1A1A',
     marginBottom: 8,
   },
   faqA: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#666',
-    lineHeight: 20,
-    fontWeight: '500',
+    lineHeight: 22,
+    fontFamily: 'Inter-Regular',
   },
   policyLinks: {
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: '#ECECEC',
     paddingTop: 10,
   },
   policyBtn: {
@@ -252,8 +269,8 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
   },
   policyText: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
     color: '#666',
   },
 });

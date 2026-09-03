@@ -19,6 +19,8 @@ interface AuthState {
   logout: () => Promise<void>;
   setHasSeenOnboarding: (value: boolean) => void;
   setHasHydrated: (state: boolean) => void;
+  hasPlacedOrder: boolean;
+  setHasPlacedOrder: (value: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -28,6 +30,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       hasHydrated: false,
       hasSeenOnboarding: false,
+      hasPlacedOrder: false,
       setAuth: async (user, tokens) => {
         await SecureStore.setItemAsync("accessToken", tokens.accessToken);
         await SecureStore.setItemAsync("refreshToken", tokens.refreshToken);
@@ -40,6 +43,7 @@ export const useAuthStore = create<AuthState>()(
       },
       setHasSeenOnboarding: (value: boolean) => set({ hasSeenOnboarding: value }),
       setHasHydrated: (state) => set({ hasHydrated: state }),
+      setHasPlacedOrder: (value: boolean) => set({ hasPlacedOrder: value }),
     }),
     {
       name: "auth-storage",

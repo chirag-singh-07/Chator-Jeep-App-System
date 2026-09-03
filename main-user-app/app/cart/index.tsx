@@ -24,15 +24,18 @@ import * as Haptics from 'expo-haptics';
 const { height } = Dimensions.get('window');
 
 export default function CartScreen() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, hasPlacedOrder } = useAuthStore();
   const router = useRouter();
   const { items, restaurantName, totalAmount, totalItems, updateQuantity, clearCart } = useCartStore();
   const { currentAddress } = useLocationStore();
   const [instructions, setInstructions] = React.useState('');
 
+  const isFirstOrder = !hasPlacedOrder;
+  const discountAmount = isFirstOrder ? Math.min(Math.round(totalAmount * 0.5), 100) : 0;
+
   const deliveryFee = 30;
   const taxes = Math.round(totalAmount * 0.05); // 5% GST
-  const grandTotal = totalAmount + deliveryFee + taxes;
+  const grandTotal = totalAmount + deliveryFee + taxes - discountAmount;
 
   if (items.length === 0) {
     return (
@@ -140,13 +143,28 @@ export default function CartScreen() {
         </View>
 
         {/* Coupon Section */}
-        <TouchableOpacity style={styles.couponCard} activeOpacity={0.7}>
-           <View style={styles.couponLeft}>
-             <Ionicons name="pricetag" size={20} color={Colors.light.primary} />
-             <Text style={styles.couponTitle}>Apply Coupon</Text>
-           </View>
-           <Ionicons name="chevron-forward" size={18} color="#999" />
-        </TouchableOpacity>
+        {isFirstOrder ? (
+          <TouchableOpacity style={[styles.couponCard, { backgroundColor: '#FFFDF5', borderColor: '#FFF8D0', borderWidth: 1 }]} activeOpacity={0.9}>
+            <View style={styles.couponLeft}>
+              <View style={{ backgroundColor: '#FFD400', padding: 8, borderRadius: 10 }}>
+                <Ionicons name="pricetag" size={20} color="#161616" />
+              </View>
+              <View style={{ marginLeft: 12 }}>
+                <Text style={[styles.couponTitle, { color: '#161616' }]}>'WELCOME50' applied</Text>
+                <Text style={{ fontSize: 12, color: '#666', fontFamily: 'Inter-Regular', marginTop: 2 }}>50% off up to ₹100</Text>
+              </View>
+            </View>
+            <Ionicons name="checkmark-circle" size={24} color="#39A545" />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.couponCard} activeOpacity={0.7}>
+             <View style={styles.couponLeft}>
+               <Ionicons name="pricetag" size={20} color={Colors.light.primary} />
+               <Text style={styles.couponTitle}>Apply Coupon</Text>
+             </View>
+             <Ionicons name="chevron-forward" size={18} color="#999" />
+          </TouchableOpacity>
+        )}
 
         {/* Bill Details */}
         <View style={styles.billCard}>
@@ -166,6 +184,12 @@ export default function CartScreen() {
             <Text style={styles.billLabel}>GST and Restaurant Charges</Text>
             <Text style={styles.billValue}>₹{taxes}</Text>
           </View>
+          {isFirstOrder && discountAmount > 0 && (
+            <View style={styles.billRow}>
+              <Text style={[styles.billLabel, { color: '#39A545' }]}>Welcome Discount</Text>
+              <Text style={[styles.billValue, { color: '#39A545' }]}>-₹{discountAmount}</Text>
+            </View>
+          )}
           <View style={styles.billDivider} />
           <View style={styles.billRow}>
             <Text style={styles.totalLabel}>To Pay</Text>

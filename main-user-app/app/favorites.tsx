@@ -1,204 +1,223 @@
 import React from 'react';
-import { StyleSheet, View, Text, FlatList, Image, TouchableOpacity, Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from '@/constants/Colors';
+import { StyleSheet, View, Text, FlatList, TouchableOpacity, SafeAreaView, StatusBar, Platform } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-
-const { width } = Dimensions.get('window');
+import { LinearGradient } from 'expo-linear-gradient';
 
 const FAVORITES = [
   {
     id: '1',
-    name: 'Sushi ZenMaster',
-    rating: 4.9,
-    time: '30-45 min',
-    image: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400',
-    tags: ['Sushi', 'Japanese'],
-    isVeg: false,
+    name: 'Pizza Junction',
+    desc: 'Italian • Pizza • Fast Food',
+    rating: 4.6,
+    time: '25–30 min',
+    emoji: '🍕',
+    gradient: ['#FFE7A7', '#FFC75B']
   },
   {
     id: '2',
-    name: 'The Pizza Hub',
+    name: 'Biryani Adda',
+    desc: 'Biryani • Mughlai • North Indian',
     rating: 4.8,
-    time: '20-30 min',
-    image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400',
-    tags: ['Pizza', 'Italian'],
-    isVeg: true,
+    time: '30–35 min',
+    emoji: '🍛',
+    gradient: ['#FFD2C4', '#FE8B6A']
+  },
+  {
+    id: '3',
+    name: 'Fresh Bowl',
+    desc: 'Healthy • Bowls • Beverages',
+    rating: 4.5,
+    time: '20–25 min',
+    emoji: '🥗',
+    gradient: ['#D8F5DA', '#87D58F']
   },
 ];
 
 export default function FavoritesScreen() {
+  const router = useRouter();
+
   const renderItem = ({ item, index }: { item: any, index: number }) => (
     <Animated.View 
       entering={FadeInDown.delay(index * 100)}
-      style={styles.card}
+      style={styles.restaurantCard}
     >
-      <Image source={{ uri: item.image }} style={styles.image} />
-      <TouchableOpacity style={styles.heartBtn}>
-        <Ionicons name="heart" size={20} color={Colors.light.primary} />
-      </TouchableOpacity>
-      <View style={styles.content}>
-        <View style={styles.row}>
-          <View style={{flexDirection: 'row', alignItems: 'center'}}>
-            <Ionicons name="stop-circle" size={16} color={item.isVeg ? "#48bb78" : "#e53e3e"} />
-            <Text style={styles.name}>{item.name}</Text>
-          </View>
-          <View style={styles.ratingBadge}>
-            <Ionicons name="star" size={12} color="#FFF" />
-            <Text style={styles.ratingText}>{item.rating}</Text>
-          </View>
-        </View>
-        <Text style={styles.tags}>{item.tags.join(' • ')}</Text>
-        <View style={styles.meta}>
-          <Ionicons name="time-outline" size={14} color={Colors.light.textMuted} />
-          <Text style={styles.metaText}>{item.time} • Free Delivery</Text>
-        </View>
+      <LinearGradient
+        colors={item.gradient as [string, string]}
+        style={styles.restImg}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <Text style={styles.emoji}>{item.emoji}</Text>
+      </LinearGradient>
+      
+      <View style={styles.restInfo}>
+        <Text style={styles.restTitle} numberOfLines={1}>{item.name}</Text>
+        <Text style={styles.restDesc} numberOfLines={1}>{item.desc}</Text>
+        <Text style={styles.restMeta}>★ {item.rating} • {item.time}</Text>
       </View>
+
+      <TouchableOpacity style={styles.heartBtn}>
+        <Ionicons name="heart" size={16} color="#e64949" />
+      </TouchableOpacity>
     </Animated.View>
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Your Favorites</Text>
-        <Text style={styles.subtitle}>Restaurants you liked the most</Text>
-      </View>
-
-      <FlatList
-        data={FAVORITES}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.list}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="heart-outline" size={80} color="#EEE" />
-            <Text style={styles.emptyText}>No favorites yet</Text>
-            <Text style={styles.emptySub}>Start exploring and like some restaurants!</Text>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      
+      <SafeAreaView style={{ flex: 1 }}>
+        <View style={styles.pageHeader}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={20} color="#161616" />
+          </TouchableOpacity>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerTitle}>Liked Restaurants</Text>
+            <Text style={styles.headerSubtitle}>Your saved restaurant favourites</Text>
           </View>
-        }
-      />
-    </SafeAreaView>
+        </View>
+
+        <FlatList
+          data={FAVORITES}
+          renderItem={renderItem}
+          keyExtractor={item => item.id}
+          contentContainerStyle={styles.pageBody}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <View style={styles.emptyIcon}>
+                <Ionicons name="heart-outline" size={30} color="#7A6500" />
+              </View>
+              <Text style={styles.emptyTitle}>No liked restaurants</Text>
+              <Text style={styles.emptySub}>Restaurants you save will appear here.</Text>
+            </View>
+          }
+        />
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#fff',
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+  pageHeader: {
+    paddingHorizontal: 18,
+    paddingVertical: 17,
+    paddingTop: Platform.OS === 'android' ? 45 : 25,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ECECEC',
+    backgroundColor: '#fff',
+    zIndex: 20,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: Colors.light.text,
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: Colors.light.textMuted,
-    marginTop: 4,
-  },
-  list: {
-    paddingHorizontal: 20,
-    paddingBottom: 100,
-  },
-  card: {
-    backgroundColor: '#FFF',
-    borderRadius: 24,
-    marginBottom: 20,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
-    elevation: 4,
-  },
-  image: {
-    width: '100%',
-    height: 180,
-  },
-  heartBtn: {
-    position: 'absolute',
-    top: 15,
-    right: 15,
-    backgroundColor: '#FFF',
+  backBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 13,
+    backgroundColor: '#F4F4F4',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 5,
+    marginRight: 12,
   },
-  content: {
-    padding: 16,
+  headerTextContainer: {
+    flex: 1,
   },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 4,
+  headerTitle: {
+    fontSize: 20,
+    fontFamily: 'Inter-SemiBold',
+    color: '#161616',
   },
-  name: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.light.text,
-    marginLeft: 6,
-  },
-  ratingBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#48bb78',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  ratingText: {
-    color: '#FFF',
+  headerSubtitle: {
     fontSize: 12,
-    fontWeight: 'bold',
-    marginLeft: 4,
+    color: '#838383',
+    marginTop: 3,
+    fontFamily: 'Inter-Regular',
   },
-  tags: {
-    fontSize: 14,
-    color: Colors.light.textMuted,
-    marginBottom: 8,
+  pageBody: {
+    paddingHorizontal: 18,
+    paddingTop: 18,
+    paddingBottom: 35,
   },
-  meta: {
+  restaurantCard: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 11,
+    borderWidth: 1,
+    borderColor: '#ECECEC',
+    borderRadius: 18,
+    padding: 10,
+    marginBottom: 11,
+    backgroundColor: '#fff',
   },
-  metaText: {
+  restImg: {
+    width: 76,
+    height: 76,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emoji: {
+    fontSize: 38,
+  },
+  restInfo: {
+    flex: 1,
+  },
+  restTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#161616',
+  },
+  restDesc: {
     fontSize: 12,
-    color: Colors.light.textMuted,
-    marginLeft: 4,
-    fontWeight: '600',
+    color: '#7f7f7f',
+    marginTop: 4,
+    fontFamily: 'Inter-Regular',
+  },
+  restMeta: {
+    fontSize: 12,
+    fontFamily: 'Inter-Bold', // HTML had 700
+    color: '#161616',
+    marginTop: 7,
+  },
+  heartBtn: {
+    width: 35,
+    height: 35,
+    borderRadius: 11,
+    backgroundColor: '#fff0f0',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   emptyContainer: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 100,
+    padding: 50,
   },
-  emptyText: {
+  emptyIcon: {
+    width: 82,
+    height: 82,
+    borderRadius: 26,
+    backgroundColor: '#FFF8D0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 13,
+  },
+  emptyTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.light.text,
-    marginTop: 20,
+    fontFamily: 'Inter-SemiBold',
+    color: '#161616',
   },
   emptySub: {
-    fontSize: 14,
-    color: Colors.light.textMuted,
-    marginTop: 8,
+    fontSize: 13,
+    color: '#777',
+    marginTop: 6,
     textAlign: 'center',
-    paddingHorizontal: 40,
+    fontFamily: 'Inter-Regular',
+    lineHeight: 18,
   },
 });

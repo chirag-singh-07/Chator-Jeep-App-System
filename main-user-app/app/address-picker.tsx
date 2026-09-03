@@ -12,7 +12,8 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
-  ScrollView
+  ScrollView,
+  StatusBar
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
@@ -277,27 +278,30 @@ export default function AddressPickerScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={Colors.light.text} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Delivery Address</Text>
-      </View>
+      <View style={styles.headerContainer}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={24} color={Colors.light.text} />
+          </TouchableOpacity>
+          <Text style={styles.title}>Delivery Address</Text>
+        </View>
 
-      <View style={styles.searchSection}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color={Colors.light.primary} />
-          <TextInput
-            style={styles.input}
-            placeholder="Search for area, street..."
-            value={search}
-            onChangeText={handleSearch}
-          />
-          {search.length > 0 && (
-            <TouchableOpacity onPress={() => handleSearch('')}>
-              <Ionicons name="close-circle" size={20} color="#CCC" />
-            </TouchableOpacity>
-          )}
+        <View style={styles.searchSection}>
+          <View style={styles.searchBar}>
+            <Ionicons name="search" size={22} color={Colors.light.primary} />
+            <TextInput
+              style={styles.input}
+              placeholder="Search for area, street..."
+              value={search}
+              onChangeText={handleSearch}
+              placeholderTextColor="#A1A1AA"
+            />
+            {search.length > 0 && (
+              <TouchableOpacity onPress={() => handleSearch('')} style={styles.clearBtn}>
+                <Ionicons name="close-circle" size={20} color="#A1A1AA" />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </View>
 
@@ -334,38 +338,45 @@ export default function AddressPickerScreen() {
 
             {savedAddresses.length > 0 && (
               <View style={styles.savedSection}>
-                <Text style={styles.sectionLabel}>SAVED ADDRESSES</Text>
                 {savedAddresses.map((addr, index) => (
-                  <View key={addr.id} style={styles.savedItemContainer}>
+                  <View key={addr.id} style={styles.addressCard}>
                     <TouchableOpacity 
-                      style={styles.savedItem}
+                      style={{flex: 1}}
                       onPress={() => {
                         setCurrentAddress(addr);
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                         router.back();
                       }}
                     >
-                      <View style={styles.savedIcon}>
-                        <Ionicons 
-                          name={addr.label === 'Home' ? 'home' : addr.label === 'Work' ? 'briefcase' : 'location'} 
-                          size={20} 
-                          color="#666" 
-                        />
+                      <View style={styles.addressTop}>
+                        <View style={styles.addressTag}>
+                          <View style={styles.addressTagIcon}>
+                            <Ionicons 
+                              name={addr.label === 'Home' ? 'home' : addr.label === 'Work' ? 'briefcase' : 'location'} 
+                              size={16} 
+                              color="#806900" 
+                            />
+                          </View>
+                          <Text style={styles.addressTagText}>{addr.label}</Text>
+                        </View>
                       </View>
-                      <View style={{marginLeft: 15, flex: 1}}>
-                        <Text style={styles.savedLabel}>{addr.label}</Text>
-                        <Text style={styles.savedAddr} numberOfLines={1}>{addr.flat}, {addr.area}</Text>
-                      </View>
+                      <Text style={styles.addressText} numberOfLines={2}>{addr.flat}, {addr.area}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={styles.deleteBtn}
-                      onPress={() => {
-                        removeAddress(addr.id);
-                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-                      }}
-                    >
-                      <Ionicons name="trash-outline" size={18} color="#FF4444" />
-                    </TouchableOpacity>
+                    
+                    <View style={styles.addressActions}>
+                       <TouchableOpacity style={styles.addressEditBtn}>
+                         <Text style={styles.addressEditBtnText}>Edit</Text>
+                       </TouchableOpacity>
+                       <TouchableOpacity 
+                         style={styles.addressDeleteBtn}
+                         onPress={() => {
+                           removeAddress(addr.id);
+                           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                         }}
+                       >
+                         <Text style={styles.addressDeleteBtnText}>Delete</Text>
+                       </TouchableOpacity>
+                    </View>
                   </View>
                 ))}
               </View>
@@ -543,65 +554,73 @@ export default function AddressPickerScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF' },
-  header: { flexDirection: 'row', alignItems: 'center', padding: 20 },
-  backBtn: { padding: 5, marginRight: 15 },
-  title: { fontSize: 20, fontWeight: '900', color: Colors.light.text },
+  container: { flex: 1, backgroundColor: '#FAFAFA', paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 40) + 15 : 0 },
+  headerContainer: { backgroundColor: '#FFF', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 15, elevation: 3, paddingBottom: 15, borderBottomLeftRadius: 30, borderBottomRightRadius: 30, zIndex: 10 },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 15 },
+  backBtn: { padding: 10, marginRight: 15, backgroundColor: '#F4F4F5', borderRadius: 14 },
+  title: { fontSize: 22, fontWeight: '900', color: Colors.light.text },
   searchSection: { paddingHorizontal: 20, paddingBottom: 15 },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 15,
-    paddingHorizontal: 15,
-    height: 55,
+    backgroundColor: '#F4F4F5',
+    borderRadius: 18,
+    paddingHorizontal: 18,
+    height: 60,
     borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderColor: '#E4E4E7',
   },
+  clearBtn: { padding: 5 },
   input: { flex: 1, marginLeft: 10, fontSize: 16, color: Colors.light.text, fontWeight: '600' },
   currentLocBtn: {
+    marginTop: 25,
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#FFFDF5',
+    backgroundColor: '#FFF',
     marginHorizontal: 20,
-    borderRadius: 20,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: Colors.light.primary + '20',
+    borderRadius: 24,
+    marginBottom: 15,
+    borderWidth: 2,
+    borderColor: Colors.light.primary + '40',
+    shadowColor: Colors.light.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 3,
   },
   locIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#FFF',
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: Colors.light.primary + '15',
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
   },
-  currentLocText: { fontSize: 16, fontWeight: '900', color: Colors.light.primary },
+  currentLocText: { fontSize: 17, fontWeight: '900', color: Colors.light.primary },
   currentLocSub: { fontSize: 12, color: '#999', marginTop: 2, fontWeight: '500' },
-  savedSection: { paddingHorizontal: 20, marginTop: 10 },
-  sectionLabel: { fontSize: 12, fontWeight: '900', color: '#999', letterSpacing: 1, marginBottom: 15 },
-  savedItemContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 25 },
-  savedItem: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  savedIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F9FAFB', alignItems: 'center', justifyContent: 'center' },
-  savedLabel: { fontSize: 16, fontWeight: '900', color: Colors.light.text },
-  savedAddr: { fontSize: 13, color: '#999', marginTop: 2, fontWeight: '500' },
-  deleteBtn: { padding: 10 },
+  savedSection: { paddingHorizontal: 18, marginTop: 14 },
+  addressCard: { borderWidth: 1, borderColor: '#ECECEC', borderRadius: 18, padding: 14, marginBottom: 11, backgroundColor: '#fff' },
+  addressTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 },
+  addressTag: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  addressTagIcon: { width: 32, height: 32, borderRadius: 10, backgroundColor: '#FFF8D0', alignItems: 'center', justifyContent: 'center' },
+  addressTagText: { fontSize: 13, fontFamily: 'Inter-SemiBold', color: '#161616' },
+  addressText: { fontSize: 12, color: '#737373', lineHeight: 16, fontFamily: 'Inter-Regular' },
+  addressActions: { flexDirection: 'row', gap: 8, marginTop: 10 },
+  addressEditBtn: { backgroundColor: '#F2F2F2', borderRadius: 10, paddingVertical: 7, paddingHorizontal: 9 },
+  addressEditBtnText: { fontSize: 11, fontFamily: 'Inter-Black', color: '#161616' },
+  addressDeleteBtn: { backgroundColor: '#FFF0F0', borderRadius: 10, paddingVertical: 7, paddingHorizontal: 9 },
+  addressDeleteBtnText: { fontSize: 11, fontFamily: 'Inter-Black', color: '#C94444' },
   list: { paddingHorizontal: 20 },
-  resultItem: { flexDirection: 'row', paddingVertical: 18, borderBottomWidth: 1, borderBottomColor: '#F9FAFB', alignItems: 'center' },
-  resultIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F9FAFB', alignItems: 'center', justifyContent: 'center' },
+  resultItem: { flexDirection: 'row', paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: '#F4F4F5', alignItems: 'center' },
+  resultIcon: { width: 48, height: 48, borderRadius: 16, backgroundColor: '#F4F4F5', alignItems: 'center', justifyContent: 'center' },
   resultText: { flex: 1, marginLeft: 15 },
   resultName: { fontSize: 16, fontWeight: '800', color: Colors.light.text },
   resultAddr: { fontSize: 13, color: '#999', marginTop: 2, fontWeight: '500' },
   emptyContainer: { alignItems: 'center', marginTop: 50 },
   emptyText: { marginTop: 15, color: '#999', fontSize: 14, fontWeight: '600' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#FFF', borderTopLeftRadius: 30, borderTopRightRadius: 30, maxHeight: height * 0.88, borderWidth: 1, borderColor: '#F3F4F6' },
+  modalContent: { backgroundColor: '#FFF', borderTopLeftRadius: 35, borderTopRightRadius: 35, maxHeight: height * 0.9, borderWidth: 1, borderColor: '#F4F4F5', shadowColor: '#000', shadowOffset: {width: 0, height: -10}, shadowOpacity: 0.1, shadowRadius: 20, elevation: 20 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 25, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   modalTitle: { fontSize: 18, fontWeight: '900', color: Colors.light.text },
   inputLabel: { fontSize: 11, fontWeight: '900', color: '#999', letterSpacing: 1, marginBottom: 10, marginTop: 20 },
@@ -610,23 +629,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF',
-    borderRadius: 20,
-    padding: 18,
+    borderRadius: 24,
+    padding: 20,
     marginHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 30,
     borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderColor: '#F4F4F5',
     shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
+    shadowOpacity: 0.03,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 2,
   },
   manualBtnIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
-    backgroundColor: '#F9FAFB',
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: '#F4F4F5',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -640,7 +659,7 @@ const styles = StyleSheet.create({
   activeLabelBtn: { backgroundColor: Colors.light.primary, borderColor: Colors.light.primary },
   labelBtnText: { fontSize: 14, fontWeight: '800', color: '#666' },
   activeLabelBtnText: { color: '#FFF' },
-  saveBtn: { backgroundColor: Colors.light.primary, height: 60, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginTop: 35, shadowColor: Colors.light.primary, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
+  saveBtn: { backgroundColor: Colors.light.primary, height: 64, borderRadius: 22, alignItems: 'center', justifyContent: 'center', marginTop: 35, shadowColor: Colors.light.primary, shadowOpacity: 0.4, shadowRadius: 15, elevation: 8, marginBottom: 20 },
   saveBtnDisabled: { opacity: 0.45 },
   saveBtnText: { fontSize: 17, fontWeight: '900', color: '#FFF' },
 });

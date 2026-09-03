@@ -23,6 +23,7 @@ import { Order } from "../order/order.model";
 import { consumeRestaurantRegistrationPayment } from "../payment/payment.service";
 import { User, IUser } from "../user/user.model";
 import { isRedisEnabled, redisConnection } from "../../config/redis";
+import { geocodeAddress } from "../../common/utils/geocoder";
 
 const indianPhoneRegex = /^[6-9]\d{9}$/;
 
@@ -98,6 +99,27 @@ export const registerRestaurant = async (input: {
     });
 
   // 2. Create restaurant profile — starts as REQUESTED
+    let locationCoordinates = undefined;
+    if (input.address) {
+      const fullAddress = [
+        input.address.line1,
+        input.address.city,
+        input.address.state,
+        input.address.pinCode,
+      ]
+        .filter(Boolean)
+        .join(", ");
+      if (fullAddress) {
+        const coords = await geocodeAddress(fullAddress);
+        if (coords) {
+          locationCoordinates = {
+            type: "Point",
+            coordinates: [coords.lng, coords.lat],
+          };
+        }
+      }
+    }
+
     restaurant = await createRestaurant({
       ownerId: user._id as any,
       ownerName: input.ownerName,
@@ -112,6 +134,7 @@ export const registerRestaurant = async (input: {
       bannerUrls: input.bannerUrls,
       documents: input.documents ?? [],
       status: RESTAURANT_STATUS.REQUESTED,
+      location: locationCoordinates,
       termsAccepted: true,
       termsAcceptedAt: new Date(),
       activationTimestamp,
@@ -473,18 +496,36 @@ export const adminDeleteRestaurant = async (id: string) => {
   const extractKey = (url: string) => {
     if (!url) return null;
     try {
-      if (url.includes(".io/")) return url.split(".io/")[1];
-      if (url.includes(".dev/")) return url.split(".dev/")[1];
-      if (url.includes("/uploads/")) {
-         const fullKey = url.split("/uploads/")[1];
-         // For processed images (e.g., folder1/folder2/uuid/file.webp), we want to delete the parent 'uuid' folder
+      let fullKey = url;
+      // Handle standard S3 URL formats
+      if (url.includes(".amazonaws.com/")) {
+        fullKey = url.split(".amazonaws.com/")[1];
+      } else if (url.includes(".io/")) {
+        fullKey = url.split(".io/")[1];
+      } else if (url.includes(".dev/")) {
+        fullKey = url.split(".dev/")[1];
+      }
+      
+      // If the URL has query params (like presigned URLs), strip them
+      if (fullKey.includes("?")) {
+        fullKey = fullKey.split("?")[0];
+      }
+
+      if (fullKey.includes("uploads/")) {
+         // The key includes uploads/, we only want the path starting from uploads/ or after it based on your S3 structure
+         // Usually it's just the fullKey.
          const parts = fullKey.split("/");
-         if (parts.length > 1) {
-             return parts.slice(0, -1).join("/");
+         // If it's a processed image like uploads/resId/uuid/file.webp, we might want to delete the uuid folder
+         if (parts.length > 2 && fullKey.match(/\/[0-9a-fA-F-]{36}\//)) {
+             // Find the UUID part and slice up to it to delete the whole directory
+             const uuidIndex = parts.findIndex(p => p.match(/^[0-9a-fA-F-]{36}$/));
+             if (uuidIndex !== -1) {
+                 return parts.slice(0, uuidIndex + 1).join("/");
+             }
          }
          return fullKey;
       }
-      return null;
+      return fullKey || null;
     } catch (e) {
       return null;
     }
@@ -607,6 +648,25 @@ export const adminCreateRestaurant = async (
     const logoUrls = input.logoImage ? { default: input.logoImage } : undefined;
     const cuisines = input.cuisine ? input.cuisine.split(",").map((c: string) => c.trim()) : [];
 
+    let locationCoordinates = undefined;
+    const fullAddress = [
+      input.addressLine1 || input.location || "",
+      input.city || "",
+      input.state || "",
+      input.pinCode || "",
+    ]
+      .filter(Boolean)
+      .join(", ");
+    if (fullAddress) {
+      const coords = await geocodeAddress(fullAddress);
+      if (coords) {
+        locationCoordinates = {
+          type: "Point",
+          coordinates: [coords.lng, coords.lat],
+        };
+      }
+    }
+
     restaurant = await createRestaurant({
       ownerId: user._id as any,
       ownerName: input.ownerName,
@@ -633,6 +693,7 @@ export const adminCreateRestaurant = async (
         ifscCode: input.ifscCode || "",
       },
       status: mappedStatus,
+      location: locationCoordinates,
       termsAccepted: true,
       termsAcceptedAt: new Date(),
       activationTimestamp: new Date(),
@@ -878,44 +939,26 @@ export const listRestaurants = async (query: {
     const latitude = parseFloat(query.lat);
     const longitude = parseFloat(query.lng);
 
-    // Tiered Radius Search: 5km -> 8km -> 10km
-    const radii = [5000, 8000, 10000];
-    let geoResults: any[] = [];
-    let geoTotal = 0;
-
     try {
-      for (const maxDistance of radii) {
-        const geoFilter = {
-          ...filter,
-          location: {
-            $near: {
-              $geometry: { type: "Point", coordinates: [longitude, latitude] },
-              $maxDistance: maxDistance,
-            },
+      const geoFilter = {
+        ...filter,
+        location: {
+          $near: {
+            $geometry: { type: "Point", coordinates: [longitude, latitude] },
+            $maxDistance: 15000,
           },
-        };
+        },
+      };
 
-        geoTotal = await Restaurant.countDocuments(geoFilter).exec();
-        if (geoTotal > 0) {
-          geoResults = await Restaurant.find(geoFilter)
-            .skip(skip)
-            .limit(limit)
-            .exec();
-          
-          // If we found enough results for this page, or we've found all there is in this radius
-          if (geoResults.length >= limit || geoTotal < limit) {
-            break;
-          }
-        }
-      }
+      restaurants = await Restaurant.find(geoFilter)
+        .skip(skip)
+        .limit(limit)
+        .exec();
+      
+      total = await Restaurant.countDocuments(geoFilter).exec();
 
-      // If we found restaurants with geo query, return them
-      if (geoResults.length > 0) {
-        restaurants = geoResults;
-        total = geoTotal;
-      } else {
-        // No results with geo query - try to find restaurants in the same city/area
-        // First, try to find restaurants without strict location (they may not have coordinates set)
+      // If no geo results found at all, fallback to no location or city match
+      if (total === 0) {
         const noLocationFilter = {
           ...filter,
           $or: [
@@ -926,19 +969,16 @@ export const listRestaurants = async (query: {
           ],
         };
 
-        const noLocationResults = await Restaurant.find(noLocationFilter)
+        restaurants = await Restaurant.find(noLocationFilter)
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit)
           .exec();
 
-        const noLocationCount = await Restaurant.countDocuments(noLocationFilter).exec();
+        total = await Restaurant.countDocuments(noLocationFilter).exec();
 
-        if (noLocationResults.length > 0) {
-          restaurants = noLocationResults;
-          total = noLocationCount;
-        } else {
-          // Fallback: get all active restaurants (ignore location entirely)
+        if (total === 0) {
+          // Fallback: get all active restaurants
           restaurants = await Restaurant.find(filter)
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -1017,40 +1057,25 @@ export const searchBulkRestaurants = async (query: {
     const latitude = parseFloat(query.lat);
     const longitude = parseFloat(query.lng);
 
-    // Tiered Radius Search: 5km -> 8km -> 10km
-    const radii = [5000, 8000, 10000];
-    let geoResults: any[] = [];
-    let geoTotal = 0;
-
     try {
-      for (const maxDistance of radii) {
-        const geoFilter = {
-          ...filter,
-          location: {
-            $near: {
-              $geometry: { type: "Point", coordinates: [longitude, latitude] },
-              $maxDistance: maxDistance,
-            },
+      const geoFilter = {
+        ...filter,
+        location: {
+          $near: {
+            $geometry: { type: "Point", coordinates: [longitude, latitude] },
+            $maxDistance: 15000,
           },
-        };
+        },
+      };
 
-        geoTotal = await Restaurant.countDocuments(geoFilter).exec();
-        if (geoTotal > 0) {
-          geoResults = await Restaurant.find(geoFilter)
-            .skip(skip)
-            .limit(limit)
-            .exec();
-          
-          if (geoResults.length >= limit || geoTotal < limit) {
-            break;
-          }
-        }
-      }
+      restaurants = await Restaurant.find(geoFilter)
+        .skip(skip)
+        .limit(limit)
+        .exec();
+      
+      total = await Restaurant.countDocuments(geoFilter).exec();
 
-      if (geoResults.length > 0) {
-        restaurants = geoResults;
-        total = geoTotal;
-      } else {
+      if (total === 0) {
         const noLocationFilter = {
           ...filter,
           $or: [
@@ -1061,18 +1086,15 @@ export const searchBulkRestaurants = async (query: {
           ],
         };
 
-        const noLocationResults = await Restaurant.find(noLocationFilter)
+        restaurants = await Restaurant.find(noLocationFilter)
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit)
           .exec();
 
-        const noLocationCount = await Restaurant.countDocuments(noLocationFilter).exec();
+        total = await Restaurant.countDocuments(noLocationFilter).exec();
 
-        if (noLocationResults.length > 0) {
-          restaurants = noLocationResults;
-          total = noLocationCount;
-        } else {
+        if (total === 0) {
           restaurants = await Restaurant.find(filter)
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -1082,6 +1104,7 @@ export const searchBulkRestaurants = async (query: {
         }
       }
     } catch (geoError) {
+      console.warn("Geo query failed for bulk search, falling back:", geoError);
       restaurants = await Restaurant.find(filter)
         .sort({ createdAt: -1 })
         .skip(skip)

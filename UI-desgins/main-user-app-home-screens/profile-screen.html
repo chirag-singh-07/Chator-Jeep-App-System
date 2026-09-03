@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chatori Jeeb - Profile Module</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --yellow: #FFD400;
+            --yellow-soft: #FFF8D0;
+            --ink: #161616;
+            --muted: #7a7a7a;
+            --line: #ECECEC;
+            --surface: #F7F7F7;
+            --white: #fff;
+            --green: #17A768;
+            --red: #FF4D4F
+        }
+
+        body {
+            font-family: Inter, sans-serif;
+            background: #ececec;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            color: var(--ink)
+        }
+
+        button,
+        input,
+        textarea {
+            font: inherit
+        }
+
+        button {
+            cursor: pointer
+        }
+
+        .app {
+            width: 100%;
+            max-width: 430px;
+            min-height: 100vh;
+            background: #fff;
+            overflow-x: hidden;
+            position: relative
+        }
+
+        .screen {
+            display: none;
+            min-height: 100vh;
+            background: #fff
+        }
+
+        .screen.active {
+            display: block
+        }
+
+        .profileHero {
+            background: radial-gradient(circle at 90% 0%, rgba(255, 255, 255, .6), transparent 30%), linear-gradient(145deg, #FFE86C, #FFD400 65%, #FFC400);
+            padding: 18px 18px 26px;
+            border-radius: 0 0 34px 34px
+        }
+
+        .heroTop {
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .heroTop h1 {
+            font-size: 20px
+        }
+
+        .iconBtn {
+            width: 42px;
+            height: 42px;
+            border: 0;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, .84);
+            display: grid;
+            place-items: center
+        }
+
+        .profileCard {
+            margin-top: 21px;
+            background: rgba(255, 255, 255, .82);
+            border: 1px solid rgba(255, 255, 255, .7);
+            border-radius: 24px;
+            padding: 17px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 10px 26px rgba(118, 91, 0, .08)
+        }
+
+        .avatar {
+            width: 72px;
+            height: 72px;
+            min-width: 72px;
+            border-radius: 23px;
+            background: #111;
+            color: #fff;
+            display: grid;
+            place-items: center;
+            font-size: 24px;
+            font-weight: 800;
+            position: relative;
+            overflow: hidden
+        }
+
+        .avatar img,
+        .bigAvatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover
+        }
+
+        .avatarEdit {
+            position: absolute;
+            right: -2px;
+            bottom: -2px;
+            width: 26px;
+            height: 26px;
+            border: 0;
+            border-radius: 9px;
+            background: var(--yellow);
+            color: #111;
+            font-size: 10px;
+            border: 2px solid #fff
+        }
+
+        .profileInfo {
+            flex: 1;
+            min-width: 0
+        }
+
+        .profileInfo h2 {
+            font-size: 17px
+        }
+
+        .profileInfo p {
+            font-size: 10px;
+            color: #6e6500;
+            margin-top: 5px
+        }
+
+        .profileInfo span {
+            font-size: 9px;
+            color: #6e6500;
+            display: block;
+            margin-top: 3px
+        }
+
+        .editProfileBtn {
+            border: 0;
+            background: #111;
+            color: #fff;
+            border-radius: 11px;
+            padding: 8px 10px;
+            font-size: 9px;
+            font-weight: 800
+        }
+
+        .content {
+            padding: 23px 18px 35px
+        }
+
+        .section {
+            margin-top: 24px
+        }
+
+        .section:first-child {
+            margin-top: 0
+        }
+
+        .sectionTitle {
+            font-size: 10px;
+            font-weight: 800;
+            color: #989898;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            margin: 0 3px 9px
+        }
+
+        .menuCard {
+            border: 1px solid var(--line);
+            border-radius: 21px;
+            background: #fff;
+            overflow: hidden;
+            box-shadow: 0 7px 18px rgba(0, 0, 0, .025)
+        }
+
+        .menuItem {
+            width: 100%;
+            border: 0;
+            background: #fff;
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: left;
+            border-bottom: 1px solid #F2F2F2
+        }
+
+        .menuItem:last-child {
+            border-bottom: 0
+        }
+
+        .menuIcon {
+            width: 39px;
+            height: 39px;
+            min-width: 39px;
+            border-radius: 13px;
+            background: var(--yellow-soft);
+            display: grid;
+            place-items: center;
+            color: #7A6500
+        }
+
+        .menuText {
+            flex: 1
+        }
+
+        .menuText strong {
+            font-size: 11px;
+            display: block
+        }
+
+        .menuText span {
+            font-size: 8px;
+            color: #898989;
+            display: block;
+            margin-top: 3px;
+            line-height: 1.35
+        }
+
+        .menuItem>i {
+            font-size: 10px;
+            color: #aaa
+        }
+
+        .logout {
+            color: #c83f3f
+        }
+
+        .logout .menuIcon {
+            background: #fff0f0;
+            color: #d44747
+        }
+
+        .pageHeader {
+            padding: 17px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--line);
+            position: sticky;
+            top: 0;
+            background: #fff;
+            z-index: 20
+        }
+
+        .backBtn {
+            width: 40px;
+            height: 40px;
+            border: 0;
+            border-radius: 13px;
+            background: #F4F4F4
+        }
+
+        .pageHeader h2 {
+            font-size: 17px
+        }
+
+        .pageHeader p {
+            font-size: 8px;
+            color: #838383;
+            margin-top: 3px
+        }
+
+        .pageBody {
+            padding: 18px 18px 35px
+        }
+
+        .formGroup {
+            margin-bottom: 14px
+        }
+
+        .formGroup label {
+            display: block;
+            font-size: 9px;
+            font-weight: 800;
+            margin-bottom: 6px
+        }
+
+        .field {
+            width: 100%;
+            height: 47px;
+            border: 1px solid #ddd;
+            border-radius: 13px;
+            padding: 0 13px;
+            outline: none;
+            background: #fff;
+            font-size: 11px
+        }
+
+        .field:focus {
+            border-color: #d6b600
+        }
+
+        textarea.field {
+            height: 90px;
+            padding-top: 12px;
+            resize: none
+        }
+
+        .saveBtn {
+            width: 100%;
+            height: 47px;
+            border: 0;
+            border-radius: 14px;
+            background: #111;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+            margin-top: 5px
+        }
+
+        .avatarEditor {
+            text-align: center;
+            padding: 8px 0 22px
+        }
+
+        .bigAvatar {
+            width: 104px;
+            height: 104px;
+            border-radius: 32px;
+            background: #111;
+            color: #fff;
+            display: grid;
+            place-items: center;
+            margin: 0 auto;
+            font-size: 32px;
+            font-weight: 800;
+            overflow: hidden
+        }
+
+        .avatarActions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 12px
+        }
+
+        .smallBtn {
+            border: 1px solid #ddd;
+            background: #fff;
+            border-radius: 11px;
+            padding: 8px 10px;
+            font-size: 9px;
+            font-weight: 800
+        }
+
+        .smallBtn.primary {
+            background: var(--yellow);
+            border-color: var(--yellow)
+        }
+
+        .infoCard {
+            border: 1px solid var(--line);
+            background: #F8F8F8;
+            border-radius: 18px;
+            padding: 14px;
+            margin-bottom: 13px
+        }
+
+        .infoCard h3 {
+            font-size: 12px
+        }
+
+        .infoCard p {
+            font-size: 9px;
+            color: #7c7c7c;
+            line-height: 1.5;
+            margin-top: 4px
+        }
+
+        .orderCard {
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 14px;
+            margin-bottom: 13px;
+            box-shadow: 0 7px 18px rgba(0, 0, 0, .025)
+        }
+
+        .orderTop {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px
+        }
+
+        .orderTop h3 {
+            font-size: 12px
+        }
+
+        .orderTop p {
+            font-size: 8px;
+            color: #818181;
+            margin-top: 4px
+        }
+
+        .status {
+            padding: 5px 8px;
+            border-radius: 999px;
+            font-size: 8px;
+            font-weight: 800;
+            background: #EAF9F1;
+            color: #138253
+        }
+
+        .status.cancel {
+            background: #FFF0F0;
+            color: #C84545
+        }
+
+        .orderFood {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 11px;
+            border-top: 1px dashed #e6e6e6
+        }
+
+        .orderEmoji {
+            width: 52px;
+            height: 52px;
+            border-radius: 15px;
+            background: var(--yellow-soft);
+            display: grid;
+            place-items: center;
+            font-size: 27px
+        }
+
+        .orderFood div {
+            flex: 1
+        }
+
+        .orderFood strong {
+            font-size: 10px
+        }
+
+        .orderFood p {
+            font-size: 8px;
+            color: #818181;
+            margin-top: 3px
+        }
+
+        .orderActions {
+            display: flex;
+            gap: 8px;
+            margin-top: 11px
+        }
+
+        .outlineBtn,
+        .darkBtn {
+            flex: 1;
+            height: 37px;
+            border-radius: 11px;
+            font-size: 8px;
+            font-weight: 800
+        }
+
+        .outlineBtn {
+            background: #fff;
+            border: 1px solid #ddd
+        }
+
+        .darkBtn {
+            background: #111;
+            color: #fff;
+            border: 0
+        }
+
+        .restaurantCard {
+            display: flex;
+            gap: 11px;
+            align-items: center;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 10px;
+            margin-bottom: 11px
+        }
+
+        .restImg {
+            width: 76px;
+            height: 76px;
+            min-width: 76px;
+            border-radius: 16px;
+            background: linear-gradient(145deg, #FFE7A7, #FFC75B);
+            display: grid;
+            place-items: center;
+            font-size: 38px
+        }
+
+        .restInfo {
+            flex: 1
+        }
+
+        .restInfo h3 {
+            font-size: 12px
+        }
+
+        .restInfo p {
+            font-size: 8px;
+            color: #7f7f7f;
+            line-height: 1.4;
+            margin-top: 4px
+        }
+
+        .restMeta {
+            font-size: 8px;
+            font-weight: 700;
+            margin-top: 7px
+        }
+
+        .heartBtn {
+            width: 35px;
+            height: 35px;
+            border: 0;
+            border-radius: 11px;
+            background: #fff0f0;
+            color: #e64949
+        }
+
+        .addressCard {
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 14px;
+            margin-bottom: 11px
+        }
+
+        .addressTop {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px
+        }
+
+        .addressTag {
+            display: flex;
+            align-items: center;
+            gap: 7px
+        }
+
+        .addressTag i {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: var(--yellow-soft);
+            display: grid;
+            place-items: center;
+            color: #806900
+        }
+
+        .addressTag strong {
+            font-size: 11px
+        }
+
+        .addressCard p {
+            font-size: 9px;
+            color: #737373;
+            line-height: 1.5;
+            margin-top: 9px
+        }
+
+        .addressActions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px
+        }
+
+        .addressActions button {
+            border: 0;
+            border-radius: 10px;
+            padding: 7px 9px;
+            font-size: 8px;
+            font-weight: 800
+        }
+
+        .editBtn {
+            background: #F2F2F2
+        }
+
+        .deleteBtn {
+            background: #FFF0F0;
+            color: #C94444
+        }
+
+        .addAddressBtn {
+            width: 100%;
+            height: 46px;
+            border: 1px dashed #D3B400;
+            background: #FFFBE7;
+            border-radius: 14px;
+            color: #6b5900;
+            font-size: 10px;
+            font-weight: 800
+        }
+
+        .legalItem {
+            width: 100%;
+            border: 1px solid var(--line);
+            background: #fff;
+            border-radius: 16px;
+            padding: 13px;
+            margin-bottom: 9px;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            text-align: left
+        }
+
+        .legalItem i:first-child {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: var(--yellow-soft);
+            display: grid;
+            place-items: center;
+            color: #786200
+        }
+
+        .legalItem div {
+            flex: 1
+        }
+
+        .legalItem strong {
+            font-size: 10px
+        }
+
+        .legalItem span {
+            font-size: 8px;
+            color: #888;
+            display: block;
+            margin-top: 3px
+        }
+
+        .legalContent h3 {
+            font-size: 13px;
+            margin: 17px 0 6px
+        }
+
+        .legalContent p,
+        .legalContent li {
+            font-size: 9px;
+            line-height: 1.65;
+            color: #666
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .45);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 60
+        }
+
+        .modal.show {
+            display: flex
+        }
+
+        .sheet {
+            width: 100%;
+            max-width: 430px;
+            background: #fff;
+            border-radius: 26px 26px 0 0;
+            padding: 20px;
+            max-height: 85vh;
+            overflow: auto
+        }
+
+        .sheetBar {
+            width: 42px;
+            height: 4px;
+            background: #ddd;
+            border-radius: 10px;
+            margin: 0 auto 16px
+        }
+
+        .sheet h3 {
+            font-size: 16px;
+            margin-bottom: 14px
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 22px;
+            transform: translate(-50%, 24px);
+            opacity: 0;
+            background: #111;
+            color: #fff;
+            padding: 11px 15px;
+            border-radius: 12px;
+            font-size: 9px;
+            font-weight: 700;
+            transition: .2s;
+            z-index: 80
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0)
+        }
+
+        .empty {
+            text-align: center;
+            padding: 50px 20px
+        }
+
+        .emptyIcon {
+            width: 82px;
+            height: 82px;
+            border-radius: 26px;
+            background: var(--yellow-soft);
+            display: grid;
+            place-items: center;
+            margin: 0 auto 13px;
+            font-size: 30px
+        }
+
+        .empty h3 {
+            font-size: 14px
+        }
+
+        .empty p {
+            font-size: 9px;
+            color: #777;
+            line-height: 1.5;
+            margin-top: 6px
+        }
+
+        @media(min-width:600px) {
+            .app {
+                box-shadow: 0 0 55px rgba(0, 0, 0, .14)
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <section id="profileScreen" class="screen active">
+            <div class="profileHero">
+                <div class="heroTop">
+                    <h1>Profile</h1><button class="iconBtn" onclick="showToast('Settings opened')"><i
+                            class="fa-solid fa-gear"></i></button>
+                </div>
+                <div class="profileCard">
+                    <div style="position:relative">
+                        <div class="avatar" id="mainAvatar"><span id="mainInitials">CJ</span></div><button
+                            class="avatarEdit" onclick="openScreen('personalScreen')"><i
+                                class="fa-solid fa-camera"></i></button>
+                    </div>
+                    <div class="profileInfo">
+                        <h2 id="mainName">Chatori Jeeb User</h2>
+                        <p id="mainPhone">+91 98765 43210</p><span>Food lover • Silvassa</span>
+                    </div><button class="editProfileBtn" onclick="openScreen('personalScreen')">Edit</button>
+                </div>
+            </div>
+            <div class="content">
+                <section class="section">
+                    <div class="sectionTitle">Account</div>
+                    <div class="menuCard"><button class="menuItem" onclick="openScreen('personalScreen')"><span
+                                class="menuIcon"><i class="fa-regular fa-user"></i></span><span
+                                class="menuText"><strong>Personal Information</strong><span>Edit your name, phone number
+                                    and profile picture</span></span><i
+                                class="fa-solid fa-chevron-right"></i></button><button class="menuItem"
+                            onclick="openScreen('ordersScreen')"><span class="menuIcon"><i
+                                    class="fa-solid fa-bag-shopping"></i></span><span class="menuText"><strong>My
+                                    Orders</strong><span>Track current orders and view order history</span></span><i
+                                class="fa-solid fa-chevron-right"></i></button><button class="menuItem"
+                            onclick="openScreen('likedScreen')"><span class="menuIcon"><i
+                                    class="fa-solid fa-heart"></i></span><span class="menuText"><strong>Liked
+                                    Restaurants</strong><span>Restaurants you have saved or liked</span></span><i
+                                class="fa-solid fa-chevron-right"></i></button><button class="menuItem"
+                            onclick="openScreen('addressScreen')"><span class="menuIcon"><i
+                                    class="fa-solid fa-location-dot"></i></span><span class="menuText"><strong>Saved
+                                    Addresses</strong><span>Manage home, work and other delivery
+                                    addresses</span></span><i class="fa-solid fa-chevron-right"></i></button></div>
+                </section>
+                <section class="section">
+                    <div class="sectionTitle">Support & Legal</div>
+                    <div class="menuCard"><button class="menuItem" onclick="showToast('Help & Support opened')"><span
+                                class="menuIcon"><i class="fa-regular fa-circle-question"></i></span><span
+                                class="menuText"><strong>Help & Support</strong><span>Get help with orders, payments and
+                                    delivery</span></span><i class="fa-solid fa-chevron-right"></i></button><button
+                            class="menuItem" onclick="openScreen('legalScreen')"><span class="menuIcon"><i
+                                    class="fa-solid fa-scale-balanced"></i></span><span class="menuText"><strong>Legal &
+                                    Policies</strong><span>Privacy, terms, refunds, cancellation and
+                                    more</span></span><i class="fa-solid fa-chevron-right"></i></button><button
+                            class="menuItem" onclick="showToast('App version 1.0.0')"><span class="menuIcon"><i
+                                    class="fa-solid fa-circle-info"></i></span><span class="menuText"><strong>About
+                                    Chatori Jeeb</strong><span>App version, company details and
+                                    information</span></span><i class="fa-solid fa-chevron-right"></i></button></div>
+                </section>
+                <section class="section">
+                    <div class="menuCard"><button class="menuItem logout" onclick="logout()"><span class="menuIcon"><i
+                                    class="fa-solid fa-right-from-bracket"></i></span><span class="menuText"><strong>Log
+                                    Out</strong><span>Sign out of your Chatori Jeeb account</span></span><i
+                                class="fa-solid fa-chevron-right"></i></button></div>
+                </section>
+            </div>
+        </section>
+        <section id="personalScreen" class="screen">
+            <div class="pageHeader"><button class="backBtn" onclick="openScreen('profileScreen')"><i
+                        class="fa-solid fa-arrow-left"></i></button>
+                <div>
+                    <h2>Personal Information</h2>
+                    <p>Edit your profile details</p>
+                </div>
+            </div>
+            <div class="pageBody">
+                <div class="avatarEditor">
+                    <div class="bigAvatar" id="editAvatar"><span id="editInitials">CJ</span></div>
+                    <div class="avatarActions"><button class="smallBtn primary"
+                            onclick="document.getElementById('avatarInput').click()"><i class="fa-solid fa-camera"></i>
+                            Change Photo</button><button class="smallBtn" onclick="removeAvatar()">Remove</button><input
+                            id="avatarInput" type="file" accept="image/*" hidden onchange="changeAvatar(event)"></div>
+                </div>
+                <div class="formGroup"><label>Full Name</label><input id="nameInput" class="field"
+                        value="Chatori Jeeb User"></div>
+                <div class="formGroup"><label>Phone Number</label><input id="phoneInput" class="field" type="tel"
+                        value="+91 98765 43210"></div>
+                <div class="formGroup"><label>Email Address</label><input class="field" type="email"
+                        value="user@chatorijeeb.com"></div><button class="saveBtn" onclick="savePersonalInfo()">Save
+                    Changes</button>
+            </div>
+        </section>
+        <section id="ordersScreen" class="screen">
+            <div class="pageHeader"><button class="backBtn" onclick="openScreen('profileScreen')"><i
+                        class="fa-solid fa-arrow-left"></i></button>
+                <div>
+                    <h2>My Orders</h2>
+                    <p>Current and previous food orders</p>
+                </div>
+            </div>
+            <div class="pageBody">
+                <div class="orderCard">
+                    <div class="orderTop">
+                        <div>
+                            <h3>Pizza Junction</h3>
+                            <p>Order #CJ10248 • Today, 1:20 PM</p>
+                        </div><span class="status">Delivered</span>
+                    </div>
+                    <div class="orderFood">
+                        <div class="orderEmoji">🍕</div>
+                        <div><strong>1 × Tandoori Paneer Pizza</strong>
+                            <p>₹199 • Paid online</p>
+                        </div>
+                    </div>
+                    <div class="orderActions"><button class="outlineBtn"
+                            onclick="showToast('Order details opened')">View Details</button><button class="darkBtn"
+                            onclick="showToast('Item added again')">Reorder</button></div>
+                </div>
+                <div class="orderCard">
+                    <div class="orderTop">
+                        <div>
+                            <h3>Biryani Adda</h3>
+                            <p>Order #CJ10192 • 30 Aug, 8:10 PM</p>
+                        </div><span class="status">Delivered</span>
+                    </div>
+                    <div class="orderFood">
+                        <div class="orderEmoji">🍛</div>
+                        <div><strong>2 × Chicken Biryani</strong>
+                            <p>₹458 • Cash on delivery</p>
+                        </div>
+                    </div>
+                    <div class="orderActions"><button class="outlineBtn"
+                            onclick="showToast('Order details opened')">View Details</button><button class="darkBtn"
+                            onclick="showToast('Items added again')">Reorder</button></div>
+                </div>
+                <div class="orderCard">
+                    <div class="orderTop">
+                        <div>
+                            <h3>Fresh Bowl</h3>
+                            <p>Order #CJ10044 • 18 Aug, 12:30 PM</p>
+                        </div><span class="status cancel">Cancelled</span>
+                    </div>
+                    <div class="orderFood">
+                        <div class="orderEmoji">🥗</div>
+                        <div><strong>1 × Corporate Meal Bowl</strong>
+                            <p>₹169 • Refund processed</p>
+                        </div>
+                    </div>
+                    <div class="orderActions"><button class="outlineBtn"
+                            onclick="showToast('Cancellation details opened')">View Details</button><button
+                            class="darkBtn" onclick="showToast('Item added again')">Reorder</button></div>
+                </div>
+            </div>
+        </section>
+        <section id="likedScreen" class="screen">
+            <div class="pageHeader"><button class="backBtn" onclick="openScreen('profileScreen')"><i
+                        class="fa-solid fa-arrow-left"></i></button>
+                <div>
+                    <h2>Liked Restaurants</h2>
+                    <p>Your saved restaurant favourites</p>
+                </div>
+            </div>
+            <div class="pageBody" id="likedList">
+                <div class="restaurantCard">
+                    <div class="restImg">🍕</div>
+                    <div class="restInfo">
+                        <h3>Pizza Junction</h3>
+                        <p>Italian • Pizza • Fast Food</p>
+                        <div class="restMeta">★ 4.6 • 25–30 min</div>
+                    </div><button class="heartBtn" onclick="removeLiked(this,'Pizza Junction')"><i
+                            class="fa-solid fa-heart"></i></button>
+                </div>
+                <div class="restaurantCard">
+                    <div class="restImg" style="background:linear-gradient(145deg,#FFD2C4,#FE8B6A)">🍛</div>
+                    <div class="restInfo">
+                        <h3>Biryani Adda</h3>
+                        <p>Biryani • Mughlai • North Indian</p>
+                        <div class="restMeta">★ 4.8 • 30–35 min</div>
+                    </div><button class="heartBtn" onclick="removeLiked(this,'Biryani Adda')"><i
+                            class="fa-solid fa-heart"></i></button>
+                </div>
+                <div class="restaurantCard">
+                    <div class="restImg" style="background:linear-gradient(145deg,#D8F5DA,#87D58F)">🥗</div>
+                    <div class="restInfo">
+                        <h3>Fresh Bowl</h3>
+                        <p>Healthy • Bowls • Beverages</p>
+                        <div class="restMeta">★ 4.5 • 20–25 min</div>
+                    </div><button class="heartBtn" onclick="removeLiked(this,'Fresh Bowl')"><i
+                            class="fa-solid fa-heart"></i></button>
+                </div>
+            </div>
+        </section>
+        <section id="addressScreen" class="screen">
+            <div class="pageHeader"><button class="backBtn" onclick="openScreen('profileScreen')"><i
+                        class="fa-solid fa-arrow-left"></i></button>
+                <div>
+                    <h2>Saved Addresses</h2>
+                    <p>Manage your delivery locations</p>
+                </div>
+            </div>
+            <div class="pageBody"><button class="addAddressBtn" onclick="openAddressModal()"><i
+                        class="fa-solid fa-plus"></i> Add New Address</button>
+                <div id="addressList" style="margin-top:14px">
+                    <div class="addressCard">
+                        <div class="addressTop">
+                            <div class="addressTag"><i class="fa-solid fa-house"></i><strong>Home</strong></div>
+                        </div>
+                        <p>Amli, Silvassa, Dadra & Nagar Haveli, 396230</p>
+                        <div class="addressActions"><button class="editBtn"
+                                onclick="editAddress(this)">Edit</button><button class="deleteBtn"
+                                onclick="deleteAddress(this)">Delete</button></div>
+                    </div>
+                    <div class="addressCard">
+                        <div class="addressTop">
+                            <div class="addressTag"><i class="fa-solid fa-briefcase"></i><strong>Work</strong></div>
+                        </div>
+                        <p>Kilvani Naka, Silvassa, Dadra & Nagar Haveli, 396230</p>
+                        <div class="addressActions"><button class="editBtn"
+                                onclick="editAddress(this)">Edit</button><button class="deleteBtn"
+                                onclick="deleteAddress(this)">Delete</button></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section id="legalScreen" class="screen">
+            <div class="pageHeader"><button class="backBtn" onclick="openScreen('profileScreen')"><i
+                        class="fa-solid fa-arrow-left"></i></button>
+                <div>
+                    <h2>Legal & Policies</h2>
+                    <p>Terms, privacy and platform policies</p>
+                </div>
+            </div>
+            <div class="pageBody"><button class="legalItem" onclick="openLegal('Privacy Policy','privacy')"><i
+                        class="fa-solid fa-shield-halved"></i>
+                    <div><strong>Privacy Policy</strong><span>How we collect, use and protect your information</span>
+                    </div><i class="fa-solid fa-chevron-right"></i>
+                </button><button class="legalItem" onclick="openLegal('Terms & Conditions','terms')"><i
+                        class="fa-solid fa-file-contract"></i>
+                    <div><strong>Terms & Conditions</strong><span>Rules for using the Chatori Jeeb platform</span></div>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button><button class="legalItem" onclick="openLegal('Cancellation Policy','cancel')"><i
+                        class="fa-solid fa-ban"></i>
+                    <div><strong>Cancellation Policy</strong><span>Rules related to order cancellation</span></div><i
+                        class="fa-solid fa-chevron-right"></i>
+                </button><button class="legalItem" onclick="openLegal('Refund Policy','refund')"><i
+                        class="fa-solid fa-money-bill-transfer"></i>
+                    <div><strong>Refund Policy</strong><span>Refund eligibility and processing information</span></div>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button><button class="legalItem" onclick="openLegal('Delivery Policy','delivery')"><i
+                        class="fa-solid fa-motorcycle"></i>
+                    <div><strong>Delivery Policy</strong><span>Delivery timelines, responsibility and service
+                            areas</span></div><i class="fa-solid fa-chevron-right"></i>
+                </button><button class="legalItem" onclick="openLegal('Cookie Policy','cookie')"><i
+                        class="fa-solid fa-cookie-bite"></i>
+                    <div><strong>Cookie Policy</strong><span>Use of cookies and tracking technologies</span></div><i
+                        class="fa-solid fa-chevron-right"></i>
+                </button></div>
+        </section>
+        <section id="legalArticleScreen" class="screen">
+            <div class="pageHeader"><button class="backBtn" onclick="openScreen('legalScreen')"><i
+                        class="fa-solid fa-arrow-left"></i></button>
+                <div>
+                    <h2 id="legalTitle">Policy</h2>
+                    <p>Chatori Jeeb legal information</p>
+                </div>
+            </div>
+            <div class="pageBody legalContent" id="legalContent"></div>
+        </section>
+        <div id="addressModal" class="modal" onclick="modalBackdrop(event)">
+            <div class="sheet">
+                <div class="sheetBar"></div>
+                <h3 id="addressModalTitle">Add New Address</h3>
+                <div class="formGroup"><label>Label</label><input id="addressLabel" class="field"
+                        placeholder="Home, Work, Other"></div>
+                <div class="formGroup"><label>Full Address</label><textarea id="addressText" class="field"
+                        placeholder="Building, street, area, landmark, city, PIN code"></textarea></div><button
+                    class="saveBtn" onclick="saveAddress()">Save Address</button>
+            </div>
+        </div>
+        <div id="toast" class="toast">Done</div>
+        <script>
+            let editingAddress = null; function openScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }) } function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(window.toastTimer); window.toastTimer = setTimeout(() => t.classList.remove('show'), 1600) } function getInitials(name) { return name.trim().split(/\s+/).slice(0, 2).map(x => x[0] || '').join('').toUpperCase() || 'CJ' } function savePersonalInfo() { const name = document.getElementById('nameInput').value.trim() || 'Chatori Jeeb User'; const phone = document.getElementById('phoneInput').value.trim() || '+91 98765 43210'; document.getElementById('mainName').textContent = name; document.getElementById('mainPhone').textContent = phone; const initials = getInitials(name); if (!document.querySelector('#mainAvatar img')) document.getElementById('mainInitials').textContent = initials; if (!document.querySelector('#editAvatar img')) document.getElementById('editInitials').textContent = initials; showToast('Profile updated'); setTimeout(() => openScreen('profileScreen'), 500) } function changeAvatar(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function (ev) { document.getElementById('mainAvatar').innerHTML = '<img src="' + ev.target.result + '" alt="Profile">'; document.getElementById('editAvatar').innerHTML = '<img src="' + ev.target.result + '" alt="Profile">'; showToast('Profile photo updated') }; reader.readAsDataURL(file) } function removeAvatar() { const initials = getInitials(document.getElementById('nameInput').value); document.getElementById('mainAvatar').innerHTML = '<span id="mainInitials">' + initials + '</span>'; document.getElementById('editAvatar').innerHTML = '<span id="editInitials">' + initials + '</span>'; document.getElementById('avatarInput').value = ''; showToast('Profile photo removed') } function removeLiked(btn, name) { btn.closest('.restaurantCard').remove(); showToast(name + ' removed from liked restaurants'); const list = document.getElementById('likedList'); if (!list.querySelector('.restaurantCard')) list.innerHTML = '<div class="empty"><div class="emptyIcon"><i class="fa-regular fa-heart"></i></div><h3>No liked restaurants</h3><p>Restaurants you save will appear here.</p></div>' } function openAddressModal() { editingAddress = null; document.getElementById('addressModalTitle').textContent = 'Add New Address'; document.getElementById('addressLabel').value = ''; document.getElementById('addressText').value = ''; document.getElementById('addressModal').classList.add('show') } function editAddress(btn) { editingAddress = btn.closest('.addressCard'); document.getElementById('addressModalTitle').textContent = 'Edit Address'; document.getElementById('addressLabel').value = editingAddress.querySelector('strong').textContent; document.getElementById('addressText').value = editingAddress.querySelector('p').textContent; document.getElementById('addressModal').classList.add('show') } function deleteAddress(btn) { btn.closest('.addressCard').remove(); showToast('Address deleted') } function saveAddress() { const label = document.getElementById('addressLabel').value.trim(), text = document.getElementById('addressText').value.trim(); if (!label || !text) return showToast('Please enter label and address'); if (editingAddress) { editingAddress.querySelector('strong').textContent = label; editingAddress.querySelector('p').textContent = text; showToast('Address updated') } else { const card = document.createElement('div'); card.className = 'addressCard'; card.innerHTML = '<div class="addressTop"><div class="addressTag"><i class="fa-solid fa-location-dot"></i><strong>' + escapeHtml(label) + '</strong></div></div><p>' + escapeHtml(text) + '</p><div class="addressActions"><button class="editBtn" onclick="editAddress(this)">Edit</button><button class="deleteBtn" onclick="deleteAddress(this)">Delete</button></div>'; document.getElementById('addressList').appendChild(card); showToast('New address added') } document.getElementById('addressModal').classList.remove('show') } function modalBackdrop(e) { if (e.target.id === 'addressModal') document.getElementById('addressModal').classList.remove('show') } function escapeHtml(text) { const d = document.createElement('div'); d.textContent = text; return d.innerHTML } const legalDocs = { privacy: '<div class="infoCard"><h3>Privacy Policy</h3><p>Example UI content for your app prototype. Replace this with your final legally reviewed policy before production.</p></div><h3>Information We Collect</h3><p>We may collect account information such as your name, phone number, email address, delivery addresses, order history, device information and information required to process payments and deliveries.</p><h3>How We Use Information</h3><p>Information may be used to provide food ordering and delivery services, manage your account, process transactions, improve the app, provide support and prevent fraud or misuse.</p><h3>Location Information</h3><p>With your permission, location information may be used to identify nearby restaurants, calculate delivery availability and improve address accuracy.</p>', terms: '<div class="infoCard"><h3>Terms & Conditions</h3><p>Example terms for the UI prototype. Final production terms should be reviewed for your business and jurisdiction.</p></div><h3>Using Chatori Jeeb</h3><p>Users must provide accurate account and delivery information and use the platform only for lawful food-ordering purposes.</p><h3>Orders</h3><p>Order acceptance may depend on restaurant availability, service area, stock, delivery capacity and successful payment where applicable.</p><h3>Pricing</h3><p>Prices, taxes, delivery fees, platform fees and offers may vary and will be displayed before confirmation.</p>', cancel: '<div class="infoCard"><h3>Cancellation Policy</h3><p>Cancellation eligibility can depend on the restaurant preparation status and delivery stage.</p></div><h3>Before Preparation</h3><p>An order may be cancellable before the restaurant starts preparing it.</p><h3>After Preparation Begins</h3><p>Once preparation has started, cancellation may be unavailable or charges may apply.</p>', refund: '<div class="infoCard"><h3>Refund Policy</h3><p>Refund eligibility depends on the reason for cancellation, payment method and order status.</p></div><h3>Eligible Refunds</h3><p>Refunds may apply where an order is cancelled by the restaurant, payment is charged without successful order creation, or another approved service issue occurs.</p><h3>Processing Time</h3><p>Approved refunds may take several business days depending on the payment provider or bank.</p>', delivery: '<div class="infoCard"><h3>Delivery Policy</h3><p>Delivery times shown in the app are estimates and may change because of preparation time, traffic, weather or operational conditions.</p></div><h3>Service Areas</h3><p>Delivery is available only in supported areas and may vary by restaurant.</p><h3>Bulk Orders</h3><p>Large or scheduled orders may require additional lead time and restaurant confirmation.</p>', cookie: '<div class="infoCard"><h3>Cookie Policy</h3><p>This section explains how cookies or similar technologies may be used on supported web experiences.</p></div><h3>Essential Technologies</h3><p>Some technologies are used for login sessions, security, preferences and core app functionality.</p><h3>Analytics</h3><p>Analytics technologies may help understand app usage and improve performance where enabled.</p>' }; function openLegal(title, key) { document.getElementById('legalTitle').textContent = title; document.getElementById('legalContent').innerHTML = legalDocs[key] || '<p>Policy content unavailable.</p>'; openScreen('legalArticleScreen') } function logout() { showToast('Logged out successfully') }
+        </script>
+    </div>
+</body>
+
+</html>

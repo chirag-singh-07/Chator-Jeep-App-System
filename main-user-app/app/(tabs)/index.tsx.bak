@@ -81,8 +81,6 @@ export default function HomeScreen() {
     useLocationStore();
   const { user } = useAuthStore();
   const [refreshing, setRefreshing] = useState(false);
-  const [showFilterModal, setShowFilterModal] = useState(false);
-  const [filters, setFilters] = useState({ veg: false, fast: false, rating: false, offer: false });
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [activeFilter, setActiveFilter] = useState("Nearby");
   const [isVegOnly, setIsVegOnly] = useState(false);
@@ -367,105 +365,77 @@ export default function HomeScreen() {
         </Modal>
       )}
 
-      {/* Filter Modal */}
-      <Modal visible={showFilterModal} transparent animationType="slide" onRequestClose={() => setShowFilterModal(false)}>
-        <View style={styles.sheetModal}>
-          <View style={styles.sheetContent}>
-            <View style={styles.sheetBar} />
-            <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Filters</Text>
-              <TouchableOpacity style={styles.sheetCloseBtn} onPress={() => setShowFilterModal(false)}>
-                <Ionicons name="close" size={20} color="#1A1A1A" />
-              </TouchableOpacity>
+      {/* Header with Location */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity
+            style={styles.locationContainer}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              setShowLocationModal(true);
+            }}
+          >
+            <View style={styles.locIndicator}>
+              <Image
+                source={require('../../assets/Main-App-logo.png')}
+                style={{ width: 28, height: 28, borderRadius: 8, resizeMode: 'contain' }}
+              />
             </View>
-            
-            <View style={styles.filterOptionRow}>
-              <Text style={styles.filterOptionText}>Pure vegetarian</Text>
-              <TouchableOpacity onPress={() => setFilters({...filters, veg: !filters.veg})}>
-                <Ionicons name={filters.veg ? "checkbox" : "square-outline"} size={24} color={filters.veg ? "#ffd400" : "#ccc"} />
-              </TouchableOpacity>
+            <View style={{ marginLeft: 12 }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+              >
+                <Text style={styles.locationLabel}>
+                  {currentAddress?.type || "Select Location"}
+                </Text>
+                <Ionicons
+                  name="chevron-down"
+                  size={14}
+                  color={Colors.light.text}
+                />
+              </View>
+              <Text style={styles.addressSubText} numberOfLines={1}>
+                {currentAddress
+                  ? `${currentAddress.flat}, ${currentAddress.area}`
+                  : "Tap to set location..."}
+              </Text>
             </View>
-            <View style={styles.filterOptionRow}>
-              <Text style={styles.filterOptionText}>Delivery under 30 minutes</Text>
-              <TouchableOpacity onPress={() => setFilters({...filters, fast: !filters.fast})}>
-                <Ionicons name={filters.fast ? "checkbox" : "square-outline"} size={24} color={filters.fast ? "#ffd400" : "#ccc"} />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.filterOptionRow}>
-              <Text style={styles.filterOptionText}>Rating 4.5+</Text>
-              <TouchableOpacity onPress={() => setFilters({...filters, rating: !filters.rating})}>
-                <Ionicons name={filters.rating ? "checkbox" : "square-outline"} size={24} color={filters.rating ? "#ffd400" : "#ccc"} />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.filterOptionRow}>
-              <Text style={styles.filterOptionText}>Offers available</Text>
-              <TouchableOpacity onPress={() => setFilters({...filters, offer: !filters.offer})}>
-                <Ionicons name={filters.offer ? "checkbox" : "square-outline"} size={24} color={filters.offer ? "#ffd400" : "#ccc"} />
-              </TouchableOpacity>
-            </View>
-            
-            <TouchableOpacity style={styles.filterApplyBtn} onPress={() => setShowFilterModal(false)}>
-              <Text style={styles.filterApplyBtnText}>Apply filters</Text>
-            </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         </View>
-      </Modal>
+
+        <View style={styles.headerRight}>
+          <TouchableOpacity style={styles.headerIconBtn} onPress={() => router.push('/notifications')}>
+            <Ionicons name="notifications-outline" size={24} color={Colors.light.text} />
+            <View style={styles.notifDot} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.profileCircle}
+            onPress={() => router.push("/(tabs)/profile")}
+          >
+            <Image
+              source={{ uri: getAvatarUrl(user?.email || 'user') }}
+              style={styles.profileImg}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 130 }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.light.primary} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.light.primary}
+          />
         }
       >
-        {/* New Hero Header */}
-        <View style={styles.hero}>
-          <View style={styles.topbar}>
-            <TouchableOpacity style={styles.location} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); router.push('/address-picker'); }}>
-              <View style={styles.iconBox}>
-                <Ionicons name="location" size={16} color="#000" />
-              </View>
-              <View>
-                <Text style={styles.locationSmall}>Delivering to</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={styles.locationStrong}>{currentAddress ? (currentAddress.city || currentAddress.area) : "Select Location"}</Text>
-                  <Ionicons name="chevron-down" size={12} color="#171717" style={{ marginLeft: 4 }} />
-                </View>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/notifications')}>
-              <Ionicons name="notifications-outline" size={20} color="#fff" />
-            </TouchableOpacity>
-          </View>
-          
-          <View style={styles.heroCopy}>
-            <View style={styles.brand}>
-              <View style={styles.brandTag}>
-                <Ionicons name="flash" size={12} color="#171717" />
-                <Text style={styles.brandTagText}>FAST FOOD DELIVERY</Text>
-              </View>
-              <Text style={styles.brandTitle}>Chatori Jeeb</Text>
-              <Text style={styles.brandSubtitle}>From your favourite local kitchens to your doorstep, hot & fresh.</Text>
-            </View>
-            <View style={styles.heroVisual}>
-              <Text style={{ fontSize: 40 }}>🍜</Text>
-            </View>
-          </View>
-
-          <View style={styles.heroSearchContainer}>
-            <Ionicons name="search" size={18} color="#171717" />
-            <TextInput 
-              style={styles.heroSearchInput}
-              placeholder="Search dishes, restaurants or cuisine"
-              placeholderTextColor="#777"
-              onPressIn={() => router.push("/(tabs)/search")}
-            />
-            <TouchableOpacity style={styles.heroFilterBtn} onPress={() => setShowFilterModal(true)}>
-              <Ionicons name="options" size={18} color="#fff" />
-            </TouchableOpacity>
-          </View>
+        {/* Welcome Section */}
+        <View style={styles.welcomeSection}>
+          <Text style={styles.welcomeText}>Hello, {(user?.name?.split(' ') || [])[0] || 'Chatori'}! 👋</Text>
+          <Text style={styles.welcomeSubText}>What would you like to eat today?</Text>
         </View>
-
         {/* Banner Carousel */}
         {homeBanners.length > 0 && (
           <ScrollView
@@ -477,7 +447,11 @@ export default function HomeScreen() {
           >
             {homeBanners.map((banner: any, index: number) => (
               <Animated.View key={banner._id} entering={FadeInRight.delay(index * 100)}>
-                <TouchableOpacity activeOpacity={0.9} style={styles.bannerCard} onPress={() => handleBannerPress(banner)}>
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  style={styles.bannerCard}
+                  onPress={() => handleBannerPress(banner)}
+                >
                   <Image source={{ uri: banner.imageUrl }} style={styles.bannerImage} />
                   <View style={styles.bannerOverlay}>
                     <Text style={styles.bannerTitle}>{banner.title}</Text>
@@ -491,6 +465,83 @@ export default function HomeScreen() {
             ))}
           </ScrollView>
         )}
+
+        {/* Quick Actions Grid */}
+        {/* <View style={styles.quickGrid}>
+           {[
+             { label: 'Fastest', icon: 'flash', color: '#FF6B00' },
+             { label: 'Gourmet', icon: 'restaurant', color: '#A855F7' },
+             { label: 'Healthy', icon: 'leaf', color: '#22C55E' },
+             { label: 'Offers', icon: 'pricetag', color: '#3B82F6' },
+           ].map((item, idx) => (
+             <TouchableOpacity key={idx} style={styles.quickItem}>
+                <View style={[styles.quickIconCircle, { backgroundColor: item.color + '10' }]}>
+                   <Ionicons name={item.icon as any} size={22} color={item.color} />
+                </View>
+                <Text style={styles.quickLabel}>{item.label}</Text>
+             </TouchableOpacity>
+           ))}
+        </View> */}
+
+        {/* Search Bar */}
+        <TouchableOpacity
+          activeOpacity={0.9}
+          style={styles.searchSection}
+          onPress={() => router.push("/(tabs)/search")}
+        >
+          <View style={styles.searchContainer}>
+            <Ionicons name="search" size={20} color={Colors.light.primary} />
+            <Text style={styles.searchPlaceholder}>
+              Search "Biryani" or "Pizza"...
+            </Text>
+            <View style={styles.divider} />
+            <Ionicons
+              name="mic-outline"
+              size={20}
+              color={Colors.light.textMuted}
+            />
+          </View>
+        </TouchableOpacity>
+
+        {/* Filter Chips */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterList}
+        >
+          {["Nearby", "Rating 4.0+", "Fast Delivery", "Pure Veg", "Offers"].map((filter) => {
+            const isActive = activeFilter === filter || (filter === "Pure Veg" && isVegOnly);
+            return (
+              <TouchableOpacity
+                key={filter}
+                style={[styles.filterChip, isActive && styles.activeFilterChip]}
+                onPress={() => {
+                  if (filter === "Pure Veg") {
+                    const nextVeg = !isVegOnly;
+                    setIsVegOnly(nextVeg);
+                    setActiveFilter(nextVeg ? "Pure Veg" : "Nearby");
+                  } else {
+                    if (activeFilter === filter) {
+                      setActiveFilter("Nearby");
+                    } else {
+                      setActiveFilter(filter);
+                    }
+                  }
+                  Haptics.selectionAsync();
+                }}
+              >
+                {filter === "Pure Veg" && (
+                  <View style={[styles.vegSquareSmall, { marginRight: 5 }]}>
+                    <View style={styles.vegDotSmall} />
+                  </View>
+                )}
+                <Text style={[styles.filterText, isActive && styles.activeFilterText]}>{filter}</Text>
+                {isActive && <Ionicons name="close-circle" size={14} color="#1A1A1A" style={{ marginLeft: 4 }} />}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
 
         {/* Categories Section */}
         <View style={styles.sectionHeader}>
@@ -820,203 +871,6 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  hero: {
-    backgroundColor: '#ffd400',
-    paddingHorizontal: 18,
-    paddingTop: 18 + (Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0),
-    paddingBottom: 45,
-    borderBottomLeftRadius: 34,
-    borderBottomRightRadius: 34,
-    position: 'relative',
-    marginBottom: 45,
-  },
-  topbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  location: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    flex: 1,
-    paddingRight: 15,
-  },
-  iconBox: {
-    width: 43,
-    height: 43,
-    borderRadius: 15,
-    backgroundColor: 'rgba(255,255,255,0.8)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconBtn: {
-    width: 43,
-    height: 43,
-    borderRadius: 15,
-    backgroundColor: '#111',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  locationSmall: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#6d5d00',
-    textTransform: 'uppercase',
-    letterSpacing: 0.7,
-  },
-  locationStrong: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#171717',
-  },
-  heroCopy: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 24,
-  },
-  brand: {
-    flex: 1,
-    marginRight: 12,
-  },
-  brandTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.76)',
-    paddingHorizontal: 9,
-    paddingVertical: 6,
-    borderRadius: 99,
-    alignSelf: 'flex-start',
-    gap: 6,
-  },
-  brandTagText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: '#171717',
-  },
-  brandTitle: {
-    fontSize: 33,
-    fontWeight: '700',
-    color: '#171717',
-    marginTop: 9,
-  },
-  brandSubtitle: {
-    fontSize: 12,
-    lineHeight: 17,
-    fontWeight: '600',
-    color: '#514800',
-    marginTop: 8,
-  },
-  heroVisual: {
-    width: 82,
-    height: 82,
-    borderRadius: 28,
-    backgroundColor: 'rgba(255,255,255,0.72)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroSearchContainer: {
-    position: 'absolute',
-    left: 18,
-    right: 18,
-    bottom: -29,
-    height: 58,
-    backgroundColor: '#fff',
-    borderRadius: 19,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingLeft: 16,
-    paddingRight: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 13 },
-    shadowOpacity: 0.11,
-    shadowRadius: 30,
-    elevation: 8,
-  },
-  heroSearchInput: {
-    flex: 1,
-    fontSize: 13,
-    color: '#171717',
-    marginLeft: 11,
-    marginRight: 11,
-  },
-  heroFilterBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 13,
-    backgroundColor: '#111',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sheetModal: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'flex-end',
-  },
-  sheetContent: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 26,
-    borderTopRightRadius: 26,
-    padding: 20,
-    maxHeight: '82%',
-  },
-  sheetBar: {
-    width: 43,
-    height: 4,
-    borderRadius: 9,
-    backgroundColor: '#ddd',
-    alignSelf: 'center',
-    marginBottom: 16,
-  },
-  sheetHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  sheetTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#171717',
-  },
-  sheetCloseBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 11,
-    backgroundColor: '#f4f4f4',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filterOptionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 13,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  filterOptionText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#171717',
-  },
-  filterApplyBtn: {
-    width: '100%',
-    height: 47,
-    backgroundColor: '#111',
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  filterApplyBtnText: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#fff',
-  },
-
   container: {
     flex: 1,
     backgroundColor: "#F9FAFB",

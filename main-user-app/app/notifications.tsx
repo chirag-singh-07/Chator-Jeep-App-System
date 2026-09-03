@@ -99,13 +99,13 @@ export default function NotificationsScreen() {
   const getIcon = (type: string) => {
     switch (type) {
       case 'ORDER':
-        return { name: 'fast-food', bg: '#E6F4EA', color: '#137333', badgeText: 'ORDER' };
+        return { name: 'fast-food', bg: '#D8F5DA', color: '#39A545', badgeText: 'ORDER' };
       case 'PROMO':
-        return { name: 'pricetag', bg: '#FEF7E0', color: '#B06000', badgeText: 'OFFER' };
+        return { name: 'pricetag', bg: '#FFF8D0', color: '#806900', badgeText: 'OFFER' };
       case 'WALLET':
-        return { name: 'wallet', bg: '#E8F0FE', color: '#1A73E8', badgeText: 'WALLET' };
+        return { name: 'wallet', bg: '#F0F7FF', color: '#007AFF', badgeText: 'WALLET' };
       default:
-        return { name: 'notifications', bg: '#F1F3F4', color: '#5F6368', badgeText: 'INFO' };
+        return { name: 'notifications', bg: '#F4F4F4', color: '#666', badgeText: 'INFO' };
     }
   };
 
@@ -115,9 +115,9 @@ export default function NotificationsScreen() {
       
       <SafeAreaView style={{ flex: 1 }}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={styles.pageHeader}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={22} color="#1A1A1A" />
+            <Ionicons name="arrow-back" size={20} color="#161616" />
           </TouchableOpacity>
           <View style={styles.headerTitleContainer}>
             <Text style={styles.headerTitle}>Notifications</Text>
@@ -184,7 +184,7 @@ export default function NotificationsScreen() {
                         </View>
                         <View style={styles.actionBtn}>
                           <Text style={styles.actionBtnText}>{item.actionText}</Text>
-                          <Ionicons name="chevron-forward" size={14} color={Colors.light.primary} />
+                          <Ionicons name="chevron-forward" size={14} color="#FFD400" />
                         </View>
                       </View>
                     </View>
@@ -197,7 +197,7 @@ export default function NotificationsScreen() {
           ) : (
             <Animated.View entering={FadeInUp} style={styles.emptyState}>
               <View style={styles.emptyIconCircle}>
-                <Ionicons name="notifications-off" size={42} color={Colors.light.primary} />
+                <Ionicons name="notifications-off" size={42} color="#FFD400" />
               </View>
               <Text style={styles.emptyText}>No notifications here!</Text>
               <Text style={styles.emptySub}>
@@ -225,117 +225,108 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  header: {
+  pageHeader: {
+    paddingHorizontal: 18,
+    paddingVertical: 17,
+    paddingTop: Platform.OS === 'android' ? 45 : 25,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F9FAFB',
+    borderBottomColor: '#ECECEC',
+    backgroundColor: '#fff',
+    zIndex: 20,
   },
   backBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 15,
-    backgroundColor: '#F9FAFB',
+    width: 40,
+    height: 40,
+    borderRadius: 13,
+    backgroundColor: '#F4F4F4',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: '#F3F4F6',
+    marginRight: 12,
   },
   headerTitleContainer: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: '900',
-    color: '#1A1A1A',
-    letterSpacing: -0.5,
+    fontFamily: 'Inter-SemiBold',
+    color: '#161616',
   },
   headerUnreadBadge: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: '#FFD400',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
   },
   headerUnreadText: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: '#1A1A1A',
+    fontSize: 9,
+    fontFamily: 'Inter-Black',
+    color: '#161616',
   },
   markAllBtn: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 10,
-    backgroundColor: '#FFFDF5',
-    borderWidth: 1,
-    borderColor: Colors.light.primary,
+    backgroundColor: '#FFF8D0',
   },
   markAllText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: Colors.light.primary,
+    fontSize: 10,
+    fontFamily: 'Inter-Bold',
+    color: '#806900',
   },
   tabsRow: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
+    paddingHorizontal: 18,
     paddingVertical: 12,
     gap: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#F9FAFB',
+    borderBottomColor: '#ECECEC',
   },
   tabChip: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 12,
-    backgroundColor: '#F9FAFB',
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderRadius: 10,
+    backgroundColor: '#F4F4F4',
   },
   tabChipActive: {
-    backgroundColor: '#1A1A1A',
-    borderColor: '#1A1A1A',
+    backgroundColor: '#161616',
   },
   tabText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'Inter-Bold',
     color: '#666',
   },
   tabTextActive: {
     color: '#FFFFFF',
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 18,
     paddingTop: 18,
     paddingBottom: 40,
   },
   notifCard: {
     flexDirection: 'row',
-    padding: 16,
-    borderRadius: 22,
+    padding: 14,
+    borderRadius: 18,
     backgroundColor: '#FFF',
-    marginBottom: 14,
-    borderWidth: 1.5,
-    borderColor: '#F3F4F6',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 10,
-    elevation: 2,
+    marginBottom: 11,
+    borderWidth: 1,
+    borderColor: '#ECECEC',
     position: 'relative',
   },
   unreadCard: {
     backgroundColor: '#FFFDF5',
-    borderColor: Colors.light.primary + '30',
+    borderColor: '#FFF8D0',
   },
   iconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
+    width: 42,
+    height: 42,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -355,37 +346,37 @@ const styles = StyleSheet.create({
   },
   notifTitle: {
     fontSize: 15,
-    fontWeight: '900',
-    color: '#1A1A1A',
+    fontFamily: 'Inter-Bold',
+    color: '#161616',
   },
   notifTime: {
     fontSize: 11,
     color: '#9E9E9E',
-    fontWeight: '700',
+    fontFamily: 'Inter-Bold',
   },
   notifBody: {
     fontSize: 13,
-    color: '#555',
-    lineHeight: 19,
-    fontWeight: '500',
+    color: '#737373',
+    lineHeight: 18,
+    fontFamily: 'Inter-Regular',
   },
   cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 12,
+    marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#F9FAFB',
+    borderTopColor: '#ECECEC',
   },
   typeBadge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 6,
   },
   typeBadgeText: {
-    fontSize: 9,
-    fontWeight: '900',
+    fontSize: 10,
+    fontFamily: 'Inter-Black',
     letterSpacing: 0.5,
   },
   actionBtn: {
@@ -395,8 +386,8 @@ const styles = StyleSheet.create({
   },
   actionBtnText: {
     fontSize: 12,
-    fontWeight: '900',
-    color: Colors.light.primary,
+    fontFamily: 'Inter-Black',
+    color: '#161616',
   },
   unreadDot: {
     position: 'absolute',
@@ -405,7 +396,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Colors.light.primary,
+    backgroundColor: '#FFD400',
   },
   emptyState: {
     alignItems: 'center',
@@ -414,47 +405,40 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
   },
   emptyIconCircle: {
-    width: 90,
-    height: 90,
-    borderRadius: 30,
-    backgroundColor: '#FFFDF5',
-    borderWidth: 1.5,
-    borderColor: Colors.light.primary + '30',
+    width: 80,
+    height: 80,
+    borderRadius: 24,
+    backgroundColor: '#FFF8D0',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
   },
   emptyText: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: '#1A1A1A',
+    fontSize: 20,
+    fontFamily: 'Inter-Black',
+    color: '#161616',
   },
   emptySub: {
     fontSize: 14,
-    color: '#777',
+    color: '#737373',
     textAlign: 'center',
     marginTop: 8,
-    lineHeight: 22,
-    fontWeight: '500',
+    lineHeight: 20,
+    fontFamily: 'Inter-Regular',
   },
   exploreBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 18,
+    backgroundColor: '#FFD400',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 16,
     marginTop: 25,
     gap: 8,
-    shadowColor: Colors.light.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 5,
   },
   exploreBtnText: {
-    color: '#1A1A1A',
-    fontWeight: '900',
+    color: '#161616',
+    fontFamily: 'Inter-Black',
     fontSize: 14,
     letterSpacing: 1,
   },

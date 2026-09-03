@@ -149,7 +149,7 @@ const restaurantSchema = new Schema<IRestaurant>(
 
     // ── Location ──────────────────────────────────────────────────────────────
     location: {
-      type: { type: String, enum: ["Point"] },
+      type: { type: String, enum: ["Point"], default: "Point" },
       coordinates: { type: [Number] },
     },
     address: {

@@ -19,8 +19,8 @@ export default function SettingsScreen() {
        <Switch 
          value={value} 
          onValueChange={onValueChange}
-         trackColor={{ false: '#767577', true: Colors.light.primary + '50' }}
-         thumbColor={value ? Colors.light.primary : '#f4f3f4'} 
+         trackColor={{ false: '#ECECEC', true: '#FFD400' }}
+         thumbColor={value ? '#fff' : '#f4f3f4'} 
        />
     </View>
   );
@@ -28,12 +28,14 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={Colors.light.text} />
+      <View style={styles.pageHeader}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Ionicons name="arrow-back" size={20} color="#161616" />
         </TouchableOpacity>
-        <Text style={styles.title}>Settings</Text>
-        <View style={{width: 45}} />
+        <View style={styles.headerTextContainer}>
+          <Text style={styles.headerTitle}>Settings</Text>
+          <Text style={styles.headerSubtitle}>Manage your preferences</Text>
+        </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -103,36 +105,49 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#FFFFFF',
   },
-  header: {
+  pageHeader: {
+    paddingHorizontal: 18,
+    paddingVertical: 17,
+    paddingTop: Platform.OS === 'android' ? 45 : 25,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: '#FFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ECECEC',
+    backgroundColor: '#fff',
+    zIndex: 20,
   },
   backBtn: {
-    width: 45,
-    height: 45,
-    borderRadius: 15,
-    backgroundColor: '#F9FAFB',
+    width: 40,
+    height: 40,
+    borderRadius: 13,
+    backgroundColor: '#F4F4F4',
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 12,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: Colors.light.text,
+  headerTextContainer: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontFamily: 'Inter-SemiBold',
+    color: '#161616',
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    color: '#838383',
+    marginTop: 3,
+    fontFamily: 'Inter-Regular',
   },
   section: {
-    paddingHorizontal: 25,
+    paddingHorizontal: 18,
     marginTop: 25,
   },
   sectionLabel: {
-    fontSize: 12,
-    fontWeight: '900',
+    fontSize: 14,
+    fontFamily: 'Inter-Black',
     color: '#999',
     textTransform: 'uppercase',
     letterSpacing: 1.5,
@@ -143,10 +158,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFF',
     padding: 15,
-    borderRadius: 20,
+    borderRadius: 18,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderColor: '#ECECEC',
   },
   iconBox: {
     width: 38,
@@ -157,9 +172,9 @@ const styles = StyleSheet.create({
   },
   settingTitle: {
     flex: 1,
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.light.text,
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
+    color: '#161616',
     marginLeft: 15,
   },
   actionItem: {
@@ -167,16 +182,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFF',
     padding: 18,
-    borderRadius: 20,
+    borderRadius: 18,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderColor: '#ECECEC',
   },
   actionText: {
     flex: 1,
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.light.text,
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
+    color: '#161616',
     marginLeft: 15,
   },
   deleteBtn: {
@@ -185,7 +200,7 @@ const styles = StyleSheet.create({
   },
   deleteText: {
     color: '#FF3B30',
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
   }
 });
