@@ -30,3 +30,5 @@ ios
 *.njsproj
 *.sln
 *.sw?
+*.apk
+*.aab

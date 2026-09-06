@@ -102,6 +102,10 @@ export default function RegisterScreen() {
   const [phone, setPhone] = useState("");
   const [foodType, setFoodType] = useState("both");
   const [supportsBulkOrders, setSupportsBulkOrders] = useState(false);
+  const [estimatedDeliveryTimeMins, setEstimatedDeliveryTimeMins] = useState("");
+  const [deliveryFee, setDeliveryFee] = useState("");
+  const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState("");
+  const [restaurantType, setRestaurantType] = useState("non-veg");
 
   // Step 3: Brand
   const [logo, setLogo] = useState<any>(null);
@@ -163,6 +167,10 @@ export default function RegisterScreen() {
         setPhone(draft.phone || "");
         setFoodType(draft.foodType || "both");
         setSupportsBulkOrders(Boolean(draft.supportsBulkOrders));
+        setEstimatedDeliveryTimeMins(draft.estimatedDeliveryTimeMins || "");
+        setDeliveryFee(draft.deliveryFee || "");
+        setFreeDeliveryThreshold(draft.freeDeliveryThreshold || "");
+        setRestaurantType(draft.restaurantType || "non-veg");
         setLogo(draft.logo || null);
         setBanner(draft.banner || null);
         setStreet(draft.street || "");
@@ -209,6 +217,10 @@ export default function RegisterScreen() {
       phone,
       foodType,
       supportsBulkOrders,
+      estimatedDeliveryTimeMins,
+      deliveryFee,
+      freeDeliveryThreshold,
+      restaurantType,
       logo,
       banner,
       street,
@@ -247,6 +259,10 @@ export default function RegisterScreen() {
     phone,
     foodType,
     supportsBulkOrders,
+    estimatedDeliveryTimeMins,
+    deliveryFee,
+    freeDeliveryThreshold,
+    restaurantType,
     logo,
     banner,
     street,
@@ -744,6 +760,10 @@ export default function RegisterScreen() {
             fssaiLicense: fssaiLicense.trim(),
             cuisines: [foodType],
             supportsBulkOrders,
+            estimatedDeliveryTimeMins: estimatedDeliveryTimeMins ? parseInt(estimatedDeliveryTimeMins) : undefined,
+            deliveryFee: deliveryFee ? parseFloat(deliveryFee) : 0,
+            freeDeliveryThreshold: freeDeliveryThreshold ? parseFloat(freeDeliveryThreshold) : undefined,
+            restaurantType,
             address: {
               line1: finalAddress,
               city: addressValidation.fields.city.value,
@@ -911,6 +931,57 @@ export default function RegisterScreen() {
               <Text style={{ color: '#999', fontSize: 12, marginTop: 5 }}>
                 Enable if this kitchen can handle large bulk orders with advance notice.
               </Text>
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>ESTIMATED DELIVERY TIME (MINS)</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="E.g. 30"
+                value={estimatedDeliveryTimeMins}
+                onChangeText={(value) => setEstimatedDeliveryTimeMins(value.replace(/[^0-9]/g, ""))}
+                keyboardType="number-pad"
+                maxLength={3}
+              />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>DELIVERY FEE (₹)</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="E.g. 40"
+                value={deliveryFee}
+                onChangeText={(value) => setDeliveryFee(value.replace(/[^0-9.]/g, ""))}
+                keyboardType="decimal-pad"
+              />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>FREE DELIVERY OVER (₹) (OPTIONAL)</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="E.g. 500"
+                value={freeDeliveryThreshold}
+                onChangeText={(value) => setFreeDeliveryThreshold(value.replace(/[^0-9.]/g, ""))}
+                keyboardType="decimal-pad"
+              />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>RESTAURANT TYPE</Text>
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+                {["veg", "non-veg", "pure-veg"].map((type) => (
+                  <TouchableOpacity
+                    key={type}
+                    style={[
+                      styles.checkbox,
+                      restaurantType === type && styles.checkboxActive,
+                      { flex: 1, padding: 10, alignItems: 'center' }
+                    ]}
+                    onPress={() => setRestaurantType(type)}
+                  >
+                    <Text style={{ color: restaurantType === type ? '#000' : '#FFF', fontSize: 12, fontWeight: 'bold' }}>
+                      {type === "pure-veg" ? "Pure Veg" : type === "veg" ? "Veg" : "Non-Veg"}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           </View>
         );

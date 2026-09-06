@@ -87,6 +87,10 @@ export interface IRestaurant extends Document {
   launchOfferExpiresAt?: Date;
   currentCommissionPercentage: number;
   supportsBulkOrders: boolean;
+  estimatedDeliveryTimeMins?: number;
+  deliveryFee?: number;
+  freeDeliveryThreshold?: number;
+  restaurantType?: "veg" | "non-veg" | "pure-veg";
 }
 
 // ─── Schema ────────────────────────────────────────────────────────────────────
@@ -181,6 +185,10 @@ const restaurantSchema = new Schema<IRestaurant>(
     launchOfferExpiresAt: { type: Date },
     currentCommissionPercentage: { type: Number, default: 18 },
     supportsBulkOrders: { type: Boolean, default: false },
+    estimatedDeliveryTimeMins: { type: Number },
+    deliveryFee: { type: Number, default: 0 },
+    freeDeliveryThreshold: { type: Number },
+    restaurantType: { type: String, enum: ["veg", "non-veg", "pure-veg"], default: "non-veg" },
   },
   { timestamps: true }
 );

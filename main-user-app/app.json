@@ -12,7 +12,8 @@
       "supportsTablet": true,
       "config": {
         "googleMapsApiKey": "AIzaSyC4UEJcxgqwDxo1CRy4Lpy9zH7GnqN4lwg"
-      }
+      },
+      "bundleIdentifier": "com.chatorijeeb.user"
     },
     "android": {
       "package": "com.chatorijeeb.user",
@@ -27,7 +28,11 @@
         "googleMaps": {
           "apiKey": "AIzaSyC4UEJcxgqwDxo1CRy4Lpy9zH7GnqN4lwg"
         }
-      }
+      },
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "output": "static",

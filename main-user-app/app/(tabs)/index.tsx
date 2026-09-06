@@ -158,9 +158,10 @@ export default function HomeScreen() {
   };
 
   const renderDietaryBadge = (res: any) => {
+    const rType = res?.restaurantType || '';
     const foodTypeLower = res?.foodType?.toLowerCase() || '';
-    const isVeg = res?.isVeg === true || foodTypeLower === 'veg' || foodTypeLower === 'pure veg';
-    const isNonVeg = foodTypeLower === 'non-veg';
+    const isVeg = rType === 'pure-veg' || rType === 'veg' || res?.isVeg === true || foodTypeLower === 'veg' || foodTypeLower === 'pure veg';
+    const isNonVeg = rType === 'non-veg' || foodTypeLower === 'non-veg';
 
     if (isVeg) {
       return (
@@ -202,8 +203,9 @@ export default function HomeScreen() {
 
   const displayedRestaurants = React.useMemo(() => {
     return restaurants.filter((res: any) => {
+      const rType = res?.restaurantType || '';
       const foodTypeLower = res?.foodType?.toLowerCase() || '';
-      const isPureVeg = res?.isVeg === true || foodTypeLower === 'veg' || foodTypeLower === 'pure veg';
+      const isPureVeg = rType === 'pure-veg' || rType === 'veg' || res?.isVeg === true || foodTypeLower === 'veg' || foodTypeLower === 'pure veg';
       
       if (isVegOnly) {
         if (!isPureVeg) return false;
@@ -250,7 +252,7 @@ export default function HomeScreen() {
 
           <View style={styles.floatingMetaBadge}>
             <Ionicons name="time-outline" size={12} color="#1A1A1A" />
-            <Text style={styles.floatingMetaText}>25-30 min</Text>
+            <Text style={styles.floatingMetaText}>{res.estimatedDeliveryTimeMins ? `${res.estimatedDeliveryTimeMins} min` : "25-30 min"}</Text>
           </View>
         </View>
 
@@ -273,10 +275,10 @@ export default function HomeScreen() {
           <View style={styles.resMeta}>
             <View style={styles.metaItem}>
               <Ionicons name="bicycle" size={14} color="#22C55E" />
-              <Text style={styles.metaText}>Free Delivery</Text>
+              <Text style={styles.metaText}>{res.deliveryFee > 0 ? `₹${res.deliveryFee} Delivery` : "Free Delivery"}</Text>
             </View>
             <View style={styles.metaDot} />
-            <Text style={styles.metaText}>₹250 for two</Text>
+            <Text style={styles.metaText}>{res.freeDeliveryThreshold ? `Free delivery over ₹${res.freeDeliveryThreshold}` : "₹250 for two"}</Text>
             <View style={styles.metaDot} />
             <Text style={styles.metaText}>{res.address?.city || "Nearby"}</Text>
           </View>

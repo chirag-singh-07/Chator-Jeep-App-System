@@ -1,0 +1,21 @@
+Google Maps API - SHA-1 Certificate Fingerprints
+
+=========================================
+1. Development (Local Debug Keystore)
+=========================================
+Used for: Local testing (so maps work while testing locally)
+SHA-1: 21:98:F3:0D:E9:1E:7C:1A:E7:97:F8:A0:2C:F6:77:57:D7:0A:F6:C7
+
+=========================================
+2. Production Keys (EAS / Play Store)
+=========================================
+Used for: Google Cloud Console Android Application Restrictions for apps on the Play Store.
+
+Main User App (com.chatorijeeb.user)
+SHA-1: D0:18:1C:3D:25:6F:01:BF:52:7C:08:9F:40:CE:B8:14:3C:FA:3B:79
+
+Restaurant App (com.chatorijeeb.restaurant)
+SHA-1: 3F:63:47:57:11:74:EF:DC:F5:45:42:BA:BD:E7:39:7A:14:3C:27:C7
+
+Delivery App (com.chatorijeeb.delivery)
+SHA-1: 1C:99:9E:F0:23:EE:4F:0E:0F:B3:E4:97:4E:63:D4:7B:DA:69:33:07

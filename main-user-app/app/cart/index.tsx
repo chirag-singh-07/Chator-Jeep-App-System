@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -9,7 +9,10 @@ import {
   Dimensions,
   StatusBar,
   Alert,
-  TextInput
+  TextInput,
+  Modal,
+  ActivityIndicator,
+  FlatList
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -20,6 +23,7 @@ import { useLocationStore } from '@/store/useLocationStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import Animated, { FadeInDown, FadeInRight, SlideInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import api from '@/lib/api';
 
 const { height } = Dimensions.get('window');
 
@@ -28,13 +32,66 @@ export default function CartScreen() {
   const router = useRouter();
   const { items, restaurantName, totalAmount, totalItems, updateQuantity, clearCart } = useCartStore();
   const { currentAddress } = useLocationStore();
-  const [instructions, setInstructions] = React.useState('');
+  
+  const scrollRef = useRef<ScrollView>(null);
+  const [instructions, setInstructions] = useState('');
+  
+  // Coupon State
+  const [showCouponModal, setShowCouponModal] = useState(false);
+  const [coupons, setCoupons] = useState<any[]>([]);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string, discount: number } | null>(null);
+  const [couponInput, setCouponInput] = useState('');
+  const [isApplying, setIsApplying] = useState(false);
+  const [isLoadingCoupons, setIsLoadingCoupons] = useState(false);
 
   const isFirstOrder = !hasPlacedOrder;
-  const discountAmount = isFirstOrder ? Math.min(Math.round(totalAmount * 0.5), 100) : 0;
 
-  const deliveryFee = 30;
+  useEffect(() => {
+    if (showCouponModal) {
+      setIsLoadingCoupons(true);
+      api.get('/coupons/active')
+        .then(res => setCoupons(res.data?.data || []))
+        .catch(err => console.error("Failed to fetch coupons", err))
+        .finally(() => setIsLoadingCoupons(false));
+    }
+  }, [showCouponModal]);
+
+  const handleApplyCoupon = async (code: string) => {
+    if (!code) return;
+    setIsApplying(true);
+    try {
+      const res = await api.post('/coupons/apply', { code, orderAmount: totalAmount });
+      if (res.data?.success) {
+        setAppliedCoupon({ code, discount: res.data.data.discountAmount });
+        setShowCouponModal(false);
+        setCouponInput('');
+        Alert.alert("Success", `'${code}' applied successfully!`);
+      } else {
+        Alert.alert("Error", res.data?.message || "Invalid coupon");
+      }
+    } catch (err: any) {
+      Alert.alert("Error", err.response?.data?.message || "Failed to apply coupon");
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    Alert.alert("Remove Coupon", "Are you sure you want to remove this coupon?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Remove", style: "destructive", onPress: () => setAppliedCoupon(null) }
+    ]);
+  };
+
+  const scrollToBill = () => {
+    scrollRef.current?.scrollToEnd({ animated: true });
+  };
+
+  // Calculations
+  const deliveryFee = 30; // In a real app this might come from the API
   const taxes = Math.round(totalAmount * 0.05); // 5% GST
+  const fallbackWelcomeDiscount = isFirstOrder ? Math.min(Math.round(totalAmount * 0.5), 100) : 0;
+  const discountAmount = appliedCoupon ? appliedCoupon.discount : fallbackWelcomeDiscount;
   const grandTotal = totalAmount + deliveryFee + taxes - discountAmount;
 
   if (items.length === 0) {
@@ -89,7 +146,7 @@ export default function CartScreen() {
         </View>
       </SafeAreaView>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Cart Items */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Items Added</Text>
@@ -143,24 +200,30 @@ export default function CartScreen() {
         </View>
 
         {/* Coupon Section */}
-        {isFirstOrder ? (
-          <TouchableOpacity style={[styles.couponCard, { backgroundColor: '#FFFDF5', borderColor: '#FFF8D0', borderWidth: 1 }]} activeOpacity={0.9}>
+        {appliedCoupon ? (
+          <TouchableOpacity style={[styles.couponCard, { backgroundColor: '#EBFDF5', borderColor: '#D1FAE5', borderWidth: 1 }]} activeOpacity={0.9} onPress={removeCoupon}>
             <View style={styles.couponLeft}>
-              <View style={{ backgroundColor: '#FFD400', padding: 8, borderRadius: 10 }}>
-                <Ionicons name="pricetag" size={20} color="#161616" />
+              <View style={{ backgroundColor: '#39A545', padding: 8, borderRadius: 10 }}>
+                <Ionicons name="pricetag" size={20} color="#FFF" />
               </View>
               <View style={{ marginLeft: 12 }}>
-                <Text style={[styles.couponTitle, { color: '#161616' }]}>'WELCOME50' applied</Text>
-                <Text style={{ fontSize: 12, color: '#666', fontFamily: 'Inter-Regular', marginTop: 2 }}>50% off up to ₹100</Text>
+                <Text style={[styles.couponTitle, { color: '#065F46' }]}>'{appliedCoupon.code}' applied</Text>
+                <Text style={{ fontSize: 12, color: '#047857', fontWeight: '600', marginTop: 2 }}>₹{appliedCoupon.discount} saved on this order!</Text>
               </View>
             </View>
-            <Ionicons name="checkmark-circle" size={24} color="#39A545" />
+            <View style={{alignItems: 'center'}}>
+              <Ionicons name="close-circle" size={24} color="#EF4444" />
+              <Text style={{fontSize: 10, color: '#EF4444', fontWeight: '800', marginTop: 2}}>REMOVE</Text>
+            </View>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={styles.couponCard} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.couponCard} activeOpacity={0.7} onPress={() => setShowCouponModal(true)}>
              <View style={styles.couponLeft}>
                <Ionicons name="pricetag" size={20} color={Colors.light.primary} />
-               <Text style={styles.couponTitle}>Apply Coupon</Text>
+               <View>
+                 <Text style={styles.couponTitle}>Apply Coupon</Text>
+                 {isFirstOrder && <Text style={{ fontSize: 11, color: '#39A545', fontWeight: '700', marginTop: 2 }}>Welcome discount available!</Text>}
+               </View>
              </View>
              <Ionicons name="chevron-forward" size={18} color="#999" />
           </TouchableOpacity>
@@ -178,18 +241,25 @@ export default function CartScreen() {
               <Text style={styles.billLabel}>Delivery Fee</Text>
               <Ionicons name="bicycle" size={14} color="#48bb78" style={{marginLeft: 5}} />
             </View>
-            <Text style={[styles.billValue, {color: '#48bb78'}]}>FREE</Text>
+            <Text style={[styles.billValue, {color: '#48bb78'}]}>₹{deliveryFee}</Text>
           </View>
           <View style={styles.billRow}>
             <Text style={styles.billLabel}>GST and Restaurant Charges</Text>
             <Text style={styles.billValue}>₹{taxes}</Text>
           </View>
-          {isFirstOrder && discountAmount > 0 && (
+          
+          {appliedCoupon ? (
+            <View style={styles.billRow}>
+              <Text style={[styles.billLabel, { color: '#39A545' }]}>Coupon Discount ({appliedCoupon.code})</Text>
+              <Text style={[styles.billValue, { color: '#39A545' }]}>-₹{appliedCoupon.discount}</Text>
+            </View>
+          ) : isFirstOrder && discountAmount > 0 ? (
             <View style={styles.billRow}>
               <Text style={[styles.billLabel, { color: '#39A545' }]}>Welcome Discount</Text>
               <Text style={[styles.billValue, { color: '#39A545' }]}>-₹{discountAmount}</Text>
             </View>
-          )}
+          ) : null}
+
           <View style={styles.billDivider} />
           <View style={styles.billRow}>
             <Text style={styles.totalLabel}>To Pay</Text>
@@ -225,7 +295,9 @@ export default function CartScreen() {
          <View style={styles.payActionRow}>
            <View style={styles.footerLeft}>
               <Text style={styles.footerPrice}>₹{grandTotal}</Text>
-              <Text style={styles.viewDetailedBill}>VIEW DETAILED BILL</Text>
+              <TouchableOpacity onPress={scrollToBill}>
+                <Text style={styles.viewDetailedBill}>VIEW DETAILED BILL</Text>
+              </TouchableOpacity>
            </View>
            <TouchableOpacity 
              activeOpacity={0.9} 
@@ -243,6 +315,65 @@ export default function CartScreen() {
            </TouchableOpacity>
          </View>
       </Animated.View>
+
+      {/* Coupon Modal */}
+      <Modal visible={showCouponModal} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Apply Coupon</Text>
+              <TouchableOpacity onPress={() => setShowCouponModal(false)} style={styles.closeBtn}>
+                <Ionicons name="close" size={24} color="#1A1A1A" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.couponInputRow}>
+              <TextInput
+                style={styles.couponInput}
+                placeholder="Enter coupon code"
+                placeholderTextColor="#999"
+                value={couponInput}
+                onChangeText={setCouponInput}
+                autoCapitalize="characters"
+              />
+              <TouchableOpacity 
+                style={[styles.applyBtn, (!couponInput || isApplying) && {opacity: 0.5}]} 
+                onPress={() => handleApplyCoupon(couponInput)}
+                disabled={isApplying || !couponInput}
+              >
+                {isApplying ? <ActivityIndicator color="#1A1A1A" /> : <Text style={styles.applyBtnText}>APPLY</Text>}
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.availableCouponsTitle}>Available Coupons</Text>
+            {isLoadingCoupons ? (
+              <ActivityIndicator style={{marginTop: 30}} color={Colors.light.primary} />
+            ) : (
+              <FlatList
+                data={coupons}
+                keyExtractor={item => item._id}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{paddingBottom: 20}}
+                renderItem={({item}) => (
+                  <TouchableOpacity style={styles.availableCouponCard} onPress={() => handleApplyCoupon(item.code)}>
+                    <View style={styles.acLeft}>
+                      <View style={styles.acIconBg}>
+                        <Ionicons name="pricetag" size={20} color={Colors.light.primary} />
+                      </View>
+                      <View style={{marginLeft: 15, flex: 1}}>
+                        <Text style={styles.acCode}>{item.code}</Text>
+                        <Text style={styles.acDesc} numberOfLines={2}>{item.description}</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.acApply}>APPLY</Text>
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={<Text style={styles.emptyCoupons}>No active coupons available right now.</Text>}
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -302,7 +433,7 @@ const styles = StyleSheet.create({
   payActionRow: { flexDirection: 'row', alignItems: 'center', padding: 25, paddingBottom: 40 },
   footerLeft: { flex: 1 },
   footerPrice: { fontSize: 22, fontWeight: '900', color: Colors.light.text },
-  viewDetailedBill: { fontSize: 10, fontWeight: '800', color: Colors.light.primary, marginTop: 2 },
+  viewDetailedBill: { fontSize: 10, fontWeight: '800', color: Colors.light.primary, marginTop: 4, paddingVertical: 4 },
   checkoutBtn: { backgroundColor: Colors.light.primary, flex: 1.5, height: 60, borderRadius: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, shadowColor: Colors.light.primary, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
   checkoutBtnText: { color: '#1A1A1A', fontSize: 17, fontWeight: '900' },
   emptyContainer: { flex: 1, backgroundColor: '#FFF' },
@@ -312,4 +443,21 @@ const styles = StyleSheet.create({
   emptySub: { fontSize: 14, color: '#999', textAlign: 'center', marginTop: 10, lineHeight: 22 },
   shopBtn: { backgroundColor: Colors.light.primary, paddingHorizontal: 30, paddingVertical: 15, borderRadius: 20, marginTop: 30 },
   shopBtnText: { color: '#FFF', fontWeight: '900', fontSize: 16 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: '#FFF', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 25, minHeight: height * 0.6 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25 },
+  modalTitle: { fontSize: 20, fontWeight: '900', color: Colors.light.text },
+  closeBtn: { padding: 5 },
+  couponInputRow: { flexDirection: 'row', gap: 10, marginBottom: 30 },
+  couponInput: { flex: 1, backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#F3F4F6', borderRadius: 16, paddingHorizontal: 20, fontSize: 15, fontWeight: '700', color: Colors.light.text },
+  applyBtn: { backgroundColor: Colors.light.primary, paddingHorizontal: 25, justifyContent: 'center', alignItems: 'center', borderRadius: 16 },
+  applyBtnText: { color: '#1A1A1A', fontWeight: '900', fontSize: 14 },
+  availableCouponsTitle: { fontSize: 16, fontWeight: '800', color: Colors.light.text, marginBottom: 15 },
+  availableCouponCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, backgroundColor: '#FFF', borderRadius: 20, borderWidth: 1, borderColor: '#F3F4F6', marginBottom: 15 },
+  acLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  acIconBg: { width: 45, height: 45, borderRadius: 12, backgroundColor: '#FFFDF5', alignItems: 'center', justifyContent: 'center' },
+  acCode: { fontSize: 16, fontWeight: '900', color: Colors.light.text },
+  acDesc: { fontSize: 12, color: '#666', marginTop: 4, fontWeight: '500', paddingRight: 10 },
+  acApply: { fontSize: 13, fontWeight: '800', color: Colors.light.primary },
+  emptyCoupons: { textAlign: 'center', color: '#999', marginTop: 20, fontSize: 14, fontWeight: '500' }
 });

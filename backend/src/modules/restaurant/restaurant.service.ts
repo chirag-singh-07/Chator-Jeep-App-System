@@ -76,6 +76,10 @@ export const registerRestaurant = async (input: {
   documents?: Array<{ label: string; key: string; url: string }>;
   termsAccepted?: boolean;
   supportsBulkOrders?: boolean;
+  estimatedDeliveryTimeMins?: number;
+  deliveryFee?: number;
+  freeDeliveryThreshold?: number;
+  restaurantType?: "veg" | "non-veg" | "pure-veg";
 }) => {
   const { email, phone } = await validateRestaurantRegistrationInput(input);
   
@@ -113,8 +117,8 @@ export const registerRestaurant = async (input: {
         const coords = await geocodeAddress(fullAddress);
         if (coords) {
           locationCoordinates = {
-            type: "Point",
-            coordinates: [coords.lng, coords.lat],
+            type: "Point" as const,
+            coordinates: [coords.lng, coords.lat] as [number, number],
           };
         }
       }
@@ -141,6 +145,10 @@ export const registerRestaurant = async (input: {
       launchOfferExpiresAt,
       currentCommissionPercentage: 10,
       supportsBulkOrders: input.supportsBulkOrders || false,
+      estimatedDeliveryTimeMins: input.estimatedDeliveryTimeMins,
+      deliveryFee: input.deliveryFee || 0,
+      freeDeliveryThreshold: input.freeDeliveryThreshold,
+      restaurantType: input.restaurantType || "non-veg",
       registrationPayment: {
         transactionId: new mongoose.Types.ObjectId() as any,
         razorpayOrderId: "FREE_REGISTRATION",
@@ -617,6 +625,10 @@ export const adminCreateRestaurant = async (
     panCard?: any;
     livePhoto?: any;
     supportsBulkOrders?: boolean;
+    estimatedDeliveryTimeMins?: number;
+    deliveryFee?: number;
+    freeDeliveryThreshold?: number;
+    restaurantType?: "veg" | "non-veg" | "pure-veg";
   }
 ) => {
   const { email, phone } = await validateRestaurantRegistrationInput({
@@ -661,8 +673,8 @@ export const adminCreateRestaurant = async (
       const coords = await geocodeAddress(fullAddress);
       if (coords) {
         locationCoordinates = {
-          type: "Point",
-          coordinates: [coords.lng, coords.lat],
+          type: "Point" as const,
+          coordinates: [coords.lng, coords.lat] as [number, number],
         };
       }
     }
@@ -700,6 +712,10 @@ export const adminCreateRestaurant = async (
       currentCommissionPercentage: 10,
       description: input.notes,
       supportsBulkOrders: input.supportsBulkOrders || false,
+      estimatedDeliveryTimeMins: input.estimatedDeliveryTimeMins,
+      deliveryFee: input.deliveryFee || 0,
+      freeDeliveryThreshold: input.freeDeliveryThreshold,
+      restaurantType: input.restaurantType || "non-veg",
       registrationPayment: {
         transactionId: new mongoose.Types.ObjectId() as any,
         razorpayOrderId: "OFFLINE_CASH",
