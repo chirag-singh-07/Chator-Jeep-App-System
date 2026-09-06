@@ -8,7 +8,6 @@ import { AppLoadingScreen } from "@/components/AppLoadingScreen";
 import * as Location from 'expo-location';
 import { AuthPromptModal } from "@/components/AuthPromptModal";
 import { AdPopupModal } from "@/components/AdPopupModal";
-
 function AuthGate() {
   const { isAuthenticated, hasHydrated, hasSeenOnboarding } = useAuthStore();
   const segments = useSegments();
@@ -20,6 +19,8 @@ function AuthGate() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
+    Location.requestForegroundPermissionsAsync();
+    
     if (!hasHydrated) return;
     
     const inAuthGroup = segments.some(s => s === "(auth)");
@@ -48,17 +49,6 @@ function AuthGate() {
 }
 
 export default function RootLayout() {
-  useEffect(() => {
-    // Request location permissions natively like all other apps do
-    (async () => {
-      try {
-        await Location.requestForegroundPermissionsAsync();
-      } catch (e) {
-        console.warn('Location permission request failed:', e);
-      }
-    })();
-  }, []);
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthGate />

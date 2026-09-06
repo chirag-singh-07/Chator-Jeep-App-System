@@ -2,12 +2,12 @@
   "expo": {
     "name": "Chatori Jeeb Delivery App",
     "slug": "delivery-app",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icons/ios-icon-1024x1024.png",
     "scheme": "deliveryapp",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "bundleIdentifier": "com.chatorijeeb.deliveryapp",
       "googleServicesFile": "./GoogleService-Info.plist",
@@ -29,7 +29,7 @@
     },
     "android": {
       "package": "com.chatorijeeb.delivery",
-      "versionCode": 4,
+      "versionCode": 5,
       "googleServicesFile": "./google-services.json",
       "statusBar": {
         "backgroundColor": "#000000",
