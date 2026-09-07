@@ -34,7 +34,7 @@ import {
 
 const { width, height } = Dimensions.get('window');
 
-const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+
 
 export default function AddressPickerScreen() {
   const [search, setSearch] = useState('');
@@ -82,10 +82,10 @@ export default function AddressPickerScreen() {
 
   const handleSearch = async (text: string) => {
     setSearch(text);
-    if (text.length > 2 && GOOGLE_MAPS_API_KEY) {
+    if (text.length > 2) {
       setLoading(true);
       try {
-        const response = await fetch(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(text)}&key=${GOOGLE_MAPS_API_KEY}&components=country:in`);
+        const response = await fetch(`http://localhost:5000/api/v1/maps/autocomplete?input=${encodeURIComponent(text)}`);
         const data = await response.json();
         if (data.status === 'OK') {
           const formattedResults = data.predictions.map((p: any) => ({
@@ -113,10 +113,10 @@ export default function AddressPickerScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     let addressDetails = item;
 
-    if (item.isGooglePlace && GOOGLE_MAPS_API_KEY) {
+    if (item.isGooglePlace) {
       setLoading(true);
       try {
-        const response = await fetch(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${item.id}&key=${GOOGLE_MAPS_API_KEY}&fields=geometry,address_component,formatted_address,name`);
+        const response = await fetch(`http://localhost:5000/api/v1/maps/details?place_id=${item.id}`);
         const data = await response.json();
         if (data.status === 'OK') {
           const result = data.result;

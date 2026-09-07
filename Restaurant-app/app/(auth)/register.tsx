@@ -119,6 +119,81 @@ export default function RegisterScreen() {
   const [district, setDistrict] = useState("");
   const [city, setCity] = useState("");
   const [pinCode, setPinCode] = useState("");
+  
+  const [locationCoords, setLocationCoords] = useState<{lat: number; lng: number} | null>(null);
+  const [search, setSearch] = useState("");
+  const [results, setResults] = useState<any[]>([]);
+  const [loadingSearch, setLoadingSearch] = useState(false);
+
+  const handleSearch = async (text: string) => {
+    setSearch(text);
+    if (text.length > 2) {
+      setLoadingSearch(true);
+      try {
+        const response = await fetch(`http://localhost:5000/api/v1/maps/autocomplete?input=${encodeURIComponent(text)}`);
+        const data = await response.json();
+        if (data.status === 'OK') {
+          const formattedResults = data.predictions.map((p: any) => ({
+            id: p.place_id,
+            name: p.structured_formatting.main_text,
+            address: p.structured_formatting.secondary_text,
+            isGooglePlace: true,
+          }));
+          setResults(formattedResults);
+        } else {
+          setResults([]);
+        }
+      } catch (error) {
+        setResults([]);
+      } finally {
+        setLoadingSearch(false);
+      }
+    } else {
+      setResults([]);
+    }
+  };
+
+  const handleSelect = async (item: any) => {
+    if (item.isGooglePlace) {
+      setLoadingSearch(true);
+      try {
+        const response = await fetch(`http://localhost:5000/api/v1/maps/details?place_id=${item.id}`);
+        const data = await response.json();
+        if (data.status === 'OK') {
+          const result = data.result;
+          const lat = result.geometry.location.lat;
+          const lng = result.geometry.location.lng;
+          setLocationCoords({ lat, lng });
+
+          let foundCity = '';
+          let foundState = '';
+          let foundDistrict = '';
+          let postalCode = '';
+          
+          result.address_components?.forEach((c: any) => {
+            if (c.types.includes('locality')) foundCity = c.long_name;
+            if (c.types.includes('administrative_area_level_1')) foundState = c.long_name;
+            if (c.types.includes('administrative_area_level_2')) foundDistrict = c.long_name;
+            if (c.types.includes('postal_code')) postalCode = c.long_name;
+          });
+
+          setAddressDraft((prev) => ({
+            ...prev,
+            fullAddress: sanitizeAddressInput("fullAddress", result.formatted_address || item.address),
+            state: sanitizeAddressInput("state", foundState),
+            district: sanitizeAddressInput("district", foundDistrict),
+            city: sanitizeAddressInput("city", foundCity || foundDistrict),
+            pinCode: sanitizeAddressInput("pinCode", postalCode),
+          }));
+          setSearch('');
+          setResults([]);
+        }
+      } catch (error) {
+      } finally {
+        setLoadingSearch(false);
+      }
+    }
+  };
 
   const [addressTouched, setAddressTouched] = useState<Partial<Record<AddressFieldName, boolean>>>({});
   const landmarkRef = useRef<TextInput>(null);
@@ -770,6 +845,7 @@ export default function RegisterScreen() {
               state: addressValidation.fields.state.value,
               pinCode: addressValidation.fields.pinCode.value,
             },
+            location: locationCoords ? locationCoords : undefined,
             bankDetails: {
               accountHolderName: bankAccountHolder.trim(),
               accountNumber: bankAccountNumber.trim(),
@@ -1038,8 +1114,33 @@ export default function RegisterScreen() {
           <View style={styles.stepContent}>
             <Text style={styles.stepTitle}>LOGISTICS NODE</Text>
             <Text style={styles.stepSub}>
-              Specify your collection point manually with precise address details.
+              Search for your collection point or enter manually.
             </Text>
+
+            <View style={{ marginBottom: 20 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 14, paddingHorizontal: 15, height: 50 }}>
+                <Ionicons name="search" size={20} color="#999" />
+                <TextInput
+                  style={{ flex: 1, marginLeft: 10, fontSize: 14, color: '#111' }}
+                  placeholder="Search location..."
+                  value={search}
+                  onChangeText={handleSearch}
+                />
+                {loadingSearch && <ActivityIndicator color="#111" size="small" />}
+              </View>
+              {results.length > 0 && (
+                <View style={{ backgroundColor: '#FFF', borderWidth: 1, borderColor: '#EEE', borderRadius: 10, marginTop: 5, maxHeight: 200 }}>
+                  <ScrollView nestedScrollEnabled={true} keyboardShouldPersistTaps="handled">
+                    {results.map((item) => (
+                      <TouchableOpacity key={item.id} style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: '#F4F4F5' }} onPress={() => handleSelect(item)}>
+                        <Text style={{ fontSize: 14, fontWeight: '700', color: '#111' }}>{item.name}</Text>
+                        <Text style={{ fontSize: 12, color: '#666', marginTop: 2 }}>{item.address}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
             <ValidatedAddressField
               label="FULL ADDRESS / HOUSE NO / STREET"
               placeholder="Flat 402, Sunshine Heights, Main Road"

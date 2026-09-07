@@ -38,6 +38,7 @@ import { useMenuStore } from "@/store/useMenuStore";
 import { useLocationStore } from "@/store/useLocationStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import * as Haptics from "expo-haptics";
+import * as Location from "expo-location";
 import { getAvatarUrl } from "@/lib/utils";
 import api from "@/lib/api";
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
@@ -116,7 +117,29 @@ export default function HomeScreen() {
   }, [user]);
 
   useEffect(() => {
-    loadData();
+    const initializeLocationAndData = async () => {
+      if (currentAddress) {
+        await fetchHomeData(
+          currentAddress.coordinates?.latitude,
+          currentAddress.coordinates?.longitude,
+          currentAddress.city
+        );
+      } else {
+        try {
+          const { status } = await Location.requestForegroundPermissionsAsync();
+          if (status === 'granted') {
+            const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+            await fetchHomeData(location.coords.latitude, location.coords.longitude, undefined);
+          } else {
+            await fetchHomeData(undefined, undefined, undefined);
+          }
+        } catch (err) {
+          console.warn("Failed to get location automatically", err);
+          await fetchHomeData(undefined, undefined, undefined);
+        }
+      }
+    };
+    initializeLocationAndData();
   }, [currentAddress]);
 
   const loadData = async () => {

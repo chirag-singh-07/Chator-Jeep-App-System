@@ -80,6 +80,7 @@ export const registerRestaurant = async (input: {
   deliveryFee?: number;
   freeDeliveryThreshold?: number;
   restaurantType?: "veg" | "non-veg" | "pure-veg";
+  location?: { lat: number; lng: number };
 }) => {
   const { email, phone } = await validateRestaurantRegistrationInput(input);
   
@@ -104,7 +105,12 @@ export const registerRestaurant = async (input: {
 
   // 2. Create restaurant profile — starts as REQUESTED
     let locationCoordinates = undefined;
-    if (input.address) {
+    if (input.location?.lat && input.location?.lng) {
+      locationCoordinates = {
+        type: "Point" as const,
+        coordinates: [input.location.lng, input.location.lat] as [number, number],
+      };
+    } else if (input.address) {
       const fullAddress = [
         input.address.line1,
         input.address.city,
@@ -608,6 +614,7 @@ export const adminCreateRestaurant = async (
     restaurantName: string;
     type?: string;
     location?: string;
+    locationCoords?: { lat: number; lng: number };
     cuisine?: string;
     heroImage?: string;
     logoImage?: string;
@@ -661,21 +668,28 @@ export const adminCreateRestaurant = async (
     const cuisines = input.cuisine ? input.cuisine.split(",").map((c: string) => c.trim()) : [];
 
     let locationCoordinates = undefined;
-    const fullAddress = [
-      input.addressLine1 || input.location || "",
-      input.city || "",
-      input.state || "",
-      input.pinCode || "",
-    ]
-      .filter(Boolean)
-      .join(", ");
-    if (fullAddress) {
-      const coords = await geocodeAddress(fullAddress);
-      if (coords) {
-        locationCoordinates = {
-          type: "Point" as const,
-          coordinates: [coords.lng, coords.lat] as [number, number],
-        };
+    if (input.locationCoords?.lat && input.locationCoords?.lng) {
+      locationCoordinates = {
+        type: "Point" as const,
+        coordinates: [input.locationCoords.lng, input.locationCoords.lat] as [number, number],
+      };
+    } else {
+      const fullAddress = [
+        input.addressLine1 || input.location || "",
+        input.city || "",
+        input.state || "",
+        input.pinCode || "",
+      ]
+        .filter(Boolean)
+        .join(", ");
+      if (fullAddress) {
+        const coords = await geocodeAddress(fullAddress);
+        if (coords) {
+          locationCoordinates = {
+            type: "Point" as const,
+            coordinates: [coords.lng, coords.lat] as [number, number],
+          };
+        }
       }
     }
 
