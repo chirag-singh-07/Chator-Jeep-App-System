@@ -31,7 +31,7 @@ const { height } = Dimensions.get('window');
 export default function CartScreen() {
   const { isAuthenticated, hasPlacedOrder } = useAuthStore();
   const router = useRouter();
-  const { items, restaurantName, totalAmount, totalItems, updateQuantity, clearCart } = useCartStore();
+  const { items, restaurantId, restaurantName, totalAmount, totalItems, updateQuantity, clearCart } = useCartStore();
   const { currentAddress } = useLocationStore();
   
   const scrollRef = useRef<ScrollView>(null);
