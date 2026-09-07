@@ -23,6 +23,10 @@ router.get(
   roleMiddleware(["ADMIN"]),
   controller.getSettings,
 );
+router.get(
+  "/config",
+  controller.getConfig,
+);
 router.post(
   "/settings",
   authMiddleware,

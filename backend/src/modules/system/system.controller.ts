@@ -11,6 +11,13 @@ export const getSettings = asyncHandler(
   }
 );
 
+export const getConfig = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const config = await service.getPlatformConfig();
+    res.status(200).json({ success: true, data: config });
+  }
+);
+
 export const getOverviewStats = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const range = (req.query.range as string) || "1m";

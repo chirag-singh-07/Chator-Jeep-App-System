@@ -8,7 +8,8 @@ import {
   SafeAreaView,
   StatusBar,
   Dimensions,
-  Share
+  Share,
+  Platform
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';

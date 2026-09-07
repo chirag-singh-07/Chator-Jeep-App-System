@@ -53,32 +53,63 @@ export default function CartScreen() {
   const [deliveryFee, setDeliveryFee] = useState<number>(0);
   const [packagingCharge, setPackagingCharge] = useState<number>(0);
   const [platformFee, setPlatformFee] = useState<number>(0);
+  const [backendBreakdown, setBackendBreakdown] = useState<{
+    foodAmount: number;
+    deliveryFee: number;
+    platformFee: number;
+    couponDiscount: number;
+    totalAmount: number;
+  } | null>(null);
   const [isFetchingFees, setIsFetchingFees] = useState<boolean>(false);
 
   const isFirstOrder = !hasPlacedOrder;
 
   useEffect(() => {
-    const fetchFees = async () => {
+    const fetchFeesAndPreview = async () => {
       if (!restaurantId) return;
       setIsFetchingFees(true);
       try {
-        const [restaurantRes, configRes] = await Promise.all([
+        const [restaurantRes, configRes] = await Promise.allSettled([
           api.get(`/restaurants/${restaurantId}`),
           api.get('/system/config')
         ]);
         
-        if (restaurantRes.data?.success) {
-          const restData = restaurantRes.data.data;
+        if (restaurantRes.status === 'fulfilled' && restaurantRes.value.data?.success) {
+          const restData = restaurantRes.value.data.data;
           setDeliveryFee(restData.deliveryFee || 0);
-          setPackagingCharge(restData.packagingCharge || 0); // Backend might not have this, default to 0
+          setPackagingCharge(restData.packagingCharge || 0);
         }
         
-        if (configRes.data?.success) {
-          setPlatformFee(configRes.data.data?.platformFixedFee || 0);
+        if (configRes.status === 'fulfilled' && configRes.value.data?.success) {
+          setPlatformFee(configRes.value.data.data?.platformFixedFee || 0);
+        }
+
+        // Try backend checkout preview if user is authenticated and items present
+        if (isAuthenticated && items.length > 0) {
+          try {
+            const payload = {
+              restaurantId,
+              items: items.map((i) => ({ menuItemId: i.id, quantity: i.quantity })),
+              deliveryAddress: currentAddress ? `${currentAddress.flat || ''}, ${currentAddress.area || ''}` : 'Default Address',
+              location: {
+                type: 'Point',
+                coordinates: currentAddress?.coordinates
+                  ? [currentAddress.coordinates.longitude, currentAddress.coordinates.latitude]
+                  : [77.1025, 28.7041],
+              },
+              ...(appliedCoupon ? { couponCode: appliedCoupon.code } : {}),
+            };
+            const previewRes = await api.post('/orders/payment/checkout-preview', payload);
+            if (previewRes.data?.success && previewRes.data.data) {
+              setBackendBreakdown(previewRes.data.data);
+              if (previewRes.data.data.deliveryFee !== undefined) setDeliveryFee(previewRes.data.data.deliveryFee);
+              if (previewRes.data.data.platformFee !== undefined) setPlatformFee(previewRes.data.data.platformFee);
+            }
+          } catch (previewErr) {
+            // Quiet fallback for preview error
+          }
         }
       } catch (error) {
-        console.error("Failed to fetch dynamic fees", error);
-        // Fallback defaults if API fails
         setDeliveryFee(29);
         setPlatformFee(15);
       } finally {
@@ -86,8 +117,8 @@ export default function CartScreen() {
       }
     };
     
-    fetchFees();
-  }, [restaurantId]);
+    fetchFeesAndPreview();
+  }, [restaurantId, items, currentAddress, appliedCoupon, isAuthenticated]);
 
   useEffect(() => {
     if (showCouponModal) {
@@ -126,15 +157,19 @@ export default function CartScreen() {
     ]);
   };
 
-  // Calculations
-  const rawGst = totalAmount * 0.05; // 5% GST
+  // Dynamic calculations prioritizing backend breakdown data
+  const itemTotal = backendBreakdown?.foodAmount ?? totalAmount;
+  const activeDeliveryFee = backendBreakdown?.deliveryFee ?? deliveryFee;
+  const activePlatformFee = backendBreakdown?.platformFee ?? platformFee;
+
+  const rawGst = itemTotal * 0.05; // 5% GST
   const gstAndTip = rawGst + tipAmount;
   
   const fallbackWelcomeDiscount = isFirstOrder ? Math.min(Math.round(totalAmount * 0.5), 100) : 0;
-  const discountAmount = appliedCoupon ? appliedCoupon.discount : fallbackWelcomeDiscount;
+  const discountAmount = appliedCoupon ? appliedCoupon.discount : (backendBreakdown?.couponDiscount ?? fallbackWelcomeDiscount);
   
-  const subtotalBeforeRoundOff = totalAmount + deliveryFee + packagingCharge + platformFee + gstAndTip - discountAmount;
-  const grandTotal = Math.round(subtotalBeforeRoundOff);
+  const subtotalBeforeRoundOff = itemTotal + activeDeliveryFee + packagingCharge + activePlatformFee + gstAndTip - discountAmount;
+  const grandTotal = Math.max(0, Math.round(subtotalBeforeRoundOff));
   const roundOff = grandTotal - subtotalBeforeRoundOff;
 
   if (items.length === 0) {
@@ -301,35 +336,45 @@ export default function CartScreen() {
            {isBillExpanded && (
              <View style={styles.billExpandedContent}>
                <View style={styles.billRow}>
-                 <Text style={styles.billLabel}>Subtotal</Text>
-                 <Text style={styles.billValue}>₹{totalAmount}</Text>
+                 <Text style={styles.billLabel}>Item Subtotal</Text>
+                 <Text style={styles.billValue}>₹{itemTotal}</Text>
                </View>
                <View style={styles.billRow}>
                  <Text style={styles.billLabel}>Delivery Fee</Text>
-                 <Text style={styles.billValue}>₹{deliveryFee}</Text>
+                 <Text style={styles.billValue}>{activeDeliveryFee === 0 ? 'FREE' : `₹${activeDeliveryFee}`}</Text>
                </View>
-               <View style={styles.billRow}>
-                 <Text style={styles.billLabel}>Packaging Charge</Text>
-                 <Text style={styles.billValue}>₹{packagingCharge}</Text>
-               </View>
-               <View style={styles.billRow}>
-                 <Text style={styles.billLabel}>Platform Fee</Text>
-                 <Text style={styles.billValue}>₹{platformFee}</Text>
-               </View>
-               {discountAmount > 0 && (
+               {packagingCharge > 0 && (
                  <View style={styles.billRow}>
-                   <Text style={[styles.billLabel, {color: '#888', textDecorationLine: 'underline'}]}>Discount</Text>
-                   <Text style={styles.billValue}>-₹{discountAmount}</Text>
+                   <Text style={styles.billLabel}>Packaging Charge</Text>
+                   <Text style={styles.billValue}>₹{packagingCharge}</Text>
                  </View>
                )}
                <View style={styles.billRow}>
-                 <Text style={[styles.billLabel, {color: '#888', textDecorationLine: 'underline'}]}>GST & Tip</Text>
-                 <Text style={styles.billValue}>₹{gstAndTip.toFixed(2)}</Text>
+                 <Text style={styles.billLabel}>Platform Fee</Text>
+                 <Text style={styles.billValue}>₹{activePlatformFee}</Text>
                </View>
+               {discountAmount > 0 && (
+                 <View style={styles.billRow}>
+                   <Text style={[styles.billLabel, {color: '#16A34A', fontWeight: '600'}]}>Coupon Discount</Text>
+                   <Text style={[styles.billValue, {color: '#16A34A', fontWeight: '700'}]}>-₹{discountAmount}</Text>
+                 </View>
+               )}
                <View style={styles.billRow}>
-                 <Text style={styles.billLabel}>Round Off</Text>
-                 <Text style={styles.billValue}>{roundOff > 0 ? '+' : ''}₹{roundOff.toFixed(2)}</Text>
+                 <Text style={styles.billLabel}>GST & Service</Text>
+                 <Text style={styles.billValue}>₹{rawGst.toFixed(2)}</Text>
                </View>
+               {tipAmount > 0 && (
+                 <View style={styles.billRow}>
+                   <Text style={styles.billLabel}>Rider Tip</Text>
+                   <Text style={styles.billValue}>₹{tipAmount}</Text>
+                 </View>
+               )}
+               {roundOff !== 0 && (
+                 <View style={styles.billRow}>
+                   <Text style={styles.billLabel}>Round Off</Text>
+                   <Text style={styles.billValue}>{roundOff > 0 ? '+' : ''}₹{roundOff.toFixed(2)}</Text>
+                 </View>
+               )}
                
                <View style={styles.billDivider} />
                

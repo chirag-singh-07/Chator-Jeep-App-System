@@ -493,15 +493,59 @@ export default function CheckoutScreen() {
           </Animated.View>
         ) : (
           <Animated.View entering={FadeInRight} style={styles.stepContent}>
-            <Text style={styles.sectionTitle}>Payment Method</Text>
+            {/* Total Amount Payable Card (Replaces detailed bill summary) */}
+            <View style={styles.totalPayableCard}>
+              <View style={styles.totalPayableLeft}>
+                <Text style={styles.totalPayableTag}>TOTAL PAYABLE</Text>
+                <Text style={styles.totalPayableAmount}>₹{grandTotal}</Text>
+                {discount > 0 ? (
+                  <View style={styles.savingsPill}>
+                    <Ionicons name="pricetag" size={12} color="#16A34A" />
+                    <Text style={styles.savingsPillText}>Saved ₹{discount} with coupon</Text>
+                  </View>
+                ) : (
+                  <View style={styles.securityPill}>
+                    <Ionicons name="shield-checkmark" size={13} color="#059669" />
+                    <Text style={styles.securityPillText}>100% Safe & Secure Payment</Text>
+                  </View>
+                )}
+              </View>
+              <View style={styles.totalPayableIconBg}>
+                <Ionicons name="wallet-outline" size={28} color="#059669" />
+              </View>
+            </View>
+
+            {/* Delivery Address Summary Bar */}
+            {selectedAddress && (
+              <TouchableOpacity style={styles.addressRecapBar} onPress={() => setStep(1)} activeOpacity={0.7}>
+                <View style={styles.addressRecapLeft}>
+                  <Ionicons name="location" size={18} color={Colors.light.primary} />
+                  <View style={{ marginLeft: 10, flex: 1 }}>
+                    <Text style={styles.addressRecapTitle}>
+                      Delivering to <Text style={{ fontWeight: '800' }}>{selectedAddress.label || selectedAddress.type || 'Home'}</Text>
+                    </Text>
+                    <Text style={styles.addressRecapSub} numberOfLines={1}>
+                      {selectedAddress.line1 || `${selectedAddress.flat}, ${selectedAddress.area}`}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.addressChangeText}>CHANGE</Text>
+              </TouchableOpacity>
+            )}
+
+            <Text style={[styles.sectionTitle, { marginTop: 10 }]}>Select Payment Method</Text>
 
             <TouchableOpacity
               style={[styles.paymentCard, paymentMethod === 'COD' && styles.selectedCard]}
               onPress={() => setPaymentMethod('COD')}
+              activeOpacity={0.8}
             >
-              <Ionicons name="cash-outline" size={22} color={paymentMethod === 'COD' ? Colors.light.primary : '#888'} />
+              <View style={[styles.paymentIconWrap, paymentMethod === 'COD' && styles.paymentIconWrapActive]}>
+                <Ionicons name="cash-outline" size={22} color={paymentMethod === 'COD' ? '#0D9488' : '#6B7280'} />
+              </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.paymentTitle}>Cash on Delivery</Text>
+                <Text style={styles.paymentTitle}>Cash on Delivery (COD)</Text>
+                <Text style={styles.paymentSub}>Pay cash or UPI to delivery partner</Text>
               </View>
               <View style={styles.radio}>{paymentMethod === 'COD' && <View style={styles.radioInner} />}</View>
             </TouchableOpacity>
@@ -509,12 +553,21 @@ export default function CheckoutScreen() {
             <TouchableOpacity
               style={[styles.paymentCard, paymentMethod === 'ONLINE' && styles.selectedCard]}
               onPress={() => setPaymentMethod('ONLINE')}
+              activeOpacity={0.8}
             >
-              <Ionicons name="card-outline" size={22} color={paymentMethod === 'ONLINE' ? '#3399cc' : '#888'} />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.paymentTitle}>Online Payment</Text>
+              <View style={[styles.paymentIconWrap, paymentMethod === 'ONLINE' && styles.paymentIconWrapActive]}>
+                <Ionicons name="card-outline" size={22} color={paymentMethod === 'ONLINE' ? '#0D9488' : '#6B7280'} />
               </View>
-              <View style={styles.radio}>{paymentMethod === 'ONLINE' && <View style={[styles.radioInner, { backgroundColor: '#3399cc' }]} />}</View>
+              <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={styles.paymentTitle}>Online Payment</Text>
+                  <View style={styles.instantTag}>
+                    <Text style={styles.instantTagText}>INSTANT</Text>
+                  </View>
+                </View>
+                <Text style={styles.paymentSub}>UPI, Debit/Credit Cards, NetBanking (Razorpay)</Text>
+              </View>
+              <View style={styles.radio}>{paymentMethod === 'ONLINE' && <View style={[styles.radioInner, { backgroundColor: '#0D9488' }]} />}</View>
             </TouchableOpacity>
 
             {/* Coupon Section */}
@@ -682,44 +735,6 @@ export default function CheckoutScreen() {
                 )
               )}
             </View>
-
-            {/* Bill Summary */}
-            <View style={styles.summaryCard}>
-              <Text style={styles.summaryTitle}>Detailed Bill</Text>
-
-              {isPreviewLoading ? (
-                <ActivityIndicator size="small" color={Colors.light.primary} style={{ marginVertical: 20 }} />
-              ) : (
-                <>
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Item Total</Text>
-                    <Text style={styles.summaryValue}>₹{breakdown.foodAmount}</Text>
-                  </View>
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Delivery Fee</Text>
-                    <Text style={styles.summaryValue}>₹{breakdown.deliveryFee}</Text>
-                  </View>
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Platform Fee</Text>
-                    <Text style={styles.summaryValue}>₹{breakdown.platformFee}</Text>
-                  </View>
-                  {discount > 0 && (
-                    <Animated.View entering={FadeInDown.duration(300)} style={styles.summaryRow}>
-                      <View style={styles.discountLabelRow}>
-                        <Ionicons name="pricetag" size={14} color="#22C55E" />
-                        <Text style={[styles.summaryLabel, { color: '#22C55E', marginLeft: 4 }]}>Coupon Discount</Text>
-                      </View>
-                      <Text style={[styles.summaryValue, { color: '#22C55E' }]}>- ₹{discount}</Text>
-                    </Animated.View>
-                  )}
-                  <View style={styles.summaryDivider} />
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.grandTotalLabel}>To Pay</Text>
-                    <Text style={styles.grandTotalValue}>₹{grandTotal}</Text>
-                  </View>
-                </>
-              )}
-            </View>
           </Animated.View>
         )}
       </ScrollView>
@@ -727,11 +742,13 @@ export default function CheckoutScreen() {
       <View style={styles.footer}>
         {step === 1 ? (
           <TouchableOpacity style={styles.nextBtn} onPress={() => setStep(2)} disabled={!selectedAddress}>
-            <Text style={styles.nextBtnText}>Continue</Text>
+            <Text style={styles.nextBtnText}>Continue to Payment</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity style={styles.placeOrderBtn} onPress={handlePlaceOrder} disabled={isProcessing}>
-            <Text style={styles.placeOrderText}>{isProcessing ? 'Processing...' : paymentMethod === 'ONLINE' ? 'Pay & Place Order' : 'Place Order'}</Text>
+            <Text style={styles.placeOrderText}>
+              {isProcessing ? 'Processing...' : paymentMethod === 'ONLINE' ? `Pay Online • ₹${grandTotal}` : `Place Order • ₹${grandTotal}`}
+            </Text>
           </TouchableOpacity>
         )}
       </View>
@@ -825,8 +842,81 @@ const styles = StyleSheet.create({
   addressIcon: { width: 44, height: 44, borderRadius: 14, backgroundColor: '#F9FAFB', alignItems: 'center', justifyContent: 'center' },
   addressType: { fontSize: 15, fontWeight: '800' },
   addressText: { fontSize: 12, color: '#666' },
+  // Total Payable Card
+  totalPayableCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFF',
+    padding: 20,
+    borderRadius: 24,
+    marginBottom: 16,
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  totalPayableLeft: { flex: 1 },
+  totalPayableTag: { fontSize: 11, fontWeight: '800', color: '#6B7280', letterSpacing: 0.8, marginBottom: 4 },
+  totalPayableAmount: { fontSize: 30, fontWeight: '900', color: '#111827', marginBottom: 8 },
+  savingsPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+    gap: 4,
+  },
+  savingsPillText: { fontSize: 12, fontWeight: '700', color: '#16A34A' },
+  securityPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+    gap: 4,
+  },
+  securityPillText: { fontSize: 12, fontWeight: '600', color: '#059669' },
+  totalPayableIconBg: {
+    width: 56,
+    height: 56,
+    borderRadius: 20,
+    backgroundColor: '#ECFDF5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Address Recap Bar
+  addressRecapBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFF',
+    padding: 16,
+    borderRadius: 18,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  addressRecapLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  addressRecapTitle: { fontSize: 13, color: '#374151' },
+  addressRecapSub: { fontSize: 12, color: '#6B7280', marginTop: 2 },
+  addressChangeText: { fontSize: 12, fontWeight: '800', color: Colors.light.primary, marginLeft: 10 },
+
   paymentCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', padding: 18, borderRadius: 20, marginBottom: 12, borderWidth: 1.5, borderColor: '#F3F4F6', gap: 14 },
-  paymentTitle: { fontSize: 15, fontWeight: '800' },
+  paymentIconWrap: { width: 44, height: 44, borderRadius: 14, backgroundColor: '#F9FAFB', alignItems: 'center', justifyContent: 'center' },
+  paymentIconWrapActive: { backgroundColor: '#CCFBF1' },
+  paymentTitle: { fontSize: 15, fontWeight: '800', color: '#111827' },
+  paymentSub: { fontSize: 12, color: '#6B7280', marginTop: 2 },
+  instantTag: { backgroundColor: '#CCFBF1', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
+  instantTagText: { fontSize: 10, fontWeight: '900', color: '#0F766E' },
   radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#DDD', alignItems: 'center', justifyContent: 'center' },
   radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.light.primary },
 
