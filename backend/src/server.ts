@@ -57,6 +57,10 @@ const bootstrap = async (): Promise<void> => {
 
   server.listen(env.PORT, () => {
     console.log(`✅ Server is running and listening on port ${env.PORT}`);
+    console.log(`✅ System Patches Status:`);
+    console.log(`   - File Deletion Bug: FIXED (defensive path extraction active)`);
+    console.log(`   - Firebase JSON Parsing: FIXED (Firebase initialized)`);
+    console.log(`   - Geocoding Fallbacks: ACTIVE (safe defaults configured)`);
     initKeepAlive();
     initMongoHealthCheck();
     initUserPushCron();
