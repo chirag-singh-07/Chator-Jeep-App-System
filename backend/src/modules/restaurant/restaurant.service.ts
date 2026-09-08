@@ -122,12 +122,13 @@ export const registerRestaurant = async (input: {
       if (fullAddress) {
         const coords = await geocodeAddress(fullAddress);
         if (coords) {
+          console.log(`[${new Date().toISOString()}] Geocoding successful for address: "${fullAddress}"`);
           locationCoordinates = {
             type: "Point" as const,
             coordinates: [coords.lng, coords.lat] as [number, number],
           };
         } else {
-          console.warn(`[Geocoding Fallback] Could not convert address "${fullAddress}" to coordinates. Using default fallback coordinates.`);
+          console.warn(`[${new Date().toISOString()}] [Geocoding Fallback] Could not convert address "${fullAddress}" to coordinates. Using default fallback coordinates.`);
           locationCoordinates = {
             type: "Point" as const,
             coordinates: [77.2090, 28.6139] as [number, number], // Default fallback: New Delhi
@@ -692,12 +693,13 @@ export const adminCreateRestaurant = async (
       if (fullAddress) {
         const coords = await geocodeAddress(fullAddress);
         if (coords) {
+          console.log(`[${new Date().toISOString()}] Geocoding successful for address: "${fullAddress}"`);
           locationCoordinates = {
             type: "Point" as const,
             coordinates: [coords.lng, coords.lat] as [number, number],
           };
         } else {
-          console.warn(`[Geocoding Fallback] Could not convert address "${fullAddress}" to coordinates. Using default fallback coordinates.`);
+          console.warn(`[${new Date().toISOString()}] [Geocoding Fallback] Could not convert address "${fullAddress}" to coordinates. Using default fallback coordinates.`);
           locationCoordinates = {
             type: "Point" as const,
             coordinates: [77.2090, 28.6139] as [number, number], // Default fallback: New Delhi

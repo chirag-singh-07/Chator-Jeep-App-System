@@ -142,11 +142,13 @@ export async function deleteUploadedFiles(keys: string[]): Promise<void> {
         const stat = await fs.stat(filePath);
         if (stat.isDirectory()) {
             await fs.rm(filePath, { recursive: true, force: true });
+            console.log(`[${new Date().toISOString()}] Successfully deleted directory: ${cleanKey}`);
         } else {
             await fs.unlink(filePath);
+            console.log(`[${new Date().toISOString()}] Successfully deleted file: ${cleanKey}`);
         }
       } catch (err) {
-        console.error(`Failed to delete local file ${key}:`, err);
+        console.error(`[${new Date().toISOString()}] Failed to delete local file ${key}:`, err);
       }
     })
   );
