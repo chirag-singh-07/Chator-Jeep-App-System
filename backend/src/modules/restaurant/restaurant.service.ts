@@ -126,6 +126,12 @@ export const registerRestaurant = async (input: {
             type: "Point" as const,
             coordinates: [coords.lng, coords.lat] as [number, number],
           };
+        } else {
+          console.warn(`[Geocoding Fallback] Could not convert address "${fullAddress}" to coordinates. Using default fallback coordinates.`);
+          locationCoordinates = {
+            type: "Point" as const,
+            coordinates: [77.2090, 28.6139] as [number, number], // Default fallback: New Delhi
+          };
         }
       }
     }
@@ -689,6 +695,12 @@ export const adminCreateRestaurant = async (
           locationCoordinates = {
             type: "Point" as const,
             coordinates: [coords.lng, coords.lat] as [number, number],
+          };
+        } else {
+          console.warn(`[Geocoding Fallback] Could not convert address "${fullAddress}" to coordinates. Using default fallback coordinates.`);
+          locationCoordinates = {
+            type: "Point" as const,
+            coordinates: [77.2090, 28.6139] as [number, number], // Default fallback: New Delhi
           };
         }
       }
