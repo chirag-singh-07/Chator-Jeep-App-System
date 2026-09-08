@@ -132,7 +132,12 @@ export async function deleteUploadedFiles(keys: string[]): Promise<void> {
   await Promise.all(
     keys.map(async (key) => {
       try {
-        const filePath = path.join(UPLOADS_DIR, key);
+        let cleanKey = key;
+        if (cleanKey.includes("/uploads/")) {
+          cleanKey = cleanKey.split("/uploads/")[1];
+        }
+        
+        const filePath = path.join(UPLOADS_DIR, cleanKey);
         
         const stat = await fs.stat(filePath);
         if (stat.isDirectory()) {

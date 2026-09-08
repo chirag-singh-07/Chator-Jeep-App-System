@@ -525,11 +525,12 @@ export const adminDeleteRestaurant = async (id: string) => {
         fullKey = fullKey.split("?")[0];
       }
 
-      if (fullKey.includes("uploads/")) {
-         // The key includes uploads/, we only want the path starting from uploads/ or after it based on your S3 structure
-         // Usually it's just the fullKey.
+      if (fullKey.includes("/uploads/")) {
+         // The key includes /uploads/, we only want the path after it
+         fullKey = fullKey.split("/uploads/")[1];
+         
          const parts = fullKey.split("/");
-         // If it's a processed image like uploads/resId/uuid/file.webp, we might want to delete the uuid folder
+         // If it's a processed image like folder/uuid/file.webp, we might want to delete the uuid folder
          if (parts.length > 2 && fullKey.match(/\/[0-9a-fA-F-]{36}\//)) {
              // Find the UUID part and slice up to it to delete the whole directory
              const uuidIndex = parts.findIndex(p => p.match(/^[0-9a-fA-F-]{36}$/));
