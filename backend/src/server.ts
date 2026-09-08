@@ -25,29 +25,43 @@ methods.forEach((method) => {
 });
 
 const bootstrap = async (): Promise<void> => {
+  console.log("🚀 Starting Chator Jeeb API Server...");
+  
   await connectDB();
+  console.log("✅ MongoDB Connected");
+  
   await ensureCategories();
-  initFirebase();
+  
+  const firebaseApp = initFirebase();
+  if (firebaseApp) {
+    console.log("🔥 Firebase initialized successfully. Ready to send push notifications.");
+  } else {
+    console.warn("⚠️ Firebase failed to initialize. Push notifications are disabled.");
+  }
 
   const server = createServer(app);
   initSocket(server);
+  console.log("🔌 WebSockets Initialized");
+
   if (isRedisEnabled) {
     const redisReady = await ensureRedisConnection();
     if (redisReady) {
       initWorkers();
+      console.log("⚙️ Redis & BullMQ Workers initialized");
     } else {
-      console.warn("Redis unavailable: BullMQ workers are not running.");
+      console.warn("⚠️ Redis unavailable: BullMQ workers are not running.");
     }
   } else {
-    console.warn("Redis disabled: BullMQ workers are not running.");
+    console.warn("⚠️ Redis disabled: BullMQ workers are not running.");
   }
 
   server.listen(env.PORT, () => {
-    console.log(`Server running on port ${env.PORT}`);
+    console.log(`✅ Server is running and listening on port ${env.PORT}`);
     initKeepAlive();
     initMongoHealthCheck();
     initUserPushCron();
     initPartnerPushCron();
+    console.log("⏰ All Background Cron Jobs Scheduled.");
   });
 };
 
