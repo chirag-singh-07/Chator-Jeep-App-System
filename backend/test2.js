@@ -2,9 +2,7 @@ require('dotenv').config();
 const val = process.env.FIREBASE_SERVICE_ACCOUNT;
 let serviceAccountStr = (val || '{}').trim();
 serviceAccountStr = serviceAccountStr.replace(/^['"]|['"]$/g, '');
-serviceAccountStr = serviceAccountStr.replace(/\r?\n/g, '\\n');
-console.log("Starts with:");
-console.log(serviceAccountStr.substring(0, 50));
+// DO NOT replace all newlines.
 try {
   JSON.parse(serviceAccountStr);
   console.log('Parsed successfully!');

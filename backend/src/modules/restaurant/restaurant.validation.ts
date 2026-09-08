@@ -24,7 +24,11 @@ export const createRestaurantSchema = z.object({
     cuisines: z.array(z.string()).optional(),
     location: z.object({
       coordinates: z.tuple([z.number(), z.number()])
-    })
+    }).optional(),
+    estimatedDeliveryTimeMins: z.number().nonnegative().optional(),
+    deliveryFee: z.number().nonnegative().optional(),
+    freeDeliveryThreshold: z.number().nonnegative().optional(),
+    restaurantType: z.enum(["veg", "non-veg", "pure-veg"]).optional(),
   })
 });
 
@@ -46,6 +50,10 @@ export const updateRestaurantSchema = z.object({
     panCard: restaurantDocumentSchema.optional(),
     livePhoto: restaurantDocumentSchema.optional(),
     documents: z.array(restaurantDocumentSchema).optional(),
+    estimatedDeliveryTimeMins: z.number().nonnegative().optional(),
+    deliveryFee: z.number().nonnegative().optional(),
+    freeDeliveryThreshold: z.number().nonnegative().optional(),
+    restaurantType: z.enum(["veg", "non-veg", "pure-veg"]).optional(),
   })
 });
 
