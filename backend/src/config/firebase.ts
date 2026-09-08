@@ -7,11 +7,14 @@ export const initFirebase = () => {
   if (firebaseApp) return firebaseApp;
 
   try {
-    let serviceAccountStr = process.env.FIREBASE_SERVICE_ACCOUNT || "{}";
-    if ((serviceAccountStr.startsWith("'") && serviceAccountStr.endsWith("'")) ||
-        (serviceAccountStr.startsWith('"') && serviceAccountStr.endsWith('"'))) {
-      serviceAccountStr = serviceAccountStr.slice(1, -1);
-    }
+    let serviceAccountStr = (process.env.FIREBASE_SERVICE_ACCOUNT || "{}").trim();
+    serviceAccountStr = serviceAccountStr.replace(/^['"]|['"]$/g, '');
+    
+    // Replace unescaped newlines with \n if any (sometimes dotenv keeps literal newlines in single quotes)
+    // Actually, JSON.parse requires literal newlines inside strings to be escaped as \n
+    // So we need to make sure the private_key newlines are valid JSON
+    serviceAccountStr = serviceAccountStr.replace(/\r?\n/g, '\\n');
+
     const serviceAccount = JSON.parse(serviceAccountStr);
     
     if (!serviceAccount.project_id) {
