@@ -123,7 +123,7 @@ const deliveryPartnerSchema = new Schema<IDeliveryPartner>(
     currentOrderId: { type: Schema.Types.ObjectId, ref: "Order", default: null, index: true },
     adminRemarks: { type: String },
     currentLocation: {
-      type: { type: String, enum: ["Point"], default: "Point" },
+      type: { type: String, enum: ["Point"] },
       coordinates: { type: [Number], default: [0, 0] }
     },
     lastLocationUpdatedAt: { type: Date, default: null },

@@ -12,6 +12,18 @@ import { initUserPushCron } from "./jobs/user-push-cron";
 import { initPartnerPushCron } from "./jobs/partner-push-cron";
 import { ensureCategories } from "./scripts/ensure-categories";
 
+const methods = ['log', 'error', 'warn', 'info'] as const;
+methods.forEach((method) => {
+  const original = console[method];
+  console[method] = (...args: any[]) => {
+    if (typeof args[0] === 'string' && args[0].match(/^\[\d{4}-\d{2}-\d{2}T/)) {
+      original.apply(console, args);
+    } else {
+      original.apply(console, [`[${new Date().toISOString()}]`, ...args]);
+    }
+  };
+});
+
 const bootstrap = async (): Promise<void> => {
   await connectDB();
   await ensureCategories();

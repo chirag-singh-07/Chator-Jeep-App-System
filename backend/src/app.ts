@@ -63,7 +63,7 @@ app.use(express.json({
   },
 }));
 app.use(express.urlencoded({ extended: true, limit: "5mb" }));
-app.use(morgan("dev"));
+app.use(morgan("[:date[iso]] :method :url :status :res[content-length] - :response-time ms"));
 // Global Rate Limiter
 app.use(
   rateLimit({

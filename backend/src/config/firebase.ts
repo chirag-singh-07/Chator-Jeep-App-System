@@ -7,7 +7,12 @@ export const initFirebase = () => {
   if (firebaseApp) return firebaseApp;
 
   try {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || "{}");
+    let serviceAccountStr = process.env.FIREBASE_SERVICE_ACCOUNT || "{}";
+    if ((serviceAccountStr.startsWith("'") && serviceAccountStr.endsWith("'")) ||
+        (serviceAccountStr.startsWith('"') && serviceAccountStr.endsWith('"'))) {
+      serviceAccountStr = serviceAccountStr.slice(1, -1);
+    }
+    const serviceAccount = JSON.parse(serviceAccountStr);
     
     if (!serviceAccount.project_id) {
       console.warn("Firebase service account not configured. Push notifications will be disabled.");
