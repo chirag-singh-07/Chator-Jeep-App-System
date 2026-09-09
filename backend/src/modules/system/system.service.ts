@@ -17,11 +17,16 @@ export const updateSetting = async (key: string, value: any, description?: strin
 };
 
 export const getPlatformConfig = async () => {
-  const [commission, baseFee, perKmFee, platformFee] = await Promise.all([
+  const [commission, baseFee, perKmFee, platformFee, platformFeePercentage, gstPercentage, discountAmount, discountMinSubtotal, packagingFee] = await Promise.all([
     getSetting("PLATFORM_COMMISSION_PERCENTAGE", 10),
-    getSetting("DELIVERY_BASE_FEE", 35),
-    getSetting("DELIVERY_PER_KM_FEE", 6),
+    getSetting("DELIVERY_BASE_FEE", 0),
+    getSetting("DELIVERY_PER_KM_FEE", 10),
     getSetting("PLATFORM_FIXED_FEE", 0),
+    getSetting("PLATFORM_FEE_PERCENTAGE", 5),
+    getSetting("GST_PERCENTAGE", 5),
+    getSetting("DISCOUNT_AMOUNT", 50),
+    getSetting("DISCOUNT_MIN_SUBTOTAL", 500),
+    getSetting("PACKAGING_FEE", 0),
   ]);
 
   return {
@@ -29,6 +34,11 @@ export const getPlatformConfig = async () => {
     deliveryBaseFee: Number(baseFee),
     deliveryPerKmFee: Number(perKmFee),
     platformFixedFee: Number(platformFee),
+    platformFeePercentage: Number(platformFeePercentage),
+    gstPercentage: Number(gstPercentage),
+    discountAmount: Number(discountAmount),
+    discountMinSubtotal: Number(discountMinSubtotal),
+    packagingFee: Number(packagingFee),
   };
 };
 

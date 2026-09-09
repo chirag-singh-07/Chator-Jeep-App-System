@@ -11,9 +11,14 @@ export function AppConfigPage() {
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
     commissionPercentage: 10,
-    deliveryBaseFee: 35,
-    deliveryPerKmFee: 6,
+    deliveryBaseFee: 0,
+    deliveryPerKmFee: 10,
     platformFixedFee: 0,
+    platformFeePercentage: 5,
+    gstPercentage: 5,
+    discountAmount: 50,
+    discountMinSubtotal: 500,
+    packagingFee: 0,
   });
 
   const fetchSettings = async () => {
@@ -71,8 +76,8 @@ export function AppConfigPage() {
       <div className="grid gap-6 md:grid-cols-3">
          {[
            { label: "Commission", value: `${settings.commissionPercentage}%`, icon: Percent, color: "text-blue-600", bg: "bg-blue-100" },
-           { label: "Base Delivery", value: `₹${settings.deliveryBaseFee}`, icon: Bike, color: "text-emerald-600", bg: "bg-emerald-100" },
-           { label: "Platform Fee", value: `₹${settings.platformFixedFee}`, icon: Wallet, color: "text-purple-600", bg: "bg-purple-100" },
+           { label: "Delivery", value: `₹${settings.deliveryPerKmFee}/KM`, icon: Bike, color: "text-emerald-600", bg: "bg-emerald-100" },
+           { label: "Platform Fee", value: `${settings.platformFeePercentage}%`, icon: Wallet, color: "text-purple-600", bg: "bg-purple-100" },
          ].map((stat, i) => (
            <Card key={i} className="rounded-3xl border-none shadow-lg bg-white/50 backdrop-blur-sm">
              <CardContent className="pt-6 flex items-center gap-4">
@@ -96,7 +101,7 @@ export function AppConfigPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Platform Commission (%)</label>
+              <label className="text-sm font-medium">Restaurant Commission (%)</label>
               <div className="flex gap-2">
                 <Input 
                   type="number" 
@@ -112,7 +117,47 @@ export function AppConfigPage() {
                   <Save className="h-4 w-4" />
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">Percentage taken from the food total (e.g. 10 means 10%).</p>
+              <p className="text-xs text-muted-foreground">Percentage taken from the restaurant (e.g. 10 means 10%).</p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Platform Fee (%)</label>
+              <div className="flex gap-2">
+                <Input 
+                  type="number" 
+                  value={settings.platformFeePercentage} 
+                  onChange={(e) => setSettings({ ...settings, platformFeePercentage: Number(e.target.value) })}
+                  className="rounded-xl"
+                />
+                <Button 
+                  onClick={() => handleSave("PLATFORM_FEE_PERCENTAGE", settings.platformFeePercentage, "Platform Fee Percentage")}
+                  disabled={saving}
+                  className="rounded-xl"
+                >
+                  <Save className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">Additional customer fee calculated from subtotal.</p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">GST (%)</label>
+              <div className="flex gap-2">
+                <Input 
+                  type="number" 
+                  value={settings.gstPercentage} 
+                  onChange={(e) => setSettings({ ...settings, gstPercentage: Number(e.target.value) })}
+                  className="rounded-xl"
+                />
+                <Button 
+                  onClick={() => handleSave("GST_PERCENTAGE", settings.gstPercentage, "GST")}
+                  disabled={saving}
+                  className="rounded-xl"
+                >
+                  <Save className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">Tax percentage applied to food subtotal.</p>
             </div>
 
             <div className="space-y-2">
@@ -182,6 +227,74 @@ export function AppConfigPage() {
               </div>
               <p className="text-xs text-muted-foreground">Additional fee added per kilometer of distance.</p>
             </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Packaging Fee (₹)</label>
+              <div className="flex gap-2">
+                <Input 
+                  type="number" 
+                  value={settings.packagingFee} 
+                  onChange={(e) => setSettings({ ...settings, packagingFee: Number(e.target.value) })}
+                  className="rounded-xl"
+                />
+                <Button 
+                  onClick={() => handleSave("PACKAGING_FEE", settings.packagingFee, "Packaging Fee")}
+                  disabled={saving}
+                  className="rounded-xl"
+                >
+                  <Save className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">Fixed packaging charge (currently 0).</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-3xl border-none shadow-xl bg-white/50 backdrop-blur-sm md:col-span-2">
+          <CardHeader>
+            <CardTitle>Promotions</CardTitle>
+            <CardDescription>Configure generic order discounts.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Flat Discount Amount (₹)</label>
+              <div className="flex gap-2">
+                <Input 
+                  type="number" 
+                  value={settings.discountAmount} 
+                  onChange={(e) => setSettings({ ...settings, discountAmount: Number(e.target.value) })}
+                  className="rounded-xl"
+                />
+                <Button 
+                  onClick={() => handleSave("DISCOUNT_AMOUNT", settings.discountAmount, "Discount Amount")}
+                  disabled={saving}
+                  className="rounded-xl"
+                >
+                  <Save className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">Discount applied to subtotal.</p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Minimum Subtotal for Discount (₹)</label>
+              <div className="flex gap-2">
+                <Input 
+                  type="number" 
+                  value={settings.discountMinSubtotal} 
+                  onChange={(e) => setSettings({ ...settings, discountMinSubtotal: Number(e.target.value) })}
+                  className="rounded-xl"
+                />
+                <Button 
+                  onClick={() => handleSave("DISCOUNT_MIN_SUBTOTAL", settings.discountMinSubtotal, "Minimum Subtotal")}
+                  disabled={saving}
+                  className="rounded-xl"
+                >
+                  <Save className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">Discount applies if subtotal is &gt;= this amount.</p>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -207,7 +320,7 @@ export function AppConfigPage() {
               </div>
               <div className="flex justify-between text-sm border-t pt-3">
                 <span className="font-medium">Your Platform Earning</span>
-                <span className="font-bold text-purple-600">Commission + Platform Fee</span>
+                <span className="font-bold text-purple-600">Restaurant Commission + Customer Platform Fee</span>
               </div>
            </div>
         </CardContent>

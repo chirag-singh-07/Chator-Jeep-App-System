@@ -142,7 +142,10 @@ const buildOrderDraft = async (userId: string, input: OrderInput) => {
       : 5; // Fallback distance if restaurant has no valid location
   const distanceKm = Math.min(rawDistanceKm, 15);
 
-  let deliveryFee = Math.round(config.deliveryBaseFee + distanceKm * config.deliveryPerKmFee);
+  const platformFee = Math.round((foodTotal * config.platformFeePercentage) / 100);
+  const gstAmount = Math.round((foodTotal * config.gstPercentage) / 100);
+  const packagingFee = config.packagingFee;
+  let deliveryFee = Math.round(distanceKm * config.deliveryPerKmFee);
   
   if (input.isBulkOrder) {
     if (foodTotal < 5000) {
@@ -163,6 +166,10 @@ const buildOrderDraft = async (userId: string, input: OrderInput) => {
       deliveryFee += (totalItems - 10) * 20;
     }
   }
+
+  // Calculate promotional discount (e.g., ₹50 if >= ₹500)
+  const discountAmount = foodTotal >= config.discountMinSubtotal ? config.discountAmount : 0;
+
   const offerActive = Boolean(
     restaurant.launchOfferExpiresAt &&
       restaurant.launchOfferExpiresAt.getTime() > Date.now(),
@@ -175,9 +182,8 @@ const buildOrderDraft = async (userId: string, input: OrderInput) => {
       restaurant.currentCommissionPercentage ??
       config.commissionPercentage;
   const commissionAmount = Math.round((foodTotal * commissionPercentage) / 100);
-  const platformFee = config.platformFixedFee;
 
-  const itemsTotal = foodTotal + deliveryFee + platformFee;
+  const itemsTotal = foodTotal - discountAmount + platformFee + gstAmount + packagingFee + deliveryFee;
 
   // Apply coupon if provided
   let couponDiscount = 0;
@@ -206,6 +212,9 @@ const buildOrderDraft = async (userId: string, input: OrderInput) => {
       deliveryFee,
       commissionAmount,
       platformFee,
+      gstAmount,
+      packagingFee,
+      discountAmount,
       totalAmount: finalTotal,
       deliveryAddress: input.deliveryAddress,
       location: input.location,
@@ -424,6 +433,9 @@ export const initiateRazorpayCheckout = async (userId: string, input: OrderInput
       foodAmount: draft.payload.foodAmount,
       deliveryFee: draft.payload.deliveryFee,
       platformFee: draft.payload.platformFee,
+      gstAmount: draft.payload.gstAmount,
+      packagingFee: draft.payload.packagingFee,
+      discountAmount: draft.payload.discountAmount,
       couponDiscount: draft.couponDiscount || 0,
       couponCode: draft.couponCode || null,
       totalAmount: draft.itemsTotal,
@@ -635,6 +647,9 @@ export const checkoutPreview = async (userId: string, input: OrderInput) => {
     foodAmount: draft.payload.foodAmount,
     deliveryFee: draft.payload.deliveryFee,
     platformFee: draft.payload.platformFee,
+    gstAmount: draft.payload.gstAmount,
+    packagingFee: draft.payload.packagingFee,
+    discountAmount: draft.payload.discountAmount,
     couponDiscount: draft.couponDiscount || 0,
     couponCode: draft.couponCode || null,
     totalAmount: draft.itemsTotal,

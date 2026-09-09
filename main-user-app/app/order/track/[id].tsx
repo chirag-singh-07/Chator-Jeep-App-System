@@ -34,7 +34,7 @@ export default function OrderTrackingScreen() {
       
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/(tabs)/orders')}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/orders')}>
           <Ionicons name="arrow-back" size={24} color={Colors.light.text} />
         </TouchableOpacity>
         <Text style={styles.title}>Track Order</Text>
@@ -115,7 +115,7 @@ export default function OrderTrackingScreen() {
            
            <TouchableOpacity 
              style={styles.detailsBtn}
-             onPress={() => router.push(`/(tabs)/orders`)}
+             onPress={() => router.push(`/orders`)}
            >
               <Text style={styles.detailsBtnText}>VIEW ORDER DETAILS</Text>
            </TouchableOpacity>

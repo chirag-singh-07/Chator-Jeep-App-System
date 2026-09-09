@@ -23,6 +23,9 @@ export interface IOrder extends Document {
   deliveryFee: number;
   commissionAmount: number;
   platformFee: number;
+  gstAmount: number;
+  packagingFee: number;
+  discountAmount: number;
   totalAmount: number;
   deliveryAddress: string;
   location: {
@@ -66,6 +69,9 @@ const orderSchema = new Schema<IOrder>(
     deliveryFee: { type: Number, default: 0, min: 0 },
     commissionAmount: { type: Number, default: 0, min: 0 },
     platformFee: { type: Number, default: 0, min: 0 },
+    gstAmount: { type: Number, default: 0, min: 0 },
+    packagingFee: { type: Number, default: 0, min: 0 },
+    discountAmount: { type: Number, default: 0, min: 0 },
     totalAmount: { type: Number, required: true, min: 0 },
     deliveryAddress: { type: String, required: true },
     location: {

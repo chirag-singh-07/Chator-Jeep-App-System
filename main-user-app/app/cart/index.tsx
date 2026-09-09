@@ -45,8 +45,7 @@ export default function CartScreen() {
   const [isApplying, setIsApplying] = useState(false);
   const [isLoadingCoupons, setIsLoadingCoupons] = useState(false);
 
-  // Tip and Bill State
-  const [tipAmount, setTipAmount] = useState<number>(0);
+  // Bill State
   const [isBillExpanded, setIsBillExpanded] = useState<boolean>(true);
 
   // Dynamic Fees State
@@ -57,6 +56,9 @@ export default function CartScreen() {
     foodAmount: number;
     deliveryFee: number;
     platformFee: number;
+    gstAmount: number;
+    packagingFee: number;
+    discountAmount: number;
     couponDiscount: number;
     totalAmount: number;
   } | null>(null);
@@ -104,6 +106,7 @@ export default function CartScreen() {
               setBackendBreakdown(previewRes.data.data);
               if (previewRes.data.data.deliveryFee !== undefined) setDeliveryFee(previewRes.data.data.deliveryFee);
               if (previewRes.data.data.platformFee !== undefined) setPlatformFee(previewRes.data.data.platformFee);
+              if (previewRes.data.data.packagingFee !== undefined) setPackagingCharge(previewRes.data.data.packagingFee);
             }
           } catch (previewErr) {
             // Quiet fallback for preview error
@@ -161,14 +164,12 @@ export default function CartScreen() {
   const itemTotal = backendBreakdown?.foodAmount ?? totalAmount;
   const activeDeliveryFee = backendBreakdown?.deliveryFee ?? deliveryFee;
   const activePlatformFee = backendBreakdown?.platformFee ?? platformFee;
-
-  const rawGst = itemTotal * 0.05; // 5% GST
-  const gstAndTip = rawGst + tipAmount;
+  const activeGstAmount = backendBreakdown?.gstAmount ?? (itemTotal * 0.05); // 5% fallback
+  const activePackagingFee = backendBreakdown?.packagingFee ?? packagingCharge;
   
-  const fallbackWelcomeDiscount = isFirstOrder ? Math.min(Math.round(totalAmount * 0.5), 100) : 0;
-  const discountAmount = appliedCoupon ? appliedCoupon.discount : (backendBreakdown?.couponDiscount ?? fallbackWelcomeDiscount);
+  const discountAmount = backendBreakdown?.discountAmount ?? (itemTotal >= 500 ? 50 : 0);
   
-  const subtotalBeforeRoundOff = itemTotal + activeDeliveryFee + packagingCharge + activePlatformFee + gstAndTip - discountAmount;
+  const subtotalBeforeRoundOff = itemTotal + activeDeliveryFee + activePackagingFee + activePlatformFee + activeGstAmount - discountAmount;
   const grandTotal = Math.max(0, Math.round(subtotalBeforeRoundOff));
   const roundOff = grandTotal - subtotalBeforeRoundOff;
 
@@ -297,39 +298,11 @@ export default function CartScreen() {
           )}
         </View>
 
-        {/* Tip Your Delivery Partner */}
-        <View style={styles.sectionCard}>
-           <View style={styles.tipHeaderRow}>
-             <View style={{flex: 1, paddingRight: 15}}>
-               <Text style={styles.tipTitle}>TIP YOUR DELIVERY PARTNER</Text>
-               <Text style={styles.tipDesc}>Thank you for your generosity! If you leave a tip, it goes directly to the rider.</Text>
-             </View>
-             <Image 
-               source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2983/2983803.png' }} 
-               style={{width: 50, height: 50}} 
-               resizeMode="contain"
-             />
-           </View>
-           <View style={styles.tipBtnRow}>
-             {[10, 20, 30, 50].map((amt) => (
-               <TouchableOpacity 
-                 key={amt} 
-                 style={[styles.tipBtn, tipAmount === amt && styles.tipBtnActive]}
-                 onPress={() => {
-                   Haptics.selectionAsync();
-                   setTipAmount(tipAmount === amt ? 0 : amt);
-                 }}
-               >
-                 <Text style={[styles.tipBtnText, tipAmount === amt && styles.tipBtnTextActive]}>₹{amt}</Text>
-               </TouchableOpacity>
-             ))}
-           </View>
-        </View>
 
         {/* Bill Details */}
         <View style={styles.billContainer}>
            <TouchableOpacity style={styles.billHeaderRow} onPress={() => setIsBillExpanded(!isBillExpanded)}>
-             <Text style={styles.tipTitle}>BILL DETAILS</Text>
+             <Text style={styles.billSectionTitle}>BILL DETAILS</Text>
              <Ionicons name={isBillExpanded ? "chevron-up" : "chevron-down"} size={20} color="#000" />
            </TouchableOpacity>
            
@@ -343,30 +316,24 @@ export default function CartScreen() {
                  <Text style={styles.billLabel}>Delivery Fee</Text>
                  <Text style={styles.billValue}>{activeDeliveryFee === 0 ? 'FREE' : `₹${activeDeliveryFee}`}</Text>
                </View>
-               {packagingCharge > 0 && (
+               {activePackagingFee > 0 && (
                  <View style={styles.billRow}>
                    <Text style={styles.billLabel}>Packaging Charge</Text>
-                   <Text style={styles.billValue}>₹{packagingCharge}</Text>
+                   <Text style={styles.billValue}>₹{activePackagingFee}</Text>
                  </View>
                )}
                <View style={styles.billRow}>
                  <Text style={styles.billLabel}>Platform Fee</Text>
                  <Text style={styles.billValue}>₹{activePlatformFee}</Text>
                </View>
+               <View style={styles.billRow}>
+                 <Text style={styles.billLabel}>GST & Taxes</Text>
+                 <Text style={styles.billValue}>₹{activeGstAmount.toFixed(2)}</Text>
+               </View>
                {discountAmount > 0 && (
                  <View style={styles.billRow}>
-                   <Text style={[styles.billLabel, {color: '#16A34A', fontWeight: '600'}]}>Coupon Discount</Text>
+                   <Text style={[styles.billLabel, {color: '#16A34A', fontWeight: '600'}]}>Discount</Text>
                    <Text style={[styles.billValue, {color: '#16A34A', fontWeight: '700'}]}>-₹{discountAmount}</Text>
-                 </View>
-               )}
-               <View style={styles.billRow}>
-                 <Text style={styles.billLabel}>GST & Service</Text>
-                 <Text style={styles.billValue}>₹{rawGst.toFixed(2)}</Text>
-               </View>
-               {tipAmount > 0 && (
-                 <View style={styles.billRow}>
-                   <Text style={styles.billLabel}>Rider Tip</Text>
-                   <Text style={styles.billValue}>₹{tipAmount}</Text>
                  </View>
                )}
                {roundOff !== 0 && (
@@ -543,17 +510,9 @@ const styles = StyleSheet.create({
   couponLeft: { flexDirection: 'row', alignItems: 'center' },
   couponTitle: { fontSize: 14, fontWeight: '700', color: '#111', marginLeft: 10 },
   
-  // Tips
-  tipHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  tipTitle: { fontSize: 12, fontWeight: '800', color: '#111', letterSpacing: 0.5 },
-  tipDesc: { fontSize: 12, color: '#777', marginTop: 4, lineHeight: 18 },
-  tipBtnRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 15 },
-  tipBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 10, marginHorizontal: 4, borderRadius: 10, borderWidth: 1, borderColor: '#E5E7EB', backgroundColor: '#FFF' },
-  tipBtnActive: { borderColor: '#13B8A6', backgroundColor: '#F0FDF4' },
-  tipBtnText: { fontSize: 14, fontWeight: '600', color: '#444' },
-  tipBtnTextActive: { color: '#13B8A6' },
 
   // Bill
+  billSectionTitle: { fontSize: 13, fontWeight: '700', color: '#111', letterSpacing: 0.5 },
   billContainer: { backgroundColor: '#FFF', borderRadius: 16, marginBottom: 15, overflow: 'hidden' },
   billHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16 },
   billExpandedContent: { paddingHorizontal: 16, paddingBottom: 16 },

@@ -46,6 +46,13 @@ export function OrderDetailsPage() {
             customerPhone: apiOrder.userId?.phone || "N/A",
             kitchenName: apiOrder.restaurantId?.name || "N/A",
             kitchenId: apiOrder.restaurantId?._id || apiOrder.restaurantId || "N/A",
+            foodAmount: apiOrder.foodAmount || 0,
+            deliveryFee: apiOrder.deliveryFee || 0,
+            platformFee: apiOrder.platformFee || 0,
+            gstAmount: apiOrder.gstAmount || 0,
+            packagingFee: apiOrder.packagingFee || 0,
+            discountAmount: apiOrder.discountAmount || 0,
+            totalAmount: apiOrder.totalAmount || 0,
             amount: apiOrder.totalAmount,
             paymentMethod: apiOrder.paymentMethod || "ONLINE",
             transactionId: apiOrder.razorpayPaymentId || apiOrder.phonepeTransactionId || "N/A",
@@ -227,6 +234,41 @@ export function OrderDetailsPage() {
               ))}
             </TableBody>
           </Table>
+
+          <div className="mt-6 border-t pt-4 space-y-2 w-full max-w-sm ml-auto px-4">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Subtotal</span>
+              <span>{formatCurrency(order.foodAmount)}</span>
+            </div>
+            {order.discountAmount > 0 && (
+              <div className="flex justify-between text-sm text-emerald-600">
+                <span>Discount</span>
+                <span>-{formatCurrency(order.discountAmount)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Platform Fee</span>
+              <span>{formatCurrency(order.platformFee)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">GST</span>
+              <span>{formatCurrency(order.gstAmount)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Delivery Charge</span>
+              <span>{formatCurrency(order.deliveryFee)}</span>
+            </div>
+            {order.packagingFee > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Packaging Fee</span>
+                <span>{formatCurrency(order.packagingFee)}</span>
+              </div>
+            )}
+            <div className="flex justify-between font-bold border-t pt-2 text-lg">
+              <span>Total Amount</span>
+              <span>{formatCurrency(order.totalAmount)}</span>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

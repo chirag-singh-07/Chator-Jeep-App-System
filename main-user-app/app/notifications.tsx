@@ -88,7 +88,7 @@ export default function NotificationsScreen() {
     Haptics.selectionAsync();
     setNotifications(notifications.map(n => n.id === item.id ? { ...n, read: true } : n));
     if (item.type === 'ORDER') {
-      router.push('/(tabs)/orders');
+      router.push('/orders');
     } else if (item.type === 'WALLET') {
       router.push('/wallet');
     } else {
