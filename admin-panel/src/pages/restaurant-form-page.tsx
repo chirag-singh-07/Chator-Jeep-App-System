@@ -102,18 +102,33 @@ export function RestaurantFormPage() {
     }
   }, [id, isEditMode]);
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const pinCodeRegex = /^\d{6}$/;
+  const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+  const accountRegex = /^\d{9,18}$/;
+  const fssaiRegex = /^\d{14}$/;
+  const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
   const errors = {
     name: submitted && !name.trim() ? "Restaurant name is required." : "",
     owner: submitted && !owner.trim() ? "Owner name is required." : "",
-    email: submitted && !isEditMode && !email.trim() ? "Contact email is required." : "",
+    email: submitted && !isEditMode && (!email.trim() || !emailRegex.test(email)) ? "Valid contact email is required." : "",
     phone: submitted && !isEditMode && phone && !indianPhoneRegex.test(phone) ? "Enter a valid Indian 10-digit mobile number." : "",
     password: submitted && !isEditMode && password.length < 6 ? "Password must be at least 6 characters." : "",
-    location: submitted && !location.trim() ? "Location is required." : ""
+    location: submitted && !location.trim() ? "Location is required." : "",
+    pinCode: submitted && pinCode && !pinCodeRegex.test(pinCode) ? "Valid 6-digit pin code is required." : "",
+    ifscCode: submitted && ifscCode && !ifscRegex.test(ifscCode) ? "Valid IFSC code is required (e.g. SBIN0001234)." : "",
+    accountNumber: submitted && accountNumber && !accountRegex.test(accountNumber) ? "Valid Bank Account number is required (9-18 digits)." : "",
+    fssaiLicenseNumber: submitted && fssaiLicenseNumber && !fssaiRegex.test(fssaiLicenseNumber) ? "Valid 14-digit FSSAI License Number is required." : "",
+    gstNumber: submitted && gstNumber && !gstRegex.test(gstNumber) ? "Valid 15-character GST Number is required." : "",
   };
 
   const onSave = async () => {
     setSubmitted(true);
-    if (errors.name || errors.owner || errors.email || errors.phone || errors.password || errors.location || !name || !owner || !location) {
+    if (Object.values(errors).some(err => err)) {
+      return;
+    }
+    if (!name || !owner || !location) {
       return;
     }
     if (!isEditMode && (!email || !password)) return;
@@ -264,8 +279,8 @@ export function RestaurantFormPage() {
                 <FormField label="State">
                   <Input value={stateForm} onChange={(e) => setStateForm(e.target.value)} disabled={isLoading} />
                 </FormField>
-                <FormField label="PIN Code">
-                  <Input value={pinCode} onChange={(e) => setPinCode(e.target.value)} disabled={isLoading} />
+                <FormField label="PIN Code" error={errors.pinCode}>
+                  <Input value={pinCode} aria-invalid={Boolean(errors.pinCode)} onChange={(e) => setPinCode(e.target.value)} disabled={isLoading} />
                 </FormField>
               </div>
             </div>
@@ -281,11 +296,11 @@ export function RestaurantFormPage() {
               <FormField label="Account Holder Name">
                 <Input value={accountHolderName} onChange={(e) => setAccountHolderName(e.target.value)} disabled={isLoading} />
               </FormField>
-              <FormField label="Account Number">
-                <Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} disabled={isLoading} />
+              <FormField label="Account Number" error={errors.accountNumber}>
+                <Input value={accountNumber} aria-invalid={Boolean(errors.accountNumber)} onChange={(e) => setAccountNumber(e.target.value)} disabled={isLoading} />
               </FormField>
-              <FormField label="IFSC Code">
-                <Input value={ifscCode} onChange={(e) => setIfscCode(e.target.value)} disabled={isLoading} />
+              <FormField label="IFSC Code" error={errors.ifscCode}>
+                <Input value={ifscCode} aria-invalid={Boolean(errors.ifscCode)} onChange={(e) => setIfscCode(e.target.value)} disabled={isLoading} />
               </FormField>
             </div>
           </div>
@@ -294,11 +309,11 @@ export function RestaurantFormPage() {
           <div className="pt-4 border-t">
             <h3 className="text-lg font-semibold mb-4">Verification Documents</h3>
             <div className="grid gap-4 md:grid-cols-2 mb-4">
-              <FormField label="FSSAI License Number">
-                <Input value={fssaiLicenseNumber} onChange={(e) => setFssaiLicenseNumber(e.target.value)} placeholder="14-digit FSSAI number" disabled={isLoading} />
+              <FormField label="FSSAI License Number" error={errors.fssaiLicenseNumber}>
+                <Input value={fssaiLicenseNumber} aria-invalid={Boolean(errors.fssaiLicenseNumber)} onChange={(e) => setFssaiLicenseNumber(e.target.value)} placeholder="14-digit FSSAI number" disabled={isLoading} />
               </FormField>
-              <FormField label="GST Number">
-                <Input value={gstNumber} onChange={(e) => setGstNumber(e.target.value)} placeholder="15-digit GSTIN" disabled={isLoading} />
+              <FormField label="GST Number" error={errors.gstNumber}>
+                <Input value={gstNumber} aria-invalid={Boolean(errors.gstNumber)} onChange={(e) => setGstNumber(e.target.value)} placeholder="15-digit GSTIN" disabled={isLoading} />
               </FormField>
             </div>
             <div className="grid gap-6 md:grid-cols-3 mb-6">
