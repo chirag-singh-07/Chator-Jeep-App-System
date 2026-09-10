@@ -19,7 +19,7 @@ export function FoodItemsPage() {
   const activeTab =
     (searchParams.get("type") as FoodItemsSubView | null) ?? "all";
 
-  const { foodItems, loading, filters, setFilters, fetchFoodItems } =
+  const { foodItems, loading, filters, setFilters, fetchFoodItems, pagination } =
     useMenuStore();
 
   useEffect(() => {
@@ -168,6 +168,7 @@ export function FoodItemsPage() {
         description="Reusable catalog grid for menu items across kitchens, categories, and optional add-ons like drinks or sides."
         columns={columns}
         rows={rows}
+        totalRows={pagination?.total}
         page={filters.page}
         pageSize={20}
         onPageChange={(p) => setFilters({ page: p })}

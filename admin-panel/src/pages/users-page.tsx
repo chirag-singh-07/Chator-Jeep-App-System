@@ -22,6 +22,7 @@ export function UsersPage() {
   
   const { 
     users, 
+    total,
     loading, 
     filters, 
     setFilters, 
@@ -186,6 +187,7 @@ export function UsersPage() {
           description="Manage digital identities, permission scopes, and platform accessibility for this segment."
           columns={columns}
           rows={users}
+          totalRows={total}
           page={filters.page}
           pageSize={20}
           onPageChange={(page) => setFilters({ page })}

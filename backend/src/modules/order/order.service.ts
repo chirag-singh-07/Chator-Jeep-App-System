@@ -145,7 +145,17 @@ const buildOrderDraft = async (userId: string, input: OrderInput) => {
   const platformFee = Math.round((foodTotal * config.platformFeePercentage) / 100);
   const gstAmount = Math.round((foodTotal * config.gstPercentage) / 100);
   const packagingFee = config.packagingFee;
-  let deliveryFee = Math.round(distanceKm * config.deliveryPerKmFee);
+  
+  let deliveryFee = 0;
+  if (restaurant.deliveryFee && restaurant.deliveryFee > 0) {
+    deliveryFee = restaurant.deliveryFee;
+  } else {
+    deliveryFee = Math.max(config.deliveryBaseFee || 0, Math.round(distanceKm * config.deliveryPerKmFee));
+  }
+  
+  if (restaurant.freeDeliveryThreshold && foodTotal >= restaurant.freeDeliveryThreshold) {
+    deliveryFee = 0;
+  }
   
   if (input.isBulkOrder) {
     if (foodTotal < 5000) {

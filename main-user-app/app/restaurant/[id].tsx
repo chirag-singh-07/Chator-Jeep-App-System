@@ -292,42 +292,7 @@ export default function RestaurantDetailScreen() {
 
             <View style={styles.divider} />
 
-            {/* Restaurant Delivery & Price Meta Bar */}
-            <View style={styles.metaRow}>
-              <View style={styles.metaItem}>
-                <View style={[styles.metaIconBg, { backgroundColor: '#FFF3E0' }]}>
-                  <Ionicons name="time" size={16} color="#EF6C00" />
-                </View>
-                <View>
-                  <Text style={styles.metaVal}>{res?.estimatedDeliveryTimeMins ? `${res.estimatedDeliveryTimeMins} min` : "30-35 min"}</Text>
-                  <Text style={styles.metaSub}>Delivery Time</Text>
-                </View>
-              </View>
 
-              <View style={styles.metaDividerVertical} />
-
-              <View style={styles.metaItem}>
-                <View style={[styles.metaIconBg, { backgroundColor: '#E6F4EA' }]}>
-                  <Ionicons name="bicycle" size={16} color="#137333" />
-                </View>
-                <View>
-                  <Text style={styles.metaVal}>{res?.deliveryFee > 0 ? `₹${res.deliveryFee}` : "Free"}</Text>
-                  <Text style={styles.metaSub}>Delivery Fee</Text>
-                </View>
-              </View>
-
-              <View style={styles.metaDividerVertical} />
-
-              <View style={styles.metaItem}>
-                <View style={[styles.metaIconBg, { backgroundColor: '#E8F0FE' }]}>
-                  <Ionicons name="wallet" size={16} color="#1A73E8" />
-                </View>
-                <View>
-                  <Text style={styles.metaVal}>{res?.freeDeliveryThreshold ? `₹${res.freeDeliveryThreshold}` : "₹250"}</Text>
-                  <Text style={styles.metaSub}>{res?.freeDeliveryThreshold ? "Free Del Over" : "For Two"}</Text>
-                </View>
-              </View>
-            </View>
 
             {/* Active Coupon Banner Strip */}
             <View style={styles.offerBannerStrip}>

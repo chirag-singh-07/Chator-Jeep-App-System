@@ -25,6 +25,7 @@ type DataTableProps<T extends { id?: string; _id?: string }> = {
   description?: string;
   columns: DataColumn<T>[];
   rows: T[];
+  totalRows?: number;
   page: number;
   pageSize: number;
   onPageChange: (page: number) => void;
@@ -39,6 +40,7 @@ export function DataTable<T extends { id?: string; _id?: string }>({
   description,
   columns,
   rows = [], // Default to empty array
+  totalRows,
   page,
   pageSize,
   onPageChange,
@@ -48,8 +50,12 @@ export function DataTable<T extends { id?: string; _id?: string }>({
   className,
 }: DataTableProps<T>) {
   const safeRows = rows || [];
-  const totalPages = Math.max(1, Math.ceil(safeRows.length / pageSize));
-  const pageRows = safeRows.slice((page - 1) * pageSize, page * pageSize);
+  const actualTotalRows = totalRows ?? safeRows.length;
+  const totalPages = Math.max(1, Math.ceil(actualTotalRows / pageSize));
+  
+  // If we passed totalRows, it means server-side pagination, so we don't slice.
+  const isServerPagination = totalRows !== undefined;
+  const pageRows = isServerPagination ? safeRows : safeRows.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <Card className={cn("rounded-2xl shadow-sm", className)}>
@@ -105,8 +111,8 @@ export function DataTable<T extends { id?: string; _id?: string }>({
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-muted-foreground">
                 Showing {(page - 1) * pageSize + 1}-
-                {Math.min(page * pageSize, safeRows.length)} of{" "}
-                {safeRows.length} rows
+                {Math.min(page * pageSize, actualTotalRows)} of{" "}
+                {actualTotalRows} rows
               </p>
               <div className="flex items-center gap-2">
                 <Button

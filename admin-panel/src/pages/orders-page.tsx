@@ -42,7 +42,7 @@ export function OrdersPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [columns, setColumns] = useState<Record<ColumnKey, boolean>>(columnDefaults);
   
-  const { orders, loading, filters, setFilters, fetchOrders } = useOrdersStore();
+  const { orders, total, loading, filters, setFilters, fetchOrders } = useOrdersStore();
   const activeTab = searchParams.get("status") ?? "all";
 
   useEffect(() => {
@@ -214,6 +214,7 @@ export function OrdersPage() {
           description="Operational order queue with search, visibility controls, and printable export actions."
           columns={columnsConfig}
           rows={orders}
+          totalRows={total}
           page={filters.page}
           pageSize={pageSize}
           onPageChange={(page) => setFilters({ page })}

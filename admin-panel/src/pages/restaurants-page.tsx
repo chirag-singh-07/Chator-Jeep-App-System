@@ -16,6 +16,7 @@ export function RestaurantsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { 
     restaurants, 
+    total,
     loading, 
     filters, 
     setFilters, 
@@ -140,6 +141,7 @@ export function RestaurantsPage() {
           description="Real-time operational overview of food service entities across the platform."
           columns={columns}
           rows={restaurants}
+          totalRows={total}
           page={filters.page}
           pageSize={10}
           onPageChange={(page) => setFilters({ page })}

@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import {
   StyleSheet,
@@ -33,10 +34,19 @@ export default function CartScreen() {
   const router = useRouter();
   const { items, restaurantId, restaurantName, totalAmount, totalItems, updateQuantity, clearCart } = useCartStore();
   const { currentAddress } = useLocationStore();
-  
+
+  const [hasRedirected, setHasRedirected] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated && items.length > 0 && !hasRedirected) {
+      setHasRedirected(true);
+      router.push('/(auth)/login');
+    }
+  }, [isAuthenticated, items.length, hasRedirected]);
+
   const scrollRef = useRef<ScrollView>(null);
   const [instructions, setInstructions] = useState('');
-  
+
   // Coupon State
   const [showCouponModal, setShowCouponModal] = useState(false);
   const [coupons, setCoupons] = useState<any[]>([]);
@@ -75,13 +85,13 @@ export default function CartScreen() {
           api.get(`/restaurants/${restaurantId}`),
           api.get('/system/config')
         ]);
-        
+
         if (restaurantRes.status === 'fulfilled' && restaurantRes.value.data?.success) {
           const restData = restaurantRes.value.data.data;
-          setDeliveryFee(restData.deliveryFee || 0);
+          setDeliveryFee(restData.deliveryFee || 29);
           setPackagingCharge(restData.packagingCharge || 0);
         }
-        
+
         if (configRes.status === 'fulfilled' && configRes.value.data?.success) {
           setPlatformFee(configRes.value.data.data?.platformFixedFee || 0);
         }
@@ -119,7 +129,7 @@ export default function CartScreen() {
         setIsFetchingFees(false);
       }
     };
-    
+
     fetchFeesAndPreview();
   }, [restaurantId, items, currentAddress, appliedCoupon, isAuthenticated]);
 
@@ -166,9 +176,9 @@ export default function CartScreen() {
   const activePlatformFee = backendBreakdown?.platformFee ?? platformFee;
   const activeGstAmount = backendBreakdown?.gstAmount ?? (itemTotal * 0.05); // 5% fallback
   const activePackagingFee = backendBreakdown?.packagingFee ?? packagingCharge;
-  
+
   const discountAmount = backendBreakdown?.discountAmount ?? (itemTotal >= 500 ? 50 : 0);
-  
+
   const subtotalBeforeRoundOff = itemTotal + activeDeliveryFee + activePackagingFee + activePlatformFee + activeGstAmount - discountAmount;
   const grandTotal = Math.max(0, Math.round(subtotalBeforeRoundOff));
   const roundOff = grandTotal - subtotalBeforeRoundOff;
@@ -183,18 +193,45 @@ export default function CartScreen() {
           </TouchableOpacity>
         </View>
         <View style={styles.emptyContent}>
-           <Image 
-             source={{ uri: 'https://cdn-icons-png.flaticon.com/512/11329/11329060.png' }} 
-             style={styles.emptyImg} 
-           />
-           <Text style={styles.emptyTitle}>Your cart is empty</Text>
-           <Text style={styles.emptySub}>Good food is always cooking! Go ahead, order some yummy items from the menu.</Text>
-           <TouchableOpacity 
-             style={styles.shopBtn}
-             onPress={() => router.push('/(tabs)')}
-           >
-             <Text style={styles.shopBtnText}>Browse Restaurants</Text>
-           </TouchableOpacity>
+          <Image
+            source={{ uri: 'https://cdn-icons-png.flaticon.com/512/11329/11329060.png' }}
+            style={styles.emptyImg}
+          />
+          <Text style={styles.emptyTitle}>Your cart is empty</Text>
+          <Text style={styles.emptySub}>Good food is always cooking! Go ahead, order some yummy items from the menu.</Text>
+          <TouchableOpacity
+            style={styles.shopBtn}
+            onPress={() => router.push('/(tabs)')}
+          >
+            <Text style={styles.shopBtnText}>Browse Restaurants</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!isAuthenticated && items.length > 0) {
+    return (
+      <SafeAreaView style={styles.emptyContainer}>
+        <StatusBar barStyle="dark-content" />
+        <View style={styles.headerSimple}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtnSimple}>
+            <Ionicons name="arrow-back" size={24} color="#000" />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.emptyContent}>
+          <Image
+            source={{ uri: 'https://cdn-icons-png.flaticon.com/512/11329/11329060.png' }}
+            style={styles.emptyImg}
+          />
+          <Text style={styles.emptyTitle}>Login Required</Text>
+          <Text style={styles.emptySub}>Please log in to view your cart items, bill details, and complete your order.</Text>
+          <TouchableOpacity
+            style={styles.shopBtn}
+            onPress={() => router.push('/(auth)/login')}
+          >
+            <Text style={styles.shopBtnText}>Login Now</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -209,7 +246,7 @@ export default function CartScreen() {
             <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
               <Ionicons name="arrow-back" size={22} color="#000" />
             </TouchableOpacity>
-            <View style={{marginLeft: 15}}>
+            <View style={{ marginLeft: 15 }}>
               <Text style={styles.headerTitle}>CART <Text style={styles.headerSub}>({totalItems} Item{totalItems > 1 ? 's' : ''})</Text></Text>
             </View>
           </View>
@@ -219,13 +256,13 @@ export default function CartScreen() {
               { text: "Clear", style: "destructive", onPress: clearCart }
             ]);
           }}>
-            <Text style={{color: '#666', fontSize: 13, fontWeight: '700'}}>CLEAR</Text>
+            <Text style={{ color: '#666', fontSize: 13, fontWeight: '700' }}>CLEAR</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
 
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        
+
         {/* Cart Items (Simplistic look) */}
         <View style={styles.itemsSection}>
           {items.map((item, index) => (
@@ -238,14 +275,14 @@ export default function CartScreen() {
                 <Text style={styles.itemPrice}>₹{item.price}</Text>
               </View>
               <View style={styles.qtyRow}>
-                <TouchableOpacity 
-                  style={styles.qtyBtn} 
+                <TouchableOpacity
+                  style={styles.qtyBtn}
                   onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); updateQuantity(item.id, -1); }}
                 >
                   <Ionicons name="remove" size={16} color="#1A1A1A" />
                 </TouchableOpacity>
                 <Text style={styles.qtyText}>{item.quantity}</Text>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.qtyBtn}
                   onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); updateQuantity(item.id, 1); }}
                 >
@@ -254,23 +291,23 @@ export default function CartScreen() {
               </View>
             </Animated.View>
           ))}
-          
+
           <View style={styles.addMoreRow}>
-             <Ionicons name="add" size={18} color="#444" />
-             <Text style={styles.addMoreText} onPress={() => router.back()}>Add more items</Text>
+            <Ionicons name="add" size={18} color="#444" />
+            <Text style={styles.addMoreText} onPress={() => router.back()}>Add more items</Text>
           </View>
         </View>
 
         {/* Cooking Instructions */}
         <View style={styles.sectionCard}>
-           <TextInput
-             style={styles.instructionInput}
-             placeholder="Any cooking requests? E.g. Don't ring the bell..."
-             placeholderTextColor="#999"
-             multiline
-             value={instructions}
-             onChangeText={setInstructions}
-           />
+          <TextInput
+            style={styles.instructionInput}
+            placeholder="Any cooking requests? E.g. Don't ring the bell..."
+            placeholderTextColor="#999"
+            multiline
+            value={instructions}
+            onChangeText={setInstructions}
+          />
         </View>
 
         {/* Coupons and Credits */}
@@ -289,11 +326,11 @@ export default function CartScreen() {
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={styles.couponRow} activeOpacity={0.7} onPress={() => setShowCouponModal(true)}>
-               <View style={styles.couponLeft}>
-                 <Ionicons name="pricetag-outline" size={20} color="#13B8A6" />
-                 <Text style={styles.couponTitle}>Apply Coupon</Text>
-               </View>
-               <Ionicons name="chevron-forward" size={18} color="#000" />
+              <View style={styles.couponLeft}>
+                <Ionicons name="pricetag-outline" size={20} color="#13B8A6" />
+                <Text style={styles.couponTitle}>Apply Coupon</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#000" />
             </TouchableOpacity>
           )}
         </View>
@@ -301,108 +338,108 @@ export default function CartScreen() {
 
         {/* Bill Details */}
         <View style={styles.billContainer}>
-           <TouchableOpacity style={styles.billHeaderRow} onPress={() => setIsBillExpanded(!isBillExpanded)}>
-             <Text style={styles.billSectionTitle}>BILL DETAILS</Text>
-             <Ionicons name={isBillExpanded ? "chevron-up" : "chevron-down"} size={20} color="#000" />
-           </TouchableOpacity>
-           
-           {isBillExpanded && (
-             <View style={styles.billExpandedContent}>
-               <View style={styles.billRow}>
-                 <Text style={styles.billLabel}>Item Subtotal</Text>
-                 <Text style={styles.billValue}>₹{itemTotal}</Text>
-               </View>
-               <View style={styles.billRow}>
-                 <Text style={styles.billLabel}>Delivery Fee</Text>
-                 <Text style={styles.billValue}>{activeDeliveryFee === 0 ? 'FREE' : `₹${activeDeliveryFee}`}</Text>
-               </View>
-               {activePackagingFee > 0 && (
-                 <View style={styles.billRow}>
-                   <Text style={styles.billLabel}>Packaging Charge</Text>
-                   <Text style={styles.billValue}>₹{activePackagingFee}</Text>
-                 </View>
-               )}
-               <View style={styles.billRow}>
-                 <Text style={styles.billLabel}>Platform Fee</Text>
-                 <Text style={styles.billValue}>₹{activePlatformFee}</Text>
-               </View>
-               <View style={styles.billRow}>
-                 <Text style={styles.billLabel}>GST & Taxes</Text>
-                 <Text style={styles.billValue}>₹{activeGstAmount.toFixed(2)}</Text>
-               </View>
-               {discountAmount > 0 && (
-                 <View style={styles.billRow}>
-                   <Text style={[styles.billLabel, {color: '#16A34A', fontWeight: '600'}]}>Discount</Text>
-                   <Text style={[styles.billValue, {color: '#16A34A', fontWeight: '700'}]}>-₹{discountAmount}</Text>
-                 </View>
-               )}
-               {roundOff !== 0 && (
-                 <View style={styles.billRow}>
-                   <Text style={styles.billLabel}>Round Off</Text>
-                   <Text style={styles.billValue}>{roundOff > 0 ? '+' : ''}₹{roundOff.toFixed(2)}</Text>
-                 </View>
-               )}
-               
-               <View style={styles.billDivider} />
-               
-               <View style={styles.billRow}>
-                 <Text style={styles.totalLabel}>To Pay</Text>
-                 <Text style={styles.totalValue}>₹{grandTotal}</Text>
-               </View>
-             </View>
-           )}
-           
-           {discountAmount > 0 && (
-             <View style={styles.savingsBanner}>
-               <Text style={styles.savingsBannerText}>Congrats! You have saved ₹{discountAmount} on this order! <Ionicons name="information-circle-outline" size={14} /></Text>
-             </View>
-           )}
+          <TouchableOpacity style={styles.billHeaderRow} onPress={() => setIsBillExpanded(!isBillExpanded)}>
+            <Text style={styles.billSectionTitle}>BILL DETAILS</Text>
+            <Ionicons name={isBillExpanded ? "chevron-up" : "chevron-down"} size={20} color="#000" />
+          </TouchableOpacity>
+
+          {isBillExpanded && (
+            <View style={styles.billExpandedContent}>
+              <View style={styles.billRow}>
+                <Text style={styles.billLabel}>Item Subtotal</Text>
+                <Text style={styles.billValue}>₹{itemTotal}</Text>
+              </View>
+              <View style={styles.billRow}>
+                <Text style={styles.billLabel}>Delivery Fee</Text>
+                <Text style={styles.billValue}>{activeDeliveryFee === 0 ? 'FREE' : `₹${activeDeliveryFee}`}</Text>
+              </View>
+              {activePackagingFee > 0 && (
+                <View style={styles.billRow}>
+                  <Text style={styles.billLabel}>Packaging Charge</Text>
+                  <Text style={styles.billValue}>₹{activePackagingFee}</Text>
+                </View>
+              )}
+              <View style={styles.billRow}>
+                <Text style={styles.billLabel}>Platform Fee</Text>
+                <Text style={styles.billValue}>₹{activePlatformFee}</Text>
+              </View>
+              <View style={styles.billRow}>
+                <Text style={styles.billLabel}>GST & Taxes</Text>
+                <Text style={styles.billValue}>₹{activeGstAmount.toFixed(2)}</Text>
+              </View>
+              {discountAmount > 0 && (
+                <View style={styles.billRow}>
+                  <Text style={[styles.billLabel, { color: '#16A34A', fontWeight: '600' }]}>Discount</Text>
+                  <Text style={[styles.billValue, { color: '#16A34A', fontWeight: '700' }]}>-₹{discountAmount}</Text>
+                </View>
+              )}
+              {roundOff !== 0 && (
+                <View style={styles.billRow}>
+                  <Text style={styles.billLabel}>Round Off</Text>
+                  <Text style={styles.billValue}>{roundOff > 0 ? '+' : ''}₹{roundOff.toFixed(2)}</Text>
+                </View>
+              )}
+
+              <View style={styles.billDivider} />
+
+              <View style={styles.billRow}>
+                <Text style={styles.totalLabel}>To Pay</Text>
+                <Text style={styles.totalValue}>₹{grandTotal}</Text>
+              </View>
+            </View>
+          )}
+
+          {discountAmount > 0 && (
+            <View style={styles.savingsBanner}>
+              <Text style={styles.savingsBannerText}>Congrats! You have saved ₹{discountAmount} on this order! <Ionicons name="information-circle-outline" size={14} /></Text>
+            </View>
+          )}
         </View>
 
         {/* Club Banner */}
         <TouchableOpacity style={styles.clubBanner}>
           <Text style={styles.clubBannerText}>Renew EatClub membership & save ₹63</Text>
           <Ionicons name="chevron-forward-outline" size={16} color="#FFF" />
-          <Ionicons name="chevron-forward-outline" size={16} color="#FFF" style={{marginLeft: -8}} />
+          <Ionicons name="chevron-forward-outline" size={16} color="#FFF" style={{ marginLeft: -8 }} />
         </TouchableOpacity>
 
       </ScrollView>
 
       {/* Footer Checkout (White Bottom Bar) */}
       <Animated.View entering={SlideInDown} style={styles.footer}>
-         <View style={styles.deliveryTimeRow}>
-            <Text style={styles.deliverNowText}>Deliver Now</Text>
-            <Text style={styles.deliveryMinsText}>in 15-25 mins</Text>
-            <Ionicons name="flash" size={12} color="#13B8A6" />
-         </View>
-         
-         <View style={styles.addressFooterRow}>
-            <Ionicons name="location" size={14} color="#13B8A6" />
-            <Text style={styles.footerAddrType} numberOfLines={1}>
-               <Text style={{fontWeight: '700', color: '#444'}}>{currentAddress?.type || 'Home'} - </Text>
-               <Text style={{color: '#888'}}>{currentAddress ? `${currentAddress.flat}, ${currentAddress.area}` : 'Select an address'}</Text>
-            </Text>
-         </View>
+        <View style={styles.deliveryTimeRow}>
+          <Text style={styles.deliverNowText}>Deliver Now</Text>
+          <Text style={styles.deliveryMinsText}>in 15-25 mins</Text>
+          <Ionicons name="flash" size={12} color="#13B8A6" />
+        </View>
 
-         <View style={styles.payActionRow}>
-            <Text style={styles.footerPriceBtn}>₹{grandTotal}</Text>
-            
-            <TouchableOpacity 
-              activeOpacity={0.9} 
-              style={styles.checkoutBtn}
-              onPress={() => {
-                if (!isAuthenticated) {
-                  useCartStore.getState().setShowAuthPrompt(true);
-                } else if (!currentAddress) {
-                  router.push('/address-picker');
-                } else {
-                  router.push('/checkout');
-                }
-              }}
-            >
-               <Text style={styles.checkoutBtnText}>{currentAddress ? 'Proceed to Pay' : 'Select Address'}</Text>
-            </TouchableOpacity>
-         </View>
+        <View style={styles.addressFooterRow}>
+          <Ionicons name="location" size={14} color="#13B8A6" />
+          <Text style={styles.footerAddrType} numberOfLines={1}>
+            <Text style={{ fontWeight: '700', color: '#444' }}>{currentAddress?.type || 'Home'} - </Text>
+            <Text style={{ color: '#888' }}>{currentAddress ? `${currentAddress.flat}, ${currentAddress.area}` : 'Select an address'}</Text>
+          </Text>
+        </View>
+
+        <View style={styles.payActionRow}>
+          <Text style={styles.footerPriceBtn}>₹{grandTotal}</Text>
+
+          <TouchableOpacity
+            activeOpacity={0.9}
+            style={styles.checkoutBtn}
+            onPress={() => {
+              if (!isAuthenticated) {
+                useCartStore.getState().setShowAuthPrompt(true);
+              } else if (!currentAddress) {
+                router.push('/address-picker');
+              } else {
+                router.push('/checkout');
+              }
+            }}
+          >
+            <Text style={styles.checkoutBtnText}>{currentAddress ? 'Proceed to Pay' : 'Select Address'}</Text>
+          </TouchableOpacity>
+        </View>
       </Animated.View>
 
       {/* Coupon Modal */}
@@ -415,7 +452,7 @@ export default function CartScreen() {
                 <Ionicons name="close" size={24} color="#1A1A1A" />
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.couponInputRow}>
               <TextInput
                 style={styles.couponInput}
@@ -425,8 +462,8 @@ export default function CartScreen() {
                 onChangeText={setCouponInput}
                 autoCapitalize="characters"
               />
-              <TouchableOpacity 
-                style={[styles.applyBtn, (!couponInput || isApplying) && {opacity: 0.5}]} 
+              <TouchableOpacity
+                style={[styles.applyBtn, (!couponInput || isApplying) && { opacity: 0.5 }]}
                 onPress={() => handleApplyCoupon(couponInput)}
                 disabled={isApplying || !couponInput}
               >
@@ -436,20 +473,20 @@ export default function CartScreen() {
 
             <Text style={styles.availableCouponsTitle}>Available Coupons</Text>
             {isLoadingCoupons ? (
-              <ActivityIndicator style={{marginTop: 30}} color={Colors.light.primary} />
+              <ActivityIndicator style={{ marginTop: 30 }} color={Colors.light.primary} />
             ) : (
               <FlatList
                 data={coupons}
                 keyExtractor={item => item._id}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{paddingBottom: 20}}
-                renderItem={({item}) => (
+                contentContainerStyle={{ paddingBottom: 20 }}
+                renderItem={({ item }) => (
                   <TouchableOpacity style={styles.availableCouponCard} onPress={() => handleApplyCoupon(item.code)}>
                     <View style={styles.acLeft}>
                       <View style={styles.acIconBg}>
                         <Ionicons name="pricetag" size={20} color={Colors.light.primary} />
                       </View>
-                      <View style={{marginLeft: 15, flex: 1}}>
+                      <View style={{ marginLeft: 15, flex: 1 }}>
                         <Text style={styles.acCode}>{item.code}</Text>
                         <Text style={styles.acDesc} numberOfLines={2}>{item.description}</Text>
                       </View>
@@ -484,11 +521,11 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 16, fontWeight: '900', color: '#000', letterSpacing: 0.5 },
   headerSub: { fontSize: 14, color: '#888', fontWeight: '500' },
   scrollContent: { padding: 15, paddingBottom: 200 },
-  
+
   // Section Styles
   sectionHeaderTitle: { fontSize: 12, fontWeight: '800', color: '#111', marginTop: 15, marginBottom: 8, letterSpacing: 0.5, marginLeft: 5 },
   sectionCard: { backgroundColor: '#FFF', borderRadius: 16, padding: 16, marginBottom: 15 },
-  
+
   itemsSection: { backgroundColor: '#FFF', borderRadius: 16, padding: 16, marginBottom: 15 },
   itemCard: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
   itemImgContainer: { width: 60, height: 60, borderRadius: 12, backgroundColor: '#F9FAFB', alignItems: 'center', justifyContent: 'center' },
@@ -501,15 +538,15 @@ const styles = StyleSheet.create({
   qtyText: { fontSize: 14, fontWeight: '800', marginHorizontal: 12, color: '#1A1A1A' },
   addMoreRow: { flexDirection: 'row', alignItems: 'center', marginTop: 5 },
   addMoreText: { fontSize: 14, fontWeight: '600', color: '#444', marginLeft: 5 },
-  
+
   instructionInput: { fontSize: 14, color: '#333', minHeight: 40 },
-  
+
   // Coupons
   couponContainer: { backgroundColor: '#FFF', borderRadius: 16, marginBottom: 15, overflow: 'hidden' },
   couponRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 16 },
   couponLeft: { flexDirection: 'row', alignItems: 'center' },
   couponTitle: { fontSize: 14, fontWeight: '700', color: '#111', marginLeft: 10 },
-  
+
 
   // Bill
   billSectionTitle: { fontSize: 13, fontWeight: '700', color: '#111', letterSpacing: 0.5 },

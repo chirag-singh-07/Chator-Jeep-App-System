@@ -24,6 +24,7 @@ import { consumeRestaurantRegistrationPayment } from "../payment/payment.service
 import { User, IUser } from "../user/user.model";
 import { isRedisEnabled, redisConnection } from "../../config/redis";
 import { geocodeAddress } from "../../common/utils/geocoder";
+import { Category } from "../category/category.model";
 
 const indianPhoneRegex = /^[6-9]\d{9}$/;
 
@@ -889,8 +890,24 @@ export const listRestaurantMenu = async (restaurantId: string) => {
     restaurantId: new mongoose.Types.ObjectId(restaurantId),
     isAvailable: true,
     showInMenu: true
-  }).exec();
+  }).lean().exec();
   
+  // Map category IDs to names
+  const categoryIds = menu.map(item => item.category).filter(c => c && mongoose.Types.ObjectId.isValid(c as string));
+  if (categoryIds.length > 0) {
+    const categories = await Category.find({ _id: { $in: categoryIds } }).lean().exec();
+    const categoryMap = categories.reduce((acc: Record<string, string>, cat: any) => {
+      acc[cat._id.toString()] = cat.name;
+      return acc;
+    }, {} as Record<string, string>);
+    
+    for (const item of menu) {
+      if (item.category && categoryMap[item.category as string]) {
+        item.category = categoryMap[item.category as string];
+      }
+    }
+  }
+
   if (isRedisEnabled && redisConnection) {
     await redisConnection.set(cacheKey, JSON.stringify(menu), "EX", 3600); // Cache for 1 hour
   }
