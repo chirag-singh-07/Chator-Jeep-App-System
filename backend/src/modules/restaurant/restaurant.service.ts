@@ -636,7 +636,11 @@ export const adminCreateRestaurant = async (
     accountHolderName?: string;
     accountNumber?: string;
     ifscCode?: string;
+    fssaiLicenseNumber?: string;
     fssaiLicense?: string;
+    gstNumber?: string;
+    gstPhoto?: any;
+    addressProof?: any;
     aadharCard?: any;
     panCard?: any;
     livePhoto?: any;
@@ -667,10 +671,11 @@ export const adminCreateRestaurant = async (
     });
 
     let mappedStatus: RestaurantStatus = RESTAURANT_STATUS.ACTIVE;
-    if (input.type === "requested") mappedStatus = RESTAURANT_STATUS.REQUESTED;
-    if (input.type === "closed") mappedStatus = RESTAURANT_STATUS.CLOSED;
-    if (input.type === "flagged") mappedStatus = RESTAURANT_STATUS.FLAGGED;
-    if (input.type === "active") mappedStatus = RESTAURANT_STATUS.ACTIVE;
+    const inputType = input.type?.toUpperCase();
+    if (inputType === "REQUESTED") mappedStatus = RESTAURANT_STATUS.REQUESTED;
+    if (inputType === "CLOSED") mappedStatus = RESTAURANT_STATUS.CLOSED;
+    if (inputType === "FLAGGED") mappedStatus = RESTAURANT_STATUS.FLAGGED;
+    if (inputType === "ACTIVE") mappedStatus = RESTAURANT_STATUS.ACTIVE;
 
     const bannerUrls = input.heroImage ? { default: input.heroImage } : undefined;
     const logoUrls = input.logoImage ? { default: input.logoImage } : undefined;
@@ -718,7 +723,11 @@ export const adminCreateRestaurant = async (
       cuisines,
       bannerUrls,
       logoUrls,
+      fssaiLicenseNumber: input.fssaiLicenseNumber,
       fssaiLicense: input.fssaiLicense,
+      gstNumber: input.gstNumber,
+      gstPhoto: input.gstPhoto,
+      addressProof: input.addressProof,
       aadharCard: input.aadharCard,
       panCard: input.panCard,
       livePhoto: input.livePhoto,
@@ -807,7 +816,11 @@ export const adminUpdateRestaurant = async (
     accountHolderName?: string;
     accountNumber?: string;
     ifscCode?: string;
+    fssaiLicenseNumber?: string;
     fssaiLicense?: string;
+    gstNumber?: string;
+    gstPhoto?: any;
+    addressProof?: any;
     aadharCard?: any;
     panCard?: any;
     livePhoto?: any;
@@ -824,6 +837,13 @@ export const adminUpdateRestaurant = async (
   if (input.status) updates.status = input.status;
   if (input.restaurantType) updates.restaurantType = input.restaurantType;
   if (input.fssaiLicense) updates.fssaiLicense = input.fssaiLicense;
+  if (input.fssaiLicenseNumber) updates.fssaiLicenseNumber = input.fssaiLicenseNumber;
+  if (input.gstNumber) updates.gstNumber = input.gstNumber;
+  if (input.gstPhoto) updates.gstPhoto = input.gstPhoto;
+  if (input.addressProof) updates.addressProof = input.addressProof;
+  if (input.aadharCard) updates.aadharCard = input.aadharCard;
+  if (input.panCard) updates.panCard = input.panCard;
+  if (input.livePhoto) updates.livePhoto = input.livePhoto;
   if (input.notes !== undefined) updates.description = input.notes;
   
   if (input.cuisine) {

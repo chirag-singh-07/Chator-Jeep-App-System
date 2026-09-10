@@ -27,7 +27,7 @@ export function RestaurantFormPage() {
   const [password, setPassword] = useState("");
   const [location, setLocation] = useState("");
   const [cuisine, setCuisine] = useState("");
-  const [type, setType] = useState("active");
+  const [type, setType] = useState("ACTIVE");
   const [restaurantType, setRestaurantType] = useState("non-veg");
   const [heroImage, setHeroImage] = useState("");
   const [logoImage, setLogoImage] = useState("");
@@ -46,7 +46,11 @@ export function RestaurantFormPage() {
   const [ifscCode, setIfscCode] = useState("");
 
   // Documents
+  const [fssaiLicenseNumber, setFssaiLicenseNumber] = useState("");
   const [fssaiLicense, setFssaiLicense] = useState("");
+  const [gstNumber, setGstNumber] = useState("");
+  const [gstPhoto, setGstPhoto] = useState("");
+  const [addressProof, setAddressProof] = useState("");
   const [aadharCard, setAadharCard] = useState("");
   const [panCard, setPanCard] = useState("");
   const [livePhoto, setLivePhoto] = useState("");
@@ -65,7 +69,7 @@ export function RestaurantFormPage() {
             setOwner(data.ownerName || "");
             setEmail(data.email || ""); 
             setPhone(data.phone || ""); 
-            setType(data.status || "active");
+            setType(data.status || "ACTIVE");
             setRestaurantType(data.restaurantType || "non-veg");
             setHeroImage(data.bannerUrls?.default || "");
             setLogoImage(data.logoUrls?.default || "");
@@ -83,7 +87,11 @@ export function RestaurantFormPage() {
             setAccountNumber(data.bankDetails?.accountNumber || "");
             setIfscCode(data.bankDetails?.ifscCode || "");
             
+            setFssaiLicenseNumber(data.fssaiLicenseNumber || "");
             setFssaiLicense(data.fssaiLicense || "");
+            setGstNumber(data.gstNumber || "");
+            setGstPhoto(data.gstPhoto || "");
+            setAddressProof(data.addressProof || "");
             setAadharCard(data.aadharCard || "");
             setPanCard(data.panCard || "");
             setLivePhoto(data.livePhoto || "");
@@ -133,7 +141,11 @@ export function RestaurantFormPage() {
         accountHolderName,
         accountNumber,
         ifscCode,
+        fssaiLicenseNumber,
         fssaiLicense,
+        gstNumber,
+        gstPhoto,
+        addressProof,
         aadharCard,
         panCard,
         livePhoto
@@ -171,10 +183,10 @@ export function RestaurantFormPage() {
             </FormField>
             <FormField label="Status">
               <Select value={type} onValueChange={setType}>
-                <SelectItem value="requested">Requested</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="closed">Closed</SelectItem>
-                <SelectItem value="flagged">Flagged</SelectItem>
+                <SelectItem value="REQUESTED">Requested</SelectItem>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="CLOSED">Closed</SelectItem>
+                <SelectItem value="FLAGGED">Flagged</SelectItem>
               </Select>
             </FormField>
             <FormField label="Type (Veg/Non-Veg)">
@@ -182,6 +194,7 @@ export function RestaurantFormPage() {
                 <SelectItem value="veg">Veg</SelectItem>
                 <SelectItem value="non-veg">Non-Veg</SelectItem>
                 <SelectItem value="pure-veg">Pure Veg</SelectItem>
+                <SelectItem value="both">Both</SelectItem>
               </Select>
             </FormField>
           </div>
@@ -281,8 +294,31 @@ export function RestaurantFormPage() {
           <div className="pt-4 border-t">
             <h3 className="text-lg font-semibold mb-4">Verification Documents</h3>
             <div className="grid gap-4 md:grid-cols-2 mb-4">
-              <FormField label="FSSAI License Number" className="md:col-span-2">
-                <Input value={fssaiLicense} onChange={(e) => setFssaiLicense(e.target.value)} placeholder="14-digit FSSAI number" disabled={isLoading} />
+              <FormField label="FSSAI License Number">
+                <Input value={fssaiLicenseNumber} onChange={(e) => setFssaiLicenseNumber(e.target.value)} placeholder="14-digit FSSAI number" disabled={isLoading} />
+              </FormField>
+              <FormField label="GST Number">
+                <Input value={gstNumber} onChange={(e) => setGstNumber(e.target.value)} placeholder="15-digit GSTIN" disabled={isLoading} />
+              </FormField>
+            </div>
+            <div className="grid gap-6 md:grid-cols-3 mb-6">
+              <FormField label="FSSAI License Photo">
+                <div className="flex flex-col gap-3">
+                  <UploadDropzone preview={fssaiLicense} onChange={setFssaiLicense} folder="restaurants/documents" />
+                  <Input value={fssaiLicense} onChange={(e) => setFssaiLicense(e.target.value)} placeholder="URL" disabled={isLoading} />
+                </div>
+              </FormField>
+              <FormField label="GST Photo">
+                <div className="flex flex-col gap-3">
+                  <UploadDropzone preview={gstPhoto} onChange={setGstPhoto} folder="restaurants/documents" />
+                  <Input value={gstPhoto} onChange={(e) => setGstPhoto(e.target.value)} placeholder="URL" disabled={isLoading} />
+                </div>
+              </FormField>
+              <FormField label="Address Proof">
+                <div className="flex flex-col gap-3">
+                  <UploadDropzone preview={addressProof} onChange={setAddressProof} folder="restaurants/documents" />
+                  <Input value={addressProof} onChange={(e) => setAddressProof(e.target.value)} placeholder="URL" disabled={isLoading} />
+                </div>
               </FormField>
             </div>
             <div className="grid gap-6 md:grid-cols-3">

@@ -45,7 +45,11 @@ export interface IRestaurant extends Document {
   rating: number;
   status: RestaurantStatus;
   rejectionReason?: string;
+  fssaiLicenseNumber?: string;
   fssaiLicense?: string;
+  gstNumber?: string;
+  gstPhoto?: IRestaurantDocument | string;
+  addressProof?: IRestaurantDocument | string;
   logoUrls?: Record<string, string>;
   bannerUrls?: Record<string, string>;
   aadharCard?: IRestaurantDocument;
@@ -90,7 +94,7 @@ export interface IRestaurant extends Document {
   estimatedDeliveryTimeMins?: number;
   deliveryFee?: number;
   freeDeliveryThreshold?: number;
-  restaurantType?: "veg" | "non-veg" | "pure-veg";
+  restaurantType?: "veg" | "non-veg" | "pure-veg" | "both";
 }
 
 // ─── Schema ────────────────────────────────────────────────────────────────────
@@ -114,7 +118,11 @@ const restaurantSchema = new Schema<IRestaurant>(
       index: true,
     },
     rejectionReason: { type: String },
+    fssaiLicenseNumber: { type: String },
     fssaiLicense: { type: String },
+    gstNumber: { type: String },
+    gstPhoto: { type: Schema.Types.Mixed },
+    addressProof: { type: Schema.Types.Mixed },
 
     // ── Brand Assets ──────────────────────────────────────────────────────────
     logoUrls: { type: Schema.Types.Mixed },
@@ -188,7 +196,7 @@ const restaurantSchema = new Schema<IRestaurant>(
     estimatedDeliveryTimeMins: { type: Number },
     deliveryFee: { type: Number, default: 0 },
     freeDeliveryThreshold: { type: Number },
-    restaurantType: { type: String, enum: ["veg", "non-veg", "pure-veg"], default: "non-veg" },
+    restaurantType: { type: String, enum: ["veg", "non-veg", "pure-veg", "both"], default: "non-veg" },
   },
   { timestamps: true }
 );

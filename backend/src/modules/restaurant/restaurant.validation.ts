@@ -17,6 +17,13 @@ const menuTagsSchema = z.object({
   isRecommended: z.boolean().optional(),
 });
 
+const restaurantDocumentSchema = z.object({
+  label: z.string().optional(),
+  key: z.string(),
+  url: z.string().url(),
+  verifiedAt: z.union([z.string(), z.date()]).optional(),
+});
+
 export const createRestaurantSchema = z.object({
   body: z.object({
     name: z.string().min(2),
@@ -28,15 +35,13 @@ export const createRestaurantSchema = z.object({
     estimatedDeliveryTimeMins: z.number().nonnegative().optional(),
     deliveryFee: z.number().nonnegative().optional(),
     freeDeliveryThreshold: z.number().nonnegative().optional(),
-    restaurantType: z.enum(["veg", "non-veg", "pure-veg"]).optional(),
+    restaurantType: z.enum(["veg", "non-veg", "pure-veg", "both"]).optional(),
+    fssaiLicenseNumber: z.string().optional(),
+    fssaiLicense: z.string().optional(),
+    gstNumber: z.string().optional(),
+    gstPhoto: z.union([z.string(), restaurantDocumentSchema]).optional(),
+    addressProof: z.union([z.string(), restaurantDocumentSchema]).optional(),
   })
-});
-
-const restaurantDocumentSchema = z.object({
-  label: z.string().optional(),
-  key: z.string(),
-  url: z.string().url(),
-  verifiedAt: z.union([z.string(), z.date()]).optional(),
 });
 
 export const updateRestaurantSchema = z.object({
@@ -53,7 +58,12 @@ export const updateRestaurantSchema = z.object({
     estimatedDeliveryTimeMins: z.number().nonnegative().optional(),
     deliveryFee: z.number().nonnegative().optional(),
     freeDeliveryThreshold: z.number().nonnegative().optional(),
-    restaurantType: z.enum(["veg", "non-veg", "pure-veg"]).optional(),
+    restaurantType: z.enum(["veg", "non-veg", "pure-veg", "both"]).optional(),
+    fssaiLicenseNumber: z.string().optional(),
+    fssaiLicense: z.string().optional(),
+    gstNumber: z.string().optional(),
+    gstPhoto: z.union([z.string(), restaurantDocumentSchema]).optional(),
+    addressProof: z.union([z.string(), restaurantDocumentSchema]).optional(),
   })
 });
 
