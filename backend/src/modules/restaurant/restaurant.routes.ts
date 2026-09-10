@@ -587,6 +587,7 @@ router.patch(
  *         description: Restaurant created
  */
 router.post("/admin/create", authMiddleware, roleMiddleware(["ADMIN"]), ctrl.adminCreateRestaurant);
+router.put("/admin/:id", authMiddleware, roleMiddleware(["ADMIN"]), ctrl.adminUpdateRestaurant);
 
 /**
  * @openapi

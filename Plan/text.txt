@@ -1,23 +1,9 @@
-make the that bulk order screen with the multe step with 
+okey so now create a a new page in the admin panel to regsitera a new restauenat which adin can add that and also give the options too upload the documnets and they can also createc the restaurnat using the password so make rhat in the admin pane; 
 
+and also admin can also edit the details of the restauenats in database so make that 
 
+admin can also chnage that the restaurnat is active or unactive or suspended base on that show the red or green color in the restaunets list and also can edit the veg or non vag options so make that in the admin panel 
 
-they search the restaurnat name or food name  
+admin can chanage the restaurnat logo and banner too from the admin panel so make that in the admin panel 
 
-   -> if the search the restaurnat  name then open the restaurnat  menu items they will select the items and also give the nesrest restaurnat  for that 
-
-if they seach the food items name then take the restaurnat that have that food item in their menu and show that and restaurnat need to be nerset so keep in the mind that 
-
-
-
-after the food items are selected in below show that units / qty and then show the date they can order in the future and also they need to order one day before the food its delivery they can select the date and time 
-
-Then Below they need to add the full address fetch the address fr,om useer cureent address or give option to add new address 
-
-Contact Details ( name , phone no and also the note ( optional ) 
-
-step 2 they will review the all thing and have a option to go back and edit them or remve them
-
-step 3 show the full price or billing with the delivery address and date and time and with the user contact details 
-
-they will make the payment using the rozapay and complete the order and show the sucess or failure or error screen base on that 
+amd after all this make a local build and fix the bugs and push the code into github

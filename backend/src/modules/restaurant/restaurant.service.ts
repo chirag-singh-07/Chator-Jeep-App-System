@@ -786,6 +786,95 @@ export const adminCreateRestaurant = async (
   return restaurant;
 };
 
+// ─── Admin Update Restaurant ───────────────────────────────────────────────────
+export const adminUpdateRestaurant = async (
+  adminUserId: string,
+  restaurantId: string,
+  input: {
+    restaurantName?: string;
+    type?: string;
+    location?: string;
+    locationCoords?: { lat: number; lng: number };
+    cuisine?: string;
+    heroImage?: string;
+    logoImage?: string;
+    notes?: string;
+    addressLine1?: string;
+    city?: string;
+    state?: string;
+    pinCode?: string;
+    bankName?: string;
+    accountHolderName?: string;
+    accountNumber?: string;
+    ifscCode?: string;
+    fssaiLicense?: string;
+    aadharCard?: any;
+    panCard?: any;
+    livePhoto?: any;
+    status?: RestaurantStatus;
+    restaurantType?: "veg" | "non-veg" | "pure-veg";
+  }
+) => {
+  const restaurant = await findRestaurantById(restaurantId);
+  if (!restaurant) throw new AppError("Restaurant not found", 404);
+
+  const updates: any = {};
+
+  if (input.restaurantName) updates.name = input.restaurantName;
+  if (input.status) updates.status = input.status;
+  if (input.restaurantType) updates.restaurantType = input.restaurantType;
+  if (input.fssaiLicense) updates.fssaiLicense = input.fssaiLicense;
+  if (input.notes !== undefined) updates.description = input.notes;
+  
+  if (input.cuisine) {
+    updates.cuisines = input.cuisine.split(",").map((c: string) => c.trim()).filter(Boolean);
+  }
+
+  if (input.addressLine1 !== undefined || input.city !== undefined || input.state !== undefined || input.pinCode !== undefined) {
+    updates.address = {
+      line1: input.addressLine1 !== undefined ? input.addressLine1 : (restaurant.address?.line1 || ""),
+      city: input.city !== undefined ? input.city : (restaurant.address?.city || ""),
+      state: input.state !== undefined ? input.state : (restaurant.address?.state || ""),
+      pinCode: input.pinCode !== undefined ? input.pinCode : (restaurant.address?.pinCode || ""),
+    };
+  }
+
+  if (input.bankName !== undefined || input.accountHolderName !== undefined || input.accountNumber !== undefined || input.ifscCode !== undefined) {
+    updates.bankDetails = {
+      bankName: input.bankName !== undefined ? input.bankName : (restaurant.bankDetails?.bankName || ""),
+      accountHolderName: input.accountHolderName !== undefined ? input.accountHolderName : (restaurant.bankDetails?.accountHolderName || ""),
+      accountNumber: input.accountNumber !== undefined ? input.accountNumber : (restaurant.bankDetails?.accountNumber || ""),
+      ifscCode: input.ifscCode !== undefined ? input.ifscCode : (restaurant.bankDetails?.ifscCode || ""),
+    };
+  }
+
+  if (input.heroImage) {
+    updates.bannerUrls = { default: input.heroImage };
+  }
+  if (input.logoImage) {
+    updates.logoUrls = { default: input.logoImage };
+  }
+  if (input.aadharCard) updates.aadharCard = input.aadharCard;
+  if (input.panCard) updates.panCard = input.panCard;
+  if (input.livePhoto) updates.livePhoto = input.livePhoto;
+
+  let updateQuery: any = { $set: updates };
+
+  if (input.status && input.status !== restaurant.status) {
+    updateQuery.$push = {
+      adminActions: {
+        adminId: adminUserId,
+        action: input.status,
+        reason: "Status changed by Admin via Admin Panel edit",
+        timestamp: new Date()
+      }
+    };
+  }
+
+  const updatedRestaurant = await Restaurant.findByIdAndUpdate(restaurantId, updateQuery, { new: true });
+  return updatedRestaurant;
+};
+
 // ─── Menu Management ─────────────────────────────────────────────────────────
 export const addMenuItem = async (userId: string, body: any) => {
   const restaurant = await findRestaurantByOwner(userId);

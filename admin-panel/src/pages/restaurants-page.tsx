@@ -57,11 +57,16 @@ export function RestaurantsPage() {
     },
     {
       key: "action",
-      label: "Review",
+      label: "Actions",
       render: (row) => (
-        <Button variant="outline" size="sm" asChild className="rounded-xl border-secondary/30 hover:bg-primary/5 hover:border-primary/50 transition-all">
-          <Link to={`/restaurants/${row._id}/review`}>Manage</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" asChild className="rounded-xl border-secondary/30 hover:bg-primary/5 hover:border-primary/50 transition-all">
+            <Link to={`/restaurants/${row._id}/review`}>Manage</Link>
+          </Button>
+          <Button variant="secondary" size="sm" asChild className="rounded-xl">
+            <Link to={`/restaurants/${row._id}/edit`}>Edit Details</Link>
+          </Button>
+        </div>
       )
     }
   ];

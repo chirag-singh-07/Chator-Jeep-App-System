@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { FormField } from "@/components/admin/form-field";
@@ -17,6 +17,9 @@ const indianPhoneRegex = /^[6-9]\d{9}$/;
 
 export function RestaurantFormPage() {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const isEditMode = !!id;
+
   const [name, setName] = useState("");
   const [owner, setOwner] = useState("");
   const [email, setEmail] = useState("");
@@ -25,6 +28,7 @@ export function RestaurantFormPage() {
   const [location, setLocation] = useState("");
   const [cuisine, setCuisine] = useState("");
   const [type, setType] = useState("active");
+  const [restaurantType, setRestaurantType] = useState("non-veg");
   const [heroImage, setHeroImage] = useState("");
   const [logoImage, setLogoImage] = useState("");
   const [notes, setNotes] = useState("");
@@ -50,30 +54,72 @@ export function RestaurantFormPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  useEffect(() => {
+    if (isEditMode && id) {
+      setIsLoading(true);
+      adminService.getRestaurantById(id)
+        .then(res => {
+          if (res.success && res.data) {
+            const data = res.data;
+            setName(data.name || "");
+            setOwner(data.ownerName || "");
+            setEmail(data.email || ""); 
+            setPhone(data.phone || ""); 
+            setType(data.status || "active");
+            setRestaurantType(data.restaurantType || "non-veg");
+            setHeroImage(data.bannerUrls?.default || "");
+            setLogoImage(data.logoUrls?.default || "");
+            setNotes(data.description || "");
+            setCuisine(data.cuisines?.join(", ") || "");
+            setLocation(data.address?.line1 || "");
+            
+            setAddressLine1(data.address?.line1 || "");
+            setCity(data.address?.city || "");
+            setStateForm(data.address?.state || "");
+            setPinCode(data.address?.pinCode || "");
+            
+            setBankName(data.bankDetails?.bankName || "");
+            setAccountHolderName(data.bankDetails?.accountHolderName || "");
+            setAccountNumber(data.bankDetails?.accountNumber || "");
+            setIfscCode(data.bankDetails?.ifscCode || "");
+            
+            setFssaiLicense(data.fssaiLicense || "");
+            setAadharCard(data.aadharCard || "");
+            setPanCard(data.panCard || "");
+            setLivePhoto(data.livePhoto || "");
+          }
+        })
+        .catch(() => toast.error("Failed to fetch restaurant details"))
+        .finally(() => setIsLoading(false));
+    }
+  }, [id, isEditMode]);
+
   const errors = {
     name: submitted && !name.trim() ? "Restaurant name is required." : "",
     owner: submitted && !owner.trim() ? "Owner name is required." : "",
-    email: submitted && !email.trim() ? "Contact email is required." : "",
-    phone: submitted && phone && !indianPhoneRegex.test(phone) ? "Enter a valid Indian 10-digit mobile number." : "",
-    password: submitted && password.length < 6 ? "Password must be at least 6 characters." : "",
+    email: submitted && !isEditMode && !email.trim() ? "Contact email is required." : "",
+    phone: submitted && !isEditMode && phone && !indianPhoneRegex.test(phone) ? "Enter a valid Indian 10-digit mobile number." : "",
+    password: submitted && !isEditMode && password.length < 6 ? "Password must be at least 6 characters." : "",
     location: submitted && !location.trim() ? "Location is required." : ""
   };
 
   const onSave = async () => {
     setSubmitted(true);
-    if (errors.name || errors.owner || errors.email || errors.phone || errors.password || errors.location || !name || !owner || !email || !location || !password) {
+    if (errors.name || errors.owner || errors.email || errors.phone || errors.password || errors.location || !name || !owner || !location) {
       return;
     }
+    if (!isEditMode && (!email || !password)) return;
 
     setIsLoading(true);
     try {
-      await adminService.createRestaurant({
+      const payload = {
         ownerName: owner,
         email,
         password,
         phone,
         restaurantName: name,
-        type,
+        status: type,
+        restaurantType,
         location,
         cuisine,
         heroImage,
@@ -91,11 +137,18 @@ export function RestaurantFormPage() {
         aadharCard,
         panCard,
         livePhoto
-      });
-      toast.success("Restaurant created successfully.");
+      };
+
+      if (isEditMode && id) {
+        await adminService.updateRestaurant(id, payload);
+        toast.success("Restaurant updated successfully.");
+      } else {
+        await adminService.createRestaurant({ ...payload, type });
+        toast.success("Restaurant created successfully.");
+      }
       navigate("/restaurants?type=" + type);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to create restaurant");
+      toast.error(error.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} restaurant`);
     } finally {
       setIsLoading(false);
     }
@@ -105,18 +158,18 @@ export function RestaurantFormPage() {
     <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
       <Card className="rounded-2xl shadow-sm">
         <CardHeader>
-          <CardTitle>Add New Restaurant</CardTitle>
+          <CardTitle>{isEditMode ? "Edit Restaurant" : "Add New Restaurant"}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-5">
           <FormField label="Restaurant Name" required error={errors.name}>
             <Input value={name} onChange={(event) => setName(event.target.value)} aria-invalid={Boolean(errors.name)} disabled={isLoading} />
           </FormField>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             <FormField label="Owner Name" required error={errors.owner}>
               <Input value={owner} onChange={(event) => setOwner(event.target.value)} aria-invalid={Boolean(errors.owner)} disabled={isLoading} />
             </FormField>
-            <FormField label="Restaurant Status">
+            <FormField label="Status">
               <Select value={type} onValueChange={setType}>
                 <SelectItem value="requested">Requested</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
@@ -124,11 +177,18 @@ export function RestaurantFormPage() {
                 <SelectItem value="flagged">Flagged</SelectItem>
               </Select>
             </FormField>
+            <FormField label="Type (Veg/Non-Veg)">
+              <Select value={restaurantType} onValueChange={setRestaurantType}>
+                <SelectItem value="veg">Veg</SelectItem>
+                <SelectItem value="non-veg">Non-Veg</SelectItem>
+                <SelectItem value="pure-veg">Pure Veg</SelectItem>
+              </Select>
+            </FormField>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="Contact Email" required error={errors.email}>
-              <Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} aria-invalid={Boolean(errors.email)} disabled={isLoading} />
+            <FormField label="Contact Email" required={!isEditMode} error={errors.email}>
+              <Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} aria-invalid={Boolean(errors.email)} disabled={isLoading || isEditMode} />
             </FormField>
             <FormField label="Contact Phone" error={errors.phone}>
               <Input
@@ -136,19 +196,21 @@ export function RestaurantFormPage() {
                 onChange={(event) => setPhone(event.target.value.replace(/\D/g, "").slice(0, 10))}
                 placeholder="10 digit mobile number"
                 aria-invalid={Boolean(errors.phone)}
-                disabled={isLoading}
+                disabled={isLoading || isEditMode}
               />
             </FormField>
           </div>
 
-          <FormField label="Owner Login Password" required error={errors.password}>
-            <div className="relative">
-              <Input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} aria-invalid={Boolean(errors.password)} placeholder="Assign a default password" disabled={isLoading} className="pr-10" />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-          </FormField>
+          {!isEditMode && (
+            <FormField label="Owner Login Password" required error={errors.password}>
+              <div className="relative">
+                <Input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} aria-invalid={Boolean(errors.password)} placeholder="Assign a default password" disabled={isLoading} className="pr-10" />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </FormField>
+          )}
 
           <div className="grid gap-4 md:grid-cols-2">
             <FormField label="Location" required error={errors.location}>
@@ -254,7 +316,7 @@ export function RestaurantFormPage() {
           <div className="flex flex-wrap gap-2">
             <Button onClick={onSave} disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Restaurant
+              {isEditMode ? "Update Restaurant" : "Create Restaurant"}
             </Button>
             <Button variant="outline" asChild disabled={isLoading}>
               <Link to="/restaurants">Cancel</Link>

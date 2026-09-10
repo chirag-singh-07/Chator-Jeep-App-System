@@ -70,6 +70,11 @@ export const adminService = {
     return response.data;
   },
 
+  updateRestaurant: async (id: string, data: any) => {
+    const response = await apiClient.put(`/restaurants/admin/${id}`, data);
+    return response.data;
+  },
+
 
   getMenuItems: async (params?: { page?: number; limit?: number; search?: string; category?: string; restaurantId?: string }) => {
     const response = await apiClient.get("/restaurants/admin/menu", { params });

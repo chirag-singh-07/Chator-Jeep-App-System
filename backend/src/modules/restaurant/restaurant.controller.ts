@@ -107,6 +107,17 @@ export const adminCreateRestaurant = asyncHandler(
   },
 );
 
+export const adminUpdateRestaurant = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const restaurant = await service.adminUpdateRestaurant(
+      req.user!.userId as string,
+      req.params.id as string,
+      req.body
+    );
+    res.status(200).json({ success: true, data: restaurant });
+  },
+);
+
 
 export const adminApprove = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
