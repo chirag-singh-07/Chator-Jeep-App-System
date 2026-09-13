@@ -68,7 +68,7 @@
           }
         }
       ],
-      "expo-audio",
+      "expo-av",
       "expo-asset",
       [
         "expo-build-properties",

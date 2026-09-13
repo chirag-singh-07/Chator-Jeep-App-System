@@ -4,6 +4,7 @@ import { apiClient } from "../lib/api";
 import { useAuthStore } from "../store/useAuthStore";
 import { Alert, Vibration } from "react-native";
 import { router } from "expo-router";
+import { Audio } from 'expo-av';
 
 const openOrderFromNotification = (data?: { [key: string]: any }) => {
   const orderId = data?.orderId;
@@ -44,8 +45,21 @@ export const useNotifications = () => {
         }
       });
 
+      const playNotificationSound = async () => {
+        try {
+          const { sound } = await Audio.Sound.createAsync(require('../assets/notification.wav'));
+          await sound.playAsync();
+          sound.setOnPlaybackStatusUpdate((status) => {
+            if (status.isLoaded && status.didJustFinish) sound.unloadAsync();
+          });
+        } catch (error) {
+          console.log('Error playing sound:', error);
+        }
+      };
+
       const unsubscribe = messaging().onMessage(async (remoteMessage) => {
         Vibration.vibrate([0, 400, 150, 400]);
+        playNotificationSound();
         Alert.alert(
           remoteMessage.notification?.title || "Chatori Jeeb Restaurant",
           remoteMessage.notification?.body || "",

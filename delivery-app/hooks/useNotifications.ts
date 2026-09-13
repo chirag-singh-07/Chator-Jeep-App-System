@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Platform, Alert, Vibration } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
+import { Audio } from 'expo-av';
 import { apiClient } from "../lib/api";
 import { useAuthStore } from "../store/useAuthStore";
 
@@ -60,8 +61,21 @@ export const useNotifications = () => {
         }
       });
 
+      const playNotificationSound = async () => {
+        try {
+          const { sound } = await Audio.Sound.createAsync(require('../assets/notification.wav'));
+          await sound.playAsync();
+          sound.setOnPlaybackStatusUpdate((status) => {
+            if (status.isLoaded && status.didJustFinish) sound.unloadAsync();
+          });
+        } catch (error) {
+          console.log('Error playing sound:', error);
+        }
+      };
+
       const unsubscribe = messaging().onMessage(async (remoteMessage: any) => {
         Vibration.vibrate([0, 300, 120, 300]);
+        playNotificationSound();
         Alert.alert(
           remoteMessage.notification?.title || "Chatori Jeeb Delivery",
           remoteMessage.notification?.body || "",

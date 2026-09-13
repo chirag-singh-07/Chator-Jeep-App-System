@@ -89,6 +89,7 @@
           }
         }
       ],
+      "expo-av",
       "expo-asset",
       [
         "expo-build-properties",
