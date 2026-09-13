@@ -14,7 +14,7 @@ import { Order } from "./order.model";
 import { UserWalletTransaction } from "../wallet/user-wallet.model";
 import { addEarningsToRestaurant } from "../restaurant/restaurant.service";
 import { getPlatformConfig } from "../system/system.service";
-import { haversineKm } from "../../common/utils/geo.util";
+import { haversineKm, calculateDrivingDistanceKm } from "../../common/utils/geo.util";
 import { Restaurant } from "../restaurant/restaurant.model";
 import { validateCoupon, incrementCouponUsage } from "../coupon/coupon.service";
 import { withTransaction } from "../../common/utils/transaction.util";
@@ -138,7 +138,7 @@ const buildOrderDraft = async (userId: string, input: OrderInput) => {
   const restaurantCoords = restaurant.location?.coordinates;
   const rawDistanceKm = 
     restaurantCoords && restaurantCoords.length === 2
-      ? haversineKm(restaurantCoords as [number, number], input.location.coordinates)
+      ? await calculateDrivingDistanceKm(restaurantCoords as [number, number], input.location.coordinates)
       : 5; // Fallback distance if restaurant has no valid location
   const distanceKm = Math.min(rawDistanceKm, 15);
 
@@ -224,6 +224,7 @@ const buildOrderDraft = async (userId: string, input: OrderInput) => {
       items: snapshotItems,
       foodAmount: foodTotal,
       deliveryFee,
+      distanceKm,
       commissionAmount,
       platformFee,
       gstAmount,
@@ -676,6 +677,7 @@ export const checkoutPreview = async (userId: string, input: OrderInput) => {
   return {
     foodAmount: draft.payload.foodAmount,
     deliveryFee: draft.payload.deliveryFee,
+    distanceKm: draft.payload.distanceKm,
     platformFee: draft.payload.platformFee,
     gstAmount: draft.payload.gstAmount,
     packagingFee: draft.payload.packagingFee,

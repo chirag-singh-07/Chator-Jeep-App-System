@@ -64,14 +64,9 @@ const getDeliveryFeeConfig = () => {
 };
 
 const calculateDeliveryEarnings = (
-  pickupCoordinates?: [number, number],
-  dropCoordinates?: [number, number],
+  distanceKm: number,
 ) => {
   const { base, perKm } = getDeliveryFeeConfig();
-  const distanceKm =
-    pickupCoordinates && dropCoordinates
-      ? haversineKm(pickupCoordinates, dropCoordinates)
-      : 0;
   const estimatedAmount = roundAmount(base + distanceKm * perKm);
 
   return {
@@ -250,11 +245,8 @@ export const notifyRidersForOrder = async (orderId: string) => {
     return { notifiedCount: 0 };
   }
 
-  const pickupCoordinates = restaurant.location.coordinates as [number, number];
-  const dropCoordinates = getDeliveryCoordinates(customer);
   const earnings = calculateDeliveryEarnings(
-    pickupCoordinates,
-    dropCoordinates,
+    order.distanceKm || 0,
   );
 
   const requestPayload = {
@@ -329,14 +321,8 @@ export const acceptOrderRequest = async (userId: string, orderId: string) => {
     User.findById(order.userId).exec(),
   ]);
 
-  const pickupCoordinates = restaurant?.location?.coordinates as [
-    number,
-    number,
-  ];
-  const dropCoordinates = getDeliveryCoordinates(customer);
   const earnings = calculateDeliveryEarnings(
-    pickupCoordinates,
-    dropCoordinates,
+    order.distanceKm || 0,
   );
 
   const delivery = await repo.updateRiderAvailability(userId, {

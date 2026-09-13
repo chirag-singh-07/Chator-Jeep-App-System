@@ -65,6 +65,7 @@ export default function CartScreen() {
   const [backendBreakdown, setBackendBreakdown] = useState<{
     foodAmount: number;
     deliveryFee: number;
+    distanceKm?: number;
     platformFee: number;
     gstAmount: number;
     packagingFee: number;
@@ -115,6 +116,7 @@ export default function CartScreen() {
             if (previewRes.data?.success && previewRes.data.data) {
               setBackendBreakdown(previewRes.data.data);
               if (previewRes.data.data.deliveryFee !== undefined) setDeliveryFee(previewRes.data.data.deliveryFee);
+              if (previewRes.data.data.distanceKm !== undefined) setBackendBreakdown(prev => prev ? { ...prev, distanceKm: previewRes.data.data.distanceKm } : null);
               if (previewRes.data.data.platformFee !== undefined) setPlatformFee(previewRes.data.data.platformFee);
               if (previewRes.data.data.packagingFee !== undefined) setPackagingCharge(previewRes.data.data.packagingFee);
             }
@@ -350,7 +352,9 @@ export default function CartScreen() {
                 <Text style={styles.billValue}>₹{itemTotal}</Text>
               </View>
               <View style={styles.billRow}>
-                <Text style={styles.billLabel}>Delivery Fee</Text>
+                <Text style={styles.billLabel}>
+                  Delivery Fee {backendBreakdown?.distanceKm !== undefined ? `(${backendBreakdown.distanceKm.toFixed(1)} km)` : ''}
+                </Text>
                 <Text style={styles.billValue}>{activeDeliveryFee === 0 ? 'FREE' : `₹${activeDeliveryFee}`}</Text>
               </View>
               {activePackagingFee > 0 && (

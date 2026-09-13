@@ -36,6 +36,10 @@ export function OrderCard({
 
       <View style={styles.metricsRow}>
         <View>
+          <Text style={styles.metricLabel}>Distance</Text>
+          <Text style={styles.metricValue}>{order.earnings?.distanceKm !== undefined ? `${order.earnings.distanceKm.toFixed(1)} km` : '--'}</Text>
+        </View>
+        <View>
           <Text style={styles.metricLabel}>Order value</Text>
           <Text style={styles.metricValue}>{formatCurrency(order.paymentSummary?.totalAmount ?? 0)}</Text>
         </View>

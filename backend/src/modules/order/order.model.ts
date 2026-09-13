@@ -21,6 +21,7 @@ export interface IOrder extends Document {
   items: IOrderItemSnapshot[];
   foodAmount: number;
   deliveryFee: number;
+  distanceKm: number;
   commissionAmount: number;
   platformFee: number;
   gstAmount: number;
@@ -68,6 +69,7 @@ const orderSchema = new Schema<IOrder>(
     ],
     foodAmount: { type: Number, required: true, min: 0 },
     deliveryFee: { type: Number, default: 0, min: 0 },
+    distanceKm: { type: Number, default: 0, min: 0 },
     commissionAmount: { type: Number, default: 0, min: 0 },
     platformFee: { type: Number, default: 0, min: 0 },
     gstAmount: { type: Number, default: 0, min: 0 },
