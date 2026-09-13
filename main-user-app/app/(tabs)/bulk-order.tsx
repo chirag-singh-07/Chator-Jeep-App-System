@@ -101,14 +101,8 @@ export default function BulkOrderScreen() {
       const lat = currentAddress?.coordinates?.latitude || 28.7041;
       const lng = currentAddress?.coordinates?.longitude || 77.1025;
       const res = await api.get(`/restaurants/bulk/search`, {
-        params: { query, lat, lng }
+        params: { search: query, lat, lng }
       });
-      // Mock distances and ratings for UI demo if missing
-      const results = (res.data?.data || []).map((r: any) => ({
-        ...r,
-        distance: r.distance || (Math.random() * 5).toFixed(1),
-        rating: r.rating || (4 + Math.random()).toFixed(1)
-      }));
       setSearchResults(results);
     } catch (err) {
       console.log('Search Error', err);
@@ -391,6 +385,18 @@ export default function BulkOrderScreen() {
               </View>
 
               <View style={styles.resultList}>
+                {!isSearching && searchQuery.length === 0 && (
+                  <View style={styles.suggestionsContainer}>
+                    <Text style={styles.suggestionsTitle}>Popular for Bulk Orders</Text>
+                    <View style={styles.suggestionsTags}>
+                      {['Pizza', 'Burger', 'Biryani', 'Noodles', 'Sandwich'].map(tag => (
+                        <TouchableOpacity key={tag} style={styles.suggestionTag} onPress={() => { setSearchMode('food'); setSearchQuery(tag); }}>
+                          <Text style={styles.suggestionTagText}>{tag}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                )}
                 {isSearching ? <ActivityIndicator color={C.yellow} /> : searchResults.length > 0 ? searchResults.map(r => (
                   <TouchableOpacity key={r._id} style={styles.resultCard} onPress={() => handleSelectRestaurant(r)}>
                     <View style={styles.restaurantThumb}><Text style={styles.thumbText}>{r.name.charAt(0)}</Text></View>
@@ -742,6 +748,12 @@ const styles = StyleSheet.create({
   distanceBadge: { backgroundColor: '#fff5b7', paddingVertical: 6, paddingHorizontal: 8, borderRadius: 99 },
   distanceText: { fontSize: 10, fontWeight: '800', color: '#817000' },
   
+  suggestionsContainer: { paddingVertical: 10, paddingHorizontal: 4 },
+  suggestionsTitle: { fontSize: 11.5, fontWeight: '700', color: '#888', marginBottom: 12 },
+  suggestionsTags: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  suggestionTag: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#e4e4e4', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 99, shadowColor: '#000', shadowOffset: {width:0, height:2}, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
+  suggestionTagText: { fontSize: 12, fontWeight: '600', color: C.ink },
+
   menuList: { marginTop: 14, gap: 10 },
   menuItem: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#ededed', borderRadius: 17, backgroundColor: '#fafafa', padding: 13, gap: 10 },
   menuItemTitle: { fontSize: 13, fontWeight: '600', color: C.ink },

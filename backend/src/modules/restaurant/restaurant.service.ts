@@ -1127,6 +1127,8 @@ export const listRestaurants = async (query: {
   city?: string;
   page?: string;
   limit?: string;
+  minRating?: string;
+  isVeg?: string;
 }) => {
   const page = parseInt(query.page ?? "1");
   const limit = parseInt(query.limit ?? "20");
@@ -1143,11 +1145,34 @@ export const listRestaurants = async (query: {
   };
 
   if (query.search) {
-    filter.name = { $regex: query.search, $options: "i" };
+    const searchRegex = new RegExp(query.search, "i");
+    
+    const matchingMenuRestaurantIds = await MenuItem.distinct("restaurantId", {
+      name: { $regex: searchRegex },
+      isAvailable: true,
+      showInMenu: true,
+    });
+
+    filter.$and = [
+      {
+        $or: [
+          { name: { $regex: searchRegex } },
+          { _id: { $in: matchingMenuRestaurantIds } }
+        ]
+      }
+    ];
   }
 
   if (query.categoryId) {
     filter.cuisines = { $in: [query.categoryId] };
+  }
+
+  if (query.minRating) {
+    filter.rating = { $gte: parseFloat(query.minRating) };
+  }
+
+  if (query.isVeg === 'true') {
+    filter.restaurantType = { $in: ["pure-veg", "veg"] };
   }
 
   let sort: any = { createdAt: -1 };
