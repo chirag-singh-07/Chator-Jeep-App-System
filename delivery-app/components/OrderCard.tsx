@@ -19,6 +19,11 @@ export function OrderCard({
         <View style={{ flex: 1, gap: 5 }}>
           <Text style={styles.title}>{order.restaurant?.name ?? "Restaurant"}</Text>
           <Text style={styles.subtitle}>{order.customer?.name ?? "Customer"}</Text>
+          {order.orderNumber ? (
+            <Text style={styles.orderNumber}>ID: #{order.orderNumber}</Text>
+          ) : (
+            <Text style={styles.orderNumber}>ID: #{order.orderId.slice(-6).toUpperCase()}</Text>
+          )}
         </View>
         <StatusPill label={order.status} status={order.status} />
       </View>
@@ -89,6 +94,11 @@ const styles = StyleSheet.create({
     color: Colors.light.textMuted,
     fontSize: 14,
     fontWeight: "600",
+  },
+  orderNumber: {
+    color: Colors.light.primary,
+    fontSize: 13,
+    fontWeight: "700",
   },
   addressLabel: {
     color: Colors.light.textMuted,

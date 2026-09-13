@@ -1104,19 +1104,21 @@ export const listRestaurants = async (query: {
   let sort: any = { createdAt: -1 };
   let restaurants: any[] = [];
   let total = 0;
+  let areaStatus: "SERVICEABLE" | "COMING_SOON" | "NOT_SERVICEABLE" = "SERVICEABLE";
 
-  // If coordinates provided, try geo query first, then fallback to city-based or all
+  // If coordinates provided, try geo query
   if (query.lat && query.lng) {
     const latitude = parseFloat(query.lat);
     const longitude = parseFloat(query.lng);
 
     try {
+      // 1. Search within Extended Range (20KM)
       const geoFilter = {
         ...filter,
         location: {
           $near: {
             $geometry: { type: "Point", coordinates: [longitude, latitude] },
-            $maxDistance: 15000,
+            $maxDistance: 20000, // 20KM extended range
           },
         },
       };
@@ -1128,35 +1130,27 @@ export const listRestaurants = async (query: {
       
       total = await Restaurant.countDocuments(geoFilter).exec();
 
-      // If no geo results found at all, fallback to no location or city match
-      if (total === 0) {
-        const noLocationFilter = {
+      if (total > 0) {
+        // We found restaurants within 20KM. Now check if any are within Serviceable Range (5KM)
+        const serviceableFilter = {
           ...filter,
-          $or: [
-            { location: { $exists: false } },
-            { location: null },
-            { "location.coordinates": { $size: 0 } },
-            { "address.city": { $regex: query.city ?? "", $options: "i" } },
-          ],
+          location: {
+            $near: {
+              $geometry: { type: "Point", coordinates: [longitude, latitude] },
+              $maxDistance: 5000, // 5KM serviceable range
+            },
+          },
         };
-
-        restaurants = await Restaurant.find(noLocationFilter)
-          .sort({ createdAt: -1 })
-          .skip(skip)
-          .limit(limit)
-          .exec();
-
-        total = await Restaurant.countDocuments(noLocationFilter).exec();
-
-        if (total === 0) {
-          // Fallback: get all active restaurants
-          restaurants = await Restaurant.find(filter)
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit)
-            .exec();
-          total = await Restaurant.countDocuments(filter).exec();
+        const serviceableCount = await Restaurant.countDocuments(serviceableFilter).exec();
+        
+        if (serviceableCount > 0) {
+          areaStatus = "SERVICEABLE";
+        } else {
+          areaStatus = "COMING_SOON";
         }
+      } else {
+        // No restaurants found in 20KM
+        areaStatus = "NOT_SERVICEABLE";
       }
     } catch (geoError) {
       // Geo query failed (e.g., no 2dsphere index) - fallback to all restaurants
@@ -1182,6 +1176,7 @@ export const listRestaurants = async (query: {
 
   return {
     restaurants,
+    areaStatus,
     pagination: { page, limit, total, pages: Math.ceil(total / limit) },
   };
 };

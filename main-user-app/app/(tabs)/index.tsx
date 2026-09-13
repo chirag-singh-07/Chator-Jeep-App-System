@@ -77,7 +77,7 @@ const Skeleton = ({
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { restaurants, categories, popularItems, banners, isLoading, fetchHomeData } = useMenuStore();
+  const { restaurants, categories, popularItems, banners, isLoading, fetchHomeData, areaStatus } = useMenuStore();
   const { currentAddress, savedAddresses, setCurrentAddress, fetchAddresses } =
     useLocationStore();
   const { user } = useAuthStore();
@@ -491,6 +491,24 @@ export default function HomeScreen() {
           </View>
         </View>
 
+        {areaStatus !== "SERVICEABLE" ? (
+          <View style={styles.unserviceableContainer}>
+            <Image 
+              source={{ uri: areaStatus === "COMING_SOON" ? "https://images.unsplash.com/photo-1526367790999-0150786686a2?w=800" : "https://images.unsplash.com/photo-1594322436404-5a0526db4d13?w=800" }} 
+              style={styles.unserviceableImage} 
+            />
+            <Text style={styles.unserviceableTitle}>
+              {areaStatus === "COMING_SOON" ? "Coming Soon! 📍" : "We're expanding! 🚀"}
+            </Text>
+            <Text style={styles.unserviceableText}>
+              {areaStatus === "COMING_SOON" ? "We are gearing up to start deliveries in your area. Stay tuned!" : "Sorry, we don't serve this area yet and plus coming soon."}
+            </Text>
+            <TouchableOpacity style={styles.unserviceableBtn} onPress={() => setShowLocationModal(true)}>
+              <Text style={styles.unserviceableBtnText}>Change Location</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
         {/* Banner Carousel */}
         {homeBanners.length > 0 && (
           <ScrollView
@@ -732,6 +750,8 @@ export default function HomeScreen() {
             </View>
           )}
         </View>
+        </>
+        )}
       </ScrollView>
 
       {/* Location Selection Modal */}
@@ -2035,5 +2055,45 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
+  },
+  unserviceableContainer: {
+    padding: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  unserviceableImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    marginBottom: 24,
+  },
+  unserviceableTitle: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#1A1A1A',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  unserviceableText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 30,
+    paddingHorizontal: 20,
+  },
+  unserviceableBtn: {
+    backgroundColor: Colors.light.primary,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 16,
+    width: '100%',
+    alignItems: 'center',
+  },
+  unserviceableBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

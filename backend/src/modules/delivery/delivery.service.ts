@@ -259,6 +259,7 @@ export const notifyRidersForOrder = async (orderId: string) => {
 
   const requestPayload = {
     orderId: order._id,
+    orderNumber: order.orderNumber,
     restaurantName: restaurant.name,
     pickupLocation: restaurant.location,
     dropLocation: customer ? getDeliveryCoordinates(customer) : null,

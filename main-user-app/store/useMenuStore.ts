@@ -45,6 +45,7 @@ interface MenuState {
   menu: any[];
   popularItems: any[];
   reviews: any[];
+  areaStatus: "SERVICEABLE" | "COMING_SOON" | "NOT_SERVICEABLE";
   isLoading: boolean;
   error: string | null;
   fetchHomeData: (lat?: number, lng?: number, city?: string) => Promise<void>;
@@ -61,6 +62,7 @@ export const useMenuStore = create<MenuState>((set, get) => ({
   menu: [],
   popularItems: [],
   reviews: [],
+  areaStatus: "SERVICEABLE",
   isLoading: false,
   error: null,
 
@@ -97,6 +99,7 @@ export const useMenuStore = create<MenuState>((set, get) => ({
       set({
         categories: resCategories?.data.data || [],
         restaurants: resRestaurants?.data.restaurants || [],
+        areaStatus: resRestaurants?.data.areaStatus || "SERVICEABLE",
         popularItems: resPopular?.data.data || [],
         isLoading: false,
         error:

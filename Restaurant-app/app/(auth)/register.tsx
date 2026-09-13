@@ -177,14 +177,11 @@ export default function RegisterScreen() {
             if (c.types.includes('postal_code')) postalCode = c.long_name;
           });
 
-          setAddressDraft((prev) => ({
-            ...prev,
-            fullAddress: sanitizeAddressInput("fullAddress", result.formatted_address || item.address),
-            state: sanitizeAddressInput("state", foundState),
-            district: sanitizeAddressInput("district", foundDistrict),
-            city: sanitizeAddressInput("city", foundCity || foundDistrict),
-            pinCode: sanitizeAddressInput("pinCode", postalCode),
-          }));
+          setFullAddress(sanitizeAddressInput("fullAddress", result.formatted_address || item.address));
+          setState(sanitizeAddressInput("state", foundState));
+          setDistrict(sanitizeAddressInput("district", foundDistrict));
+          setCity(sanitizeAddressInput("city", foundCity || foundDistrict));
+          setPinCode(sanitizeAddressInput("pinCode", postalCode));
           setSearch('');
           setResults([]);
         }

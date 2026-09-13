@@ -50,6 +50,7 @@ export type DeliveryPartnerProfile = {
 export type DeliveryOrder = {
   id: string;
   orderId: string;
+  orderNumber?: string;
   isBulkOrder?: boolean;
   status: "ACCEPTED" | "PICKED_UP" | "ARRIVED" | "COMPLETED";
   acceptedAt?: string | null;

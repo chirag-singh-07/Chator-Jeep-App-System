@@ -226,10 +226,11 @@ export default function CheckoutScreen() {
       });
       const order = createRes.data.data;
       const orderId = order._id || order.id;
+      const orderNumber = order.orderNumber || '';
 
       clearCart();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.push(`/order/status?status=success&orderId=${orderId}`);
+      router.push(`/order/status?status=success&orderId=${orderId}&orderNumber=${orderNumber}`);
     } catch (error: any) {
       const msg = error?.response?.data?.message || error?.message || 'Something went wrong';
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);

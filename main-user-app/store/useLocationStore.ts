@@ -29,6 +29,7 @@ interface LocationState {
   removeAddress: (id: string) => Promise<void>;
   setDefaultAddress: (id: string) => void;
   fetchAddresses: () => Promise<void>;
+  fetchCurrentLocation: () => Promise<void>;
 }
 
 export const useLocationStore = create<LocationState>()(
@@ -104,6 +105,31 @@ export const useLocationStore = create<LocationState>()(
           }
         } catch (error) {
           console.error("Failed to fetch addresses from backend", error);
+        }
+      },
+      fetchCurrentLocation: async () => {
+        try {
+          const Location = require("expo-location");
+          const { status } = await Location.requestForegroundPermissionsAsync();
+          if (status === "granted") {
+            const location = await Location.getCurrentPositionAsync({
+              accuracy: Location.Accuracy.Balanced,
+            });
+            const { latitude, longitude } = location.coords;
+            set({
+              currentAddress: {
+                id: "current-gps",
+                type: "GPS Location",
+                label: "Current Location",
+                flat: "",
+                area: "Current Location",
+                city: "",
+                coordinates: { latitude, longitude },
+              },
+            });
+          }
+        } catch (error) {
+          console.error("Failed to fetch GPS location:", error);
         }
       },
     }),

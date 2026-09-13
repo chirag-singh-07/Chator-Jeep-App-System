@@ -23,6 +23,7 @@ export default function OrderDetailScreen() {
     updateOrderStatus,
   } = useDeliveryStore();
   const [otp, setOtp] = useState("");
+  const [pickupCode, setPickupCode] = useState("");
 
   useEffect(() => {
     if (params.id) {
@@ -81,12 +82,30 @@ export default function OrderDetailScreen() {
           <Text style={styles.actionTitle}>Next Step</Text>
           <View style={styles.actionStack}>
             {canPickup && (
-              <PrimaryButton
-                label="Pick Up Order"
-                onPress={() => void updateOrderStatus(order.orderId, "PICKED_UP")}
-                icon="cube-outline"
-                style={styles.mainAction}
-              />
+              <View style={styles.otpSection}>
+                <Text style={styles.otpLabel}>Enter 6-Digit Order ID to Pickup</Text>
+                <ThemedInput
+                  placeholder="------"
+                  keyboardType="numeric"
+                  maxLength={6}
+                  value={pickupCode}
+                  onChangeText={setPickupCode}
+                  containerStyle={styles.otpInput}
+                  style={styles.otpText}
+                />
+                <PrimaryButton
+                  label="Verify & Pick Up Order"
+                  onPress={() => {
+                    if (pickupCode.length !== 6) {
+                      Alert.alert("Error", "Please enter a valid 6-digit Order ID");
+                      return;
+                    }
+                    updateOrderStatus(order.orderId, "PICKED_UP", undefined, pickupCode);
+                  }}
+                  icon="cube-outline"
+                  style={styles.mainAction}
+                />
+              </View>
             )}
             
             {canArrive && (

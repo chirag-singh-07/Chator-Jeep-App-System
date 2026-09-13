@@ -60,7 +60,10 @@ export const OrderRequestModal = ({
       <View style={styles.overlay}>
         <View style={styles.content}>
           <View style={styles.header}>
-            <Text style={styles.title}>New Delivery Request</Text>
+            <View>
+              <Text style={styles.title}>New Delivery Request</Text>
+              <Text style={styles.orderIdText}>ID: #{request.orderNumber || request.orderId.slice(-6).toUpperCase()}</Text>
+            </View>
             <View style={styles.timerCircle}>
               <Text style={styles.timerText}>{timer}s</Text>
             </View>
@@ -141,6 +144,12 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     color: Colors.light.text,
+  },
+  orderIdText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.light.primary,
+    marginTop: 4,
   },
   timerCircle: {
     width: 50,

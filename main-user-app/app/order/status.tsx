@@ -10,7 +10,7 @@ const { width } = Dimensions.get('window');
 
 export default function OrderStatusScreen() {
   const router = useRouter();
-  const { status, orderId, reason } = useLocalSearchParams();
+  const { status, orderId, reason, orderNumber } = useLocalSearchParams();
   const isSuccess = status === 'success';
   const failureReason = Array.isArray(reason) ? reason[0] : reason;
 
@@ -54,7 +54,11 @@ export default function OrderStatusScreen() {
         {isSuccess && (
           <Animated.View entering={FadeInDown.delay(500)} style={styles.orderInfo}>
              <Text style={styles.orderIdLabel}>ORDER ID</Text>
-             <Text style={styles.orderIdValue}>#{orderId || 'ORD-123456'}</Text>
+             {orderNumber ? (
+               <Text style={styles.orderIdValue}>#{orderNumber}</Text>
+             ) : (
+               <Text style={styles.orderIdValue}>#{String(orderId).slice(-6).toUpperCase()}</Text>
+             )}
           </Animated.View>
         )}
 

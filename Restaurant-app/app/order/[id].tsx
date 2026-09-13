@@ -63,7 +63,7 @@ export default function OrderDetailsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={Colors.light.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Order #{order.orderNumber}</Text>
+        <Text style={styles.headerTitle}>Order #{order.orderNumber || order._id.slice(-6).toUpperCase()}</Text>
         <View style={{ width: 24 }} />
       </View>
 

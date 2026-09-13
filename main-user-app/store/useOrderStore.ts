@@ -3,6 +3,7 @@ import api from "@/lib/api";
 
 interface Order {
   _id: string;
+  orderNumber?: string;
   status: string;
   totalAmount: number;
   items: any[];

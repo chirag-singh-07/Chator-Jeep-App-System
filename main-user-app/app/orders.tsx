@@ -64,7 +64,7 @@ export default function OrdersScreen() {
               {restaurant?.name || "Restaurant"}
             </Text>
             <Text style={styles.orderMeta}>
-              Order #{item._id?.slice(-7).toUpperCase()} • {dateText}
+              Order #{item.orderNumber || item._id?.slice(-6).toUpperCase()} • {dateText}
             </Text>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: status.bg }]}>

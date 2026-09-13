@@ -44,6 +44,7 @@ export interface IOrder extends Document {
   couponCode?: string;
   couponDiscount?: number;
   deliveryOtp?: string;
+  orderNumber?: string;
   cancellationReason?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -107,7 +108,8 @@ const orderSchema = new Schema<IOrder>(
     couponCode: { type: String, default: null },
     couponDiscount: { type: Number, default: 0 },
     deliveryOtp: { type: String, select: false },
-    cancellationReason: { type: String, default: null }
+    cancellationReason: { type: String, default: null },
+    orderNumber: { type: String, unique: true, sparse: true },
   },
   { timestamps: true }
 );

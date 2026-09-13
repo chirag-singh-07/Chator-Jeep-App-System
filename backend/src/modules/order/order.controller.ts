@@ -36,7 +36,7 @@ export const adminListOrders = asyncHandler(async (req: AuthenticatedRequest, re
 });
 
 export const updateStatus = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const order = await service.updateOrderStatus(req.user!, req.params.orderId as string, req.body.status);
+  const order = await service.updateOrderStatus(req.user!, req.params.orderId as string, req.body.status, req.body.pickupCode, req.body.otp);
   res.status(200).json({ success: true, data: order });
 });
 

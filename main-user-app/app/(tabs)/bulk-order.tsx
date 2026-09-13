@@ -232,7 +232,8 @@ export default function BulkOrderScreen() {
         ...paymentResult,
       });
       const order = createRes.data.data;
-      setCompletedOrderId(order._id || order.id || 'ORD-UNKNOWN');
+      const finalId = order.orderNumber || String(order._id || order.id).slice(-6).toUpperCase();
+      setCompletedOrderId(finalId);
       setPaymentStatus('success');
     } catch (err: any) {
       console.log('Payment Error', err);

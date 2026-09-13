@@ -34,6 +34,7 @@ type DeliveryState = {
     orderId: string,
     status: string,
     otp?: string,
+    pickupCode?: string,
   ) => Promise<void>;
   pushLocationUpdate: (coordinates: [number, number]) => Promise<void>;
   mergeRealtimeDelivery: (order: DeliveryOrder) => void;
@@ -288,7 +289,7 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
     get().mergeRealtimeDelivery(response.data);
   },
 
-  updateOrderStatus: async (orderId, status, otp) => {
+  updateOrderStatus: async (orderId, status, otp, pickupCode) => {
     if (isMockOrderId(orderId)) {
       const currentOrder =
         get().orders.find((order) => order.orderId === orderId) ??
@@ -298,6 +299,11 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
 
       if (nextStatus === "COMPLETED" && otp !== currentOrder.deliveryOtp) {
         Alert.alert("Invalid OTP", "Use 1234 for the test order.");
+        return;
+      }
+
+      if (nextStatus === "PICKED_UP" && pickupCode && currentOrder.orderNumber && pickupCode !== currentOrder.orderNumber) {
+        Alert.alert("Invalid Pickup Code", "The pickup code does not match the order ID.");
         return;
       }
 
@@ -338,7 +344,7 @@ export const useDeliveryStore = create<DeliveryState>((set, get) => ({
 
     const response = await apiClient.patch(
       `/delivery/orders/${orderId}/status`,
-      { status, otp },
+      { status, otp, pickupCode },
     );
     get().mergeRealtimeDelivery(response.data);
 

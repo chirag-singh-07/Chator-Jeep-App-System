@@ -209,6 +209,10 @@ const buildOrderDraft = async (userId: string, input: OrderInput) => {
   }
 
   const finalTotal = Math.max(0, itemsTotal - couponDiscount);
+  
+  // Generate random 6-digit order number and 4-digit OTP
+  const orderNumber = Math.floor(100000 + Math.random() * 900000).toString();
+  const deliveryOtp = Math.floor(1000 + Math.random() * 9000).toString();
 
   return {
     itemsTotal: finalTotal,
@@ -231,6 +235,8 @@ const buildOrderDraft = async (userId: string, input: OrderInput) => {
       status: ORDER_STATUS.PENDING,
       isBulkOrder: input.isBulkOrder || false,
       scheduledDeliveryTime: input.scheduledDeliveryTime ? new Date(input.scheduledDeliveryTime) : null,
+      orderNumber,
+      deliveryOtp,
     },
   };
 };
@@ -604,13 +610,27 @@ export const cancelOrder = async (userId: string, orderId: string, reason?: stri
 export const updateOrderStatus = async (
   actor: { userId: string; role: Role },
   orderId: string,
-  nextStatus: OrderStatus
+  nextStatus: OrderStatus,
+  pickupCode?: string,
+  deliveryOtp?: string
 ) => {
-  const order = await repo.getOrderById(orderId);
+  const order = await Order.findById(orderId).select("+deliveryOtp").populate("restaurantId", "name logoUrls").populate("deliveryId", "fullName phoneNumber profilePhoto vehicleType status");
   if (!order) throw new AppError("Order not found", 404);
 
   if (!canTransition(order.status, nextStatus, actor.role)) {
     throw new AppError(`Cannot transition from ${order.status} to ${nextStatus}`, 400);
+  }
+  
+  if (nextStatus === ORDER_STATUS.PICKED_UP) {
+    if (order.orderNumber && order.orderNumber !== pickupCode) {
+      throw new AppError("Invalid Pickup Code. Please check the 6-digit order ID.", 400);
+    }
+  }
+
+  if (nextStatus === ORDER_STATUS.COMPLETED) {
+    if (order.deliveryOtp && order.deliveryOtp !== deliveryOtp) {
+      throw new AppError("Invalid Delivery OTP", 400);
+    }
   }
 
   const updated = await repo.updateOrder(orderId, { status: nextStatus });

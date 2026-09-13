@@ -112,10 +112,8 @@ export class NotificationService {
       android: {
         priority: "high" as const,
         notification: {
-          channelId: "orders",
           sound,
           clickAction: "ORDER_DETAILS",
-          priority: "high" as const,
         },
       },
       apns: {

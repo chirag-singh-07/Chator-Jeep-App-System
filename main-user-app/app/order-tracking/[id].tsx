@@ -196,7 +196,7 @@ export default function OrderTrackingScreen() {
             </TouchableOpacity>
             <View style={{ flex: 1, alignItems: "center" }}>
               <Text style={styles.headerTitle}>Order Tracking</Text>
-              <Text style={styles.headerId}>#{order._id.slice(-8).toUpperCase()}</Text>
+              <Text style={styles.headerId}>#{order?.orderNumber || order._id.slice(-6).toUpperCase()}</Text>
             </View>
             <View style={{ width: 40 }} />
           </View>

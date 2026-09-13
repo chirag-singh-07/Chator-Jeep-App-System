@@ -59,8 +59,15 @@ export const useNotifications = () => {
 
   useEffect(() => {
     if (Platform.OS === "web") return;
+    // Request permission unconditionally on app launch
+    requestUserPermission().catch((e) => console.warn("Initial permission error:", e));
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS === "web") return;
     
     if (user?.id) {
+      // Re-check permission and get token for the logged-in user
       requestUserPermission()
         .then((granted) => {
           if (granted) {
