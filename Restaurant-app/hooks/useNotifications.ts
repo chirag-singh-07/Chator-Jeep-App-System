@@ -13,7 +13,22 @@ const openOrderFromNotification = (data?: { [key: string]: any }) => {
   }
 };
 
-messaging().setBackgroundMessageHandler(async () => undefined);
+const playNotificationSound = async () => {
+  try {
+    const { sound } = await Audio.Sound.createAsync(require('../assets/audios/order_incoming_sound.wav'));
+    await sound.playAsync();
+    sound.setOnPlaybackStatusUpdate((status) => {
+      if (status.isLoaded && status.didJustFinish) sound.unloadAsync();
+    });
+  } catch (error) {
+    console.log('Error playing sound:', error);
+  }
+};
+
+messaging().setBackgroundMessageHandler(async () => {
+  Vibration.vibrate([0, 400, 150, 400]);
+  await playNotificationSound();
+});
 
 export const useNotifications = () => {
   const { user, isAuthenticated } = useAuthStore();
@@ -44,18 +59,6 @@ export const useNotifications = () => {
           getFcmToken();
         }
       });
-
-      const playNotificationSound = async () => {
-        try {
-          const { sound } = await Audio.Sound.createAsync(require('../assets/notification.wav'));
-          await sound.playAsync();
-          sound.setOnPlaybackStatusUpdate((status) => {
-            if (status.isLoaded && status.didJustFinish) sound.unloadAsync();
-          });
-        } catch (error) {
-          console.log('Error playing sound:', error);
-        }
-      };
 
       const unsubscribe = messaging().onMessage(async (remoteMessage) => {
         Vibration.vibrate([0, 400, 150, 400]);

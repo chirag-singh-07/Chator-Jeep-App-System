@@ -23,9 +23,7 @@ export function AddonsPage() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
 
-  useEffect(() => {
-    fetchAddons();
-  }, []);
+
 
   const fetchAddons = async () => {
     try {
@@ -42,6 +40,10 @@ export function AddonsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchAddons();
+  }, []);
 
   const filteredAddons = addons.filter(a => 
     a.name.toLowerCase().includes(query.toLowerCase())

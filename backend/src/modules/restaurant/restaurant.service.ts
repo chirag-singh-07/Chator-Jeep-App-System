@@ -306,9 +306,26 @@ export const adminListMenuItems = async (query: {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
+      .lean()
       .exec(),
     MenuItem.countDocuments(filter),
   ]);
+
+  // Map category IDs to names
+  const categoryIds = items.map(item => item.category).filter(c => c && mongoose.Types.ObjectId.isValid(c as string));
+  if (categoryIds.length > 0) {
+    const categories = await Category.find({ _id: { $in: categoryIds } }).lean().exec();
+    const categoryMap = categories.reduce((acc: Record<string, string>, cat: any) => {
+      acc[cat._id.toString()] = cat.name;
+      return acc;
+    }, {} as Record<string, string>);
+    
+    for (const item of items) {
+      if (item.category && categoryMap[item.category as string]) {
+        item.category = categoryMap[item.category as string];
+      }
+    }
+  }
 
   return {
     items,
@@ -481,8 +498,24 @@ export const adminToggleMenuItemStock = async (itemId: string, isAvailable: bool
 };
 
 export const adminGetRestaurant = async (id: string) => {
-  const restaurant = await findRestaurantById(id);
-  if (!restaurant) throw new AppError("Restaurant not found", 404);
+  const restaurantDoc = await findRestaurantById(id);
+  if (!restaurantDoc) throw new AppError("Restaurant not found", 404);
+
+  const restaurant = restaurantDoc.toObject() as any;
+
+  if (restaurant.cuisines && restaurant.cuisines.length > 0) {
+    const validCategoryIds = restaurant.cuisines.filter((c: string) => mongoose.Types.ObjectId.isValid(c));
+    if (validCategoryIds.length > 0) {
+      const categories = await Category.find({ _id: { $in: validCategoryIds } }).lean().exec();
+      const categoryMap = categories.reduce((acc: Record<string, string>, cat: any) => {
+        acc[cat._id.toString()] = cat.name;
+        return acc;
+      }, {} as Record<string, string>);
+
+      restaurant.cuisines = restaurant.cuisines.map((c: string) => categoryMap[c] || c);
+    }
+  }
+
   return restaurant;
 };
 
@@ -918,7 +951,25 @@ export const listMyMenu = async (userId: string) => {
   const restaurant = await findRestaurantByOwner(userId);
   if (!restaurant) throw new AppError("Restaurant not found", 404);
 
-  return MenuItem.find({ restaurantId: restaurant._id }).sort({ createdAt: -1 }).exec();
+  const menu = await MenuItem.find({ restaurantId: restaurant._id }).sort({ createdAt: -1 }).lean().exec();
+
+  // Map category IDs to names
+  const categoryIds = menu.map(item => item.category).filter(c => c && mongoose.Types.ObjectId.isValid(c as string));
+  if (categoryIds.length > 0) {
+    const categories = await Category.find({ _id: { $in: categoryIds } }).lean().exec();
+    const categoryMap = categories.reduce((acc: Record<string, string>, cat: any) => {
+      acc[cat._id.toString()] = cat.name;
+      return acc;
+    }, {} as Record<string, string>);
+    
+    for (const item of menu) {
+      if (item.category && categoryMap[item.category as string]) {
+        item.category = categoryMap[item.category as string];
+      }
+    }
+  }
+
+  return menu;
 };
 
 export const updateMenuItem = async (userId: string, itemId: string, body: any) => {
@@ -989,10 +1040,8 @@ export const listRestaurantMenu = async (restaurantId: string) => {
   const cacheKey = `menu:${restaurantId}`;
   
   if (isRedisEnabled && redisConnection) {
-    const cached = await redisConnection.get(cacheKey);
-    if (cached) {
-      return JSON.parse(cached);
-    }
+    // Force cache invalidation
+    await redisConnection.del(cacheKey);
   }
 
   const menu = await MenuItem.find({

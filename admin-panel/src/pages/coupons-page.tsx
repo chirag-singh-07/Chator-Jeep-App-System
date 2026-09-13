@@ -52,9 +52,6 @@ export function CouponsPage() {
     isForNewUser: false,
   });
 
-  useEffect(() => {
-    fetchCoupons();
-  }, []);
 
   const fetchCoupons = async () => {
     try {
@@ -66,6 +63,10 @@ export function CouponsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchCoupons();
+  }, []);
 
   const handleSubmit = async () => {
     try {

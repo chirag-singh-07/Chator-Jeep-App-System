@@ -155,10 +155,6 @@ export function AdminShell({ children }: { children?: React.ReactNode }) {
   const pathname = location.pathname;
   const { isAuthenticated } = useAuthStore();
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
   const {
     sidebarOpen,
     collapsed,
@@ -173,6 +169,10 @@ export function AdminShell({ children }: { children?: React.ReactNode }) {
     );
     return matchedKey ? routeMeta[matchedKey] : routeMeta["/overview"];
   }, [pathname]);
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
 
   return (
     <main className="min-h-screen text-foreground">

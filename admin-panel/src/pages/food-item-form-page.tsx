@@ -43,10 +43,7 @@ export function FoodItemFormPage() {
   const [addons, setAddons] = useState<DraftAddon[]>([]);
   const [submitted, setSubmitted] = useState(false);
 
-  useEffect(() => {
-    fetchCategories();
-    loadRestaurants();
-  }, []);
+
 
   const loadRestaurants = async () => {
     try {
@@ -64,6 +61,10 @@ export function FoodItemFormPage() {
     }
   };
 
+  useEffect(() => {
+    fetchCategories();
+    loadRestaurants();
+  }, []);
   useEffect(() => {
     if (categories.length > 0 && !category) {
       setCategory(categories[0].name);

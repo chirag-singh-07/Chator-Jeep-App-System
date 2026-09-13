@@ -25,9 +25,6 @@ export function NotificationsPage() {
     targetUserType: "ALL",
   });
 
-  useEffect(() => {
-    fetchHistory();
-  }, []);
 
   const fetchHistory = async () => {
     try {
@@ -39,6 +36,10 @@ export function NotificationsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
 
   const handleSend = async () => {
     if (!formData.title || !formData.body) {

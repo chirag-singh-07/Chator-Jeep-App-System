@@ -6,10 +6,25 @@ import { Audio } from 'expo-av';
 import { apiClient } from "../lib/api";
 import { useAuthStore } from "../store/useAuthStore";
 
+const playNotificationSound = async () => {
+  try {
+    const { sound } = await Audio.Sound.createAsync(require('../assets/notification.wav'));
+    await sound.playAsync();
+    sound.setOnPlaybackStatusUpdate((status) => {
+      if (status.isLoaded && status.didJustFinish) sound.unloadAsync();
+    });
+  } catch (error) {
+    console.log('Error playing sound:', error);
+  }
+};
+
 let messaging: any = null;
 if (Platform.OS !== 'web') {
   messaging = require("@react-native-firebase/messaging").default;
-  messaging().setBackgroundMessageHandler(async () => undefined);
+  messaging().setBackgroundMessageHandler(async () => {
+    Vibration.vibrate([0, 300, 120, 300]);
+    await playNotificationSound();
+  });
 }
 
 const openOrderFromNotification = (data?: { [key: string]: any }) => {
@@ -60,18 +75,6 @@ export const useNotifications = () => {
           getFcmToken();
         }
       });
-
-      const playNotificationSound = async () => {
-        try {
-          const { sound } = await Audio.Sound.createAsync(require('../assets/notification.wav'));
-          await sound.playAsync();
-          sound.setOnPlaybackStatusUpdate((status) => {
-            if (status.isLoaded && status.didJustFinish) sound.unloadAsync();
-          });
-        } catch (error) {
-          console.log('Error playing sound:', error);
-        }
-      };
 
       const unsubscribe = messaging().onMessage(async (remoteMessage: any) => {
         Vibration.vibrate([0, 300, 120, 300]);

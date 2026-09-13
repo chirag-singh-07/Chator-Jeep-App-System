@@ -12,9 +12,6 @@ export function MediaPage() {
   const [loading, setLoading] = useState(true);
   const [deleteKey, setDeleteKey] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchMedia();
-  }, []);
 
   const fetchMedia = async () => {
     try {
@@ -32,6 +29,10 @@ export function MediaPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchMedia();
+  }, []);
 
   const handleDelete = async (key: string) => {
     try {

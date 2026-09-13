@@ -164,11 +164,7 @@ export function BulkMenuUploadPage() {
     };
   };
 
-  // Load database categories & restaurants on mount
-  useEffect(() => {
-    fetchCategories();
-    loadRestaurants();
-  }, []);
+
 
   // When categories finish loading, initialize items if empty
   useEffect(() => {
@@ -206,6 +202,12 @@ export function BulkMenuUploadPage() {
       setLoadingRestaurants(false);
     }
   };
+
+  // Load database categories & restaurants on mount
+  useEffect(() => {
+    fetchCategories();
+    loadRestaurants();
+  }, []);
 
   const selectedRestaurant = restaurants.find((r) => r._id === selectedRestaurantId);
 
