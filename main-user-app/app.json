@@ -4,7 +4,7 @@
     "slug": "main-user-app",
     "version": "1.4.0",
     "orientation": "portrait",
-    "icon": "./assets/icons/ios-icon-1024x1024.png",
+    "icon": "./assets/icons/logo.png",
     "scheme": "mainuserapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
@@ -21,8 +21,8 @@
       "versionCode": 12,
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
-        "foregroundImage": "./assets/icons/android-icon-512x512.png",
-        "monochromeImage": "./assets/icons/android-icon-512x512.png"
+        "foregroundImage": "./assets/icons/logo.png",
+        "monochromeImage": "./assets/icons/logo.png"
       },
       "config": {
         "googleMaps": {
@@ -52,7 +52,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/icons/ios-icon-1024x1024.png",
+          "image": "./assets/icons/logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",

@@ -4,7 +4,7 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
 
@@ -82,12 +82,39 @@ function TabItem({ isFocused, label, iconConfig, onPress, onLongPress }: any) {
     return {
       transform: [
         {
-          translateY: withSpring(isFocused ? -2 : 0, {
-            damping: 15,
-            stiffness: 150,
+          translateY: withSpring(isFocused ? -4 : 0, {
+            damping: 12,
+            stiffness: 180,
           }),
         },
+        {
+          scale: withSpring(isFocused ? 1.05 : 1, {
+            damping: 12,
+            stiffness: 200,
+          }),
+        }
       ],
+      backgroundColor: withTiming(isFocused ? '#FFD400' : 'transparent', { duration: 250 }),
+      elevation: withTiming(isFocused ? 4 : 0, { duration: 250 }),
+    };
+  });
+
+  const iconStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          scale: withSpring(isFocused ? 1.15 : 1, {
+            damping: 12,
+            stiffness: 250,
+          }),
+        }
+      ]
+    };
+  });
+
+  const labelStyle = useAnimatedStyle(() => {
+    return {
+      opacity: withTiming(isFocused ? 1 : 0.6, { duration: 250 }),
     };
   });
 
@@ -101,17 +128,18 @@ function TabItem({ isFocused, label, iconConfig, onPress, onLongPress }: any) {
       style={[
         styles.tabItem,
         animatedStyle,
-        isFocused && styles.tabItemFocused
       ]}
     >
-      <Ionicons
-        name={isFocused ? iconConfig.active : iconConfig.inactive}
-        size={isFocused ? 24 : 22}
-        color={isFocused ? '#151515' : '#9B9B9B'}
-      />
-      <Text style={[styles.tabLabel, isFocused && styles.tabLabelFocused]}>
+      <Animated.View style={iconStyle}>
+        <Ionicons
+          name={isFocused ? iconConfig.active : iconConfig.inactive}
+          size={24}
+          color={isFocused ? '#151515' : '#9B9B9B'}
+        />
+      </Animated.View>
+      <Animated.Text style={[styles.tabLabel, isFocused && styles.tabLabelFocused, labelStyle]}>
         {label}
-      </Text>
+      </Animated.Text>
     </AnimatedTouchableOpacity>
   );
 }
@@ -158,12 +186,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   tabItemFocused: {
-    backgroundColor: '#FFD400',
     shadowColor: '#FFD400',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 4,
   },
   tabLabel: {
     fontSize: 10,
