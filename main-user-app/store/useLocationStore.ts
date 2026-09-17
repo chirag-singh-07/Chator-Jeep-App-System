@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "@/lib/api";
+import * as Location from "expo-location";
 
 export interface Address {
   id: string;
@@ -109,7 +110,7 @@ export const useLocationStore = create<LocationState>()(
       },
       fetchCurrentLocation: async () => {
         try {
-          const Location = require("expo-location");
+
           const { status } = await Location.requestForegroundPermissionsAsync();
           if (status === "granted") {
             const location = await Location.getCurrentPositionAsync({

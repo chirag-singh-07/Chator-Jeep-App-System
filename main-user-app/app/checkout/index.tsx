@@ -8,7 +8,6 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
-  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -16,8 +15,7 @@ import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { useCartStore } from '@/store/useCartStore';
 import { useLocationStore } from '@/store/useLocationStore';
-import { useOrderStore } from '@/store/useOrderStore';
-import Animated, { FadeInRight, FadeInDown, FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeInRight, FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import * as WebBrowser from 'expo-web-browser';
 import api from '@/lib/api';
@@ -31,7 +29,7 @@ export default function CheckoutScreen() {
   const router = useRouter();
   const { items, totalAmount, restaurantId, clearCart } = useCartStore();
   const { savedAddresses, currentAddress } = useLocationStore();
-  const { placeOrder, isLoading } = useOrderStore();
+
 
   const [step, setStep] = useState(1);
   const [selectedAddress, setSelectedAddress] = useState<any>(savedAddresses[0] || currentAddress || null);
@@ -112,6 +110,7 @@ export default function CheckoutScreen() {
         setSelectedAddress(defaultAddress);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [savedAddresses, currentAddress]);
 
   const addressList = savedAddresses.length > 0 ? savedAddresses : currentAddress ? [currentAddress] : [];
@@ -148,6 +147,7 @@ export default function CheckoutScreen() {
     if (step === 2 && selectedAddress) {
       fetchPreview(selectedAddress);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, selectedAddress, isBulkOrder, scheduledDeliveryTime]);
 
   const grandTotal = breakdown.totalAmount;
@@ -648,7 +648,7 @@ export default function CheckoutScreen() {
   );
 }
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F7' },

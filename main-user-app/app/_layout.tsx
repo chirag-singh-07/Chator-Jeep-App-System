@@ -36,6 +36,7 @@ function AuthGate() {
         router.replace("/(tabs)");
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, hasHydrated, hasSeenOnboarding, segments]);
 
   return (

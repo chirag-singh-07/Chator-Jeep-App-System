@@ -12,13 +12,13 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeIn, FadeInDown, FadeInRight } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { getAvatarUrl } from '@/lib/utils';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 export default function OrderTrackingScreen() {
-  const { id } = useLocalSearchParams();
+  useLocalSearchParams();
   const router = useRouter();
 
   const STEPS = [

@@ -5,10 +5,8 @@ import {
   Text, 
   Image, 
   ScrollView, 
-  TouchableOpacity, 
-  Dimensions, 
+  TouchableOpacity,
   StatusBar,
-  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
@@ -31,7 +29,7 @@ import { useCartStore } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import * as Haptics from 'expo-haptics';
 
-const { width } = Dimensions.get('window');
+
 const HEADER_HEIGHT = 280;
 
 const Skeleton = ({ width: w, height: h, borderRadius = 8, style = {} }: any) => {
@@ -76,6 +74,7 @@ export default function RestaurantDetailScreen() {
       });
       fetchReviews(id as string);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const categories = useMemo(() => {

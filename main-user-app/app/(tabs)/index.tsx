@@ -11,7 +11,6 @@ import {
   FlatList,
   StatusBar,
   RefreshControl,
-  ActivityIndicator,
   Modal,
   Pressable,
   Platform,
@@ -24,9 +23,6 @@ import Animated, {
   FadeInRight,
   FadeInDown,
   FadeInUp,
-  FadeIn,
-  FadeOut,
-  SlideInUp,
   SlideInDown,
   SlideOutDown,
   useAnimatedStyle,
@@ -39,11 +35,10 @@ import { useLocationStore } from "@/store/useLocationStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import * as Haptics from "expo-haptics";
 import * as Location from "expo-location";
-import { getAvatarUrl } from "@/lib/utils";
 import api from "@/lib/api";
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 const Skeleton = ({
   width: w,
@@ -77,7 +72,7 @@ const Skeleton = ({
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { restaurants, categories, popularItems, banners, isLoading, fetchHomeData, areaStatus } = useMenuStore();
+  const { restaurants, categories, banners, isLoading, fetchHomeData, areaStatus } = useMenuStore();
   const { currentAddress, savedAddresses, setCurrentAddress, fetchAddresses } =
     useLocationStore();
   const { user } = useAuthStore();
@@ -114,6 +109,7 @@ export default function HomeScreen() {
     if (user) {
       fetchAddresses();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   useEffect(() => {
@@ -140,6 +136,7 @@ export default function HomeScreen() {
       }
     };
     initializeLocationAndData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentAddress]);
 
   const loadData = async () => {

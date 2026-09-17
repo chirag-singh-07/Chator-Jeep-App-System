@@ -1,17 +1,13 @@
 import React, { useEffect } from 'react';
-import { Image, View, StyleSheet, Dimensions } from 'react-native';
+import { Image, View, StyleSheet } from 'react-native';
 import Animated, { 
   useSharedValue, 
-  useAnimatedStyle, 
-  withRepeat, 
-  withTiming, 
+  useAnimatedStyle,
+  withTiming,
   withSequence,
-  withDelay,
   Easing 
 } from 'react-native-reanimated';
 import { Colors } from '../constants/Colors';
-
-const { width, height } = Dimensions.get('window');
 
 export const AppLoadingScreen = ({ onFinish }: { onFinish?: () => void }) => {
   const scale = useSharedValue(0.5);
@@ -36,7 +32,8 @@ export const AppLoadingScreen = ({ onFinish }: { onFinish?: () => void }) => {
       }, 2500);
       return () => clearTimeout(timer);
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onFinish]);
 
   const logoAnimatedStyle = useAnimatedStyle(() => {
     return {

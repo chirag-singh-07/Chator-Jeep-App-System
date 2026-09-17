@@ -2,7 +2,6 @@ import React, { useCallback, useEffect } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   RefreshControl,
   StyleSheet,
   Text,
@@ -16,7 +15,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInUp } from "react-native-reanimated";
 import { format } from "date-fns";
-import { Colors } from "@/constants/Colors";
+
 import { useAuthStore } from "@/store/useAuthStore";
 import { useOrderStore } from "@/store/useOrderStore";
 
@@ -31,8 +30,6 @@ const STATUS_META: Record<string, { label: string; color: string; bg: string }> 
   CANCELLED: { label: "Cancelled", color: "#C84545", bg: "#FFF0F0" }, // Updated to match HTML
 };
 
-const getRestaurantLogo = (restaurant: any) =>
-  restaurant?.logoUrls?.thumbnail || restaurant?.logoUrls?.medium || restaurant?.logoUrls?.full;
 
 export default function OrdersScreen() {
   const router = useRouter();

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -8,7 +8,7 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
-  Dimensions,
+
   ScrollView,
   ActivityIndicator,
   Alert,
@@ -29,7 +29,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useLocationStore } from '@/store/useLocationStore';
 import { useCartStore } from '@/store/useCartStore';
 
-const { width, height } = Dimensions.get('window');
+
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const indianPhoneRegex = /^[6-9]\d{9}$/;
 
@@ -141,7 +141,7 @@ export default function RegisterScreen() {
           // @ts-ignore - Some versions support timeout
           timeout: 10000, 
         });
-      } catch (err) {
+      } catch {
         // Fallback to last known position if current fails
         location = await Location.getLastKnownPositionAsync();
       }
@@ -171,7 +171,7 @@ export default function RegisterScreen() {
       }
       
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Could not fetch your location. Please enter it manually.');
     } finally {
       setLoading(false);

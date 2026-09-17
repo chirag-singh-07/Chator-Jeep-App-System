@@ -7,7 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  Dimensions,
+
   StatusBar,
   Alert,
   TextInput,
@@ -27,12 +27,12 @@ import Animated, { FadeInDown, SlideInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import api from '@/lib/api';
 
-const { height } = Dimensions.get('window');
+
 
 export default function CartScreen() {
-  const { isAuthenticated, hasPlacedOrder } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const router = useRouter();
-  const { items, restaurantId, restaurantName, totalAmount, totalItems, updateQuantity, clearCart } = useCartStore();
+  const { items, restaurantId, totalAmount, totalItems, updateQuantity, clearCart } = useCartStore();
   const { currentAddress } = useLocationStore();
 
   const [hasRedirected, setHasRedirected] = useState(false);
@@ -42,7 +42,7 @@ export default function CartScreen() {
       setHasRedirected(true);
       router.push('/(auth)/login');
     }
-  }, [isAuthenticated, items.length, hasRedirected]);
+  }, [isAuthenticated, items.length, hasRedirected, router]);
 
   const scrollRef = useRef<ScrollView>(null);
   const [instructions, setInstructions] = useState('');
@@ -73,9 +73,7 @@ export default function CartScreen() {
     couponDiscount: number;
     totalAmount: number;
   } | null>(null);
-  const [isFetchingFees, setIsFetchingFees] = useState<boolean>(false);
-
-  const isFirstOrder = !hasPlacedOrder;
+  const [, setIsFetchingFees] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchFeesAndPreview = async () => {
@@ -120,11 +118,11 @@ export default function CartScreen() {
               if (previewRes.data.data.platformFee !== undefined) setPlatformFee(previewRes.data.data.platformFee);
               if (previewRes.data.data.packagingFee !== undefined) setPackagingCharge(previewRes.data.data.packagingFee);
             }
-          } catch (previewErr) {
+          } catch {
             // Quiet fallback for preview error
           }
         }
-      } catch (error) {
+      } catch {
         setDeliveryFee(29);
         setPlatformFee(15);
       } finally {

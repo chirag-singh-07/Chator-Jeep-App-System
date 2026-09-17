@@ -8,7 +8,6 @@ import {
   SafeAreaView,
   StatusBar,
   ActivityIndicator,
-  Dimensions,
   RefreshControl,
   Platform,
 } from 'react-native';
@@ -19,7 +18,7 @@ import { useWalletStore } from '@/store/useWalletStore';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { format } from 'date-fns';
 
-const { width } = Dimensions.get('window');
+
 
 export default function WalletScreen() {
   const router = useRouter();
@@ -28,7 +27,7 @@ export default function WalletScreen() {
   useEffect(() => {
     fetchBalance();
     fetchTransactions();
-  }, []);
+  }, [fetchBalance, fetchTransactions]);
 
   const onRefresh = () => {
     fetchBalance();

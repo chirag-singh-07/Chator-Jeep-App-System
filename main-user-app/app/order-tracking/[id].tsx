@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet, View, Text, ScrollView, TouchableOpacity,
-  Image, Dimensions, SafeAreaView, StatusBar, ActivityIndicator,
+  Image, SafeAreaView, StatusBar, ActivityIndicator,
   Modal, TextInput, Alert, Linking,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -13,7 +13,7 @@ import Animated, { FadeIn, SlideInUp, useSharedValue, useAnimatedStyle, withRepe
 import api from "@/lib/api";
 import * as Haptics from "expo-haptics";
 
-const { height } = Dimensions.get("window");
+
 
 const STEPS = [
   { status: "PENDING",   label: "Order Placed",       icon: "receipt-outline",       desc: "Waiting for restaurant" },
@@ -66,6 +66,7 @@ export default function OrderTrackingScreen() {
     // Polling fallback every 15s
     const interval = setInterval(() => { if (id) fetchOrderDetail(id); }, 15000);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // ── Socket: listen for order status updates ──────────────────────────────────
@@ -100,11 +101,13 @@ export default function OrderTrackingScreen() {
       socket.off("order_update", handleOrderUpdate);
       socket.off("delivery:status_update");
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, id, order?.status]);
 
   // ── Pulse animation for active step ─────────────────────────────────────────
   useEffect(() => {
     pulseAnim.value = withRepeat(withTiming(1.25, { duration: 800 }), -1, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order?.status]);
 
   // ── Show review modal on completion ─────────────────────────────────────────
@@ -113,6 +116,7 @@ export default function OrderTrackingScreen() {
       const timer = setTimeout(() => setShowReviewModal(true), 1500);
       return () => clearTimeout(timer);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order?.status]);
 
   const currentStepIndex = STEPS.findIndex(s => s.status === order?.status);

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Image, Modal, Text, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Image, Modal, Text } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
@@ -18,7 +18,7 @@ interface AdPopup {
 export function AdPopupModal() {
   const [visible, setVisible] = useState(false);
   const [popup, setPopup] = useState<AdPopup | null>(null);
-  const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     fetchActivePopup();
@@ -35,8 +35,6 @@ export function AdPopupModal() {
       }
     } catch (error) {
       console.log('Failed to fetch ad popup:', error);
-    } finally {
-      setLoading(false);
     }
   };
 

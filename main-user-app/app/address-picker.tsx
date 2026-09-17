@@ -16,12 +16,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Colors } from '@/constants/Colors';
+
 import { Ionicons } from '@expo/vector-icons';
 import { useLocationStore, Address } from '@/store/useLocationStore';
 import * as Haptics from 'expo-haptics';
 import * as Location from 'expo-location';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ValidatedAddressField } from '@/components/ValidatedAddressField';
 import {
   AddressDraft,
@@ -33,7 +33,7 @@ import {
 } from '@/lib/addressValidation';
 import api from '@/lib/api';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 export default function AddressPickerScreen() {
   const router = useRouter();

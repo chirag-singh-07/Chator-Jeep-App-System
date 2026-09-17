@@ -31,8 +31,6 @@ const getPrimaryApiUrl = () => {
   return normalizeApiUrl(API_ENDPOINTS[0]);
 };
 
-// Current active endpoint (for fallback logic)
-let currentEndpointIndex = 0;
 
 export const API_URL = getPrimaryApiUrl();
 export const SOCKET_URL = API_URL.replace(/\/api\/v1$/, "");
@@ -87,7 +85,7 @@ api.interceptors.response.use(
           console.warn(`🔄 [API Fallback] Trying: ${fallbackUrl}`);
           try {
             return await api(originalRequest);
-          } catch (retryError) {
+          } catch {
             console.warn(`❌ [API Fallback Failed] ${fallbackUrl}`);
             continue;
           }
@@ -135,7 +133,7 @@ api.interceptors.response.use(
 
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
-      } catch (err) {
+      } catch {
         if (isSilentRequest) {
           return Promise.reject(error);
         }

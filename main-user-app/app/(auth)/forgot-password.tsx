@@ -8,7 +8,7 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
-  Dimensions,
+
   ScrollView,
   StatusBar,
   Alert,
@@ -24,7 +24,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import api from '@/lib/api';
 
-const { width, height } = Dimensions.get('window');
 
 export default function ForgotPasswordScreen() {
   const [step, setStep] = useState<'EMAIL' | 'OTP' | 'NEW_PASSWORD'>('EMAIL');

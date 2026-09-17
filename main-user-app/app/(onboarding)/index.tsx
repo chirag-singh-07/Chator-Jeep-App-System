@@ -18,7 +18,6 @@ import Animated, {
   useAnimatedStyle,
   interpolate,
   Extrapolation,
-  withSpring,
   FadeInDown,
   FadeInUp
 } from 'react-native-reanimated';

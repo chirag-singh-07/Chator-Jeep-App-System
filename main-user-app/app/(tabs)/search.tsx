@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Text, TextInput, ScrollView, TouchableOpacity, Image, ActivityIndicator, Dimensions, Platform } from 'react-native';
+import { StyleSheet, View, Text, TextInput, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from '@/constants/Colors';
+
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useMenuStore } from '@/store/useMenuStore';
@@ -13,7 +13,7 @@ const { width } = Dimensions.get('window');
 export default function SearchScreen() {
   const { categoryId } = useLocalSearchParams();
   const [query, setQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('Everything');
+  const [activeFilter] = useState('Everything');
   const { restaurants, isLoading, fetchRestaurants, categories } = useMenuStore();
   const router = useRouter();
 
@@ -22,6 +22,7 @@ export default function SearchScreen() {
     if (categoryId) {
       fetchRestaurants({ categoryId });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryId]);
 
   // Debounced search
@@ -32,13 +33,15 @@ export default function SearchScreen() {
       if (activeFilter === 'Pure Veg') params.isVeg = true;
       fetchRestaurants(params);
     }, 500),
-    [activeFilter]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
   );
 
   useEffect(() => {
     if (query) {
       debouncedSearch(query);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, activeFilter]);
 
   const clearSearch = () => {
