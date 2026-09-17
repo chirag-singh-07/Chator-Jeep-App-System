@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import api from '@/lib/api';
 import RazorpayCheckout from 'react-native-razorpay';
@@ -52,7 +52,7 @@ interface CartItem extends MenuItem {
 export default function BulkOrderScreen() {
   const router = useRouter();
   const { currentAddress } = useLocationStore();
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
 
   const [step, setStep] = useState<number>(1);
   const [searchMode, setSearchMode] = useState<'restaurant' | 'food'>('restaurant');
@@ -103,7 +103,7 @@ export default function BulkOrderScreen() {
       const res = await api.get(`/restaurants/bulk/search`, {
         params: { search: query, lat, lng }
       });
-      setSearchResults(results);
+      setSearchResults(res.data?.data || []);
     } catch (err) {
       console.log('Search Error', err);
     } finally {
@@ -283,6 +283,67 @@ export default function BulkOrderScreen() {
       </View>
     </View>
   );
+
+  // ── Guest Mode Wall ──────────────────────────────────────────
+  if (!isAuthenticated) {
+    return (
+      <SafeAreaView style={styles.appShell}>
+        {renderTopBar()}
+        <Animated.View entering={FadeIn.duration(350)} style={styles.guestWall}>
+          <LinearGradient
+            colors={[C.yellow2, C.yellow]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.guestIconCircle}
+          >
+            <Ionicons name="lock-closed" size={34} color={C.ink} />
+          </LinearGradient>
+
+          <Text style={styles.guestTitle}>Login required</Text>
+          <Text style={styles.guestDesc}>
+            Bulk ordering is available only for registered users.{`\n`}Please sign in to browse restaurants, add items, and place a scheduled bulk order.
+          </Text>
+
+          <View style={styles.guestFeatureList}>
+            {[
+              { icon: 'search', label: 'Search nearby restaurants & food' },
+              { icon: 'basket-outline', label: 'Place orders for 10+ people' },
+              { icon: 'calendar-outline', label: 'Schedule deliveries in advance' },
+              { icon: 'card-outline', label: 'Secure online payments' },
+            ].map(f => (
+              <View key={f.label} style={styles.guestFeatureRow}>
+                <View style={styles.guestFeatureIcon}>
+                  <Ionicons name={f.icon as any} size={16} color={C.ink} />
+                </View>
+                <Text style={styles.guestFeatureText}>{f.label}</Text>
+              </View>
+            ))}
+          </View>
+
+          <TouchableOpacity
+            style={styles.guestLoginBtn}
+            activeOpacity={0.85}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              router.push('/(auth)/login' as any);
+            }}
+          >
+            <Text style={styles.guestLoginBtnText}>Sign in to continue</Text>
+            <Ionicons name="arrow-forward" size={18} color={C.ink} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.guestRegisterBtn}
+            activeOpacity={0.85}
+            onPress={() => router.push('/(auth)/register' as any)}
+          >
+            <Text style={styles.guestRegisterBtnText}>Create a new account</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </SafeAreaView>
+    );
+  }
+  // ─────────────────────────────────────────────────────────────
 
   if (paymentStatus !== 'none') {
     const isSuccess = paymentStatus === 'success';
@@ -841,4 +902,112 @@ const styles = StyleSheet.create({
   failureCard: { borderColor: '#ffe4e2' },
   failureIcon: { backgroundColor: '#ffe4e2' },
   failureBadgeText: { color: C.danger },
+
+  // Guest Wall
+  guestWall: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 28,
+    paddingBottom: 40,
+  },
+  guestIconCircle: {
+    width: 96,
+    height: 96,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    shadowColor: '#ffcc00',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.3,
+    shadowRadius: 24,
+    elevation: 6,
+  },
+  guestTitle: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: C.ink,
+    letterSpacing: -0.6,
+    textAlign: 'center',
+  },
+  guestDesc: {
+    marginTop: 12,
+    fontSize: 13,
+    lineHeight: 20,
+    color: C.muted,
+    textAlign: 'center',
+    maxWidth: 300,
+  },
+  guestFeatureList: {
+    marginTop: 28,
+    width: '100%',
+    gap: 12,
+  },
+  guestFeatureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: C.white,
+    borderWidth: 1,
+    borderColor: '#efefef',
+    borderRadius: 16,
+    padding: 13,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
+  },
+  guestFeatureIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: C.yellowSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  guestFeatureText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: C.ink,
+    flex: 1,
+  },
+  guestLoginBtn: {
+    marginTop: 28,
+    width: '100%',
+    height: 56,
+    backgroundColor: C.yellow,
+    borderRadius: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    shadowColor: '#ffcc00',
+    shadowOffset: { width: 0, height: 9 },
+    shadowOpacity: 0.28,
+    shadowRadius: 22,
+    elevation: 4,
+  },
+  guestLoginBtnText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: C.ink,
+  },
+  guestRegisterBtn: {
+    marginTop: 12,
+    width: '100%',
+    height: 50,
+    borderWidth: 1.5,
+    borderColor: '#e0e0e0',
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: C.white,
+  },
+  guestRegisterBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: C.ink,
+  },
 });
