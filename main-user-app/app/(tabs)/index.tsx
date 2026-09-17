@@ -124,14 +124,27 @@ export default function HomeScreen() {
         try {
           const { status } = await Location.requestForegroundPermissionsAsync();
           if (status === 'granted') {
-            const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-            await fetchHomeData(location.coords.latitude, location.coords.longitude, undefined);
+            let location;
+            try {
+              location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced, timeout: 8000 });
+            } catch (e) {
+              location = await Location.getLastKnownPositionAsync();
+            }
+            
+            if (location) {
+              await fetchHomeData(location.coords.latitude, location.coords.longitude, undefined);
+            } else {
+              // Default to Delhi if location cannot be fetched
+              await fetchHomeData(28.7041, 77.1025, 'Delhi');
+            }
           } else {
-            await fetchHomeData(undefined, undefined, undefined);
+            // Default to Delhi if permission denied
+            await fetchHomeData(28.7041, 77.1025, 'Delhi');
           }
         } catch (err) {
           console.warn("Failed to get location automatically", err);
-          await fetchHomeData(undefined, undefined, undefined);
+          // Default to Delhi if error
+          await fetchHomeData(28.7041, 77.1025, 'Delhi');
         }
       }
     };

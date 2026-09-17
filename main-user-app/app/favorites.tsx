@@ -1,65 +1,38 @@
 import React from 'react';
-import { StyleSheet, View, Text, FlatList, TouchableOpacity, SafeAreaView, StatusBar, Platform } from 'react-native';
+import { StyleSheet, View, Text, FlatList, TouchableOpacity, SafeAreaView, StatusBar, Platform, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-
-const FAVORITES = [
-  {
-    id: '1',
-    name: 'Pizza Junction',
-    desc: 'Italian • Pizza • Fast Food',
-    rating: 4.6,
-    time: '25–30 min',
-    emoji: '🍕',
-    gradient: ['#FFE7A7', '#FFC75B']
-  },
-  {
-    id: '2',
-    name: 'Biryani Adda',
-    desc: 'Biryani • Mughlai • North Indian',
-    rating: 4.8,
-    time: '30–35 min',
-    emoji: '🍛',
-    gradient: ['#FFD2C4', '#FE8B6A']
-  },
-  {
-    id: '3',
-    name: 'Fresh Bowl',
-    desc: 'Healthy • Bowls • Beverages',
-    rating: 4.5,
-    time: '20–25 min',
-    emoji: '🥗',
-    gradient: ['#D8F5DA', '#87D58F']
-  },
-];
+import { useFavoritesStore } from '@/store/useFavoritesStore';
 
 export default function FavoritesScreen() {
   const router = useRouter();
+  const { favorites, removeFavorite } = useFavoritesStore();
 
   const renderItem = ({ item, index }: { item: any, index: number }) => (
     <Animated.View 
       entering={FadeInDown.delay(index * 100)}
-      style={styles.restaurantCard}
     >
-      <LinearGradient
-        colors={item.gradient as [string, string]}
-        style={styles.restImg}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+      <TouchableOpacity 
+        style={styles.restaurantCard}
+        activeOpacity={0.9}
+        onPress={() => router.push(`/restaurant/${item._id}`)}
       >
-        <Text style={styles.emoji}>{item.emoji}</Text>
-      </LinearGradient>
-      
-      <View style={styles.restInfo}>
-        <Text style={styles.restTitle} numberOfLines={1}>{item.name}</Text>
-        <Text style={styles.restDesc} numberOfLines={1}>{item.desc}</Text>
-        <Text style={styles.restMeta}>★ {item.rating} • {item.time}</Text>
-      </View>
+        <Image
+          source={{ uri: item.coverImage || item.bannerUrls?.original || "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80" }}
+          style={styles.restImg}
+        />
+        
+        <View style={styles.restInfo}>
+          <Text style={styles.restTitle} numberOfLines={1}>{item.name}</Text>
+          <Text style={styles.restDesc} numberOfLines={1}>{item.cuisines?.join(' • ') || "North Indian • Fast Food"}</Text>
+          <Text style={styles.restMeta}>★ {item.rating || '4.5'} • {item.estimatedDeliveryTimeMins ? `${item.estimatedDeliveryTimeMins} min` : "25-30 min"}</Text>
+        </View>
 
-      <TouchableOpacity style={styles.heartBtn}>
-        <Ionicons name="heart" size={16} color="#e64949" />
+        <TouchableOpacity style={styles.heartBtn} onPress={() => removeFavorite(item._id)}>
+          <Ionicons name="heart" size={16} color="#e64949" />
+        </TouchableOpacity>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -80,9 +53,9 @@ export default function FavoritesScreen() {
         </View>
 
         <FlatList
-          data={FAVORITES}
+          data={favorites}
           renderItem={renderItem}
-          keyExtractor={item => item.id}
+          keyExtractor={item => item._id}
           contentContainerStyle={styles.pageBody}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={

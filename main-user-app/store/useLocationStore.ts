@@ -102,7 +102,13 @@ export const useLocationStore = create<LocationState>()(
                    latitude: ba.location?.coordinates?.[1] || 0,
                 },
              }));
-             set({ savedAddresses: mappedAddresses });
+             const currentState = get();
+             let newCurrent = currentState.currentAddress;
+             if (!newCurrent && mappedAddresses.length > 0) {
+               newCurrent = mappedAddresses[0];
+             }
+
+             set({ savedAddresses: mappedAddresses, currentAddress: newCurrent });
           }
         } catch (error) {
           console.error("Failed to fetch addresses from backend", error);

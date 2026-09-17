@@ -12,8 +12,11 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-  StatusBar
+  StatusBar,
+  Dimensions
 } from 'react-native';
+
+const { height } = Dimensions.get('window');
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';

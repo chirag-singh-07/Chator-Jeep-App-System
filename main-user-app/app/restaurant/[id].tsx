@@ -27,6 +27,7 @@ import Animated, {
 import { useMenuStore } from '@/store/useMenuStore';
 import { useCartStore } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useFavoritesStore } from '@/store/useFavoritesStore';
 import * as Haptics from 'expo-haptics';
 
 
@@ -54,7 +55,8 @@ export default function RestaurantDetailScreen() {
   const { addItem, updateQuantity, items, totalAmount, totalItems } = useCartStore();
   
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [isFavorite, setIsFavorite] = useState(false);
+  const { isFavorite, addFavorite, removeFavorite } = useFavoritesStore();
+  const isFav = isFavorite(id as string);
 
   const scrollY = useSharedValue(0);
   const onScroll = useAnimatedScrollHandler((event) => {
@@ -233,14 +235,18 @@ export default function RestaurantDetailScreen() {
           <TouchableOpacity 
             style={styles.iconCircle}
             onPress={() => {
-              setIsFavorite(!isFavorite);
+              if (isFav) {
+                removeFavorite(id as string);
+              } else if (res) {
+                addFavorite(res);
+              }
               Haptics.selectionAsync();
             }}
           >
             <Ionicons 
-              name={isFavorite ? "heart" : "heart-outline"} 
+              name={isFav ? "heart" : "heart-outline"} 
               size={20} 
-              color={isFavorite ? "#EF4444" : "#1A1A1A"} 
+              color={isFav ? "#EF4444" : "#1A1A1A"} 
             />
           </TouchableOpacity>
         </View>
