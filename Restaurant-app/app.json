@@ -16,7 +16,7 @@
         "ITSAppUsesNonExemptEncryption": false
       },
       "config": {
-        "googleMapsApiKey": "AIzaSyC4UEJcxgqwDxo1CRy4Lpy9zH7GnqN4lwg"
+        "googleMapsApiKey": "AIzaSyDAUYnLOEU3ZygyFUKBmZAKqt2Q6Ns7_vo"
       }
     },
     "android": {
@@ -38,7 +38,7 @@
       ],
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyC4UEJcxgqwDxo1CRy4Lpy9zH7GnqN4lwg"
+          "apiKey": "AIzaSyDAUYnLOEU3ZygyFUKBmZAKqt2Q6Ns7_vo"
         }
       }
     },
