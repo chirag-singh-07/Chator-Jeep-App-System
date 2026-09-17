@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Chatori Jeeb Restaurant – Partner App</title>
+  <meta name="description" content="Manage orders, menu, earnings and customers for your restaurant from one place." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════
+       TOAST CONTAINER
+  ═══════════════════════════════════════════ -->
+  <div id="toast-container" aria-live="polite"></div>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 1 — MULTI-STEP ONBOARDING
+  ═══════════════════════════════════════════ -->
+  <div id="screen-onboarding" class="screen active">
+
+    <!-- Top bar -->
+    <div class="ob-topbar">
+      <div class="ob-logo-pill">
+        <i class="fa-solid fa-utensils"></i>
+        <span>Chatori Jeeb</span>
+      </div>
+      <button class="ob-skip-btn" id="ob-skip">Skip</button>
+    </div>
+
+    <!-- Slides Viewport -->
+    <div class="ob-viewport" id="ob-viewport">
+      <div class="ob-track" id="ob-track">
+
+        <!-- ── Slide 1 ── -->
+        <div class="ob-slide">
+          <div class="ob-visual ob-visual-1">
+            <div class="ob-vis-bg"></div>
+            <div class="ob-scene scene-1">
+              <div class="scene1-plate">
+                <div class="scene1-ring r1"></div>
+                <div class="scene1-ring r2"></div>
+                <div class="scene1-icon-wrap">
+                  <i class="fa-solid fa-utensils"></i>
+                </div>
+              </div>
+              <div class="scene1-chip chip-a">
+                <i class="fa-solid fa-star"></i> 4.9 Rating
+              </div>
+              <div class="scene1-chip chip-b">
+                <i class="fa-solid fa-fire"></i> Trending
+              </div>
+              <div class="scene1-chip chip-c">
+                <i class="fa-solid fa-shield-halved"></i> Verified
+              </div>
+            </div>
+          </div>
+          <div class="ob-text">
+            <div class="ob-step-pill">01 / 04</div>
+            <h2 class="ob-title">Your Restaurant,<br /><span>Your Rules</span></h2>
+            <p class="ob-desc">Join 50,000+ restaurant partners across India who manage everything from one powerful app.</p>
+            <div class="ob-highlights">
+              <div class="ob-hl"><i class="fa-solid fa-check-circle"></i> Zero setup cost</div>
+              <div class="ob-hl"><i class="fa-solid fa-check-circle"></i> Go live in 48 hours</div>
+              <div class="ob-hl"><i class="fa-solid fa-check-circle"></i> Dedicated support</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Slide 2 ── -->
+        <div class="ob-slide">
+          <div class="ob-visual ob-visual-2">
+            <div class="ob-vis-bg"></div>
+            <div class="ob-scene scene-2">
+              <div class="scene2-phone">
+                <div class="scene2-header">
+                  <span class="s2-dot red"></span>
+                  <span>Live Orders</span>
+                  <span class="s2-badge">4 NEW</span>
+                </div>
+                <div class="scene2-order">
+                  <div class="s2-avatar">AK</div>
+                  <div class="s2-info">
+                    <strong>Arjun Kumar</strong>
+                    <span>Butter Chicken × 2</span>
+                  </div>
+                  <div class="s2-amount">₹480</div>
+                </div>
+                <div class="scene2-order s2-muted">
+                  <div class="s2-avatar">PR</div>
+                  <div class="s2-info">
+                    <strong>Priya Sharma</strong>
+                    <span>Paneer Tikka × 1</span>
+                  </div>
+                  <div class="s2-amount">₹220</div>
+                </div>
+                <div class="scene2-btns">
+                  <div class="s2-accept">✓ Accept</div>
+                  <div class="s2-reject">✕</div>
+                </div>
+              </div>
+              <div class="scene2-notif">
+                <i class="fa-solid fa-bell"></i> New order just arrived!
+              </div>
+            </div>
+          </div>
+          <div class="ob-text">
+            <div class="ob-step-pill">02 / 04</div>
+            <h2 class="ob-title">Real-Time<br /><span>Order Alerts</span></h2>
+            <p class="ob-desc">Receive instant notifications for new orders. Accept, prepare and track every order from one screen.</p>
+            <div class="ob-highlights">
+              <div class="ob-hl"><i class="fa-solid fa-check-circle"></i> Instant push alerts</div>
+              <div class="ob-hl"><i class="fa-solid fa-check-circle"></i> One-tap Accept / Reject</div>
+              <div class="ob-hl"><i class="fa-solid fa-check-circle"></i> Order status tracking</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Slide 3 ── -->
+        <div class="ob-slide">
+          <div class="ob-visual ob-visual-3">
+            <div class="ob-vis-bg"></div>
+            <div class="ob-scene scene-3">
+              <div class="scene3-card">
+                <div class="s3-label">Today's Earnings</div>
+                <div class="s3-amount">₹4,280</div>
+                <div class="s3-trend">
+                  <i class="fa-solid fa-arrow-trend-up"></i> +18% vs yesterday
+                </div>
+                <div class="s3-bars">
+                  <div class="s3-bar" style="height:40%"></div>
+                  <div class="s3-bar" style="height:65%"></div>
+                  <div class="s3-bar" style="height:50%"></div>
+                  <div class="s3-bar" style="height:80%"></div>
+                  <div class="s3-bar" style="height:55%"></div>
+                  <div class="s3-bar s3-bar-active" style="height:90%"></div>
+                  <div class="s3-bar" style="height:70%"></div>
+                </div>
+              </div>
+              <div class="scene3-stat">
+                <i class="fa-solid fa-receipt"></i> 24 orders
+              </div>
+              <div class="scene3-stat stat-right">
+                <i class="fa-solid fa-wallet"></i> ₹5,389 payout
+              </div>
+            </div>
+          </div>
+          <div class="ob-text">
+            <div class="ob-step-pill">03 / 04</div>
+            <h2 class="ob-title">Track Every<br /><span>Rupee You Earn</span></h2>
+            <p class="ob-desc">Get detailed earnings reports, daily payouts and complete transaction history right in the app.</p>
+            <div class="ob-highlights">
+              <div class="ob-hl"><i class="fa-solid fa-check-circle"></i> Daily & weekly reports</div>
+              <div class="ob-hl"><i class="fa-solid fa-check-circle"></i> Automatic bank transfers</div>
+              <div class="ob-hl"><i class="fa-solid fa-check-circle"></i> GST invoicing support</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Slide 4 ── -->
+        <div class="ob-slide">
+          <div class="ob-visual ob-visual-4">
+            <div class="ob-vis-bg"></div>
+            <div class="ob-scene scene-4">
+              <div class="scene4-center">
+                <div class="scene4-logo">
+                  <i class="fa-solid fa-utensils"></i>
+                </div>
+                <div class="scene4-ring r1"></div>
+                <div class="scene4-ring r2"></div>
+                <div class="scene4-ring r3"></div>
+              </div>
+              <div class="scene4-chip chip-top">
+                <i class="fa-solid fa-book-open"></i> Menu Manager
+              </div>
+              <div class="scene4-chip chip-left">
+                <i class="fa-solid fa-location-dot"></i> Live Tracking
+              </div>
+              <div class="scene4-chip chip-right">
+                <i class="fa-solid fa-headset"></i> 24/7 Support
+              </div>
+              <div class="scene4-chip chip-bottom">
+                <i class="fa-solid fa-star"></i> Review System
+              </div>
+            </div>
+          </div>
+          <div class="ob-text">
+            <div class="ob-step-pill">04 / 04</div>
+            <h2 class="ob-title">Everything<br /><span>In One Place</span></h2>
+            <p class="ob-desc">Menu management, live tracking, customer reviews, support — all built into one sleek partner app.</p>
+            <div class="ob-highlights">
+              <div class="ob-hl"><i class="fa-solid fa-check-circle"></i> Menu editing anytime</div>
+              <div class="ob-hl"><i class="fa-solid fa-check-circle"></i> Customer review replies</div>
+              <div class="ob-hl"><i class="fa-solid fa-check-circle"></i> 24/7 partner support</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /ob-track -->
+    </div><!-- /ob-viewport -->
+
+    <!-- Dots + Buttons -->
+    <div class="ob-footer">
+      <div class="ob-dots" id="ob-dots">
+        <span class="ob-dot active" data-slide="0"></span>
+        <span class="ob-dot" data-slide="1"></span>
+        <span class="ob-dot" data-slide="2"></span>
+        <span class="ob-dot" data-slide="3"></span>
+      </div>
+      <button class="ob-next-btn" id="ob-next">
+        <span id="ob-next-label">Next</span>
+        <i class="fa-solid fa-arrow-right" id="ob-next-icon"></i>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 2 — WELCOME
+  ═══════════════════════════════════════════ -->
+  <div id="screen-welcome" class="screen">
+    <div class="welcome-header">
+      <div class="welcome-illustration">
+        <div class="illus-plate">
+          <div class="illus-fork"><i class="fa-solid fa-utensils"></i></div>
+          <div class="illus-circle">
+            <div class="illus-food">
+              <i class="fa-solid fa-bowl-food"></i>
+            </div>
+          </div>
+          <div class="illus-stars">
+            <i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star"></i>
+          </div>
+          <div class="illus-badge">
+            <i class="fa-solid fa-fire"></i> HOT
+          </div>
+          <div class="illus-order-chip">
+            <i class="fa-solid fa-receipt"></i> +24 orders today
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="welcome-body">
+      <div class="welcome-pill">
+        <i class="fa-solid fa-shield-halved"></i> Trusted by 50,000+ restaurants
+      </div>
+      <h2 class="welcome-heading">Welcome to<br /><span>Chatori Jeeb</span><br />Restaurant</h2>
+      <p class="welcome-sub">Manage your orders, menu, earnings and customers from one powerful place.</p>
+
+      <div class="welcome-features">
+        <div class="wf-item"><i class="fa-solid fa-bolt"></i> Real-time order alerts</div>
+        <div class="wf-item"><i class="fa-solid fa-chart-line"></i> Earnings dashboard</div>
+        <div class="wf-item"><i class="fa-solid fa-list-check"></i> Menu management</div>
+      </div>
+
+      <div class="welcome-actions">
+        <button class="btn-primary" id="btn-go-login">
+          <i class="fa-solid fa-right-to-bracket"></i> Login to Restaurant
+        </button>
+        <button class="btn-outline" id="btn-go-register">
+          <i class="fa-solid fa-store"></i> Register Your Restaurant
+        </button>
+      </div>
+      <p class="welcome-footer">By continuing, you agree to our <a href="#">Terms</a> & <a href="#">Privacy Policy</a>.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 3 — REGISTER STEP 1
+  ═══════════════════════════════════════════ -->
+  <div id="screen-reg1" class="screen">
+    <div class="onboard-header">
+      <button class="back-btn" data-target="screen-welcome"><i class="fa-solid fa-chevron-left"></i></button>
+      <div class="header-logo-mini"><i class="fa-solid fa-utensils"></i></div>
+    </div>
+    <div class="screen-scroll">
+      <div class="progress-bar-wrap">
+        <div class="progress-label"><span>Step 1</span> of 3 — Restaurant Info</div>
+        <div class="progress-track"><div class="progress-fill" style="width:33%"></div></div>
+        <div class="progress-steps">
+          <div class="ps active"><i class="fa-solid fa-store"></i></div>
+          <div class="ps-line"></div>
+          <div class="ps inactive"><i class="fa-solid fa-id-card"></i></div>
+          <div class="ps-line"></div>
+          <div class="ps inactive"><i class="fa-solid fa-landmark"></i></div>
+        </div>
+      </div>
+
+      <h2 class="form-heading">Tell us about your restaurant</h2>
+      <p class="form-sub">Fill in the basics — it only takes 2 minutes.</p>
+
+      <form id="form-reg1" novalidate>
+        <div class="field-group">
+          <label>Restaurant Name <span class="req">*</span></label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-store input-icon"></i>
+            <input type="text" id="r1-name" placeholder="E.g. Chatori Jeeb Kitchen" />
+          </div>
+          <span class="field-err" id="err-r1-name"></span>
+        </div>
+
+        <div class="field-group">
+          <label>Owner / Manager Name <span class="req">*</span></label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-user input-icon"></i>
+            <input type="text" id="r1-owner" placeholder="Full name" />
+          </div>
+          <span class="field-err" id="err-r1-owner"></span>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group" style="flex:1">
+            <label>Mobile Number <span class="req">*</span></label>
+            <div class="input-wrap">
+              <span class="phone-code">+91</span>
+              <input type="tel" id="r1-mobile" placeholder="9876543210" maxlength="10" />
+            </div>
+            <span class="field-err" id="err-r1-mobile"></span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Email Address <span class="req">*</span></label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-envelope input-icon"></i>
+            <input type="email" id="r1-email" placeholder="you@restaurant.com" />
+          </div>
+          <span class="field-err" id="err-r1-email"></span>
+        </div>
+
+        <div class="field-group">
+          <label>Restaurant Address <span class="req">*</span></label>
+          <div class="input-wrap textarea-wrap">
+            <i class="fa-solid fa-location-dot input-icon" style="top:16px"></i>
+            <textarea id="r1-address" rows="3" placeholder="Full address with landmark..."></textarea>
+          </div>
+          <span class="field-err" id="err-r1-address"></span>
+        </div>
+
+        <div class="field-group">
+          <label>Cuisine Type <span class="req">*</span></label>
+          <div class="input-wrap select-wrap">
+            <i class="fa-solid fa-bowl-rice input-icon"></i>
+            <select id="r1-cuisine">
+              <option value="">Select cuisine type</option>
+              <option>North Indian</option>
+              <option>South Indian</option>
+              <option>Chinese</option>
+              <option>Mughlai</option>
+              <option>Fast Food</option>
+              <option>Pizza & Pasta</option>
+              <option>Seafood</option>
+              <option>Biryani</option>
+              <option>Street Food</option>
+              <option>Multi-Cuisine</option>
+              <option>Bakery & Desserts</option>
+              <option>Beverages</option>
+            </select>
+            <i class="fa-solid fa-chevron-down select-arrow"></i>
+          </div>
+          <span class="field-err" id="err-r1-cuisine"></span>
+        </div>
+
+        <button type="submit" class="btn-primary btn-full">
+          Continue <i class="fa-solid fa-arrow-right"></i>
+        </button>
+        <p class="form-alt-link">Already registered? <a id="link-reg1-login" href="#">Login here</a></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 4 — REGISTER STEP 2
+  ═══════════════════════════════════════════ -->
+  <div id="screen-reg2" class="screen">
+    <div class="onboard-header">
+      <button class="back-btn" data-target="screen-reg1"><i class="fa-solid fa-chevron-left"></i></button>
+      <div class="header-logo-mini"><i class="fa-solid fa-utensils"></i></div>
+    </div>
+    <div class="screen-scroll">
+      <div class="progress-bar-wrap">
+        <div class="progress-label"><span>Step 2</span> of 3 — Business Details</div>
+        <div class="progress-track"><div class="progress-fill" style="width:66%"></div></div>
+        <div class="progress-steps">
+          <div class="ps done"><i class="fa-solid fa-check"></i></div>
+          <div class="ps-line filled"></div>
+          <div class="ps active"><i class="fa-solid fa-id-card"></i></div>
+          <div class="ps-line"></div>
+          <div class="ps inactive"><i class="fa-solid fa-landmark"></i></div>
+        </div>
+      </div>
+
+      <h2 class="form-heading">Business Details</h2>
+      <p class="form-sub">Help us verify your restaurant.</p>
+
+      <form id="form-reg2" novalidate>
+        <div class="field-group">
+          <label>FSSAI License Number <span class="req">*</span></label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-certificate input-icon"></i>
+            <input type="text" id="r2-fssai" placeholder="14-digit FSSAI number" maxlength="14" />
+          </div>
+          <span class="field-err" id="err-r2-fssai"></span>
+        </div>
+
+        <div class="field-group">
+          <label>GST Number <span class="optional">(Optional)</span></label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-file-invoice input-icon"></i>
+            <input type="text" id="r2-gst" placeholder="22AAAAA0000A1Z5" maxlength="15" />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group" style="flex:1">
+            <label>Opening Time <span class="req">*</span></label>
+            <div class="input-wrap">
+              <i class="fa-regular fa-clock input-icon"></i>
+              <input type="time" id="r2-open" value="09:00" />
+            </div>
+            <span class="field-err" id="err-r2-open"></span>
+          </div>
+          <div class="field-group" style="flex:1">
+            <label>Closing Time <span class="req">*</span></label>
+            <div class="input-wrap">
+              <i class="fa-regular fa-clock input-icon"></i>
+              <input type="time" id="r2-close" value="23:00" />
+            </div>
+            <span class="field-err" id="err-r2-close"></span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Delivery Prep Time <span class="req">*</span></label>
+          <div class="input-wrap select-wrap">
+            <i class="fa-solid fa-stopwatch input-icon"></i>
+            <select id="r2-prep">
+              <option value="">Select average time</option>
+              <option value="15">15 minutes</option>
+              <option value="20">20 minutes</option>
+              <option value="25">25 minutes</option>
+              <option value="30">30 minutes</option>
+              <option value="40">40 minutes</option>
+              <option value="45">45 minutes</option>
+              <option value="60">60 minutes</option>
+            </select>
+            <i class="fa-solid fa-chevron-down select-arrow"></i>
+          </div>
+          <span class="field-err" id="err-r2-prep"></span>
+        </div>
+
+        <div class="upload-section">
+          <label class="upload-label">Restaurant Logo <span class="req">*</span></label>
+          <div class="upload-box" id="upload-logo" data-field="logo">
+            <div class="upload-inner">
+              <div class="upload-icon-wrap"><i class="fa-solid fa-image"></i></div>
+              <p class="upload-text">Tap to upload logo</p>
+              <p class="upload-hint">PNG, JPG • Max 2MB • Square recommended</p>
+            </div>
+            <input type="file" accept="image/*" class="upload-input" />
+          </div>
+          <span class="field-err" id="err-upload-logo"></span>
+        </div>
+
+        <div class="upload-section">
+          <label class="upload-label">Cover Image <span class="req">*</span></label>
+          <div class="upload-box" id="upload-cover" data-field="cover">
+            <div class="upload-inner">
+              <div class="upload-icon-wrap"><i class="fa-solid fa-panorama"></i></div>
+              <p class="upload-text">Tap to upload cover photo</p>
+              <p class="upload-hint">PNG, JPG • Max 5MB • Landscape preferred</p>
+            </div>
+            <input type="file" accept="image/*" class="upload-input" />
+          </div>
+          <span class="field-err" id="err-upload-cover"></span>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn-ghost" data-target="screen-reg1">
+            <i class="fa-solid fa-arrow-left"></i> Back
+          </button>
+          <button type="submit" class="btn-primary" style="flex:1">
+            Continue <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 5 — REGISTER STEP 3
+  ═══════════════════════════════════════════ -->
+  <div id="screen-reg3" class="screen">
+    <div class="onboard-header">
+      <button class="back-btn" data-target="screen-reg2"><i class="fa-solid fa-chevron-left"></i></button>
+      <div class="header-logo-mini"><i class="fa-solid fa-utensils"></i></div>
+    </div>
+    <div class="screen-scroll">
+      <div class="progress-bar-wrap">
+        <div class="progress-label"><span>Step 3</span> of 3 — Bank & Verification</div>
+        <div class="progress-track"><div class="progress-fill" style="width:100%"></div></div>
+        <div class="progress-steps">
+          <div class="ps done"><i class="fa-solid fa-check"></i></div>
+          <div class="ps-line filled"></div>
+          <div class="ps done"><i class="fa-solid fa-check"></i></div>
+          <div class="ps-line filled"></div>
+          <div class="ps active"><i class="fa-solid fa-landmark"></i></div>
+        </div>
+      </div>
+
+      <h2 class="form-heading">Bank & Verification</h2>
+      <p class="form-sub">Your earnings will be transferred to this account.</p>
+
+      <form id="form-reg3" novalidate>
+        <div class="info-card">
+          <i class="fa-solid fa-lock"></i>
+          <p>Your bank details are encrypted and secured with 256-bit SSL.</p>
+        </div>
+
+        <div class="field-group">
+          <label>Account Holder Name <span class="req">*</span></label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-user input-icon"></i>
+            <input type="text" id="r3-acc-name" placeholder="As per bank records" />
+          </div>
+          <span class="field-err" id="err-r3-acc-name"></span>
+        </div>
+
+        <div class="field-group">
+          <label>Bank Name <span class="req">*</span></label>
+          <div class="input-wrap select-wrap">
+            <i class="fa-solid fa-building-columns input-icon"></i>
+            <select id="r3-bank">
+              <option value="">Select your bank</option>
+              <option>State Bank of India</option>
+              <option>HDFC Bank</option>
+              <option>ICICI Bank</option>
+              <option>Axis Bank</option>
+              <option>Kotak Mahindra Bank</option>
+              <option>Punjab National Bank</option>
+              <option>Bank of Baroda</option>
+              <option>Canara Bank</option>
+              <option>Union Bank of India</option>
+              <option>IndusInd Bank</option>
+              <option>Yes Bank</option>
+              <option>Other</option>
+            </select>
+            <i class="fa-solid fa-chevron-down select-arrow"></i>
+          </div>
+          <span class="field-err" id="err-r3-bank"></span>
+        </div>
+
+        <div class="field-group">
+          <label>Account Number <span class="req">*</span></label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-credit-card input-icon"></i>
+            <input type="text" id="r3-acc-no" placeholder="Enter account number" maxlength="18" />
+          </div>
+          <span class="field-err" id="err-r3-acc-no"></span>
+        </div>
+
+        <div class="field-group">
+          <label>IFSC Code <span class="req">*</span></label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-hashtag input-icon"></i>
+            <input type="text" id="r3-ifsc" placeholder="E.g. HDFC0001234" maxlength="11" style="text-transform:uppercase" />
+          </div>
+          <span class="field-err" id="err-r3-ifsc"></span>
+        </div>
+
+        <div class="field-group">
+          <label>UPI ID <span class="optional">(Optional)</span></label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-mobile-screen-button input-icon"></i>
+            <input type="text" id="r3-upi" placeholder="yourname@upi" />
+          </div>
+        </div>
+
+        <div class="upload-section">
+          <label class="upload-label">PAN Card <span class="req">*</span></label>
+          <div class="upload-box" id="upload-pan" data-field="pan">
+            <div class="upload-inner">
+              <div class="upload-icon-wrap"><i class="fa-solid fa-id-card"></i></div>
+              <p class="upload-text">Upload PAN Card</p>
+              <p class="upload-hint">JPG, PNG or PDF • Max 2MB</p>
+            </div>
+            <input type="file" accept="image/*,.pdf" class="upload-input" />
+          </div>
+          <span class="field-err" id="err-upload-pan"></span>
+        </div>
+
+        <div class="upload-section">
+          <label class="upload-label">FSSAI Certificate <span class="req">*</span></label>
+          <div class="upload-box" id="upload-fssai-cert" data-field="fssai">
+            <div class="upload-inner">
+              <div class="upload-icon-wrap"><i class="fa-solid fa-file-shield"></i></div>
+              <p class="upload-text">Upload FSSAI Certificate</p>
+              <p class="upload-hint">JPG, PNG or PDF • Max 5MB</p>
+            </div>
+            <input type="file" accept="image/*,.pdf" class="upload-input" />
+          </div>
+          <span class="field-err" id="err-upload-fssai-cert"></span>
+        </div>
+
+        <div class="checkbox-wrap">
+          <label class="checkbox-label">
+            <input type="checkbox" id="r3-terms" />
+            <span class="checkbox-box"></span>
+            <span>I agree to the <a href="#">Partner Terms & Conditions</a> and <a href="#">Payout Policy</a></span>
+          </label>
+          <span class="field-err" id="err-r3-terms"></span>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn-ghost" data-target="screen-reg2">
+            <i class="fa-solid fa-arrow-left"></i> Back
+          </button>
+          <button type="submit" class="btn-primary" style="flex:1">
+            <i class="fa-solid fa-paper-plane"></i> Submit for Verification
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 6 — VERIFICATION SUBMITTED
+  ═══════════════════════════════════════════ -->
+  <div id="screen-submitted" class="screen">
+    <div class="submitted-bg">
+      <div class="submitted-ripple">
+        <div class="ripple-ring r1"></div>
+        <div class="ripple-ring r2"></div>
+        <div class="ripple-ring r3"></div>
+        <div class="submitted-icon">
+          <i class="fa-solid fa-check"></i>
+        </div>
+      </div>
+      <h2 class="submitted-heading">Your Restaurant is<br />Under Verification</h2>
+      <p class="submitted-sub">Our team will review your details within <strong>24–48 hours</strong> and notify you via email and SMS.</p>
+
+      <div class="submitted-timeline">
+        <div class="tl-item done">
+          <div class="tl-dot"><i class="fa-solid fa-check"></i></div>
+          <div class="tl-content">
+            <strong>Registration Submitted</strong>
+            <span>Just now</span>
+          </div>
+        </div>
+        <div class="tl-item pending">
+          <div class="tl-dot"><i class="fa-regular fa-clock"></i></div>
+          <div class="tl-content">
+            <strong>Document Verification</strong>
+            <span>In progress (24–48 hrs)</span>
+          </div>
+        </div>
+        <div class="tl-item pending">
+          <div class="tl-dot"><i class="fa-solid fa-store"></i></div>
+          <div class="tl-content">
+            <strong>Go Live on Chatori Jeeb</strong>
+            <span>After approval</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary submitted-btn" id="btn-submitted-login">
+        <i class="fa-solid fa-right-to-bracket"></i> Go to Login
+      </button>
+      <p class="submitted-help">Need help? <a href="#">Contact Support</a></p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 7 — LOGIN
+  ═══════════════════════════════════════════ -->
+  <div id="screen-login" class="screen">
+    <div class="login-top">
+      <div class="login-art">
+        <div class="login-logo-icon"><i class="fa-solid fa-utensils"></i></div>
+        <div class="login-wave"></div>
+      </div>
+    </div>
+    <div class="login-body">
+      <h2 class="login-heading">Welcome Back!</h2>
+      <p class="login-sub">Login to manage your restaurant</p>
+
+      <div class="login-tabs">
+        <button class="tab-btn active" data-tab="password">Password Login</button>
+        <button class="tab-btn" data-tab="otp">OTP Login</button>
+      </div>
+
+      <!-- Password Tab -->
+      <form id="form-login" novalidate class="login-tab-content active" data-tab="password">
+        <div class="field-group">
+          <label>Mobile / Email</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-user input-icon"></i>
+            <input type="text" id="l-user" placeholder="Mobile number or email" />
+          </div>
+          <span class="field-err" id="err-l-user"></span>
+        </div>
+
+        <div class="field-group">
+          <label>Password</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-lock input-icon"></i>
+            <input type="password" id="l-pass" placeholder="Enter password" />
+            <button type="button" class="pass-toggle" data-target="l-pass">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+          <span class="field-err" id="err-l-pass"></span>
+        </div>
+
+        <div class="login-options">
+          <label class="remember-label">
+            <input type="checkbox" id="l-remember" />
+            <span class="checkbox-box"></span>
+            Remember me
+          </label>
+          <a href="#" class="forgot-link">Forgot Password?</a>
+        </div>
+
+        <button type="submit" class="btn-primary btn-full">
+          <i class="fa-solid fa-right-to-bracket"></i> Login to Dashboard
+        </button>
+      </form>
+
+      <!-- OTP Tab -->
+      <form id="form-otp" novalidate class="login-tab-content" data-tab="otp">
+        <div class="field-group">
+          <label>Mobile Number</label>
+          <div class="input-wrap">
+            <span class="phone-code">+91</span>
+            <input type="tel" id="otp-mobile" placeholder="9876543210" maxlength="10" />
+          </div>
+          <span class="field-err" id="err-otp-mobile"></span>
+        </div>
+
+        <button type="button" class="btn-outline btn-full" id="btn-send-otp">
+          <i class="fa-solid fa-message"></i> Send OTP
+        </button>
+
+        <div id="otp-field-wrap" class="otp-field-wrap" style="display:none">
+          <label>Enter OTP</label>
+          <div class="otp-boxes">
+            <input type="tel" maxlength="1" class="otp-box" />
+            <input type="tel" maxlength="1" class="otp-box" />
+            <input type="tel" maxlength="1" class="otp-box" />
+            <input type="tel" maxlength="1" class="otp-box" />
+            <input type="tel" maxlength="1" class="otp-box" />
+            <input type="tel" maxlength="1" class="otp-box" />
+          </div>
+          <button type="submit" class="btn-primary btn-full" style="margin-top:20px">
+            <i class="fa-solid fa-right-to-bracket"></i> Verify & Login
+          </button>
+          <p class="resend-otp">Resend OTP in <span id="otp-timer">30s</span></p>
+        </div>
+      </form>
+
+      <div class="login-divider"><span>or</span></div>
+      <p class="login-register-link">New restaurant? <a id="link-login-register" href="#">Register here</a></p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 8 — DASHBOARD
+  ═══════════════════════════════════════════ -->
+  <div id="screen-dashboard" class="screen">
+
+    <!-- Dashboard Header -->
+    <div class="dash-header">
+      <div class="dash-header-left">
+        <div class="dash-avatar"><i class="fa-solid fa-store"></i></div>
+        <div>
+          <p class="dash-greeting">Good evening 👋</p>
+          <h3 class="dash-rest-name">Chatori Jeeb Kitchen</h3>
+        </div>
+      </div>
+      <div class="dash-header-right">
+        <button class="dash-notif-btn">
+          <i class="fa-regular fa-bell"></i>
+          <span class="notif-badge">3</span>
+        </button>
+        <div class="status-toggle-wrap" id="status-toggle-wrap">
+          <span class="status-label" id="status-label">OPEN</span>
+          <div class="toggle-switch" id="rest-toggle">
+            <div class="toggle-knob"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scrollable Dashboard Body -->
+    <div class="dash-scroll">
+
+      <!-- Earnings Banner -->
+      <div class="earnings-banner">
+        <div class="eb-left">
+          <p class="eb-label">Today's Earnings</p>
+          <h2 class="eb-amount">₹4,280</h2>
+          <div class="eb-trend"><i class="fa-solid fa-arrow-trend-up"></i> +18% vs yesterday</div>
+        </div>
+        <div class="eb-right">
+          <div class="eb-ring">
+            <i class="fa-solid fa-indian-rupee-sign"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="stats-row">
+        <div class="stat-card" id="stat-new">
+          <div class="stat-icon new"><i class="fa-solid fa-bell"></i></div>
+          <div>
+            <span class="stat-num" id="count-new">4</span>
+            <span class="stat-name">New</span>
+          </div>
+        </div>
+        <div class="stat-card" id="stat-preparing">
+          <div class="stat-icon prep"><i class="fa-solid fa-fire-burner"></i></div>
+          <div>
+            <span class="stat-num" id="count-prep">3</span>
+            <span class="stat-name">Preparing</span>
+          </div>
+        </div>
+        <div class="stat-card" id="stat-ready">
+          <div class="stat-icon ready"><i class="fa-solid fa-bag-shopping"></i></div>
+          <div>
+            <span class="stat-num" id="count-ready">2</span>
+            <span class="stat-name">Ready</span>
+          </div>
+        </div>
+        <div class="stat-card" id="stat-total">
+          <div class="stat-icon total"><i class="fa-solid fa-receipt"></i></div>
+          <div>
+            <span class="stat-num">24</span>
+            <span class="stat-name">Total</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <button class="qa-btn" onclick="switchScreen('screen-dashboard', null)">
+          <i class="fa-solid fa-plus"></i> Add Item
+        </button>
+        <button class="qa-btn" onclick="showToast('Menu management coming soon!', 'info')">
+          <i class="fa-solid fa-pen-to-square"></i> Edit Menu
+        </button>
+        <button class="qa-btn" onclick="showToast('Promotions module coming soon!', 'info')">
+          <i class="fa-solid fa-tag"></i> Offers
+        </button>
+        <button class="qa-btn" onclick="showToast('Reports module coming soon!', 'info')">
+          <i class="fa-solid fa-chart-bar"></i> Reports
+        </button>
+      </div>
+
+      <!-- Orders Section -->
+      <div class="dash-section-header">
+        <h3>Live Orders</h3>
+        <button class="see-all-btn">See all <i class="fa-solid fa-chevron-right"></i></button>
+      </div>
+
+      <!-- Order Cards -->
+      <div class="orders-list" id="orders-list">
+        <!-- Injected by JS -->
+      </div>
+
+      <div class="dash-section-header" style="margin-top:20px">
+        <h3>Today's Summary</h3>
+      </div>
+      <div class="summary-card">
+        <div class="sum-row"><span>Total Orders</span><strong>24</strong></div>
+        <div class="sum-row"><span>Completed</span><strong style="color:#25b45b">18</strong></div>
+        <div class="sum-row"><span>Cancelled</span><strong style="color:#D71920">2</strong></div>
+        <div class="sum-row"><span>Avg. Prep Time</span><strong>22 min</strong></div>
+        <div class="sum-row border-top"><span>Gross Earnings</span><strong>₹6,340</strong></div>
+        <div class="sum-row"><span>Platform Fee (10%)</span><strong style="color:#D71920">-₹634</strong></div>
+        <div class="sum-row"><span>Tax (5%)</span><strong style="color:#D71920">-₹317</strong></div>
+        <div class="sum-row sum-total"><span>Net Payout</span><strong>₹5,389</strong></div>
+      </div>
+
+      <div style="height: 100px"></div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-nav="home">
+        <i class="fa-solid fa-house"></i>
+        <span>Home</span>
+      </button>
+      <button class="nav-item" data-nav="orders">
+        <i class="fa-solid fa-receipt"></i>
+        <span>Orders</span>
+      </button>
+      <button class="nav-item" data-nav="menu">
+        <i class="fa-solid fa-book-open"></i>
+        <span>Menu</span>
+      </button>
+      <button class="nav-item" data-nav="earnings">
+        <i class="fa-solid fa-indian-rupee-sign"></i>
+        <span>Earnings</span>
+      </button>
+      <button class="nav-item" data-nav="profile">
+        <i class="fa-solid fa-circle-user"></i>
+        <span>Profile</span>
+      </button>
+    </nav>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
