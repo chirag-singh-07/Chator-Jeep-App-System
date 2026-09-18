@@ -126,7 +126,7 @@ export default function HomeScreen() {
           if (status === 'granted') {
             let location;
             try {
-              location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced, timeout: 8000 });
+              location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
             } catch (e) {
               location = await Location.getLastKnownPositionAsync();
             }
