@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { adminService } from "@/services/admin.service";
 import { FormField } from "@/components/admin/form-field";
@@ -19,6 +19,34 @@ export function SettingsPage() {
   const [offerHours, setOfferHours] = useState("48");
   const [autoAssign, setAutoAssign] = useState(true);
   const [refundAlerts, setRefundAlerts] = useState(true);
+
+  // Platform & Delivery Fees
+  const [deliveryBaseFee, setDeliveryBaseFee] = useState("0");
+  const [deliveryPerKmFee, setDeliveryPerKmFee] = useState("10");
+  const [platformFixedFee, setPlatformFixedFee] = useState("0");
+  const [platformFeePercentage, setPlatformFeePercentage] = useState("5");
+  const [packagingFee, setPackagingFee] = useState("0");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await adminService.getSettings();
+        if (res.success && res.data) {
+          setDeliveryBaseFee(res.data.deliveryBaseFee?.toString() || "0");
+          setDeliveryPerKmFee(res.data.deliveryPerKmFee?.toString() || "10");
+          setPlatformFixedFee(res.data.platformFixedFee?.toString() || "0");
+          setPlatformFeePercentage(res.data.platformFeePercentage?.toString() || "5");
+          setPackagingFee(res.data.packagingFee?.toString() || "0");
+        }
+      } catch (error) {
+        toast.error("Failed to fetch settings");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   return (
     <div className="grid gap-4 xl:grid-cols-2">
@@ -98,6 +126,49 @@ export function SettingsPage() {
             <Switch checked={refundAlerts} onCheckedChange={setRefundAlerts} />
           </div>
         </CardContent>
+      </Card>
+
+      <Card className="rounded-2xl shadow-sm xl:col-span-2">
+        <CardHeader>
+          <CardTitle>Platform & Delivery Fees</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <FormField label="Delivery Base Fee">
+            <Input value={deliveryBaseFee} onChange={(e) => setDeliveryBaseFee(e.target.value.replace(/\D/g, ""))} />
+          </FormField>
+          <FormField label="Delivery Per KM Fee">
+            <Input value={deliveryPerKmFee} onChange={(e) => setDeliveryPerKmFee(e.target.value.replace(/\D/g, ""))} />
+          </FormField>
+          <FormField label="Platform Fixed Fee">
+            <Input value={platformFixedFee} onChange={(e) => setPlatformFixedFee(e.target.value.replace(/\D/g, ""))} />
+          </FormField>
+          <FormField label="Platform Fee Percentage (%)">
+            <Input value={platformFeePercentage} onChange={(e) => setPlatformFeePercentage(e.target.value.replace(/[^0-9.]/g, ""))} />
+          </FormField>
+          <FormField label="Packaging Fee">
+            <Input value={packagingFee} onChange={(e) => setPackagingFee(e.target.value.replace(/\D/g, ""))} />
+          </FormField>
+        </CardContent>
+        <div className="p-6 pt-0 flex justify-end">
+          <Button
+            onClick={async () => {
+              try {
+                await Promise.all([
+                  adminService.updateSetting({ key: "DELIVERY_BASE_FEE", value: Number(deliveryBaseFee) }),
+                  adminService.updateSetting({ key: "DELIVERY_PER_KM_FEE", value: Number(deliveryPerKmFee) }),
+                  adminService.updateSetting({ key: "PLATFORM_FIXED_FEE", value: Number(platformFixedFee) }),
+                  adminService.updateSetting({ key: "PLATFORM_FEE_PERCENTAGE", value: Number(platformFeePercentage) }),
+                  adminService.updateSetting({ key: "PACKAGING_FEE", value: Number(packagingFee) }),
+                ]);
+                toast.success("Platform fees updated successfully.");
+              } catch (error) {
+                toast.error("Failed to update fees.");
+              }
+            }}
+          >
+            Save Fees
+          </Button>
+        </div>
       </Card>
     </div>
   );
