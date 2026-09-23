@@ -64,7 +64,7 @@ const router = Router();
  *       201:
  *         description: Order placed successfully
  */
-router.post("/", authMiddleware, roleMiddleware([ROLES.USER]), validate(createOrderSchema), controller.createOrder);
+router.post("/", authMiddleware, roleMiddleware([ROLES.USER, ROLES.ADMIN]), validate(createOrderSchema), controller.createOrder);
 
 /**
  * @openapi
@@ -96,7 +96,7 @@ router.post("/", authMiddleware, roleMiddleware([ROLES.USER]), validate(createOr
  *       200:
  *         description: Payment initiated
  */
-router.post("/payment/checkout", authMiddleware, roleMiddleware([ROLES.USER]), validate(onlineCheckoutPaymentSchema), controller.initiateCheckoutPayment);
+router.post("/payment/checkout", authMiddleware, roleMiddleware([ROLES.USER, ROLES.ADMIN]), validate(onlineCheckoutPaymentSchema), controller.initiateCheckoutPayment);
 
 /**
  * @openapi
@@ -117,7 +117,7 @@ router.post("/payment/checkout", authMiddleware, roleMiddleware([ROLES.USER]), v
  *       200:
  *         description: Price preview
  */
-router.post("/payment/checkout-preview", authMiddleware, roleMiddleware([ROLES.USER]), validate(onlineCheckoutPaymentSchema), controller.checkoutPreview);
+router.post("/payment/checkout-preview", authMiddleware, roleMiddleware([ROLES.USER, ROLES.ADMIN]), validate(onlineCheckoutPaymentSchema), controller.checkoutPreview);
 
 /**
  * @openapi
@@ -145,7 +145,7 @@ router.post("/payment/checkout-preview", authMiddleware, roleMiddleware([ROLES.U
  *       201:
  *         description: Order created
  */
-router.post("/payment/verify-create", authMiddleware, roleMiddleware([ROLES.USER]), validate(verifyOnlineCheckoutPaymentSchema), controller.verifyCheckoutPayment);
+router.post("/payment/verify-create", authMiddleware, roleMiddleware([ROLES.USER, ROLES.ADMIN]), validate(verifyOnlineCheckoutPaymentSchema), controller.verifyCheckoutPayment);
 
 /**
  * @openapi

@@ -18,6 +18,7 @@ import { haversineKm, calculateDrivingDistanceKm } from "../../common/utils/geo.
 import { Restaurant } from "../restaurant/restaurant.model";
 import { validateCoupon, incrementCouponUsage } from "../coupon/coupon.service";
 import { withTransaction } from "../../common/utils/transaction.util";
+import { getIO } from "../../sockets";
 
 const canTransition = (current: OrderStatus, next: OrderStatus, actorRole: Role): boolean => {
   if ((next as string) === ORDER_STATUS.CANCELLED) {
@@ -100,6 +101,14 @@ export const createOrder = async (
   }
 
   await notifyNewOrder(order._id.toString(), userId, input.restaurantId, draft.itemsTotal, input.deliveryAddress, draft.payload.isBulkOrder);
+
+  // Emit real-time order alert to restaurant
+  try {
+    const io = getIO();
+    io.to(`restaurant_${input.restaurantId}`).emit("new_order", { order: order.toObject() });
+  } catch (err) {
+    console.error("Failed to emit new_order socket event:", err);
+  }
 
   return { ...order.toObject(), remainingAmount };
   });
@@ -503,6 +512,14 @@ export const verifyPaymentAndCreateOrder = async (
 
   await notifyNewOrder(order._id.toString(), userId, input.restaurantId, draft.itemsTotal, input.deliveryAddress, draft.payload.isBulkOrder);
   notifyCustomerPaymentConfirmed(userId, order._id.toString(), "Razorpay");
+
+  // Emit real-time order alert to restaurant
+  try {
+    const io = getIO();
+    io.to(`restaurant_${input.restaurantId}`).emit("new_order", { order: order.toObject() });
+  } catch (err) {
+    console.error("Failed to emit new_order socket event:", err);
+  }
 
   return { ...order.toObject(), remainingAmount: 0 };
 };
