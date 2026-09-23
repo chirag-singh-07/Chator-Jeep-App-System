@@ -64,6 +64,18 @@ app.use(express.json({
 }));
 app.use(express.urlencoded({ extended: true, limit: "5mb" }));
 app.use(morgan("[:date[iso]] :method :url :status :res[content-length] - :response-time ms"));
+app.use((req, res, next) => {
+  if (Object.keys(req.query || {}).length > 0) {
+    console.log(`[QUERY] ${req.method} ${req.url}:`, JSON.stringify(req.query));
+  }
+  if (req.body && Object.keys(req.body).length > 0) {
+    const safeBody = { ...req.body };
+    if (safeBody.password) safeBody.password = "***";
+    if (safeBody.newPassword) safeBody.newPassword = "***";
+    console.log(`[BODY] ${req.method} ${req.url}:`, JSON.stringify(safeBody));
+  }
+  next();
+});
 // Global Rate Limiter
 app.use(
   rateLimit({
